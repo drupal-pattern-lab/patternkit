@@ -1,0 +1,12 @@
+{
+    "name": "customer-portal/pkplugins",
+    "authors": [
+        {
+            "name": "Red Hat Customer Portal",
+            "email": "cp-drupal@redhat.com"
+        }
+    ],
+    "require": {},
+    "config": {},
+    "repositories": []
+}

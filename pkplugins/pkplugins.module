@@ -1,0 +1,146 @@
+<?php
+/**
+ * @file
+ * Patternkit wrapper/abstraction for panels.
+ */
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function pkplugins_ctools_plugin_directory($owner, $plugin) {
+  if ($owner == 'ctools') {
+    return 'plugins/' . $plugin;
+  }
+
+  return NULL;
+}
+
+/**
+ * Implements hook_flush_caches().
+ */
+function pkplugins_flush_caches() {
+  return array('cache_pkplugins');
+}
+
+/**
+ * Implements hook_admin_menu_cache_info().
+ */
+function pkplugins_admin_menu_cache_info() {
+  $caches['pkplugins'] = array(
+    'title'    => t('Flush Patternkit caches'),
+    'callback' => 'pkplugins_cache_clear_all',
+  );
+
+  return $caches;
+}
+
+/**
+ * Callback for hook_admin_menu_cache_info() to clear all of the caches.
+ */
+function pkplugins_cache_clear_all() {
+  foreach (pkplugins_flush_caches() as $cache_bin) {
+    cache_clear_all('*', $cache_bin, TRUE);
+  }
+}
+
+/**
+ * Flush the pkplugins metadata cache.
+ */
+function pkplugins_flush_metadata_cache() {
+  cache_clear_all('pkplugins_pk_metadata', 'cache', FALSE);
+}
+
+/**
+ * Utility function to get all Patternkit module metadata.
+ *
+ * @param null $subtype
+ *   If specified, return only metadata for this subtype.
+ * @param bool $reset
+ *   Optionally force the meta data to be reloaded.
+ *
+ * @return array|stdClass
+ *   Array of metadata objects found or object if specific module requested.
+ */
+function _pkplugins_get_metadata($subtype = NULL, $reset = FALSE) {
+  $cached_metadata = &drupal_static(__FUNCTION__);
+
+  // If the static cache doesn't exist, or we've called with reset, rebuild.
+  if (!isset($cached_metadata) || $reset) {
+    $pkplugins_cache_enabled = variable_get('pkplugins_cache_enabled', TRUE);
+    // If cache is enabled, attempt to load from cache.
+    if ($pkplugins_cache_enabled && ($cache = cache_get('pkplugins_pk_metadata'))) {
+      $cached_metadata = $cache->data;
+    }
+    else {
+      $patternkit_host = variable_get('pkplugins_pk_host', 'http://10.254.254.254:8080');
+
+      $patterns = drupal_http_request(
+        $patternkit_host . '/api/patterns',
+        array(
+          'headers' => array('Content-Type' => 'application/json'),
+          'timeout' => 10
+        )
+      );
+      if (!empty($patterns) && empty($patterns->error) && $patterns->code == 200) {
+        $cached_metadata = (array)json_decode($patterns->data);
+
+        // Cache the data so that we don't have to build it again.
+        // (if cache enabled, otherwise just a slow, redundant memcache set).
+        if ($pkplugins_cache_enabled == TRUE) {
+          cache_set('pkplugins_pk_metadata', $cached_metadata, 'cache', CACHE_PERMANENT);
+        }
+      } else {
+        _pkplugins_show_error(
+          'Patternkit failed to load metadata from service (%service_uri): %error',
+          array(
+            '%service_uri' => $patternkit_host . '/api/patterns',
+            '%error' => !empty($patterns->error) ? $patterns->error : $patterns->code
+          )
+        );
+        return NULL;
+      }
+    }
+  }
+
+  // If we are requesting data for a specific module type, return just
+  // that data.
+  if (!is_null($subtype) && strtolower($subtype) != 'none') {
+    $lookup = substr($subtype, 3);
+    if (!empty($cached_metadata[strtolower($lookup)])) {
+      return $cached_metadata[strtolower($lookup)];
+    }
+    else {
+      _pkplugins_show_error(
+        'Patternkit module does not appear to exist (%module), verify module info/usage.',
+        array('%module' => $lookup)
+      );
+
+      return NULL;
+    }
+  }
+
+  return $cached_metadata;
+}
+
+/**
+ * Utility function to display pkplugins error messages.
+ *
+ * Checks if permissions and configuration allow showing error, then displays.
+ *
+ * @param string $msg
+ *   The message to display (with t vars as appropriate).
+ * @param array  $vars
+ *   Optional array of replacement text appropriate for use in t function.
+ * @param string $status
+ *   Status for the error message. Passed to drupal_set_message.
+ */
+function _pkplugins_show_error($msg, $vars = array(), $status = 'error') {
+  if (variable_get('pkplugins_show_errors', FALSE) && user_is_logged_in()) {
+    drupal_set_message(t($msg, $vars), $status);
+  }
+  if (variable_get('pkplugins_log_errors', FALSE)) {
+    watchdog('pkplugins', $msg, $vars, WATCHDOG_ERROR);
+  }
+}
+
+

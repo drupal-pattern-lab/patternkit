@@ -1,0 +1,5 @@
+name="Patternkit plugin - Red Hat Base"
+description="Adds patternkit patterns to panels as content types."
+package="Presentation Framework"
+core=7.x
+version=7.x-1.0

@@ -1,0 +1,72 @@
+<?php
+/**
+ * @file
+ * Install file for ct_article module.
+ */
+
+/**
+ * Add Schema for cache data.
+ */
+function pkplugins_schema() {
+  $schema = array();
+
+  // Add the redhat_pkplugins caching table.
+  $schema['cache_pkplugins'] = drupal_get_schema_unprocessed('system', 'cache');
+
+//  // Add the redhat_pkplugins module html artifact table.
+//  $schema['pkplugins_artifacts'] = array(
+//    'description' => 'The artifact table for pkplugins. Provides a failover for origin unavailability.',
+//    'fields'      => array(
+//      'uuid'    => array(
+//        'type' => 'char',
+//        'length' => 36,
+//        'not null' => TRUE,
+//        'default' => '',
+//        'description' => 'The Universally Unique Identifier.',
+//      ),
+//      'content'     => array(
+//        'description' => 'The artifact of interest.',
+//        'type'        => 'longtext',
+//        'default'     => '',
+//      ),
+//      'type'    => array(
+//        'description' => 'The {node_type} of this node.',
+//        'type'        => 'varchar',
+//        'length'      => 32,
+//        'not null'    => TRUE,
+//        'default'     => '',
+//      ),
+//      'title'   => array(
+//        'description' => 'The title of this node, always treated a non-markup plain text.',
+//        'type'        => 'varchar',
+//        'length'      => 255,
+//        'not null'    => TRUE,
+//        'default'     => '',
+//      ),
+//      'created' => array(
+//        'description' => 'The Unix timestamp when the node was created.',
+//        'type'        => 'int',
+//        'not null'    => TRUE,
+//        'default'     => 0,
+//      ),
+//      'changed' => array(
+//        'description' => 'The Unix timestamp when the node was most recently saved.',
+//        'type'        => 'int',
+//        'not null'    => TRUE,
+//        'default'     => 0,
+//      ),
+//    ),
+//    'indexes'     => array(
+//      'node_changed' => array('changed'),
+//      'node_created' => array('created'),
+//    ),
+//    'unique keys' => array(
+//      'nid_vid' => array('nid', 'vid'),
+//      'vid'     => array('vid'),
+//    ),
+//    'primary key' => array('nid'),
+//  );
+
+  return $schema;
+}
+
