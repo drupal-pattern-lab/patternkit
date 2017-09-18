@@ -1,24 +1,30 @@
 <?php
+
 /**
  * @file
  * Patternkit Panes.
+ *
  * Exposes patternkit modules to panels for placement on the page.
- * Author: Jason Smith <jason.smith@redhat.com>
+ * Author: Jason Smith <jason.smith@redhat.com>.
  */
 
-
 /**
+ * Plugin declaration for panels.
+ *
  * Plugins are described by creating a $plugin array which will be used
  * by the system that includes this file.
  */
-$plugin = array(
+$plugin = [
   'title'        => t('Patternkit Pattern'),
-  'description'  => t('Add and configure a patternkit pattern module to the page'),
-  'category'     => array(t('Patternkit'), -9),
+  'description'  => t(
+    'Add and configure a patternkit pattern module to the page'
+  ),
+  'category'     => [t('Patternkit'), -9],
   'content type' => 'pkplugins_pkplugins_content_type_content_type',
   'admin info'   => 'pkplugins_pkplugins_content_type_admin_info',
-  'defaults'     => array(),
-);
+  'defaults'     => [],
+  'all contexts' => TRUE, // This is NEEDED to be able to use substitution strings in your pane.
+];
 
 /**
  * Generate the content type (pane) definitions.
@@ -39,9 +45,9 @@ function pkplugins_pkplugins_content_type_content_type($subtype) {
     drupal_set_message(
       t(
         "The patternkit framework module (:module) appears to be missing. Remove from this panel, or replace the missing code and clear caches.",
-        array(
+        [
           ':module' => $subtype,
-        )
+        ]
       ),
       'warning',
       FALSE
@@ -62,7 +68,7 @@ function pkplugins_pkplugins_content_type_content_type($subtype) {
  */
 function pkplugins_pkplugins_content_type_content_types() {
   // No reason to generate repeatedly, so (static) caching results.
-  $types = &drupal_static(__FUNCTION__, array());
+  $types = &drupal_static(__FUNCTION__, []);
   if (!empty($types)) {
     return $types;
   }
@@ -73,17 +79,17 @@ function pkplugins_pkplugins_content_type_content_types() {
   // Loop through the found modules and create panes for each.
   foreach ($modules as $module_name => $module_meta) {
     $module_key = 'pk_' . $module_name;
-    $category   = !empty($module_meta->category) ? $module_meta->category : 'uncategorized';
+    $category = !empty($module_meta->category) ? $module_meta->category : 'uncategorized';
 
     // Create the pane config.
-    $types[$module_key] = array(
+    $types[$module_key] = [
       'category'    => "Patternkit/$category",
       'icon'        => 'icon_field.png',
       'title'       => $module_meta->title,
       'description' => $module_meta->title . ' ' . $module_meta->version,
-      'defaults'    => array(),
+      'defaults'    => [],
       'cache'       => TRUE,
-    );
+    ];
   }
 
   return $types;
@@ -92,7 +98,11 @@ function pkplugins_pkplugins_content_type_content_types() {
 /**
  * Implements hook_content_type_admin_title().
  */
-function pkplugins_pkplugins_content_type_admin_title($subtype, $conf, $context) {
+function pkplugins_pkplugins_content_type_admin_title(
+  $subtype,
+  $conf,
+  $context
+) {
   $module = _pkplugins_get_metadata($subtype);
   if (empty($module->title)) {
     $title = "BROKEN/MISSING MODULE";
@@ -103,32 +113,41 @@ function pkplugins_pkplugins_content_type_admin_title($subtype, $conf, $context)
 
   return t(
     'READABLENAME (MODULENAME Pattern)',
-    array(
+    [
       'READABLENAME' => $title,
       'MODULENAME'   => $subtype,
-    )
+    ]
   );
 }
 
 /**
  * Implements hook_content_type_admin_title().
  */
-function pkplugins_pkplugins_content_type_admin_info($subtype, $conf, $context) {
+function pkplugins_pkplugins_content_type_admin_info(
+  $subtype,
+  $conf,
+  $context
+) {
   $module = _pkplugins_get_metadata($subtype);
-  $block  = new stdClass();
+  $block = new stdClass();
 
-  $block->title   = $subtype;
+  $block->title = $subtype;
   $block->content = "$subtype";
 
   if (empty($module->title)) {
-    $block->title   = "BROKEN/MISSING MODULE ($subtype)";
+    $block->title = "BROKEN/MISSING MODULE ($subtype)";
     $block->content = "BROKEN/MISSING MODULE";
 
     return $block;
   }
 
-  // Add to the block content the admin presentation
-  $block->content = _pkplugins_admin_info_presentation_render($conf, $module, $subtype, $block->content);
+  // Add to the block content the admin presentation.
+  $block->content = _pkplugins_admin_info_presentation_render(
+    $conf,
+    $module,
+    $subtype,
+    $block->content
+  );
 
   return $block;
 }
@@ -140,7 +159,7 @@ function pkplugins_pkplugins_content_type_edit_form($form, &$form_state) {
 
   // Get the subtype from the form state for simpler code.
   $subtype = $form_state['subtype_name'];
-  // Instance configuration for the form is in form_state['conf'];
+  // Instance configuration for the form is in form_state['conf'];.
   $conf = $form_state['conf'];
   // Get all of the module metadata from the pattern path.
   $module = _pkplugins_get_metadata($subtype);
@@ -151,46 +170,51 @@ function pkplugins_pkplugins_content_type_edit_form($form, &$form_state) {
   unset($form['override_title_text']);
   unset($form['override_title_heading']);
 
-  $form['presentation_style'] = array(
+  // @TODO: Re-enable the other formats.
+  $form['presentation_style'] = [
     '#type'          => 'select',
     '#title'         => 'Presentation style',
-    '#options'       => array(
-      'webcomponent' => 'Web component',
+    '#options'       => [
+//      'webcomponent' => 'Web component',
       'html'         => 'HTML inline',
-      'json'         => 'JSON (with js/css)',
-    ),
+//      'json'         => 'JSON (with js/css)',
+    ],
     '#default_value' => isset($conf['presentation_style']) ? $conf['presentation_style'] : '',
-  );
+  ];
 
   // Add version as hidden field.
-  $form['version'] = array(
+  $form['version'] = [
     '#type'  => 'hidden',
     '#value' => isset($conf['version']) ? $conf['version'] : $module->version,
-  );
+  ];
 
   // Add module subtype for simpler tracking.
-  $form['module_subtype'] = array(
+  $form['module_subtype'] = [
     '#type'  => 'hidden',
     '#value' => $form_state['subtype_name'],
-  );
+  ];
 
   // Add Instance UUID as hidden field.
-  $form['instance_uuid'] = array(
+  $form['instance_uuid'] = [
     '#type'  => 'hidden',
-    '#value' => isset($conf['instance_uuid']) ? $conf['instance_uuid'] : ctools_uuid_generate(),
-  );
+    '#value' => isset($conf['instance_uuid']) ? $conf['instance_uuid'] : ctools_uuid_generate(
+    ),
+  ];
 
   // Add Instance config (if exists) as hidden field.
-  $form['instance_config'] = array(
+  $form['instance_config'] = [
     '#type'          => 'hidden',
-    '#attributes'    => array(
+    '#attributes'    => [
       'id' => 'schema_instance_config',
-    ),
+    ],
     '#default_value' => isset($conf['instance_config']) ? $conf['instance_config'] : '',
-  );
+  ];
 
-  $patternkit_host = variable_get('pkplugins_pk_host', 'http://10.254.254.254:8080');
-  $url             = $patternkit_host . '/schema/editor/' . substr($subtype, 3);
+  $patternkit_host = variable_get(
+    'pkplugins_pk_host',
+    'http://10.254.254.254:8080'
+  );
+  $url = $patternkit_host . '/schema/editor/' . substr($subtype, 3);
 
   if (!empty($conf['instance_config'])) {
     $config = json_decode($conf['instance_config']);
@@ -201,25 +225,25 @@ function pkplugins_pkplugins_content_type_edit_form($form, &$form_state) {
   <iframe id='schema-editor-iframe' width='100%' height='1000px' src='$url'></iframe>
   <script>
     // Enlarge the ctools modal to make it easier to work with the iframe.
-    jQuery('.ctools-modal-content').animate({width:'100%', height:'100%'})
+    jQuery('.ctools-modal-content').animate({width:'100%', height:'100%'});
     jQuery('#modalContent').animate({'width': '100%', 'left':'0px', 'top':'0px'});
     jQuery('#modal-content').animate({'width': '100%', 'height': '100%'});
-     
-    var schemaDataSaved = false;
+    
+    let schemaDataSaved = false;
     // Respond to data events.
     window.addEventListener('message', function(event) {
-      if (event.data.name && event.data.name == 'saveData') {
+      if (event.data.name && event.data.name === 'saveData') {
         let configObject = JSON.stringify(event.data);
         document.getElementById('schema_instance_config').value = configObject;
         console.log('config object', configObject);
         schemaDataSaved = true;
         jQuery('#pkplugins-pkplugins-content-type-edit-form').trigger('submit');
       }
-    });    
+    });
     
     document.getElementById('pkplugins-pkplugins-content-type-edit-form').onsubmit = function(){
-      if (schemaDataSaved == false) {
-        var frame = document.getElementById('schema-editor-iframe');
+      if (schemaDataSaved === false) {
+        let frame = document.getElementById('schema-editor-iframe');
         frame.contentWindow.postMessage('sendSaveData', '*');
         return false;
       }
@@ -227,12 +251,10 @@ function pkplugins_pkplugins_content_type_edit_form($form, &$form_state) {
   </script>
   ";
 
-
-  $form['configuration'] = array(
+  $form['configuration'] = [
     '#type'   => 'markup',
     '#markup' => $markup,
-  );
-
+  ];
 
   return $form;
 }
@@ -240,11 +262,14 @@ function pkplugins_pkplugins_content_type_edit_form($form, &$form_state) {
 /**
  * Implements hook_content_type_edit_form_submit().
  */
-function pkplugins_pkplugins_content_type_edit_form_submit(&$form, &$form_state) {
+function pkplugins_pkplugins_content_type_edit_form_submit(
+  &$form,
+  &$form_state
+) {
   // Clear instance render cache.
-  $subtype     = $form_state['values']['module_subtype'];
+  $subtype = $form_state['values']['module_subtype'];
   $instance_id = $form_state['values']['instance_uuid'];
-  $config      = json_decode($form_state['values']['instance_config']);
+  $config = json_decode($form_state['values']['instance_config']);
 
   $cid = "pkmod:{$subtype}:{$instance_id}";
   cache_clear_all($cid, 'cache_pkplugins', TRUE);
@@ -252,21 +277,22 @@ function pkplugins_pkplugins_content_type_edit_form_submit(&$form, &$form_state)
   $config->instance_id = $instance_id;
   $config->presentation_style = $form_state['values']['presentation_style'];
 
-  $pk_obj = (object) array();
+  $pk_obj = (object) [];
+
+  $pk_obj = _pkplugins_fetch_json_and_assets($subtype, $config);
 
   // Depending on the type of presentation, we want to fetch the data
   // differently.
   switch ($config->presentation_style) {
     case 'webcomponent':
-      $pk_obj = _pkplugins_fetch_webcomponent_assets($subtype, $config);
+      _pkplugins_fetch_webcomponent_assets($subtype, $config, $pk_obj);
       break;
 
     case 'html':
-      $pk_obj = _pkplugins_fetch_fragment_assets($subtype, $config);
+      _pkplugins_fetch_fragment_assets($subtype, $config, $pk_obj);
       break;
 
     case 'json':
-      $pk_obj = _pkplugins_fetch_json_assets($subtype, $config);
       break;
   }
 
@@ -280,8 +306,13 @@ function pkplugins_pkplugins_content_type_edit_form_submit(&$form, &$form_state)
 /**
  * Implements hook_content_type_render().
  */
-function pkplugins_pkplugins_content_type_render($subtype, $instance_config, $args, $context) {
-  $base_dependencies = array();
+function pkplugins_pkplugins_content_type_render(
+  $subtype,
+  $instance_config,
+  $args,
+  $context
+) {
+  $base_dependencies = [];
 
   // Flag if a module block should be cached or not.
   $cacheable = variable_get('pkplugins_render_cache', FALSE);
@@ -289,7 +320,7 @@ function pkplugins_pkplugins_content_type_render($subtype, $instance_config, $ar
   // If an instance configuration provides a UUID, use it. If not, we should
   // not cache this item because the uuid will be different each time.
   if (empty($instance_config['instance_uuid'])) {
-    $cacheable   = FALSE;
+    $cacheable = FALSE;
     $instance_id = ctools_uuid_generate();
   }
   else {
@@ -307,12 +338,12 @@ function pkplugins_pkplugins_content_type_render($subtype, $instance_config, $ar
   $cid = "pkmod:{$subtype}:{$instance_id}:";
   $cid .= md5(
     json_encode(
-      array(
+      [
         user_is_logged_in(),
         $context,
         $instance_config,
         $language->language,
-      )
+      ]
     )
   );
 
@@ -322,29 +353,29 @@ function pkplugins_pkplugins_content_type_render($subtype, $instance_config, $ar
 
   // Initialize our static (if necessary).
   if (is_null($is_processed)) {
-    $is_processed = array();
+    $is_processed = [];
   }
 
   // If we've already processed this module, don't add it to active again.
   // This array is used by the frontend to bootstrap, we want each
   // module to appear only once in this array.
-  if (!isset($is_processed[$module->module_name])) {
-    // If this is a module, add to bootstrap list.
-    if ($module->type == 'module') {
-      $base_dependencies['js'][] = array(
-        'data' => array(
-          'pkplugins' => array(
-            'active' => array($module->module_name),
-          ),
-        ),
-        'type' => 'setting',
-      );
-    }
-    $is_processed[$module->module_name] = 1;
+  if (!isset($is_processed[$subtype])) {
+    // Add to bootstrap list.
+    $base_dependencies['js'][] = [
+      'pkplugins' => [
+        'active' => [
+          $subtype => [
+            $instance_id,
+          ],
+        ],
+      ],
+      'type' => 'setting',
+    ];
+    $is_processed[$subtype] = 1;
   }
 
   // If the item is cacheable, fetch it and return it.
-  if (0 && $cacheable === TRUE) {
+  if ($cacheable === TRUE) {
     // Attempt to fetch the cached pane.
     $cached = cache_get($cid, 'cache_pkplugins');
     if ($cached !== FALSE) {
@@ -364,25 +395,37 @@ function pkplugins_pkplugins_content_type_render($subtype, $instance_config, $ar
   // Get the body of content.
   $content = _pkplugins_render_block($module, $instance_id, $config, $context);
 
-  if ($config['presentation_style'] != 'webcomponent') {
-    // Replace tokens in the body (if any).
-    $content = token_replace(
-      $content,
-      array(
-        'custom' => array(
-          'token' => 'THIS WAS TOTALLY A TOKEN BEFORE - WINZ!!!!',
-        )
-      )
-    );
-  }
+  // Replace ctools substitutions (if any) from context.
+  $content = ctools_context_keyword_substitute($content, array(), $context);
+
+  // Replace core tokens in the body (if any).
+  $content = token_replace(
+    $content,
+    [
+      'pkplugins' => [
+        'pattern'     => $subtype,
+        'instance_id' => $instance_id,
+      ],
+    ]
+  );
+//
+//  if (!empty($config['pkdata']['attachments'])) {
+//    $settings = _pkplugin_merge_js(
+//      $config['pkdata']['attachments'],
+//      $base_dependencies
+//    );
+//    dpm($settings, 'settings');
+//    dpm($base_dependencies, 'bd');
+//  }
+
 
   // Build the response object.
-  $block          = new stdClass();
-  $block->title   = '';
-  $block->content = array(
+  $block = new stdClass();
+  $block->title = '';
+  $block->content = [
     '#markup'   => $content,
     '#attached' => $config['pkdata']['attachments'],
-  );
+  ];
 
   // Parse TTL and add to params.
   if (!empty($module->ttl)) {
@@ -413,15 +456,20 @@ function pkplugins_pkplugins_content_type_render($subtype, $instance_config, $ar
  *   Module of interest.
  * @param string $instance_id
  *   The unique ID for the module we are working on.
- * @param array  $params
+ * @param array $config
  *   Array of vars from instance configuration / context.
- * @param array  $context
+ * @param array $context
  *   Context array (if available).
  *
  * @return string|object
  *   Content of the panel block.
  */
-function _pkplugins_render_block($module, $instance_id, $config, $context) {
+function _pkplugins_render_block(
+  $module,
+  $instance_id,
+  array $config,
+  array $context = NULL
+) {
   if (isset($module->subtype)) {
     $subtype = $module->subtype;
   }
@@ -440,39 +488,30 @@ function _pkplugins_render_block($module, $instance_id, $config, $context) {
   return $body;
 }
 
-
 /**
- * Helper function to get the html markup for module admin presentation
+ * Helper function to get the html markup for module admin presentation.
  *
- * @param array  $conf
- *   The module configuration
+ * @param array $conf
+ *   The module configuration.
  * @param object $module
- *   The module metadata
+ *   The module metadata.
  * @param string $subtype
- *   The module machine name
+ *   The module machine name.
  * @param string $block_content
- *   The current module admin block content
+ *   The current module admin block content.
  *
  * @return string
  *   The html markup for the module admin presentation
  */
-function _pkplugins_admin_info_presentation_render($conf, $module, $subtype, $block_content) {
-  // Set a default presentation.
-  $presentation_title = t('Raw instance data');
-  $raw_config         = '<pre>' . print_r($conf, 1) . '</pre>';
-
-
-  $jsconf = json_decode($conf['instance_config']);
-  dpm($jsconf, 'conf on presentation render');
-
-  $result = pkplugins_pkplugins_content_type_render($subtype, $conf, array(), array());
+function _pkplugins_admin_info_presentation_render(
+  array $conf,
+  $module,
+  $subtype,
+  $block_content
+) {
+  $result = pkplugins_pkplugins_content_type_render($subtype, $conf, [], []);
 
   $output = $result->content;
-
-  //$output = _pkplugins_render_block($module, $conf)
-  //$output = $presentation_title . $raw_config;
-
-
   return $output;
 }
 
@@ -484,21 +523,24 @@ function _pkplugins_admin_info_presentation_render($conf, $module, $subtype, $bl
  * @param object $config
  *   Configuration object for this instance of the pattern.
  *
- * @return
- *
+ * @return object
+ *   The pkplugin object of interest.
  */
-function _pkplugins_fetch_json_assets($subtype, $config) {
-  $patternkit_host = variable_get('pkplugins_pk_host', 'http://10.254.254.254:8080');
+function _pkplugins_fetch_json_and_assets($subtype, $config) {
+  $patternkit_host = variable_get(
+    'pkplugins_pk_host',
+    'http://10.254.254.254:8080'
+  );
 
-  $url    = $patternkit_host . '/api/render/json';
+  $url = $patternkit_host . '/api/render/json';
   $result = drupal_http_request(
     $url,
-    array(
-      'headers' => array('Content-Type' => 'application/json'),
+    [
+      'headers' => ['Content-Type' => 'application/json'],
       'data'    => $config->rawJSON,
-      //      'timeout' => 10,
+      'timeout' => 10,
       'method'  => 'POST',
-    )
+    ]
   );
 
   // @TODO: Request failure handling.
@@ -507,91 +549,297 @@ function _pkplugins_fetch_json_assets($subtype, $config) {
 
   $dir = "public://pkplugins/$subtype/{$config->instance_id}";
   if (!file_prepare_directory($dir, FILE_CREATE_DIRECTORY)) {
-    // @TODO: Failure handling
+    // @TODO: Failure handling.
+    _pkplugins_show_error(
+      "Unable to create folder ($dir) to contain the pklugins artifacts."
+    );
   }
 
   // Fetch the body html artifact.
-  $save_result  = file_unmanaged_save_data(
+  $save_result = file_unmanaged_save_data(
     $pk_obj->body,
-    "$dir/body.html",
+    "$dir/manifest.json",
     FILE_EXISTS_REPLACE
   );
   $pk_obj->body = $save_result;
 
-
   if ($save_result == FALSE) {
-    // @TODO: do something.
+    // @TODO: Failure handling.
+    _pkplugins_show_error(
+      "Unable to create static archive of the JSON pklugins artifact for $subtype."
+    );
   }
 
   $weight = 100;
+  $assets = [];
 
-  // For now, we're leaving out JS
-  // @TODO: Figure out a long term solution here.
-  unset($pk_obj->assets['footer_js']);
-  unset($pk_obj->assets['js']);
+  // Normalize the object for easier processing.
+  if (!empty($pk_obj->assets)) {
+    $pk_obj->assets->js->early;
+    $pk_obj->assets->js->deferred;
+    $pk_obj->assets->css->list;
+    $pk_obj->assets->css->shared;
+  }
+  else {
+    $pk_obj->assets->js->early = $pk_obj->global_assets->js;
+    $pk_obj->assets->js->deferred = $pk_obj->global_assets->footer_js;
+    $pk_obj->assets->css->list = $pk_obj->global_assets->css;
+    $pk_obj->assets->css->shared = [];
+  }
 
-  // Fetch and update the assets in the dependency list. (if local)
-  foreach ($pk_obj->assets as $type => $assets) {
-    switch ($type) {
-      case 'footer_js':
-        $asset_type = 'js';
-        break;
-      default:
-        $asset_type = $type;
-        break;
+  if (!empty($pk_obj->assets)) {
+    $assets['js'] = array_merge(
+      $pk_obj->assets->js->early,
+      $pk_obj->assets->js->deferred
+    );
+
+    $assets['css'] = $pk_obj->assets->css->list;
+    // Fetch and update the assets in the shared dependency list.
+    if (!empty($pk_obj->assets->css->shared)) {
+      foreach ($pk_obj->assets->css->shared as $asset) {
+        $assets['css'][] = $asset->src;
+      }
     }
-    foreach ($assets as $asset_url) {
-      // If the asset is being loaded with arbitrary scheme, assume external.
-      if (_pkplugin_strbegins($asset_url, '//')) {
+  }
+  else {
+    $assets['js'] = array_merge(
+      $pk_obj->global_assets->js,
+      $pk_obj->global_assets->footer_js
+    );
 
-        $pk_obj->attachments[$asset_type][$asset_url] = array(
-          'type'   => 'external',
-          'scope'  => 'header',
-          'group'  => JS_DEFAULT,
-          'weight' => $weight++,
-        );
+    $assets['css'] = $pk_obj->global_assets->css;
+  }
+
+  foreach ($assets as $asset_type => $urls) {
+    foreach ($urls as $asset_url) {
+      // If the asset is being loaded with arbitrary scheme, assume external.
+      $pos = strpos($asset_url, '//');
+      if ($pos !== FALSE && $pos <= 11) {
         continue;
       }
 
-      // Leading double slashes eliminated above, leaving only relatives.
-      if (_pkplugin_strbegins($asset_url, '/')) {
+      $save_result = _pkplugins_fetch_single_asset($dir, $pk_obj->path, $asset_url);
+      $pk_obj->raw_assets[$asset_url] = $save_result;
+    }
+  }
 
-        $asset_url                                    = $patternkit_host . $asset_url;
-        $pk_obj->attachments[$asset_type][$asset_url] = array(
-          'type'   => 'external',
-          'scope'  => $type == 'footer_js' ? 'footer' : 'header',
-          'group'  => JS_DEFAULT,
-          'weight' => $weight++,
-        );
+  return $pk_obj;
+}
 
-        // What follows is only for store/cache model. We cannot use currently.
-        $url       = $patternkit_host . $asset_url;
-        $asset_src = drupal_http_request($url);
-        $dest_path = "$dir/" . md5($asset_src->data) . ".$asset_type";
+/**
+ * Fetch a single asset from the patternkit platform.
+ *
+ * @param string $dir
+ *   The path to put the file under.
+ * @param string $asset_url
+ *   Relative path of the asset to the pattern folder.
+ *
+ * @return bool|string
+ *   FALSE on failure, stream path on success.
+ */
+function _pkplugins_fetch_single_asset($dir, $asset_prefix, $asset_url) {
+  $patternkit_host = variable_get(
+    'pkplugins_pk_host',
+    'http://10.254.254.254:8080'
+  );
 
-        $save_result = file_unmanaged_save_data(
-          $asset_src->data,
-          $dest_path,
-          FILE_EXISTS_REPLACE
-        );
+  // Leading double slashes eliminated above, leaving only relatives.
+  $path = "$dir/" . dirname(trim($asset_url, '.'));
+  $filename = basename(trim($asset_url, '.'));
 
-        if ($save_result == FALSE) {
-          // @TODO: handle failure.
-        }
+  if (!file_prepare_directory($path, FILE_CREATE_DIRECTORY)) {
+    _pkplugins_show_error(
+      "Unable to create folder ($path) to contain the pklugins artifacts."
+    );
+  }
 
-        // Convert stream wrapper to relative path, if appropriate.
-        $scheme = file_uri_scheme($save_result);
-        if ($scheme && file_stream_wrapper_valid_scheme($scheme)) {
-          $wrapper     = file_stream_wrapper_get_instance_by_scheme($scheme);
-          $save_result = $wrapper->getDirectoryPath() . "/" . file_uri_target($save_result);
-        }
+  // Generate the full path to the source asset.
+  $full_asset_url = $patternkit_host . preg_replace('/^\\.\\//', $asset_prefix . '/', $asset_url);
 
-        $pk_obj->attachments[$asset_type][$save_result] = array(
+  // What follows is for store/cache model.
+  $asset_src = drupal_http_request($full_asset_url);
+  // May consider some way of doing this
+  // $dest_path = "$dir/" . md5($asset_src->data) . ".$asset_type";.
+  $dest_path = $path . $filename;
+
+  $save_result = file_unmanaged_save_data(
+    $asset_src->data,
+    $dest_path,
+    FILE_EXISTS_REPLACE
+  );
+
+  if ($save_result == FALSE) {
+    // @TODO: handle failure.
+    return FALSE;
+  }
+
+  // Convert stream wrapper to relative path, if appropriate.
+  $scheme = file_uri_scheme($save_result);
+  if ($scheme && file_stream_wrapper_valid_scheme($scheme)) {
+    $wrapper = file_stream_wrapper_get_instance_by_scheme($scheme);
+    $save_result = $wrapper->getDirectoryPath() . "/" . file_uri_target(
+        $save_result
+      );
+  }
+  return $save_result;
+}
+
+/**
+ * Fetch and cache assets to render this pattern.
+ *
+ * @param string $subtype
+ *   Pattern machine name.
+ * @param object $config
+ *   Configuration object for this instance of the pattern.
+ * @param object $pk_obj
+ *   The patternkit pattern object to extend.
+ *
+ * @return object
+ *   The pkplugin object representing the pattern.
+ */
+function _pkplugins_fetch_fragment_assets($subtype, $config, &$pk_obj) {
+  $patternkit_host = variable_get(
+    'pkplugins_pk_host',
+    'http://10.254.254.254:8080'
+  );
+
+  $url = $patternkit_host . '/api/render/html';
+  $result = drupal_http_request(
+    $url,
+    [
+      'headers' => ['Content-Type' => 'application/json'],
+      'data'    => $config->rawJSON,
+      // 'timeout' => 10,.
+      'method'  => 'POST',
+    ]
+  );
+
+  // @TODO: Request failure handling.
+
+  $pk_obj->pattern = $subtype;
+
+  $dir = "public://pkplugins/$subtype/{$config->instance_id}";
+  if (!file_prepare_directory($dir, FILE_CREATE_DIRECTORY)) {
+    drupal_set_message(
+      t(
+        'Unable to create folder or save metadata/assets for plugin @plugin',
+        [
+          '@plugin' => $subtype,
+        ]
+      ),
+      'error'
+    );
+    watchdog(
+      'pkplugins',
+      'Unable to create folder or save metadata/assets for plugin @plugin',
+      [
+        '@plugin' => $subtype,
+      ],
+      WATCHDOG_ERROR
+    );
+  }
+
+  // Fetch the body html artifact.
+  $save_result = file_unmanaged_save_data(
+    $result->data,
+    "$dir/body.html",
+    FILE_EXISTS_REPLACE
+  );
+
+  // Convert stream wrapper to relative path, if appropriate.
+  $scheme = file_uri_scheme($save_result);
+  if ($scheme && file_stream_wrapper_valid_scheme($scheme)) {
+    $wrapper = file_stream_wrapper_get_instance_by_scheme($scheme);
+    $save_result = $wrapper->getDirectoryPath() . "/" . file_uri_target(
+        $save_result
+      );
+  }
+
+  $pk_obj->body = $save_result;
+
+  if ($save_result == FALSE) {
+    drupal_set_message(
+      t(
+        'Unable to save metadata/assets for plugin @plugin',
+        [
+          '@plugin' => $subtype,
+        ]
+      ),
+      'error'
+    );
+    watchdog(
+      'pkplugins',
+      'Unable to save metadata/assets for plugin @plugin',
+      [
+        '@plugin' => $subtype,
+      ],
+      WATCHDOG_ERROR
+    );
+    // @TODO: do something.
+  }
+
+  foreach (['early', 'deferred'] as $stage) {
+    foreach ($pk_obj->assets->js->{$stage} as $asset_fragment) {
+      $path = $pk_obj->raw_assets[$asset_fragment];
+
+      if (substr($path, 0, 19) == 'public://pkplugins/') {
+        $pk_obj->attachments['js'][$path] = [
           'type'   => 'file',
-          'scope'  => $type == 'footer_js' ? 'footer' : 'header',
-          'weight' => $weight++,
-        );
+          'scope'  => $stage == 'early' ? 'header' : 'footer',
+          'group'  => JS_DEFAULT,
+          'weight' => 0,
+        ];
       }
+      else {
+        $pk_obj->attachments['js'][$path] = [
+          'type'   => 'external',
+          'scope'  => $stage == 'early' ? 'header' : 'footer',
+          'group'  => JS_DEFAULT,
+          'weight' => 0,
+        ];
+      }
+    }
+  }
+
+  foreach ($pk_obj->assets->css->list as $asset_fragment) {
+    $path = $pk_obj->raw_assets[$asset_fragment];
+
+    if (substr($path, 0, 19) == 'public://pkplugins/') {
+      $pk_obj->attachments['css'][$path] = [
+        'type'   => 'file',
+        'scope'  => 'header',
+        'group'  => JS_DEFAULT,
+        'weight' => 0,
+      ];
+    }
+    else {
+      $pk_obj->attachments['css'][$path] = [
+        'type'   => 'external',
+        'scope'  => 'header',
+        'group'  => JS_DEFAULT,
+        'weight' => 0,
+      ];
+    }
+  }
+
+  foreach ($pk_obj->assets->css->shared as $asset_fragment) {
+    $path = $pk_obj->raw_assets[$asset_fragment->src];
+
+    if (substr($path, 0, 19) == 'public://pkplugins/') {
+      $pk_obj->attachments['css'][$path] = [
+        'type'   => 'file',
+        'scope'  => 'header',
+        'group'  => JS_DEFAULT,
+        'weight' => 0,
+      ];
+    }
+    else {
+      $pk_obj->attachments['css'][$path] = [
+        'type'   => 'external',
+        'scope'  => 'header',
+        'group'  => JS_DEFAULT,
+        'weight' => 0,
+      ];
     }
   }
 
@@ -605,36 +853,59 @@ function _pkplugins_fetch_json_assets($subtype, $config) {
  *   Pattern machine name.
  * @param object $config
  *   Configuration object for this instance of the pattern.
+ * @param object $pk_obj
+ *   The patternkit pattern object to extend.
  *
- * @return
- *
+ * @return object
+ *   The pkplugin object representing the pattern.
  */
-function _pkplugins_fetch_fragment_assets($subtype, $config) {
-  $patternkit_host = variable_get('pkplugins_pk_host', 'http://10.254.254.254:8080');
+function _pkplugins_fetch_webcomponent_assets($subtype, $config, &$pk_obj) {
+  $patternkit_host = variable_get(
+    'pkplugins_pk_host',
+    'http://10.254.254.254:8080'
+  );
 
-  $url    = $patternkit_host . '/api/render/html';
+  //json_decode($config->rawJSON);
+
+  $url = $patternkit_host . '/api/render/webcomponent';
   $result = drupal_http_request(
     $url,
-    array(
-      'headers' => array('Content-Type' => 'application/json'),
-      'data'    => $config->rawJSON,
-      //      'timeout' => 10,
-      'method'  => 'POST',
-    )
+    [
+      'headers'  => ['Content-Type' => 'application/json'],
+      'jsondata' => $config->rawJSON,
+      // 'timeout' => 10,.
+      'method'   => 'POST',
+    ]
   );
 
   // @TODO: Request failure handling.
 
   // Create the stub object.
-  $pk_obj = (object) array(
+  $pk_obj = (object) [
     'pattern'     => $subtype,
-    'attachments' => array(),
+    'attachments' => [],
     'body'        => 'fragment.html',
-  );
+  ];
 
   $dir = "public://pkplugins/$subtype/{$config->instance_id}";
   if (!file_prepare_directory($dir, FILE_CREATE_DIRECTORY)) {
-    // @TODO: Failure handling
+    drupal_set_message(
+      t(
+        'Unable to create folder or save metadata/assets for plugin @plugin',
+        [
+          '@plugin' => $subtype,
+        ]
+      ),
+      'error'
+    );
+    watchdog(
+      'pkplugins',
+      'Unable to create folder or save metadata/assets for plugin @plugin',
+      [
+        '@plugin' => $subtype,
+      ],
+      WATCHDOG_ERROR
+    );
   }
 
   // Fetch the body html artifact.
@@ -647,92 +918,47 @@ function _pkplugins_fetch_fragment_assets($subtype, $config) {
   // Convert stream wrapper to relative path, if appropriate.
   $scheme = file_uri_scheme($save_result);
   if ($scheme && file_stream_wrapper_valid_scheme($scheme)) {
-    $wrapper     = file_stream_wrapper_get_instance_by_scheme($scheme);
-    $save_result = $wrapper->getDirectoryPath() . "/" . file_uri_target($save_result);
+    $wrapper = file_stream_wrapper_get_instance_by_scheme($scheme);
+    $save_result = $wrapper->getDirectoryPath() . "/" . file_uri_target(
+        $save_result
+      );
   }
 
   $pk_obj->body = $save_result;
 
-
-  if ($save_result == FALSE) {
-    // @TODO: do something.
-  }
-
-  return $pk_obj;
-}
-
-/**
- * Fetch and cache assets to render this pattern.
- *
- * @param string $subtype
- *   Pattern machine name.
- * @param object $config
- *   Configuration object for this instance of the pattern.
- *
- * @return
- *
- */
-function _pkplugins_fetch_webcomponent_assets($subtype, $config) {
-  $patternkit_host = variable_get('pkplugins_pk_host', 'http://10.254.254.254:8080');
-
-  $url    = $patternkit_host . '/api/render/webcomponent';
-  $result = drupal_http_request(
-    $url,
-    array(
-      'headers' => array('Content-Type' => 'application/json'),
-      'data'    => $config->rawJSON,
-      //      'timeout' => 10,
-      'method'  => 'POST',
-    )
-  );
-
-  // @TODO: Request failure handling.
-
-  // Create the stub object.
-  $pk_obj = (object) array(
-    'pattern'     => $subtype,
-    'attachments' => array(),
-    'body'        => 'fragment.html',
-  );
-
-  $dir = "public://pkplugins/$subtype/{$config->instance_id}";
-  if (!file_prepare_directory($dir, FILE_CREATE_DIRECTORY)) {
-    // @TODO: Failure handling
-  }
-
-  // Fetch the body html artifact.
-  $save_result = file_unmanaged_save_data(
-    $result->data,
-    "$dir/body.html",
-    FILE_EXISTS_REPLACE
-  );
-
-  // Convert stream wrapper to relative path, if appropriate.
-  $scheme = file_uri_scheme($save_result);
-  if ($scheme && file_stream_wrapper_valid_scheme($scheme)) {
-    $wrapper     = file_stream_wrapper_get_instance_by_scheme($scheme);
-    $save_result = $wrapper->getDirectoryPath() . "/" . file_uri_target($save_result);
-  }
-
-  $pk_obj->body = $save_result;
-
-  $pk_obj->attachments['js']['https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/0.7.24/webcomponents.min.js'] = array(
+  $pk_obj->attachments['js']['https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/0.7.24/webcomponents.min.js'] = [
     'type'   => 'external',
     'scope'  => 'header',
     'group'  => JS_DEFAULT,
     'weight' => 0,
-  );
-
+  ];
 
   // Add the header link rel import.
-  $pk_obj->attachments['drupal_add_html_head_link'][] = array(
-    array(
+  $pk_obj->attachments['drupal_add_html_head_link'][] = [
+    [
       'rel'  => 'import',
       'href' => $pk_obj->body,
-    ),
-  );
+    ],
+  ];
 
   if ($save_result == FALSE) {
+    drupal_set_message(
+      t(
+        'Unable to save metadata/assets for plugin @plugin',
+        [
+          '@plugin' => $subtype,
+        ]
+      ),
+      'error'
+    );
+    watchdog(
+      'pkplugins',
+      'Unable to save metadata/assets for plugin @plugin',
+      [
+        '@plugin' => $subtype,
+      ],
+      WATCHDOG_ERROR
+    );
     // @TODO: do something.
   }
 
@@ -744,7 +970,7 @@ function _pkplugins_fetch_webcomponent_assets($subtype, $config) {
  *
  * @param string $haystack
  *   String to search.
- * @param        $needle
+ * @param string $needle
  *   String to search for.
  *
  * @return bool
@@ -752,4 +978,46 @@ function _pkplugins_fetch_webcomponent_assets($subtype, $config) {
  */
 function _pkplugin_strbegins($haystack, $needle) {
   return substr($haystack, 0, strlen($needle)) == $needle;
+}
+
+/**
+ * Merge js dependency arrays.
+ *
+ * Adds $js2 to $js1 and returns the merged array.
+ *
+ * @param array $js1
+ *   First array.
+ * @param array $js2
+ *   Second array.
+ *
+ * @return array
+ *   The merged array.
+ */
+function _pkplugin_merge_js(array $js1, array $js2) {
+  $ret = array();
+
+  $x = 0;
+  if (!empty($js1)) {
+    foreach ($js1 as $key => $val) {
+      // If this is a 'setting' or 'inline' it will be numeric.
+      if (is_numeric($key)) {
+        $ret[$x++] = $val;
+      }
+      else {
+        $ret[$key] = $val;
+      }
+    }
+  }
+  if (!empty($js2)) {
+    foreach ($js2 as $key => $val) {
+      // If this is a 'setting' or 'inline' it will be numeric.
+      if (is_numeric($key)) {
+        $ret[$x++] = $val;
+      }
+      else {
+        $ret[$key] = $val;
+      }
+    }
+  }
+  return $ret;
 }
