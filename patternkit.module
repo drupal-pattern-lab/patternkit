@@ -8,7 +8,7 @@
 /**
  * Implements hook_ctools_plugin_directory().
  */
-function pkplugins_ctools_plugin_directory($owner, $plugin) {
+function patternkit_ctools_plugin_directory($owner, $plugin) {
   if ($owner == 'ctools') {
     return 'plugins/' . $plugin;
   }
@@ -19,17 +19,17 @@ function pkplugins_ctools_plugin_directory($owner, $plugin) {
 /**
  * Implements hook_flush_caches().
  */
-function pkplugins_flush_caches() {
-  return array('cache_pkplugins');
+function patternkit_flush_caches() {
+  return array('cache_patternkit');
 }
 
 /**
  * Implements hook_admin_menu_cache_info().
  */
-function pkplugins_admin_menu_cache_info() {
-  $caches['pkplugins'] = array(
+function patternkit_admin_menu_cache_info() {
+  $caches['patternkit'] = array(
     'title'    => t('Flush Patternkit caches'),
-    'callback' => 'pkplugins_cache_clear_all',
+    'callback' => 'patternkit_cache_clear_all',
   );
 
   return $caches;
@@ -38,17 +38,17 @@ function pkplugins_admin_menu_cache_info() {
 /**
  * Callback for hook_admin_menu_cache_info() to clear all of the caches.
  */
-function pkplugins_cache_clear_all() {
-  foreach (pkplugins_flush_caches() as $cache_bin) {
+function patternkit_cache_clear_all() {
+  foreach (patternkit_flush_caches() as $cache_bin) {
     cache_clear_all('*', $cache_bin, TRUE);
   }
 }
 
 /**
- * Flush the pkplugins metadata cache.
+ * Flush the patternkit metadata cache.
  */
-function pkplugins_flush_metadata_cache() {
-  cache_clear_all('pkplugins_pk_metadata', 'cache', FALSE);
+function patternkit_flush_metadata_cache() {
+  cache_clear_all('patternkit_pk_metadata', 'cache', FALSE);
 }
 
 /**
@@ -62,18 +62,18 @@ function pkplugins_flush_metadata_cache() {
  * @return array|object
  *   Array of metadata objects found or object if specific module requested.
  */
-function _pkplugins_get_metadata($subtype = NULL, $reset = FALSE) {
+function _patternkit_get_metadata($subtype = NULL, $reset = FALSE) {
   $cached_metadata = &drupal_static(__FUNCTION__);
 
   // If the static cache doesn't exist, or we've called with reset, rebuild.
   if (!isset($cached_metadata) || $reset) {
-    $pkplugins_cache_enabled = variable_get('pkplugins_cache_enabled', TRUE);
+    $patternkit_cache_enabled = variable_get('patternkit_cache_enabled', TRUE);
     // If cache is enabled, attempt to load from cache.
-    if ($pkplugins_cache_enabled && ($cache = cache_get('pkplugins_pk_metadata'))) {
+    if ($patternkit_cache_enabled && ($cache = cache_get('patternkit_pk_metadata'))) {
       $cached_metadata = $cache->data;
     }
     else {
-      $patternkit_host = variable_get('pkplugins_pk_host', 'http://10.254.254.254:8080');
+      $patternkit_host = variable_get('patternkit_pl_host', 'http://localhost:9001');
 
       $patterns = drupal_http_request(
         $patternkit_host . '/api/patterns',
@@ -87,12 +87,12 @@ function _pkplugins_get_metadata($subtype = NULL, $reset = FALSE) {
 
         // Cache the data so that we don't have to build it again.
         // (if cache enabled, otherwise just a slow, redundant memcache set).
-        if ($pkplugins_cache_enabled == TRUE) {
-          cache_set('pkplugins_pk_metadata', $cached_metadata, 'cache', CACHE_PERMANENT);
+        if ($patternkit_cache_enabled == TRUE) {
+          cache_set('patternkit_pk_metadata', $cached_metadata, 'cache', CACHE_PERMANENT);
         }
       }
       else {
-        _pkplugins_show_error(
+        _patternkit_show_error(
           'Patternkit failed to load metadata from service (%service_uri): %error',
           array(
             '%service_uri' => $patternkit_host . '/api/patterns',
@@ -112,7 +112,7 @@ function _pkplugins_get_metadata($subtype = NULL, $reset = FALSE) {
       return $cached_metadata[strtolower($lookup)];
     }
     else {
-      _pkplugins_show_error(
+      _patternkit_show_error(
         'Patternkit module does not appear to exist (%module), verify module info/usage.',
         array('%module' => $lookup)
       );
@@ -125,7 +125,7 @@ function _pkplugins_get_metadata($subtype = NULL, $reset = FALSE) {
 }
 
 /**
- * Utility function to display pkplugins error messages.
+ * Utility function to display patternkit error messages.
  *
  * Checks if permissions and configuration allow showing error, then displays.
  *
@@ -136,11 +136,11 @@ function _pkplugins_get_metadata($subtype = NULL, $reset = FALSE) {
  * @param string $status
  *   Status for the error message. Passed to drupal_set_message.
  */
-function _pkplugins_show_error($msg, array $vars = array(), $status = 'error') {
-  if (variable_get('pkplugins_show_errors', FALSE) && user_is_logged_in()) {
+function _patternkit_show_error($msg, array $vars = array(), $status = 'error') {
+  if (variable_get('patternkit_show_errors', FALSE) && user_is_logged_in()) {
     drupal_set_message(format_string($msg, $vars), $status);
   }
-  if (variable_get('pkplugins_log_errors', FALSE)) {
-    watchdog('pkplugins', $msg, $vars, WATCHDOG_ERROR);
+  if (variable_get('patternkit_log_errors', FALSE)) {
+    watchdog('patternkit', $msg, $vars, WATCHDOG_ERROR);
   }
 }

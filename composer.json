@@ -1,9 +1,9 @@
 {
-    "name": "customer-portal/pkplugins",
+    "name": "cybtachyon/patternkit",
     "authors": [
         {
-            "name": "Red Hat Customer Portal",
-            "email": "cp-drupal@redhat.com"
+            "name": "Red Hat Inc.",
+            "email": "drupal@redhat.com"
         }
     ],
     "require": {},

@@ -20,8 +20,8 @@ $plugin = [
     'Add and configure a patternkit pattern module to the page'
   ),
   'category'     => [t('Patternkit'), -9],
-  'content type' => 'pkplugins_pkplugins_content_type_content_type',
-  'admin info'   => 'pkplugins_pkplugins_content_type_admin_info',
+  'content type' => 'patternkit_patternkit_content_type_content_type',
+  'admin info'   => 'patternkit_patternkit_content_type_admin_info',
   'defaults'     => [],
   'all contexts' => TRUE, // This is NEEDED to be able to use substitution strings in your pane.
 ];
@@ -35,8 +35,8 @@ $plugin = [
  * @return mixed
  *   Metadata for the content type requested.
  */
-function pkplugins_pkplugins_content_type_content_type($subtype) {
-  $types = pkplugins_pkplugins_content_type_content_types();
+function patternkit_patternkit_content_type_content_type($subtype) {
+  $types = patternkit_patternkit_content_type_content_types();
   if (isset($types[$subtype])) {
     return $types[$subtype];
   }
@@ -66,7 +66,7 @@ function pkplugins_pkplugins_content_type_content_type($subtype) {
  * @return array
  *   Collection of pane metadata
  */
-function pkplugins_pkplugins_content_type_content_types() {
+function patternkit_patternkit_content_type_content_types() {
   // No reason to generate repeatedly, so (static) caching results.
   $types = &drupal_static(__FUNCTION__, []);
   if (!empty($types)) {
@@ -74,7 +74,7 @@ function pkplugins_pkplugins_content_type_content_types() {
   }
 
   // Get all of the module metadata.
-  $modules = _pkplugins_get_metadata();
+  $modules = _patternkit_get_metadata();
 
   // Loop through the found modules and create panes for each.
   foreach ($modules as $module_name => $module_meta) {
@@ -98,12 +98,12 @@ function pkplugins_pkplugins_content_type_content_types() {
 /**
  * Implements hook_content_type_admin_title().
  */
-function pkplugins_pkplugins_content_type_admin_title(
+function patternkit_patternkit_content_type_admin_title(
   $subtype,
   $conf,
   $context
 ) {
-  $module = _pkplugins_get_metadata($subtype);
+  $module = _patternkit_get_metadata($subtype);
   if (empty($module->title)) {
     $title = "BROKEN/MISSING MODULE";
   }
@@ -123,12 +123,12 @@ function pkplugins_pkplugins_content_type_admin_title(
 /**
  * Implements hook_content_type_admin_title().
  */
-function pkplugins_pkplugins_content_type_admin_info(
+function patternkit_patternkit_content_type_admin_info(
   $subtype,
   $conf,
   $context
 ) {
-  $module = _pkplugins_get_metadata($subtype);
+  $module = _patternkit_get_metadata($subtype);
   $block = new stdClass();
 
   $block->title = $subtype;
@@ -142,7 +142,7 @@ function pkplugins_pkplugins_content_type_admin_info(
   }
 
   // Add to the block content the admin presentation.
-  $block->content = _pkplugins_admin_info_presentation_render(
+  $block->content = _patternkit_admin_info_presentation_render(
     $conf,
     $module,
     $subtype,
@@ -155,14 +155,14 @@ function pkplugins_pkplugins_content_type_admin_info(
 /**
  * Implements hook_content_type_edit_form().
  */
-function pkplugins_pkplugins_content_type_edit_form($form, &$form_state) {
+function patternkit_patternkit_content_type_edit_form($form, &$form_state) {
 
   // Get the subtype from the form state for simpler code.
   $subtype = $form_state['subtype_name'];
   // Instance configuration for the form is in form_state['conf'];.
   $conf = $form_state['conf'];
   // Get all of the module metadata from the pattern path.
-  $module = _pkplugins_get_metadata($subtype);
+  $module = _patternkit_get_metadata($subtype);
 
   // Remove the title override fields.
   unset($form['override_title_markup']);
@@ -211,8 +211,8 @@ function pkplugins_pkplugins_content_type_edit_form($form, &$form_state) {
   ];
 
   $patternkit_host = variable_get(
-    'pkplugins_pk_host',
-    'http://10.254.254.254:8080'
+    'patternkit_pl_host',
+    'http://localhost:9001'
   );
   $url = $patternkit_host . '/schema/editor/' . substr($subtype, 3);
 
@@ -237,11 +237,11 @@ function pkplugins_pkplugins_content_type_edit_form($form, &$form_state) {
         document.getElementById('schema_instance_config').value = configObject;
         console.log('config object', configObject);
         schemaDataSaved = true;
-        jQuery('#pkplugins-pkplugins-content-type-edit-form').trigger('submit');
+        jQuery('#patternkit-patternkit-content-type-edit-form').trigger('submit');
       }
     });
     
-    document.getElementById('pkplugins-pkplugins-content-type-edit-form').onsubmit = function(){
+    document.getElementById('patternkit-patternkit-content-type-edit-form').onsubmit = function(){
       if (schemaDataSaved === false) {
         let frame = document.getElementById('schema-editor-iframe');
         frame.contentWindow.postMessage('sendSaveData', '*');
@@ -262,7 +262,7 @@ function pkplugins_pkplugins_content_type_edit_form($form, &$form_state) {
 /**
  * Implements hook_content_type_edit_form_submit().
  */
-function pkplugins_pkplugins_content_type_edit_form_submit(
+function patternkit_patternkit_content_type_edit_form_submit(
   &$form,
   &$form_state
 ) {
@@ -272,24 +272,24 @@ function pkplugins_pkplugins_content_type_edit_form_submit(
   $config = json_decode($form_state['values']['instance_config']);
 
   $cid = "pkmod:{$subtype}:{$instance_id}";
-  cache_clear_all($cid, 'cache_pkplugins', TRUE);
+  cache_clear_all($cid, 'cache_patternkit', TRUE);
 
   $config->instance_id = $instance_id;
   $config->presentation_style = $form_state['values']['presentation_style'];
 
   $pk_obj = (object) [];
 
-  $pk_obj = _pkplugins_fetch_json_and_assets($subtype, $config);
+  $pk_obj = _patternkit_fetch_json_and_assets($subtype, $config);
 
   // Depending on the type of presentation, we want to fetch the data
   // differently.
   switch ($config->presentation_style) {
     case 'webcomponent':
-      _pkplugins_fetch_webcomponent_assets($subtype, $config, $pk_obj);
+      _patternkit_fetch_webcomponent_assets($subtype, $config, $pk_obj);
       break;
 
     case 'html':
-      _pkplugins_fetch_fragment_assets($subtype, $config, $pk_obj);
+      _patternkit_fetch_fragment_assets($subtype, $config, $pk_obj);
       break;
 
     case 'json':
@@ -306,7 +306,7 @@ function pkplugins_pkplugins_content_type_edit_form_submit(
 /**
  * Implements hook_content_type_render().
  */
-function pkplugins_pkplugins_content_type_render(
+function patternkit_patternkit_content_type_render(
   $subtype,
   $instance_config,
   $args,
@@ -315,7 +315,7 @@ function pkplugins_pkplugins_content_type_render(
   $base_dependencies = [];
 
   // Flag if a module block should be cached or not.
-  $cacheable = variable_get('pkplugins_render_cache', FALSE);
+  $cacheable = variable_get('patternkit_render_cache', FALSE);
 
   // If an instance configuration provides a UUID, use it. If not, we should
   // not cache this item because the uuid will be different each time.
@@ -348,7 +348,7 @@ function pkplugins_pkplugins_content_type_render(
   );
 
   // Load module specific config.
-  $module = _pkplugins_get_metadata($subtype);
+  $module = _patternkit_get_metadata($subtype);
   static $is_processed;
 
   // Initialize our static (if necessary).
@@ -362,7 +362,7 @@ function pkplugins_pkplugins_content_type_render(
   if (!isset($is_processed[$subtype])) {
     // Add to bootstrap list.
     $base_dependencies['js'][] = [
-      'pkplugins' => [
+      'patternkit' => [
         'active' => [
           $subtype => [
             $instance_id,
@@ -377,10 +377,10 @@ function pkplugins_pkplugins_content_type_render(
   // If the item is cacheable, fetch it and return it.
   if ($cacheable === TRUE) {
     // Attempt to fetch the cached pane.
-    $cached = cache_get($cid, 'cache_pkplugins');
+    $cached = cache_get($cid, 'cache_patternkit');
     if ($cached !== FALSE) {
 
-      // Set flag to let other modules know content is pkplugin stuff.
+      // Set flag to let other modules know content is patternkit stuff.
       $cached->data->pkpane = 1;
 
       return $cached->data;
@@ -393,7 +393,7 @@ function pkplugins_pkplugins_content_type_render(
   $config = json_decode($instance_config['instance_config'], TRUE);
 
   // Get the body of content.
-  $content = _pkplugins_render_block($module, $instance_id, $config, $context);
+  $content = _patternkit_render_block($module, $instance_id, $config, $context);
 
   // Replace ctools substitutions (if any) from context.
   $content = ctools_context_keyword_substitute($content, array(), $context);
@@ -402,7 +402,7 @@ function pkplugins_pkplugins_content_type_render(
   $content = token_replace(
     $content,
     [
-      'pkplugins' => [
+      'patternkit' => [
         'pattern'     => $subtype,
         'instance_id' => $instance_id,
       ],
@@ -410,7 +410,7 @@ function pkplugins_pkplugins_content_type_render(
   );
 //
 //  if (!empty($config['pkdata']['attachments'])) {
-//    $settings = _pkplugin_merge_js(
+//    $settings = _patternkit_merge_js(
 //      $config['pkdata']['attachments'],
 //      $base_dependencies
 //    );
@@ -433,12 +433,12 @@ function pkplugins_pkplugins_content_type_render(
   }
   else {
     // Default ttl to 30 days.
-    $ttl = variable_get('pkplugins_default_module_ttl', 30 * 24 * 60 * 60);
+    $ttl = variable_get('patternkit_default_module_ttl', 30 * 24 * 60 * 60);
   }
 
   // Save to the cache bin (if caching is enabled).
   if ($cacheable === TRUE) {
-    cache_set($cid, $block, 'cache_pkplugins', time() + $ttl);
+    cache_set($cid, $block, 'cache_patternkit', time() + $ttl);
   }
 
   // Set flag to let other modules know content is ngpanes stuff.
@@ -464,7 +464,7 @@ function pkplugins_pkplugins_content_type_render(
  * @return string|object
  *   Content of the panel block.
  */
-function _pkplugins_render_block(
+function _patternkit_render_block(
   $module,
   $instance_id,
   array $config,
@@ -482,7 +482,7 @@ function _pkplugins_render_block(
     $body = "<$subtype-pattern></$subtype-pattern>";
   }
   else {
-    $filename = "public://pkplugins/$subtype/{$config['instance_id']}/body.html";
+    $filename = "public://patternkit/$subtype/{$config['instance_id']}/body.html";
     $body = file_get_contents($filename);
   }
   return $body;
@@ -503,13 +503,13 @@ function _pkplugins_render_block(
  * @return string
  *   The html markup for the module admin presentation
  */
-function _pkplugins_admin_info_presentation_render(
+function _patternkit_admin_info_presentation_render(
   array $conf,
   $module,
   $subtype,
   $block_content
 ) {
-  $result = pkplugins_pkplugins_content_type_render($subtype, $conf, [], []);
+  $result = patternkit_patternkit_content_type_render($subtype, $conf, [], []);
 
   $output = $result->content;
   return $output;
@@ -524,12 +524,12 @@ function _pkplugins_admin_info_presentation_render(
  *   Configuration object for this instance of the pattern.
  *
  * @return object
- *   The pkplugin object of interest.
+ *   The patternkit object of interest.
  */
-function _pkplugins_fetch_json_and_assets($subtype, $config) {
+function _patternkit_fetch_json_and_assets($subtype, $config) {
   $patternkit_host = variable_get(
-    'pkplugins_pk_host',
-    'http://10.254.254.254:8080'
+    'patternkit_pl_host',
+    'http://localhost:9001'
   );
 
   $url = $patternkit_host . '/api/render/json';
@@ -547,10 +547,10 @@ function _pkplugins_fetch_json_and_assets($subtype, $config) {
 
   $pk_obj = json_decode($result->data);
 
-  $dir = "public://pkplugins/$subtype/{$config->instance_id}";
+  $dir = "public://patternkit/$subtype/{$config->instance_id}";
   if (!file_prepare_directory($dir, FILE_CREATE_DIRECTORY)) {
     // @TODO: Failure handling.
-    _pkplugins_show_error(
+    _patternkit_show_error(
       "Unable to create folder ($dir) to contain the pklugins artifacts."
     );
   }
@@ -565,7 +565,7 @@ function _pkplugins_fetch_json_and_assets($subtype, $config) {
 
   if ($save_result == FALSE) {
     // @TODO: Failure handling.
-    _pkplugins_show_error(
+    _patternkit_show_error(
       "Unable to create static archive of the JSON pklugins artifact for $subtype."
     );
   }
@@ -618,7 +618,7 @@ function _pkplugins_fetch_json_and_assets($subtype, $config) {
         continue;
       }
 
-      $save_result = _pkplugins_fetch_single_asset($dir, $pk_obj->path, $asset_url);
+      $save_result = _patternkit_fetch_single_asset($dir, $pk_obj->path, $asset_url);
       $pk_obj->raw_assets[$asset_url] = $save_result;
     }
   }
@@ -637,10 +637,10 @@ function _pkplugins_fetch_json_and_assets($subtype, $config) {
  * @return bool|string
  *   FALSE on failure, stream path on success.
  */
-function _pkplugins_fetch_single_asset($dir, $asset_prefix, $asset_url) {
+function _patternkit_fetch_single_asset($dir, $asset_prefix, $asset_url) {
   $patternkit_host = variable_get(
-    'pkplugins_pk_host',
-    'http://10.254.254.254:8080'
+    'patternkit_pl_host',
+    'http://localhost:9001'
   );
 
   // Leading double slashes eliminated above, leaving only relatives.
@@ -648,7 +648,7 @@ function _pkplugins_fetch_single_asset($dir, $asset_prefix, $asset_url) {
   $filename = basename(trim($asset_url, '.'));
 
   if (!file_prepare_directory($path, FILE_CREATE_DIRECTORY)) {
-    _pkplugins_show_error(
+    _patternkit_show_error(
       "Unable to create folder ($path) to contain the pklugins artifacts."
     );
   }
@@ -695,12 +695,12 @@ function _pkplugins_fetch_single_asset($dir, $asset_prefix, $asset_url) {
  *   The patternkit pattern object to extend.
  *
  * @return object
- *   The pkplugin object representing the pattern.
+ *   The patternkit object representing the pattern.
  */
-function _pkplugins_fetch_fragment_assets($subtype, $config, &$pk_obj) {
+function _patternkit_fetch_fragment_assets($subtype, $config, &$pk_obj) {
   $patternkit_host = variable_get(
-    'pkplugins_pk_host',
-    'http://10.254.254.254:8080'
+    'patternkit_pl_host',
+    'http://localhost:9001'
   );
 
   $url = $patternkit_host . '/api/render/html';
@@ -718,7 +718,7 @@ function _pkplugins_fetch_fragment_assets($subtype, $config, &$pk_obj) {
 
   $pk_obj->pattern = $subtype;
 
-  $dir = "public://pkplugins/$subtype/{$config->instance_id}";
+  $dir = "public://patternkit/$subtype/{$config->instance_id}";
   if (!file_prepare_directory($dir, FILE_CREATE_DIRECTORY)) {
     drupal_set_message(
       t(
@@ -730,7 +730,7 @@ function _pkplugins_fetch_fragment_assets($subtype, $config, &$pk_obj) {
       'error'
     );
     watchdog(
-      'pkplugins',
+      'patternkit',
       'Unable to create folder or save metadata/assets for plugin @plugin',
       [
         '@plugin' => $subtype,
@@ -768,7 +768,7 @@ function _pkplugins_fetch_fragment_assets($subtype, $config, &$pk_obj) {
       'error'
     );
     watchdog(
-      'pkplugins',
+      'patternkit',
       'Unable to save metadata/assets for plugin @plugin',
       [
         '@plugin' => $subtype,
@@ -782,7 +782,7 @@ function _pkplugins_fetch_fragment_assets($subtype, $config, &$pk_obj) {
     foreach ($pk_obj->assets->js->{$stage} as $asset_fragment) {
       $path = $pk_obj->raw_assets[$asset_fragment];
 
-      if (substr($path, 0, 19) == 'public://pkplugins/') {
+      if (substr($path, 0, 19) == 'public://patternkit/') {
         $pk_obj->attachments['js'][$path] = [
           'type'   => 'file',
           'scope'  => $stage == 'early' ? 'header' : 'footer',
@@ -804,7 +804,7 @@ function _pkplugins_fetch_fragment_assets($subtype, $config, &$pk_obj) {
   foreach ($pk_obj->assets->css->list as $asset_fragment) {
     $path = $pk_obj->raw_assets[$asset_fragment];
 
-    if (substr($path, 0, 19) == 'public://pkplugins/') {
+    if (substr($path, 0, 19) == 'public://patternkit/') {
       $pk_obj->attachments['css'][$path] = [
         'type'   => 'file',
         'scope'  => 'header',
@@ -825,7 +825,7 @@ function _pkplugins_fetch_fragment_assets($subtype, $config, &$pk_obj) {
   foreach ($pk_obj->assets->css->shared as $asset_fragment) {
     $path = $pk_obj->raw_assets[$asset_fragment->src];
 
-    if (substr($path, 0, 19) == 'public://pkplugins/') {
+    if (substr($path, 0, 19) == 'public://patternkit/') {
       $pk_obj->attachments['css'][$path] = [
         'type'   => 'file',
         'scope'  => 'header',
@@ -857,12 +857,12 @@ function _pkplugins_fetch_fragment_assets($subtype, $config, &$pk_obj) {
  *   The patternkit pattern object to extend.
  *
  * @return object
- *   The pkplugin object representing the pattern.
+ *   The patternkit object representing the pattern.
  */
-function _pkplugins_fetch_webcomponent_assets($subtype, $config, &$pk_obj) {
+function _patternkit_fetch_webcomponent_assets($subtype, $config, &$pk_obj) {
   $patternkit_host = variable_get(
-    'pkplugins_pk_host',
-    'http://10.254.254.254:8080'
+    'patternkit_pl_host',
+    'http://localhost:9001'
   );
 
   //json_decode($config->rawJSON);
@@ -887,7 +887,7 @@ function _pkplugins_fetch_webcomponent_assets($subtype, $config, &$pk_obj) {
     'body'        => 'fragment.html',
   ];
 
-  $dir = "public://pkplugins/$subtype/{$config->instance_id}";
+  $dir = "public://patternkit/$subtype/{$config->instance_id}";
   if (!file_prepare_directory($dir, FILE_CREATE_DIRECTORY)) {
     drupal_set_message(
       t(
@@ -899,7 +899,7 @@ function _pkplugins_fetch_webcomponent_assets($subtype, $config, &$pk_obj) {
       'error'
     );
     watchdog(
-      'pkplugins',
+      'patternkit',
       'Unable to create folder or save metadata/assets for plugin @plugin',
       [
         '@plugin' => $subtype,
@@ -952,7 +952,7 @@ function _pkplugins_fetch_webcomponent_assets($subtype, $config, &$pk_obj) {
       'error'
     );
     watchdog(
-      'pkplugins',
+      'patternkit',
       'Unable to save metadata/assets for plugin @plugin',
       [
         '@plugin' => $subtype,
@@ -976,7 +976,7 @@ function _pkplugins_fetch_webcomponent_assets($subtype, $config, &$pk_obj) {
  * @return bool
  *   TRUE if found, FALSE if not.
  */
-function _pkplugin_strbegins($haystack, $needle) {
+function _patternkit_strbegins($haystack, $needle) {
   return substr($haystack, 0, strlen($needle)) == $needle;
 }
 
@@ -993,7 +993,7 @@ function _pkplugin_strbegins($haystack, $needle) {
  * @return array
  *   The merged array.
  */
-function _pkplugin_merge_js(array $js1, array $js2) {
+function _patternkit_merge_js(array $js1, array $js2) {
   $ret = array();
 
   $x = 0;
