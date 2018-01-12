@@ -175,9 +175,9 @@ function patternkit_patternkit_content_type_edit_form($form, &$form_state) {
     '#type'          => 'select',
     '#title'         => 'Presentation style',
     '#options'       => array(
-//      'webcomponent' => 'Web component',
+      //      'webcomponent' => 'Web component',
       'html'         => 'HTML inline',
-//      'json'         => 'JSON (with js/css)',
+      //      'json'         => 'JSON (with js/css)',
     ),
     '#default_value' => isset($conf['presentation_style']) ? $conf['presentation_style'] : '',
   );
@@ -221,35 +221,35 @@ function patternkit_patternkit_content_type_edit_form($form, &$form_state) {
     $url .= !empty($config->lzstring) ? "?data=" . $config->lzstring : '';
   }
 
-  $markup = "
-  <iframe id='schema-editor-iframe' width='100%' height='1000px' src='$url'></iframe>
-  <script>
-    // Enlarge the ctools modal to make it easier to work with the iframe.
-    jQuery('.ctools-modal-content').animate({width:'100%', height:'100%'});
-    jQuery('#modalContent').animate({'width': '100%', 'left':'0px', 'top':'0px'});
-    jQuery('#modal-content').animate({'width': '100%', 'height': '100%'});
-    
-    let schemaDataSaved = false;
-    // Respond to data events.
-    window.addEventListener('message', function(event) {
-      if (event.data.name && event.data.name === 'saveData') {
-        let configObject = JSON.stringify(event.data);
-        document.getElementById('schema_instance_config').value = configObject;
-        console.log('config object', configObject);
-        schemaDataSaved = true;
-        jQuery('#patternkit-patternkit-content-type-edit-form').trigger('submit');
-      }
-    });
-    
-    document.getElementById('patternkit-patternkit-content-type-edit-form').onsubmit = function(){
-      if (schemaDataSaved === false) {
-        let frame = document.getElementById('schema-editor-iframe');
-        frame.contentWindow.postMessage('sendSaveData', '*');
-        return false;
-      }
-    };
-  </script>
-  ";
+  $markup = <<< HTML
+<iframe id='schema-editor-iframe' width='100%' height='1000px' src='$url'></iframe>
+<script>
+  // Enlarge the ctools modal to make it easier to work with the iframe.
+  jQuery('.ctools-modal-content').animate({width:'100%', height:'100%'});
+  jQuery('#modalContent').animate({'width': '100%', 'left':'0px', 'top':'0px'});
+  jQuery('#modal-content').animate({'width': '100%', 'height': '100%'});
+  
+  var schemaDataSaved = false;
+  // Respond to data events.
+  window.addEventListener('message', function(event) {
+    if (event.data.name && event.data.name === 'saveData') {
+      var configObject = JSON.stringify(event.data);
+      document.getElementById('schema_instance_config').value = configObject;
+      console.log('config object', configObject);
+      schemaDataSaved = true;
+      jQuery('#patternkit-patternkit-content-type-edit-form').trigger('submit');
+    }
+  });
+  
+  document.getElementById('patternkit-patternkit-content-type-edit-form').onsubmit = function(){
+    if (schemaDataSaved === false) {
+      var frame = document.getElementById('schema-editor-iframe');
+      frame.contentWindow.postMessage('sendSaveData', '*');
+      return false;
+    }
+  };
+</script>
+HTML;
 
   $form['configuration'] = array(
     '#type'   => 'markup',
@@ -406,15 +406,15 @@ function patternkit_patternkit_content_type_render(
       ),
     )
   );
-//
-//  if (!empty($config['pkdata']['attachments'])) {
-//    $settings = _patternkit_merge_js(
-//      $config['pkdata']['attachments'],
-//      $base_dependencies
-//    );
-//    dpm($settings, 'settings');
-//    dpm($base_dependencies, 'bd');
-//  }
+  //
+  //  if (!empty($config['pkdata']['attachments'])) {
+  //    $settings = _patternkit_merge_js(
+  //      $config['pkdata']['attachments'],
+  //      $base_dependencies
+  //    );
+  //    dpm($settings, 'settings');
+  //    dpm($base_dependencies, 'bd');
+  //  }
 
 
   // Build the response object.
