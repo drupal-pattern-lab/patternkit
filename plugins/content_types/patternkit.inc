@@ -14,17 +14,17 @@
  * Plugins are described by creating a $plugin array which will be used
  * by the system that includes this file.
  */
-$plugin = [
+$plugin = array(
   'title'        => t('Patternkit Pattern'),
   'description'  => t(
     'Add and configure a patternkit pattern module to the page'
   ),
-  'category'     => [t('Patternkit'), -9],
+  'category'     => array(t('Patternkit'), -9),
   'content type' => 'patternkit_patternkit_content_type_content_type',
   'admin info'   => 'patternkit_patternkit_content_type_admin_info',
-  'defaults'     => [],
+  'defaults'     => array(),
   'all contexts' => TRUE, // This is NEEDED to be able to use substitution strings in your pane.
-];
+);
 
 /**
  * Generate the content type (pane) definitions.
@@ -45,9 +45,9 @@ function patternkit_patternkit_content_type_content_type($subtype) {
     drupal_set_message(
       t(
         "The patternkit framework module (:module) appears to be missing. Remove from this panel, or replace the missing code and clear caches.",
-        [
+        array(
           ':module' => $subtype,
-        ]
+        )
       ),
       'warning',
       FALSE
@@ -68,7 +68,7 @@ function patternkit_patternkit_content_type_content_type($subtype) {
  */
 function patternkit_patternkit_content_type_content_types() {
   // No reason to generate repeatedly, so (static) caching results.
-  $types = &drupal_static(__FUNCTION__, []);
+  $types = &drupal_static(__FUNCTION__, array());
   if (!empty($types)) {
     return $types;
   }
@@ -82,14 +82,14 @@ function patternkit_patternkit_content_type_content_types() {
     $category = !empty($module_meta->category) ? $module_meta->category : 'uncategorized';
 
     // Create the pane config.
-    $types[$module_key] = [
+    $types[$module_key] = array(
       'category'    => "Patternkit/$category",
       'icon'        => 'icon_field.png',
       'title'       => $module_meta->title,
       'description' => $module_meta->title . ' ' . $module_meta->version,
-      'defaults'    => [],
+      'defaults'    => array(),
       'cache'       => TRUE,
-    ];
+    );
   }
 
   return $types;
@@ -113,10 +113,10 @@ function patternkit_patternkit_content_type_admin_title(
 
   return t(
     'READABLENAME (MODULENAME Pattern)',
-    [
+    array(
       'READABLENAME' => $title,
       'MODULENAME'   => $subtype,
-    ]
+    )
   );
 }
 
@@ -171,44 +171,44 @@ function patternkit_patternkit_content_type_edit_form($form, &$form_state) {
   unset($form['override_title_heading']);
 
   // @TODO: Re-enable the other formats.
-  $form['presentation_style'] = [
+  $form['presentation_style'] = array(
     '#type'          => 'select',
     '#title'         => 'Presentation style',
-    '#options'       => [
+    '#options'       => array(
 //      'webcomponent' => 'Web component',
       'html'         => 'HTML inline',
 //      'json'         => 'JSON (with js/css)',
-    ],
+    ),
     '#default_value' => isset($conf['presentation_style']) ? $conf['presentation_style'] : '',
-  ];
+  );
 
   // Add version as hidden field.
-  $form['version'] = [
+  $form['version'] = array(
     '#type'  => 'hidden',
     '#value' => isset($conf['version']) ? $conf['version'] : $module->version,
-  ];
+  );
 
   // Add module subtype for simpler tracking.
-  $form['module_subtype'] = [
+  $form['module_subtype'] = array(
     '#type'  => 'hidden',
     '#value' => $form_state['subtype_name'],
-  ];
+  );
 
   // Add Instance UUID as hidden field.
-  $form['instance_uuid'] = [
+  $form['instance_uuid'] = array(
     '#type'  => 'hidden',
     '#value' => isset($conf['instance_uuid']) ? $conf['instance_uuid'] : ctools_uuid_generate(
     ),
-  ];
+  );
 
   // Add Instance config (if exists) as hidden field.
-  $form['instance_config'] = [
+  $form['instance_config'] = array(
     '#type'          => 'hidden',
-    '#attributes'    => [
+    '#attributes'    => array(
       'id' => 'schema_instance_config',
-    ],
+    ),
     '#default_value' => isset($conf['instance_config']) ? $conf['instance_config'] : '',
-  ];
+  );
 
   $patternkit_host = variable_get(
     'patternkit_pl_host',
@@ -251,10 +251,10 @@ function patternkit_patternkit_content_type_edit_form($form, &$form_state) {
   </script>
   ";
 
-  $form['configuration'] = [
+  $form['configuration'] = array(
     '#type'   => 'markup',
     '#markup' => $markup,
-  ];
+  );
 
   return $form;
 }
@@ -277,9 +277,7 @@ function patternkit_patternkit_content_type_edit_form_submit(
   $config->instance_id = $instance_id;
   $config->presentation_style = $form_state['values']['presentation_style'];
 
-  $pk_obj = (object) [];
-
-  $pk_obj = _patternkit_fetch_json_and_assets($subtype, $config);
+  $pk_obj = (object) _patternkit_fetch_json_and_assets($subtype, $config);
 
   // Depending on the type of presentation, we want to fetch the data
   // differently.
@@ -312,7 +310,7 @@ function patternkit_patternkit_content_type_render(
   $args,
   $context
 ) {
-  $base_dependencies = [];
+  $base_dependencies = array();
 
   // Flag if a module block should be cached or not.
   $cacheable = variable_get('patternkit_render_cache', FALSE);
@@ -338,12 +336,12 @@ function patternkit_patternkit_content_type_render(
   $cid = "pkmod:{$subtype}:{$instance_id}:";
   $cid .= md5(
     json_encode(
-      [
+      array(
         user_is_logged_in(),
         $context,
         $instance_config,
         $language->language,
-      ]
+      )
     )
   );
 
@@ -353,7 +351,7 @@ function patternkit_patternkit_content_type_render(
 
   // Initialize our static (if necessary).
   if (is_null($is_processed)) {
-    $is_processed = [];
+    $is_processed = array();
   }
 
   // If we've already processed this module, don't add it to active again.
@@ -361,16 +359,16 @@ function patternkit_patternkit_content_type_render(
   // module to appear only once in this array.
   if (!isset($is_processed[$subtype])) {
     // Add to bootstrap list.
-    $base_dependencies['js'][] = [
-      'patternkit' => [
-        'active' => [
-          $subtype => [
+    $base_dependencies['js'][] = array(
+      'patternkit' => array(
+        'active' => array(
+          $subtype => array(
             $instance_id,
-          ],
-        ],
-      ],
+          ),
+        ),
+      ),
       'type' => 'setting',
-    ];
+    );
     $is_processed[$subtype] = 1;
   }
 
@@ -401,12 +399,12 @@ function patternkit_patternkit_content_type_render(
   // Replace core tokens in the body (if any).
   $content = token_replace(
     $content,
-    [
-      'patternkit' => [
+    array(
+      'patternkit' => array(
         'pattern'     => $subtype,
         'instance_id' => $instance_id,
-      ],
-    ]
+      ),
+    )
   );
 //
 //  if (!empty($config['pkdata']['attachments'])) {
@@ -422,10 +420,10 @@ function patternkit_patternkit_content_type_render(
   // Build the response object.
   $block = new stdClass();
   $block->title = '';
-  $block->content = [
+  $block->content = array(
     '#markup'   => $content,
     '#attached' => $config['pkdata']['attachments'],
-  ];
+  );
 
   // Parse TTL and add to params.
   if (!empty($module->ttl)) {
@@ -509,7 +507,7 @@ function _patternkit_admin_info_presentation_render(
   $subtype,
   $block_content
 ) {
-  $result = patternkit_patternkit_content_type_render($subtype, $conf, [], []);
+  $result = patternkit_patternkit_content_type_render($subtype, $conf, array(), array());
 
   $output = $result->content;
   return $output;
@@ -535,12 +533,12 @@ function _patternkit_fetch_json_and_assets($subtype, $config) {
   $url = $patternkit_host . '/api/render/json';
   $result = drupal_http_request(
     $url,
-    [
-      'headers' => ['Content-Type' => 'application/json'],
+    array(
+      'headers' => array('Content-Type' => 'application/json'),
       'data'    => $config->rawJSON,
       'timeout' => 10,
       'method'  => 'POST',
-    ]
+    )
   );
 
   // @TODO: Request failure handling.
@@ -571,7 +569,7 @@ function _patternkit_fetch_json_and_assets($subtype, $config) {
   }
 
   $weight = 100;
-  $assets = [];
+  $assets = array();
 
   // Normalize the object for easier processing.
   if (!empty($pk_obj->assets)) {
@@ -584,7 +582,7 @@ function _patternkit_fetch_json_and_assets($subtype, $config) {
     $pk_obj->assets->js->early = $pk_obj->global_assets->js;
     $pk_obj->assets->js->deferred = $pk_obj->global_assets->footer_js;
     $pk_obj->assets->css->list = $pk_obj->global_assets->css;
-    $pk_obj->assets->css->shared = [];
+    $pk_obj->assets->css->shared = array();
   }
 
   if (!empty($pk_obj->assets)) {
@@ -706,12 +704,12 @@ function _patternkit_fetch_fragment_assets($subtype, $config, &$pk_obj) {
   $url = $patternkit_host . '/api/render/html';
   $result = drupal_http_request(
     $url,
-    [
-      'headers' => ['Content-Type' => 'application/json'],
+    array(
+      'headers' => array('Content-Type' => 'application/json'),
       'data'    => $config->rawJSON,
       // 'timeout' => 10,.
       'method'  => 'POST',
-    ]
+    )
   );
 
   // @TODO: Request failure handling.
@@ -723,18 +721,18 @@ function _patternkit_fetch_fragment_assets($subtype, $config, &$pk_obj) {
     drupal_set_message(
       t(
         'Unable to create folder or save metadata/assets for plugin @plugin',
-        [
+        array(
           '@plugin' => $subtype,
-        ]
+        )
       ),
       'error'
     );
     watchdog(
       'patternkit',
       'Unable to create folder or save metadata/assets for plugin @plugin',
-      [
+      array(
         '@plugin' => $subtype,
-      ],
+      ),
       WATCHDOG_ERROR
     );
   }
@@ -761,42 +759,42 @@ function _patternkit_fetch_fragment_assets($subtype, $config, &$pk_obj) {
     drupal_set_message(
       t(
         'Unable to save metadata/assets for plugin @plugin',
-        [
+        array(
           '@plugin' => $subtype,
-        ]
+        )
       ),
       'error'
     );
     watchdog(
       'patternkit',
       'Unable to save metadata/assets for plugin @plugin',
-      [
+      array(
         '@plugin' => $subtype,
-      ],
+      ),
       WATCHDOG_ERROR
     );
     // @TODO: do something.
   }
 
-  foreach (['early', 'deferred'] as $stage) {
+  foreach (array('early', 'deferred') as $stage) {
     foreach ($pk_obj->assets->js->{$stage} as $asset_fragment) {
       $path = $pk_obj->raw_assets[$asset_fragment];
 
       if (substr($path, 0, 19) == 'public://patternkit/') {
-        $pk_obj->attachments['js'][$path] = [
+        $pk_obj->attachments['js'][$path] = array(
           'type'   => 'file',
           'scope'  => $stage == 'early' ? 'header' : 'footer',
           'group'  => JS_DEFAULT,
           'weight' => 0,
-        ];
+        );
       }
       else {
-        $pk_obj->attachments['js'][$path] = [
+        $pk_obj->attachments['js'][$path] = array(
           'type'   => 'external',
           'scope'  => $stage == 'early' ? 'header' : 'footer',
           'group'  => JS_DEFAULT,
           'weight' => 0,
-        ];
+        );
       }
     }
   }
@@ -805,20 +803,20 @@ function _patternkit_fetch_fragment_assets($subtype, $config, &$pk_obj) {
     $path = $pk_obj->raw_assets[$asset_fragment];
 
     if (substr($path, 0, 19) == 'public://patternkit/') {
-      $pk_obj->attachments['css'][$path] = [
+      $pk_obj->attachments['css'][$path] = array(
         'type'   => 'file',
         'scope'  => 'header',
         'group'  => JS_DEFAULT,
         'weight' => 0,
-      ];
+      );
     }
     else {
-      $pk_obj->attachments['css'][$path] = [
+      $pk_obj->attachments['css'][$path] = array(
         'type'   => 'external',
         'scope'  => 'header',
         'group'  => JS_DEFAULT,
         'weight' => 0,
-      ];
+      );
     }
   }
 
@@ -826,20 +824,20 @@ function _patternkit_fetch_fragment_assets($subtype, $config, &$pk_obj) {
     $path = $pk_obj->raw_assets[$asset_fragment->src];
 
     if (substr($path, 0, 19) == 'public://patternkit/') {
-      $pk_obj->attachments['css'][$path] = [
+      $pk_obj->attachments['css'][$path] = array(
         'type'   => 'file',
         'scope'  => 'header',
         'group'  => JS_DEFAULT,
         'weight' => 0,
-      ];
+      );
     }
     else {
-      $pk_obj->attachments['css'][$path] = [
+      $pk_obj->attachments['css'][$path] = array(
         'type'   => 'external',
         'scope'  => 'header',
         'group'  => JS_DEFAULT,
         'weight' => 0,
-      ];
+      );
     }
   }
 
@@ -870,40 +868,40 @@ function _patternkit_fetch_webcomponent_assets($subtype, $config, &$pk_obj) {
   $url = $patternkit_host . '/api/render/webcomponent';
   $result = drupal_http_request(
     $url,
-    [
-      'headers'  => ['Content-Type' => 'application/json'],
+    array(
+      'headers'  => array('Content-Type' => 'application/json'),
       'jsondata' => $config->rawJSON,
       // 'timeout' => 10,.
       'method'   => 'POST',
-    ]
+    )
   );
 
   // @TODO: Request failure handling.
 
   // Create the stub object.
-  $pk_obj = (object) [
+  $pk_obj = (object) array(
     'pattern'     => $subtype,
-    'attachments' => [],
+    'attachments' => array(),
     'body'        => 'fragment.html',
-  ];
+  );
 
   $dir = "public://patternkit/$subtype/{$config->instance_id}";
   if (!file_prepare_directory($dir, FILE_CREATE_DIRECTORY)) {
     drupal_set_message(
       t(
         'Unable to create folder or save metadata/assets for plugin @plugin',
-        [
+        array(
           '@plugin' => $subtype,
-        ]
+        )
       ),
       'error'
     );
     watchdog(
       'patternkit',
       'Unable to create folder or save metadata/assets for plugin @plugin',
-      [
+      array(
         '@plugin' => $subtype,
-      ],
+      ),
       WATCHDOG_ERROR
     );
   }
@@ -926,37 +924,37 @@ function _patternkit_fetch_webcomponent_assets($subtype, $config, &$pk_obj) {
 
   $pk_obj->body = $save_result;
 
-  $pk_obj->attachments['js']['https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/0.7.24/webcomponents.min.js'] = [
+  $pk_obj->attachments['js']['https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/0.7.24/webcomponents.min.js'] = array(
     'type'   => 'external',
     'scope'  => 'header',
     'group'  => JS_DEFAULT,
     'weight' => 0,
-  ];
+  );
 
   // Add the header link rel import.
-  $pk_obj->attachments['drupal_add_html_head_link'][] = [
-    [
+  $pk_obj->attachments['drupal_add_html_head_link'][] = array(
+    array(
       'rel'  => 'import',
       'href' => $pk_obj->body,
-    ],
-  ];
+    ),
+  );
 
   if ($save_result == FALSE) {
     drupal_set_message(
       t(
         'Unable to save metadata/assets for plugin @plugin',
-        [
+        array(
           '@plugin' => $subtype,
-        ]
+        )
       ),
       'error'
     );
     watchdog(
       'patternkit',
       'Unable to save metadata/assets for plugin @plugin',
-      [
+      array(
         '@plugin' => $subtype,
-      ],
+      ),
       WATCHDOG_ERROR
     );
     // @TODO: do something.
