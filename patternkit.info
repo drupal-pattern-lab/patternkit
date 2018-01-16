@@ -1,5 +1,12 @@
-name="Patternkit plugin - Red Hat Base"
-description="Adds patternkit patterns to panels as content types."
+name="Patternkit"
+description="Adds Patternkit patterns to panels as content types."
 package="Presentation Framework"
 core=7.x
-version=7.x-1.1
+dependencies[] = ctools
+dependencies[] = panels
+files[] = src/PatternkitDrupalCachedLib.php
+files[] = src/PatternkitEditorConfig.php
+files[] = src/PatternkitLibInterface.php
+files[] = src/PatternkitPattern.php
+files[] = src/PatternkitRESTLib.php
+files[] = src/PatternkitDrupalTwigLib.php

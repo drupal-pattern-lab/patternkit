@@ -136,7 +136,7 @@ function patternkit_patternkit_content_type_admin_info(
 
   if (empty($module->title)) {
     $block->title = "BROKEN/MISSING MODULE ($subtype)";
-    $block->content = "BROKEN/MISSING MODULE";
+    $block->content = 'BROKEN/MISSING MODULE';
 
     return $block;
   }
@@ -165,19 +165,19 @@ function patternkit_patternkit_content_type_edit_form($form, &$form_state) {
   $module = _patternkit_get_metadata($subtype);
 
   // Remove the title override fields.
-  unset($form['override_title_markup']);
-  unset($form['override_title']);
-  unset($form['override_title_text']);
-  unset($form['override_title_heading']);
+  unset($form['override_title_markup'],
+    $form['override_title'],
+    $form['override_title_text'],
+    $form['override_title_heading']);
 
   // @TODO: Re-enable the other formats.
   $form['presentation_style'] = array(
     '#type'          => 'select',
     '#title'         => 'Presentation style',
     '#options'       => array(
-      //      'webcomponent' => 'Web component',
+//      'webcomponent' => 'Web component',
       'html'         => 'HTML inline',
-      //      'json'         => 'JSON (with js/css)',
+//      'json'         => 'JSON (with js/css)',
     ),
     '#default_value' => isset($conf['presentation_style']) ? $conf['presentation_style'] : '',
   );
@@ -210,51 +210,14 @@ function patternkit_patternkit_content_type_edit_form($form, &$form_state) {
     '#default_value' => isset($conf['instance_config']) ? $conf['instance_config'] : '',
   );
 
-  $patternkit_host = variable_get(
-    'patternkit_pl_host',
-    'http://localhost:9001'
-  );
-  $url = $patternkit_host . '/schema/editor/' . substr($subtype, 3);
-
-  if (!empty($conf['instance_config'])) {
-    $config = json_decode($conf['instance_config']);
-    $url .= !empty($config->lzstring) ? "?data=" . $config->lzstring : '';
+  $editor = $module->library->getEditor($subtype);
+  if (!is_array($editor)) {
+    $editor = array(
+      '#type'   => 'markup',
+      '#markup' => $editor,
+    );
   }
-
-  $markup = <<< HTML
-<iframe id='schema-editor-iframe' width='100%' height='1000px' src='$url'></iframe>
-<script>
-  // Enlarge the ctools modal to make it easier to work with the iframe.
-  jQuery('.ctools-modal-content').animate({width:'100%', height:'100%'});
-  jQuery('#modalContent').animate({'width': '100%', 'left':'0px', 'top':'0px'});
-  jQuery('#modal-content').animate({'width': '100%', 'height': '100%'});
-  
-  var schemaDataSaved = false;
-  // Respond to data events.
-  window.addEventListener('message', function(event) {
-    if (event.data.name && event.data.name === 'saveData') {
-      var configObject = JSON.stringify(event.data);
-      document.getElementById('schema_instance_config').value = configObject;
-      console.log('config object', configObject);
-      schemaDataSaved = true;
-      jQuery('#patternkit-patternkit-content-type-edit-form').trigger('submit');
-    }
-  });
-  
-  document.getElementById('patternkit-patternkit-content-type-edit-form').onsubmit = function(){
-    if (schemaDataSaved === false) {
-      var frame = document.getElementById('schema-editor-iframe');
-      frame.contentWindow.postMessage('sendSaveData', '*');
-      return false;
-    }
-  };
-</script>
-HTML;
-
-  $form['configuration'] = array(
-    '#type'   => 'markup',
-    '#markup' => $markup,
-  );
+  $form['configuration'] = $editor;
 
   return $form;
 }
@@ -401,20 +364,20 @@ function patternkit_patternkit_content_type_render(
     $content,
     array(
       'patternkit' => array(
-        'pattern'     => $subtype,
+        'PatternkitPattern' => $subtype,
         'instance_id' => $instance_id,
       ),
     )
   );
-  //
-  //  if (!empty($config['pkdata']['attachments'])) {
-  //    $settings = _patternkit_merge_js(
-  //      $config['pkdata']['attachments'],
-  //      $base_dependencies
-  //    );
-  //    dpm($settings, 'settings');
-  //    dpm($base_dependencies, 'bd');
-  //  }
+//
+//  if (!empty($config['pkdata']['attachments'])) {
+//    $settings = _patternkit_merge_js(
+//      $config['pkdata']['attachments'],
+//      $base_dependencies
+//    );
+//    dpm($settings, 'settings');
+//    dpm($base_dependencies, 'bd');
+//  }
 
 
   // Build the response object.
@@ -431,7 +394,7 @@ function patternkit_patternkit_content_type_render(
   }
   else {
     // Default ttl to 30 days.
-    $ttl = variable_get('patternkit_default_module_ttl', 30 * 24 * 60 * 60);
+    $ttl = variable_get('patternkit_default_module_ttl', PATTERNKIT_DEFAULT_TTL);
   }
 
   // Save to the cache bin (if caching is enabled).
@@ -880,7 +843,7 @@ function _patternkit_fetch_webcomponent_assets($subtype, $config, &$pk_obj) {
 
   // Create the stub object.
   $pk_obj = (object) array(
-    'pattern'     => $subtype,
+    'PatternkitPattern' => $subtype,
     'attachments' => array(),
     'body'        => 'fragment.html',
   );

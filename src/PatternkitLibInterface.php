@@ -1,0 +1,48 @@
+<?php
+
+/**
+ * Interface PatternLibInterface.
+ */
+interface PatternkitLibInterface {
+
+  /**
+   * Returns the id of the Pattern Library.
+   *
+   * @return string
+   *   The Pattern Library id.
+   */
+  public function getId();
+
+  /**
+   * Returns the title of the Pattern Library.
+   *
+   * @return string
+   *   The Pattern Library title.
+   */
+  public function getTitle();
+
+  /**
+   * Returns renderable data or markup for a pattern editor.
+   *
+   * @param string|null $subtype
+   *   If specified, return an editor customized for this subtype.
+   * @param \PatternkitEditorConfig $config
+   *   Optional configuration settings for the editor.
+   *
+   * @return mixed
+   *   The renderable pattern editor.
+   */
+  public function getEditor($subtype = NULL, PatternkitEditorConfig $config = NULL);
+
+  /**
+   * Utility function to get specified Patternkit module metadata.
+   *
+   * @param string|null $subtype
+   *   If specified, return only metadata for this subtype.
+   *
+   * @return array|null|PatternkitPattern
+   *   Array of metadata objects found or object if specific module requested.
+   */
+  public function getMetadata($subtype = NULL);
+
+}
