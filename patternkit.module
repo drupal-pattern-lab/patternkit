@@ -113,24 +113,3 @@ function patternkit_menu() {
   );
   return $items;
 }
-
-/**
- * Utility function to display patternkit error messages.
- *
- * Checks if permissions and configuration allow showing error, then displays.
- *
- * @param string $msg
- *   The message to display (with t vars as appropriate).
- * @param array $vars
- *   Optional array of replacement text appropriate for use in t function.
- * @param string $status
- *   Status for the error message. Passed to drupal_set_message.
- */
-function _patternkit_show_error($msg, array $vars = array(), $status = 'error') {
-  if (variable_get('patternkit_show_errors', FALSE) && user_is_logged_in()) {
-    drupal_set_message(format_string($msg, $vars), $status);
-  }
-  if (variable_get('patternkit_log_errors', FALSE)) {
-    watchdog('patternkit', $msg, $vars, WATCHDOG_ERROR);
-  }
-}

@@ -6,6 +6,133 @@
 class PatternkitRESTLib extends PatternkitDrupalCachedLib {
 
   /**
+   * Fetches all assets for a pattern.
+   *
+   * @param \PatternkitPattern $pattern
+   *   The pattern to use for asset retrieval.
+   * @param \PatternkitEditorConfig $config
+   *   The configuration object to use for provisioning the pattern.
+   *
+   * @return \PatternkitPattern
+   *   The pattern parameter with updated asset references.
+   */
+  public function fetchPatternAssets(PatternkitPattern $pattern,
+    \PatternkitEditorConfig $config) {
+
+    $patternkit_host = variable_get(
+      'patternkit_pl_host',
+      'http://localhost:9001'
+    );
+
+    $url = $patternkit_host . '/api/render/json';
+    $result = drupal_http_request(
+      $url,
+      array(
+        'headers' => array('Content-Type' => 'application/json'),
+        'data'    => $config->rawJSON,
+        'timeout' => 10,
+        'method'  => 'POST',
+      )
+    );
+
+    // @TODO: Request failure handling.
+
+    $pk_obj = json_decode($result->data);
+    $subtype = $pattern;
+    $dir = "public://patternkit/$subtype/{$config->instance_id}";
+    if (!file_prepare_directory($dir, FILE_CREATE_DIRECTORY)) {
+      // @TODO: Failure handling.
+      _patternkit_show_error(
+        "Unable to create folder ($dir) to contain the pklugins artifacts."
+      );
+    }
+
+    // Fetch the body html artifact.
+    $save_result = file_unmanaged_save_data(
+      $pk_obj->body,
+      "$dir/manifest.json",
+      FILE_EXISTS_REPLACE
+    );
+    $pk_obj->body = $save_result;
+
+    if ($save_result === FALSE) {
+      // @TODO: Failure handling.
+      _patternkit_show_error(
+        "Unable to create static archive of the JSON pklugins artifact for $subtype."
+      );
+    }
+
+    $assets = array();
+
+    // Normalize the object for easier processing.
+    if (!empty($pk_obj->assets)) {
+      $pk_obj->assets->js->early;
+      $pk_obj->assets->js->deferred;
+      $pk_obj->assets->css->list;
+      $pk_obj->assets->css->shared;
+    }
+    else {
+      $pk_obj->assets->js->early = $pk_obj->global_assets->js;
+      $pk_obj->assets->js->deferred = $pk_obj->global_assets->footer_js;
+      $pk_obj->assets->css->list = $pk_obj->global_assets->css;
+      $pk_obj->assets->css->shared = array();
+    }
+
+    if (!empty($pk_obj->assets)) {
+      $assets['js'] = array_merge(
+        $pk_obj->assets->js->early,
+        $pk_obj->assets->js->deferred
+      );
+
+      $assets['css'] = $pk_obj->assets->css->list;
+      // Fetch and update the assets in the shared dependency list.
+      if (!empty($pk_obj->assets->css->shared)) {
+        foreach ($pk_obj->assets->css->shared as $asset) {
+          $assets['css'][] = $asset->src;
+        }
+      }
+    }
+    else {
+      $assets['js'] = array_merge(
+        $pk_obj->global_assets->js,
+        $pk_obj->global_assets->footer_js
+      );
+
+      $assets['css'] = $pk_obj->global_assets->css;
+    }
+
+    foreach ($assets as $asset_type => $urls) {
+      foreach ($urls as $asset_url) {
+        // If the asset is being loaded with arbitrary scheme, assume external.
+        $pos = strpos($asset_url, '//');
+        if ($pos !== FALSE && $pos <= 11) {
+          continue;
+        }
+
+        $save_result = _patternkit_fetch_single_asset($dir, $pk_obj->path, $asset_url);
+        $pk_obj->raw_assets[$asset_url] = $save_result;
+      }
+    }
+
+    // Depending on the type of presentation, we want to fetch the data
+    // differently.
+    switch ($config->presentation_style) {
+      case 'webcomponent':
+        _patternkit_fetch_webcomponent_assets($subtype, $config, $pk_obj);
+        break;
+
+      case 'html':
+        _patternkit_fetch_fragment_assets($subtype, $config, $pk_obj);
+        break;
+
+      case 'json':
+        break;
+    }
+
+    return $pk_obj;
+  }
+
+  /**
    * Returns the id of the Pattern Library.
    *
    * @return string

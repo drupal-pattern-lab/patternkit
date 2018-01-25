@@ -26,6 +26,22 @@ class PatternkitDrupalTwigLib extends PatternkitDrupalCachedLib {
   }
 
   /**
+   * Fetches all assets for a pattern.
+   *
+   * @param \PatternkitPattern $pattern
+   *   The pattern to use for asset retrieval.
+   * @param \PatternkitEditorConfig $config
+   *   The configuration object to use for provisioning the pattern.
+   *
+   * @return \PatternkitPattern
+   *   The pattern parameter with updated asset references.
+   */
+  public function fetchPatternAssets(PatternkitPattern $pattern,
+    \PatternkitEditorConfig $config) {
+    return $pattern;
+  }
+
+  /**
    * Returns the id of the Pattern Library.
    *
    * @return string
