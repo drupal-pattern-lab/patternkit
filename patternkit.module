@@ -9,6 +9,7 @@
 const PATTERNKIT_DEFAULT_TTL = 2592000;
 
 include __DIR__ . '/include/patternkit_config_form.inc';
+include __DIR__ . '/include/utility.inc';
 
 /**
  * Implements hook_ctools_plugin_directory().
@@ -105,36 +106,12 @@ function patternkit_menu() {
     'page arguments' => array('patternkit_config_form'),
     'access arguments' => array('access administration pages'),
   );
+  $items['patternkit/ajax/%/%/schema'] = array(
+    'page callback' => 'patternkit_api_pattern_schema',
+    'page arguments' => array(2, 3),
+    'access callback' => TRUE,
+  );
   return $items;
-}
-
-/**
- * Utility function to get all Patternkit module metadata.
- *
- * @param string|null $subtype
- *   If specified, return only metadata for this subtype.
- * @param bool $reset
- *   Optionally force the meta data to be reloaded.
- *
- * @return array|\PatternkitPattern
- *   Array of metadata objects found or object if specific module requested.
- *
- * @todo Add support for multiple library implementation of a pattern.
- */
-function _patternkit_get_metadata($subtype = NULL, $reset = FALSE) {
-  $module = NULL;
-  $metadata = array();
-  foreach (patternkit_pattern_libraries() as $lib) {
-    if ($subtype === NULL) {
-      $metadata += $lib->getCachedMetadata(NULL, $reset);
-      continue;
-    }
-    $module = $lib->getCachedMetadata($subtype, $reset);
-    if ($module !== NULL) {
-      return $module;
-    }
-  }
-  return $subtype === NULL ? $metadata : $module;
 }
 
 /**

@@ -58,13 +58,55 @@ class PatternkitDrupalTwigLib extends PatternkitDrupalCachedLib {
    */
   public function getEditor($subtype = NULL,
     PatternkitEditorConfig $config = NULL) {
-    if (empty($subtype) || empty($metadata)) {
-      return array(
-
-      )
+    $pattern = $this->getMetadata($subtype);
+    if ($subtype === NULL || empty($pattern)) {
+      return t('Unable to lookup the schema for this subtype.');
     }
-    $metadata = $this->getMetadata($subtype);
-    return array();
+
+    $schema_json = drupal_json_encode($pattern->schema);
+    $starting_json = $config !== NULL ? drupal_json_encode($config->fields)
+      : $config;
+    // @todo Move to own JS file & Drupal Settings config var.
+    $markup = <<<HTML
+<div id="editor_holder"></div>
+<script type="text/javascript">
+  var data = {};
+  data.schema = $schema_json;
+  data.starting = $starting_json;
+  // Enlarge the ctools modal to make it easier to work with the iframe.
+  jQuery('.ctools-modal-content').animate({width:'100%', height:'100%'});
+  jQuery('#modalContent').animate({'width': '100%', 'left':'0px', 'top':'0px'});
+  jQuery('#modal-content').animate({'width': '100%', 'height': '100%'});
+
+  if (data.starting !== null && data.starting.name) {
+    JSONEditor.defaults.options.startval = data.starting;
+  }
+  
+  // Initialize the editor with a JSON schema
+  var editor = new JSONEditor(
+    document.getElementById('editor_holder'), {
+      schema:            data.schema,
+      theme:             'jqueryui',
+      iconlib:           'jqueryui',
+      keep_oneof_values: false,
+      ajax:              true
+    }
+  );
+  JSONEditor.plugins.sceditor.emoticonsEnabled = false;
+  
+  editor.on('change', function() {
+    var config_string = JSON.stringify(editor.getValue());
+    document.getElementById('schema_instance_config').value = config_string;
+    
+  });
+</script>
+HTML;
+
+    // @todo Toggle based on developer settings.
+    drupal_add_js(drupal_get_path('module', 'patternkit')
+      . '/js/jsoneditor.js');
+
+    return $markup;
   }
 
   /**
@@ -74,6 +116,7 @@ class PatternkitDrupalTwigLib extends PatternkitDrupalCachedLib {
    *   Array of metadata objects found.
    */
   protected function getRawMetadata() {
+    $id = $this->getId();
     $it = new RecursiveDirectoryIterator($this->path);
     $filter = array('json');
     $metadata = array();
@@ -96,21 +139,28 @@ class PatternkitDrupalTwigLib extends PatternkitDrupalCachedLib {
         continue;
       }
       if ($file_contents = file_get_contents($file)) {
-        $schema = json_decode($file_contents);
-        $schema->html = NULL;
-        $schema->library = &$this;
-        $schema->version = isset($schema->version) ? $schema->version : 0;
+        $pattern = new PatternkitPattern(json_decode($file_contents));
+        $pattern->library = &$this;
         $file_basename = $file->getBasename('.json');
+        $subtype = "pk_$file_basename";
+        $pattern->subtype = $subtype;
+        $pattern->url = url("patternkit/ajax/$id/$subtype/schema");
         $twig_file = $file_path
           . DIRECTORY_SEPARATOR . $file_basename . '.twig';
         if (file_exists($twig_file)) {
-          $schema->twig = file_get_contents($twig_file);
+          $pattern->twig = file_get_contents($twig_file);
         }
-        $metadata[$file_basename] = $schema;
+        $metadata[$file_basename] = $pattern;
       }
-      if (count($metadata) > 500) {
-        break;
+    }
+    foreach ($metadata as $pattern_type => $pattern) {
+      // Replace any $ref links with relative paths.
+      if (!isset($pattern->schema->properties)) {
+        continue;
       }
+      $pattern->schema->properties = _patternkit_schema_ref($pattern->schema->properties,
+        $metadata);
+      $metadata[$pattern_type] = $pattern;
     }
     return $metadata;
   }

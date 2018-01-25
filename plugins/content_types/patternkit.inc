@@ -5,8 +5,13 @@
  * Patternkit Panes.
  *
  * Exposes patternkit modules to panels for placement on the page.
- * Author: Jason Smith <jason.smith@redhat.com>.
+ * @author Jason Smith <jason.smith@redhat.com>.
+ *
+ * @maintainers Jason Smith <jason.smith@redhat.com>
+ *   Derek Reese <derek.reese@redhat.com>
  */
+
+require_once __DIR__ . '/../../include/utility.inc';
 
 /**
  * Plugin declaration for panels.
@@ -210,7 +215,11 @@ function patternkit_patternkit_content_type_edit_form($form, &$form_state) {
     '#default_value' => isset($conf['instance_config']) ? $conf['instance_config'] : '',
   );
 
-  $editor = $module->library->getEditor($subtype);
+  $config = NULL;
+  if (!empty($conf['instance_config'])) {
+    $config = new PatternkitEditorConfig(json_decode($conf['instance_config']));
+  }
+  $editor = $module->library->getEditor($subtype, $config);
   if (!is_array($editor)) {
     $editor = array(
       '#type'   => 'markup',
@@ -229,34 +238,19 @@ function patternkit_patternkit_content_type_edit_form_submit(
   &$form,
   &$form_state
 ) {
-  // Clear instance render cache.
   $subtype = $form_state['values']['module_subtype'];
   $instance_id = $form_state['values']['instance_uuid'];
-  $config = json_decode($form_state['values']['instance_config']);
 
+  // Clear instance render cache.
   $cid = "pkmod:{$subtype}:{$instance_id}";
   cache_clear_all($cid, 'cache_patternkit', TRUE);
 
+  $config = new PatternkitEditorConfig();
+  $config->fields = json_decode($form_state['values']['instance_config']);
   $config->instance_id = $instance_id;
   $config->presentation_style = $form_state['values']['presentation_style'];
-
-  $pk_obj = (object) _patternkit_fetch_json_and_assets($subtype, $config);
-
-  // Depending on the type of presentation, we want to fetch the data
-  // differently.
-  switch ($config->presentation_style) {
-    case 'webcomponent':
-      _patternkit_fetch_webcomponent_assets($subtype, $config, $pk_obj);
-      break;
-
-    case 'html':
-      _patternkit_fetch_fragment_assets($subtype, $config, $pk_obj);
-      break;
-
-    case 'json':
-      break;
-  }
-
+  $pattern = _patternkit_get_metadata($subtype);
+  $pk_obj = $pattern->library->fetchPatternAssets($pattern, $config);
   $config->pkdata = $pk_obj;
 
   $form_state['values']['instance_config'] = json_encode($config);

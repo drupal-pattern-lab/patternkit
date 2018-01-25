@@ -25,17 +25,28 @@ class PatternkitRESTLib extends PatternkitDrupalCachedLib {
     return 'Patternkit REST API';
   }
 
-  public function getEditor($subtype = NULL, $config = NULL) {
+  /**
+   * Returns renderable data or markup for a pattern editor.
+   *
+   * @param string|null $subtype
+   *   If specified, return an editor customized for this subtype.
+   * @param \PatternkitEditorConfig $config
+   *   Optional configuration settings for the editor.
+   *
+   * @return mixed
+   *   The renderable pattern editor.
+   */
+  public function getEditor($subtype = NULL, PatternkitEditorConfig $config = NULL) {
     $patternkit_host = variable_get(
       'patternkit_pl_host',
       'http://localhost:9001'
     );
     $url = $patternkit_host . '/schema/editor/' . substr($subtype, 3);
 
-    if (!empty($conf['instance_config'])) {
-      $config = json_decode($conf['instance_config']);
-      $url .= !empty($config->lzstring) ? "?data=" . $config->lzstring : '';
+    if ($config !== NULL) {
+      $url .= !empty($config->lzstring) ? '?data=' . $config->lzstring : '';
     }
+    // @todo Move to external phptemplate.
     $markup = <<< HTML
 <iframe id='schema-editor-iframe' width='100%' height='1000px' src='$url'></iframe>
 <script>

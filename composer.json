@@ -8,5 +8,11 @@
     ],
     "require": {},
     "config": {},
-    "repositories": []
+    "repositories": [],
+    "scripts": {
+        "post-autoload-dump": [
+            "wget -Oq -P js/ --no-check-certificate https://raw.github.com/jdorn/json-editor/master/dist/jsoneditor.min.js",
+            "wget -Oq -P js/ --no-check-certificate https://raw.github.com/jdorn/json-editor/master/dist/jsoneditor.js"
+        ]
+    }
 }
