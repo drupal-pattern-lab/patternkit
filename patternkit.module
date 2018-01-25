@@ -8,6 +8,7 @@
 // Default TTL is 30 * 24 * 60 * 60, 30 minutes.
 const PATTERNKIT_DEFAULT_TTL = 2592000;
 
+include __DIR__ . '/include/api.inc';
 include __DIR__ . '/include/patternkit_config_form.inc';
 include __DIR__ . '/include/utility.inc';
 

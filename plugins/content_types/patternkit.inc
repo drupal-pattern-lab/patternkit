@@ -18,6 +18,8 @@ require_once __DIR__ . '/../../include/utility.inc';
  *
  * Plugins are described by creating a $plugin array which will be used
  * by the system that includes this file.
+ *
+ * The 'all contexts' is NEEDED to be able to use substitution strings.
  */
 $plugin = array(
   'title'        => t('Patternkit Pattern'),
@@ -28,7 +30,7 @@ $plugin = array(
   'content type' => 'patternkit_patternkit_content_type_content_type',
   'admin info'   => 'patternkit_patternkit_content_type_admin_info',
   'defaults'     => array(),
-  'all contexts' => TRUE, // This is NEEDED to be able to use substitution strings in your pane.
+  'all contexts' => TRUE,
 );
 
 /**
@@ -49,7 +51,7 @@ function patternkit_patternkit_content_type_content_type($subtype) {
   if (!user_is_anonymous()) {
     drupal_set_message(
       t(
-        "The patternkit framework module (:module) appears to be missing. Remove from this panel, or replace the missing code and clear caches.",
+        'The patternkit framework module (:module) appears to be missing. Remove from this panel, or replace the missing code and clear caches.',
         array(
           ':module' => $subtype,
         )
@@ -110,7 +112,7 @@ function patternkit_patternkit_content_type_admin_title(
 ) {
   $module = _patternkit_get_metadata($subtype);
   if (empty($module->title)) {
-    $title = "BROKEN/MISSING MODULE";
+    $title = 'BROKEN/MISSING MODULE';
   }
   else {
     $title = $module->title;
@@ -175,14 +177,12 @@ function patternkit_patternkit_content_type_edit_form($form, &$form_state) {
     $form['override_title_text'],
     $form['override_title_heading']);
 
-  // @TODO: Re-enable the other formats.
+  // @TODO: Re-enable the other formats like JSON and webcomponent.
   $form['presentation_style'] = array(
     '#type'          => 'select',
     '#title'         => 'Presentation style',
     '#options'       => array(
-//      'webcomponent' => 'Web component',
       'html'         => 'HTML inline',
-//      'json'         => 'JSON (with js/css)',
     ),
     '#default_value' => isset($conf['presentation_style']) ? $conf['presentation_style'] : '',
   );
@@ -307,7 +307,7 @@ function patternkit_patternkit_content_type_render(
   static $is_processed;
 
   // Initialize our static (if necessary).
-  if (is_null($is_processed)) {
+  if ($is_processed === NULL) {
     $is_processed = array();
   }
 
@@ -363,17 +363,8 @@ function patternkit_patternkit_content_type_render(
       ),
     )
   );
-//
-//  if (!empty($config['pkdata']['attachments'])) {
-//    $settings = _patternkit_merge_js(
-//      $config['pkdata']['attachments'],
-//      $base_dependencies
-//    );
-//    dpm($settings, 'settings');
-//    dpm($base_dependencies, 'bd');
-//  }
 
-
+  // @todo Merge attachment JS and dependencies.
   // Build the response object.
   $block = new stdClass();
   $block->title = '';
@@ -396,13 +387,19 @@ function patternkit_patternkit_content_type_render(
     cache_set($cid, $block, 'cache_patternkit', time() + $ttl);
   }
 
+  // @todo Re-evaluate use of this flag.
   // Set flag to let other modules know content is ngpanes stuff.
   $block->ngpane = 1;
 
   return $block;
 }
 
-/************* Utility functions below *************/
+/**
+ * Utility functions.
+ *
+ * @ingroup utility
+ * @{
+ */
 
 /**
  * Render the actual contents of the module.
@@ -432,7 +429,7 @@ function _patternkit_render_block(
     return 'MISSING/BROKEN';
   }
 
-  if ($config['presentation_style'] == 'webcomponent') {
+  if ($config['presentation_style'] === 'webcomponent') {
     $subtype = substr($subtype, 3);
     $body = "<$subtype-pattern></$subtype-pattern>";
   }
@@ -466,8 +463,7 @@ function _patternkit_admin_info_presentation_render(
 ) {
   $result = patternkit_patternkit_content_type_render($subtype, $conf, array(), array());
 
-  $output = $result->content;
-  return $output;
+  return $result->content;
 }
 
 /**
