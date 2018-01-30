@@ -14,6 +14,19 @@ abstract class PatternkitDrupalCachedLib implements PatternkitLibInterface {
   abstract protected function getRawMetadata();
 
   /**
+   * Creates a new pattern in this library.
+   *
+   * @param object|array $schema
+   *   Optional JSON Schema to preset the pattern.
+   *
+   * @return \PatternkitPattern
+   *   The new pattern.
+   */
+  public function createPattern($schema = array()) {
+    return new PatternkitPattern($this, $schema);
+  }
+
+  /**
    * Utility function to get specified Patternkit module metadata.
    *
    * @param string|null $subtype

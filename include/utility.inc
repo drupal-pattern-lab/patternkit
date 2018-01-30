@@ -524,7 +524,8 @@ function _patternkit_merge_js(array $js1, array $js2) {
  * @return array|\PatternkitPattern
  *   Array of metadata objects found or object if specific module requested.
  *
- * @todo Add support for multiple library implementation of a pattern.
+ * @todo Add support for multiple library implementations of a pattern.
+ *   AKA namespacing.
  */
 function _patternkit_get_metadata($subtype = NULL, $reset = FALSE) {
   $metadata = array();

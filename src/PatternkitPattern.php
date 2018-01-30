@@ -8,14 +8,16 @@ class PatternkitPattern {
   /**
    * PatternkitPattern constructor.
    *
+   * @param \PatternkitLibInterface $library
+   *   The library the pattern belongs to.
+   *
    * @param object|array $schema
    *   An optional JSON Schema object to use.
    */
-  public function __construct($schema = array()) {
+  public function __construct(PatternkitLibInterface $library, $schema = array()) {
     $this->subtype = NULL;
     $this->title = NULL;
     $this->html = NULL;
-    $this->library = NULL;
     $this->version = NULL;
     $this->attachments = NULL;
     $this->schema = $schema;
@@ -23,11 +25,26 @@ class PatternkitPattern {
       return;
     }
     foreach ($schema as $key => $value) {
-      if ($key !== 'schema' && property_exists($this, $key)) {
+      if ($key !== 'schema' && property_exists($this, (string) $key)) {
         $this->{$key} = $value;
       }
     }
+    $this->library = $library;
   }
+
+  /**
+   * The required minimum data for a pattern.
+   *
+   * @ingroup required
+   * @{
+   */
+
+  /**
+   * The Patternkit Library that loaded the pattern.
+   *
+   * @var \PatternkitLibInterface
+   */
+  public $library;
 
   /**
    * The subtype for the pattern. Typically "pk_$pattern".
@@ -46,11 +63,8 @@ class PatternkitPattern {
   public $title;
 
   /**
-   * An override TTL in ms for the pattern.
-   *
-   * @var int
+   * @}
    */
-  public $ttl;
 
   /**
    * Optional array of attached assets.
@@ -83,18 +97,18 @@ class PatternkitPattern {
   public $body;
 
   /**
+   * The pattern template file.
+   *
+   * @var string
+   */
+  public $filename;
+
+  /**
    * Pre-rendered HTML using the configuration object, if available.
    *
    * @var string
    */
   public $html;
-
-  /**
-   * The Patternkit Library that loaded the pattern.
-   *
-   * @var \PatternkitLibInterface
-   */
-  public $library;
 
   /**
    * The JSON Schema for the pattern.
@@ -104,6 +118,22 @@ class PatternkitPattern {
    * @see https://datatracker.ietf.org/doc/draft-handrews-json-schema/
    */
   public $schema;
+
+  /**
+   * Optional pattern template contents.
+   *
+   * Typically Twig or Nunjucks, others include Handlebars and Jinja.
+   *
+   * @var string
+   */
+  public $template;
+
+  /**
+   * An override TTL in ms for the pattern.
+   *
+   * @var int
+   */
+  public $ttl;
 
   /**
    * The API URL for the pattern.
@@ -130,6 +160,19 @@ class PatternkitPattern {
   public function fetchAssets(PatternkitEditorConfig $config) {
     $this->library->fetchPatternAssets($this, $config);
     return $this;
+  }
+
+  /**
+   * Renders the pattern and returns the generated markup.
+   *
+   * @param \PatternkitEditorConfig $config
+   *   The editor configuration for the pattern.
+   *
+   * @return string
+   *   The rendered HTML pattern markup.
+   */
+  public function getRenderedMarkup(PatternkitEditorConfig $config) {
+    return $this->library->getRenderedPatternMarkup($this, $config);
   }
 
 }

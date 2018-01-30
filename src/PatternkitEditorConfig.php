@@ -13,12 +13,11 @@ class PatternkitEditorConfig extends stdClass {
    */
   public function __construct($config = array()) {
     foreach ($config as $property => $value) {
-      if (property_exists($this, $property)) {
+      if (property_exists($this, (string) $property)) {
         $this->{$property} = $value;
         unset($config->{$property});
       }
     }
-    $this->fields->misc_data = !empty($config) ? $config : '';
   }
 
   /**

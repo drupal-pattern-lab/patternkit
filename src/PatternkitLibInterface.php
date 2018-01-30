@@ -6,6 +6,17 @@
 interface PatternkitLibInterface {
 
   /**
+   * Creates a new pattern in this library.
+   *
+   * @param object|array $schema
+   *   Optional JSON Schema to preset the pattern.
+   *
+   * @return \PatternkitPattern
+   *   The new pattern.
+   */
+  public function createPattern($schema = array());
+
+  /**
    * Fetches all assets for a pattern.
    *
    * @param \PatternkitPattern $pattern
@@ -18,6 +29,20 @@ interface PatternkitLibInterface {
    */
   public function fetchPatternAssets(PatternkitPattern $pattern,
     \PatternkitEditorConfig $config);
+
+  /**
+   * Returns rendered markup for a provided pattern.
+   *
+   * @param \PatternkitPattern $pattern
+   *   The pattern to render.
+   * @param \PatternkitEditorConfig $config
+   *   The editor configuration for the pattern.
+   *
+   * @return string
+   *   The rendered pattern HTML.
+   */
+  public function getRenderedPatternMarkup(PatternkitPattern $pattern,
+    PatternkitEditorConfig $config);
 
   /**
    * Returns the id of the Pattern Library.

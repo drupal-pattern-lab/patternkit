@@ -143,6 +143,34 @@ class PatternkitRESTLib extends PatternkitDrupalCachedLib {
   }
 
   /**
+   * Returns rendered markup for a provided pattern.
+   *
+   * @param \PatternkitPattern $pattern
+   *   The pattern to render.
+   * @param \PatternkitEditorConfig $config
+   *   The editor configuration for the pattern.
+   *
+   * @return string
+   *   The rendered pattern HTML.
+   */
+  public function getRenderedPatternMarkup(PatternkitPattern $pattern,
+    PatternkitEditorConfig $config) {
+    $subtype = $pattern->subtype;
+    if (empty($config['presentation_style']) || empty($config['instance_id'])) {
+      return '';
+    }
+    if ($config['presentation_style'] === 'webcomponent') {
+      $subtype = substr($subtype, 3);
+      $body = "<$subtype-pattern></$subtype-pattern>";
+    }
+    else {
+      $filename = "public://patternkit/$subtype/{$config['instance_id']}/body.html";
+      $body = file_get_contents($filename);
+    }
+    return $body;
+  }
+
+  /**
    * Returns the title of the Pattern Library.
    *
    * @return string

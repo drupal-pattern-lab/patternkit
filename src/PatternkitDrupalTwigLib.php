@@ -38,6 +38,8 @@ class PatternkitDrupalTwigLib extends PatternkitDrupalCachedLib {
    */
   public function fetchPatternAssets(PatternkitPattern $pattern,
     \PatternkitEditorConfig $config) {
+    // @todo Add support for twig lib attachments such as JS and images.
+    $pattern->attachments = array();
     return $pattern;
   }
 
@@ -145,6 +147,7 @@ HTML;
       $dirs = explode(DIRECTORY_SEPARATOR, $file_path);
       // All JSON schema must be in an 'api' folder at this time.
       // @todo Add support for custom setups.
+      // @todo Look at a standard for JSON Schema + JSON Sample data.
       $num_dirs = count($dirs);
       if ($num_dirs < 2
         || array_pop($dirs) !== 'api') {
@@ -155,8 +158,7 @@ HTML;
         continue;
       }
       if ($file_contents = file_get_contents($file)) {
-        $pattern = new PatternkitPattern(json_decode($file_contents));
-        $pattern->library = &$this;
+        $pattern = $this->createPattern(json_decode($file_contents));
         $file_basename = $file->getBasename('.json');
         $subtype = "pk_$file_basename";
         $pattern->subtype = $subtype;
@@ -164,7 +166,8 @@ HTML;
         $twig_file = $file_path
           . DIRECTORY_SEPARATOR . $file_basename . '.twig';
         if (file_exists($twig_file)) {
-          $pattern->twig = file_get_contents($twig_file);
+          $pattern->filename = $twig_file;
+          $pattern->template = file_get_contents($twig_file);
         }
         $metadata[$file_basename] = $pattern;
       }
@@ -179,6 +182,27 @@ HTML;
       $metadata[$pattern_type] = $pattern;
     }
     return $metadata;
+  }
+
+  /**
+   * Returns rendered markup for a provided pattern.
+   *
+   * @param \PatternkitPattern $pattern
+   *   The pattern to render.
+   * @param \PatternkitEditorConfig $config
+   *   The editor configuration for the pattern.
+   *
+   * @return string
+   *   The rendered pattern HTML.
+   */
+  public function getRenderedPatternMarkup(PatternkitPattern $pattern,
+    PatternkitEditorConfig $config) {
+    if (empty($pattern->filename) || empty($config->fields)) {
+      return '';
+    }
+    $template = $pattern->filename;
+    $variables = $config->fields;
+    return twig_render_template($template, $variables);
   }
 
 }

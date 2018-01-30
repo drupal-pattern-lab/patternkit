@@ -420,24 +420,19 @@ function _patternkit_render_block(
   $module,
   $instance_id,
   array $config,
-  array $context = NULL
-) {
-  if (isset($module->subtype)) {
-    $subtype = $module->subtype;
-  }
-  else {
-    return 'MISSING/BROKEN';
-  }
+  array $context = NULL) {
 
-  if ($config['presentation_style'] === 'webcomponent') {
-    $subtype = substr($subtype, 3);
-    $body = "<$subtype-pattern></$subtype-pattern>";
+  $body = 'MISSING/BROKEN';
+  if (!isset($module->subtype)) {
+    return $body;
   }
-  else {
-    $filename = "public://patternkit/$subtype/{$config['instance_id']}/body.html";
-    $body = file_get_contents($filename);
+  $subtype = $module->subtype;
+  $pattern = _patternkit_get_metadata($subtype);
+  if (!$pattern) {
+    return $body;
   }
-  return $body;
+  // @todo Handle context variable replacements.
+  return $pattern->getRenderedMarkup(new PatternkitEditorConfig($config));
 }
 
 /**
