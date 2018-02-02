@@ -9,12 +9,45 @@ When pattern configurations are saved, the template is downloaded locally (to mi
 
 Rendered twigs may contain drupal tokens, which are then processed in context.
 
+## Installation
+Install the patternkit module as usual, and review the important variables below to determine if you would like to change the defaults.
+
+The patternkit module by itself only provides the glue for other modules to present components. Define one by implementing ```hook_patternkit_library```
+
+An example implementation follows
+```
+/**
+ * Implements hook_patternkit_library().
+ */
+function webrh_patternkit_library() {
+  $libraries = array();
+
+  $namespaces = array(
+    'Web RH Patterns' => 'webrh/src/library',
+  );
+
+  $module_path = drupal_get_path('module', 'webrh');
+  foreach ($namespaces as $namespace => $path) {
+    $lib_path = $module_path . DIRECTORY_SEPARATOR . $path;
+    $libraries[] = new PatternkitDrupalTwigLib($namespace, $lib_path);
+  }
+
+  return $libraries;
+}
+```
+
+There are two different plugins currently available, 
+* PatternkitRESTLib
+* PatternkitDrupalTwigLib
+
+Use the former for dynamic REST based components, and the latter for locally sourced.
+
 ## Important Variables
-* patternkit_cache_enabled - Whether or not the metadata and render cache are enabled. (Disable during development)
-* patternkit_pl_host - The scheme://hostname:port/ of the PatternLab library host.
-* patternkit_default_module_ttl - How long the rendered pattern should be cached.
-* patternkit_show_errors - Whether or not to display messages on the site.
-* patternkit_log_errors - Whether or not to log errors to php error log. 
+* ```patternkit_cache_enabled``` - Whether or not the metadata and render cache are enabled. (Disable during development)
+* ```patternkit_pl_host``` - The scheme://hostname:port/ of the PatternLab library host.
+* ```patternkit_default_module_ttl``` - How long the rendered pattern should be cached.
+* ```patternkit_show_errors``` - Whether or not to display messages on the site.
+* ```patternkit_log_errors``` - Whether or not to log errors to php error log. 
 
 ## TODOs
 * https://github.com/drupal-pattern-lab/roadmap/issues/8 Solve the problem of mapping Drupal fields to pattern Variables.
