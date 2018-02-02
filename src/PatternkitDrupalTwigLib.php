@@ -88,9 +88,9 @@ class PatternkitDrupalTwigLib extends PatternkitDrupalCachedLib {
       : $config;
     // @todo Move to own JS file & Drupal Settings config var.
     $markup = <<<HTML
-<div id="magic-pixie-dust"></div>
+<div id="editor-shadow-injection-target"></div>
 <script type="text/javascript">
-  var target = document.getElementById("magic-pixie-dust");
+  var target = document.getElementById("editor-shadow-injection-target");
   var shadow = target.attachShadow({mode: 'open'});
 
   shadow.innerHTML = '<link rel="stylesheet" id="theme_stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css"><link rel="stylesheet" id="icon_stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.3/css/font-awesome.css"><div id="editor_holder"></div>';
