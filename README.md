@@ -12,6 +12,13 @@ Rendered twigs may contain drupal tokens, which are then processed in context.
 ## Installation
 Install the patternkit module as usual, and review the important variables below to determine if you would like to change the defaults.
 
+Install the Twig library into /sites/all/libraries/Twig
+```
+git clone git://github.com/twigphp/Twig.git -b 1.x /tmp/Twig
+mv /tmp/Twig/lib/Twig ${DRUPALDIR}/sites/all/libraries/
+rm -rf /tmp/Twig
+```
+
 The patternkit module by itself only provides the glue for other modules to present components. Define one by implementing ```hook_patternkit_library```
 
 An example implementation follows

@@ -274,6 +274,9 @@ HTML;
           $templatesDirectory = DRUPAL_ROOT . DIRECTORY_SEPARATOR . dirname(
               $module->filename
             );
+
+          // Namespacing is not necessary here, as each "engine" is unique to
+          // the "library".
           $loader->addPath($templatesDirectory);
         }
       }
@@ -314,7 +317,13 @@ HTML;
         $content  = $template->render($variables);
       }
       catch (Exception $e) {
-        $content = t('Twig error "!error"', array('!error' => $e->getMessage()));
+        $content = t(
+          'Twig error (!exc} "!error"',
+          array(
+            '!exc'   => 'tst',
+            '!error' => $e->getMessage(),
+          )
+        );
         watchdog(
           'patternkit',
           'Twig engine failure: @msg',
@@ -342,7 +351,6 @@ HTML;
       );
     }
 
-    $content .= "poop";
     return $content;
   }
 
