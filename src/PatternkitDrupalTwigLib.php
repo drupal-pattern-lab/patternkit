@@ -81,6 +81,8 @@ class PatternkitDrupalTwigLib extends PatternkitDrupalCachedLib {
       return t('Unable to lookup the schema for this subtype.');
     }
 
+    $hostname = $_SERVER['HTTP_HOST'];
+
     $schema_json = drupal_json_encode($pattern->schema);
     $starting_json = $config !== NULL ? drupal_json_encode($config->fields)
       : $config;
@@ -88,8 +90,8 @@ class PatternkitDrupalTwigLib extends PatternkitDrupalCachedLib {
     $markup = <<<HTML
 <div id="magic-pixie-dust"></div>
 <script type="text/javascript">
-  let target = document.getElementById("magic-pixie-dust");
-  let shadow = target.attachShadow({mode: 'open'});
+  var target = document.getElementById("magic-pixie-dust");
+  var shadow = target.attachShadow({mode: 'open'});
 
   shadow.innerHTML = '<link rel="stylesheet" id="theme_stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css"><link rel="stylesheet" id="icon_stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.3/css/font-awesome.css"><div id="editor_holder"></div>';
 
@@ -105,6 +107,64 @@ class PatternkitDrupalTwigLib extends PatternkitDrupalCachedLib {
     JSONEditor.defaults.options.startval = data.starting;
   }
   
+  // Override how references are resolved.
+  JSONEditor.base_url = '//$hostname/'
+  JSONEditor.prototype._loadExternalRefs = function(schema, callback) {
+    var self = this;
+    var refs = this._getExternalRefs(schema);
+    
+    var done = 0, waiting = 0, callback_fired = false;
+    
+    $each(refs,function(url) {
+      if(self.refs[url]) return;
+      if(!self.options.ajax) throw "Must set ajax option to true to load external ref "+url;
+      self.refs[url] = 'loading';
+      waiting++;
+
+      var r = new XMLHttpRequest(); 
+            
+      var replacement = this.base_url + 'patternkit/ajax/webrh/$1/schema$2'
+      var uri = url.replace(/(\w+)\.json(#.*)/, replacement);
+            
+      r.open("GET", uri, true);
+      r.onreadystatechange = function () {
+        if (r.readyState != 4) return; 
+        // Request succeeded
+        if(r.status === 200) {
+          var response;
+          try {
+            response = JSON.parse(r.responseText);
+          }
+          catch(e) {
+            window.console.log(e);
+            throw "Failed to parse external ref "+url;
+          }
+          if(!response || typeof response !== "object") throw "External ref does not contain a valid schema - "+url;
+          
+          self.refs[url] = response;
+          self._loadExternalRefs(response,function() {
+            done++;
+            if(done >= waiting && !callback_fired) {
+              callback_fired = true;
+              callback();
+            }
+          });
+        }
+        // Request failed
+        else {
+          window.console.log(r);
+          throw "Failed to fetch ref via ajax- "+url;
+        }
+      };
+      r.send();
+    });
+    
+    if(!waiting) {
+      callback();
+    }
+  }
+  
+  
   // Initialize the editor with a JSON schema
   var editor = new JSONEditor(
     target.shadowRoot.getElementById('editor_holder'), {
@@ -112,7 +172,14 @@ class PatternkitDrupalTwigLib extends PatternkitDrupalCachedLib {
       theme:             'bootstrap3',
       iconlib:           'fontawesome4',
       keep_oneof_values: false,
-      ajax:              true
+       disable_edit_json: true,
+       disable_collapse: true,
+       //disable_properties: true,
+       //no_additional_properties: true,
+      ajax:              true,
+      refs: {
+        "config.json": "/sites/all/modules/custom/webrh/webrh/src/library/atoms/config/api/config.json"
+      }
     }
   );
   JSONEditor.plugins.sceditor.emoticonsEnabled = false;
@@ -129,9 +196,6 @@ HTML;
       '#type'     => 'markup',
       '#markup'   => $markup,
       '#attached' => array(
-        'library' => array(
-          array('system', 'ui'),
-        ),
         'js'      => array(
           drupal_get_path('module', 'patternkit') . '/js/jsoneditor.js',
         ),
@@ -180,7 +244,7 @@ HTML;
         $file_basename = $file->getBasename('.' . $file_ext);
 
         // Build an array of all the filenames of interest, keyed by name.
-        $components[$file_basename][$file_ext] = $file_path;
+        $components[$file_basename][$file_ext] = "$file_path/$file_basename.$file_ext";
       }
 
       foreach ($components as $module_name => $data) {
