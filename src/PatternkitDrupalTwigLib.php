@@ -86,8 +86,13 @@ class PatternkitDrupalTwigLib extends PatternkitDrupalCachedLib {
       : $config;
     // @todo Move to own JS file & Drupal Settings config var.
     $markup = <<<HTML
-<div id="editor_holder"></div>
+<div id="magic-pixie-dust"></div>
 <script type="text/javascript">
+  let target = document.getElementById("magic-pixie-dust");
+  let shadow = target.attachShadow({mode: 'open'});
+
+  shadow.innerHTML = '<link rel="stylesheet" id="theme_stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css"><link rel="stylesheet" id="icon_stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.3/css/font-awesome.css"><div id="editor_holder"></div>';
+
   var data = {};
   data.schema = $schema_json;
   data.starting = $starting_json;
@@ -102,10 +107,10 @@ class PatternkitDrupalTwigLib extends PatternkitDrupalCachedLib {
   
   // Initialize the editor with a JSON schema
   var editor = new JSONEditor(
-    document.getElementById('editor_holder'), {
+    target.shadowRoot.getElementById('editor_holder'), {
       schema:            data.schema,
-      theme:             'jqueryui',
-      iconlib:           'jqueryui',
+      theme:             'bootstrap3',
+      iconlib:           'fontawesome4',
       keep_oneof_values: false,
       ajax:              true
     }
@@ -120,11 +125,18 @@ class PatternkitDrupalTwigLib extends PatternkitDrupalCachedLib {
 </script>
 HTML;
 
-    // @todo Toggle based on developer settings.
-    drupal_add_js(drupal_get_path('module', 'patternkit')
-      . '/js/jsoneditor.js');
-
-    return $markup;
+    return array(
+      '#type'     => 'markup',
+      '#markup'   => $markup,
+      '#attached' => array(
+        'library' => array(
+          array('system', 'ui'),
+        ),
+        'js'      => array(
+          drupal_get_path('module', 'patternkit') . '/js/jsoneditor.js',
+        ),
+      ),
+    );
   }
 
   /**
