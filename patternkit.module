@@ -86,6 +86,22 @@ function patternkit_pattern_libraries() {
     }
   }
 
+  // Triggers initialization of the Twig wrapper.
+  PatternkitTwigWrapper::getInstance($libraries);
+
+  return $libraries;
+}
+
+/**
+ * Implements hook_patternkit_library().
+ */
+function patternkit_patternkit_library() {
+  $libraries = array();
+
+  $module_path = drupal_get_path('module', 'patternkit');
+  $lib_path = $module_path . DIRECTORY_SEPARATOR . 'lib';
+  $libraries[] = new PatternkitDrupalTwigLib('Example', $lib_path);
+
   return $libraries;
 }
 

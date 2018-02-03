@@ -52,9 +52,9 @@ class PatternkitPattern {
   /**
    * The subtype for the pattern. Typically "pk_$pattern".
    *
-   * @var string
+   * Must be unique across the site. Is used by Panels to address config, etc.
    *
-   * This is mostly in use with Drupal to avoid panels namespace conflicts.
+   * @var string
    */
   public $subtype;
 

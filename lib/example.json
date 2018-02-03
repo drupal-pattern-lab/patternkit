@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "category": "atom",
+  "title": "Example",
+  "type": "object",
+  "format": "grid",
+  "properties": {
+    "text": {
+      "title": "Text",
+      "type": "string",
+      "options": {
+        "grid_columns": 4
+      }
+    }
+  }
+}

@@ -11,6 +11,8 @@ class PatternkitDrupalTwigLib extends PatternkitDrupalCachedLib {
 
   private $title;
 
+  private $metadata;
+
   /**
    * PatternkitDrupalTwigLib constructor.
    *
@@ -45,6 +47,8 @@ class PatternkitDrupalTwigLib extends PatternkitDrupalCachedLib {
 
   /**
    * Returns the id of the Pattern Library.
+   *
+   * The id also functions as the namespace for the twig templates.
    *
    * @return string
    *   The Pattern Library id.
@@ -210,14 +214,12 @@ HTML;
    *   Array of metadata objects found.
    */
   protected function getRawMetadata() {
-    static $metadata;
-
     // Use static pattern to avoid rebuilding multiple times per request.
-    if (is_null($metadata)) {
+    if (is_null($this->metadata)) {
 
       $it = new RecursiveDirectoryIterator($this->path);
       $filter = ['json', 'twig'];
-      $metadata = [];
+      $this->metadata = [];
       $components = [];
 
       /** @var \SplFileInfo $file */
@@ -254,8 +256,9 @@ HTML;
 
           $subtype = "pk_$module_name";
           $pattern->subtype = $subtype;
-          // URL is redundant for the twig based components.
-          $pattern->url = $module_name;
+          // URL is redundant for the twig based components, so we use it to
+          // store namespace.
+          $pattern->url = $this->getId();
         }
         else {
           // Create the pattern from defaults.
@@ -273,31 +276,30 @@ HTML;
         }
 
         if (!empty($data['twig'])) {
-          $twig_file = $data['twig']
-                       . DIRECTORY_SEPARATOR . $module_name . '.twig';
+          $twig_file = $data['twig'];
           if (file_exists($twig_file)) {
             $pattern->filename = $twig_file;
             $pattern->template = file_get_contents($twig_file);
           }
         }
 
-        $metadata[$module_name] = $pattern;
+        $this->metadata[$module_name] = $pattern;
       }
 
-      foreach ($metadata as $pattern_type => $pattern) {
+      foreach ($this->metadata as $pattern_type => $pattern) {
         // Replace any $ref links with relative paths.
         if (!isset($pattern->schema->properties)) {
           continue;
         }
         $pattern->schema->properties = _patternkit_schema_ref(
           $pattern->schema->properties,
-          $metadata
+          $this->metadata
         );
-        $metadata[$pattern_type] = $pattern;
+        $this->metadata[$pattern_type] = $pattern;
       }
     }
 
-    return $metadata;
+    return $this->metadata;
   }
 
   /**
@@ -321,55 +323,11 @@ HTML;
     $template = $pattern->filename;
     $variables = $config->fields;
 
-    return $this->renderTwigTemplate($template, $variables);
-  }
-
-  /**
-   * Returns a singleton version of the twig template engine.
-   *
-   * @return Twig_Environment
-   *   Twig environment object.
-   *
-   * @throws \Twig_Error_Loader
-   *   Twig engine instance object.
-   */
-  public function getTwigInstance() {
-    static $twig_engine;
-
-    if (!is_object($twig_engine)) {
-      // Setup twig environment.
-      // @TODO: Properly libraryize this.
-      require_once DRUPAL_ROOT . '/sites/all/libraries/Twig/Autoloader.php';
-      Twig_Autoloader::register();
-
-      $loader = new Twig_Loader_Filesystem();
-
-      $metadata = $this->getRawMetadata();
-      foreach ($metadata as $module_name => $module) {
-        if (!empty($module->filename)) {
-          $templatesDirectory = DRUPAL_ROOT . DIRECTORY_SEPARATOR . dirname(
-              $module->filename
-            );
-
-          // Namespacing is not necessary here, as each "engine" is unique to
-          // the "library".
-          $loader->addPath($templatesDirectory);
-        }
-      }
-
-      $twig_engine = new Twig_Environment(
-        $loader,
-        array(
-          'autorender'  => (bool) variable_get('pktwig_auto_render', TRUE),
-          'autoescape'  => (bool) variable_get('pktwig_auto_escape', FALSE),
-          'auto_reload' => (bool) variable_get('pktwig_auto_reload', FALSE),
-          'cache'       => variable_get('pktwig_template_cache_path', '/tmp/twig_compilation_cache'),
-          'debug'       => (bool) variable_get('pktwig_debug', FALSE),
-        )
-      );
+    // Add the namespace, if provided.
+    if (!empty($pattern->url)) {
+      $template = '@' . $pattern->url . '#/' . $template;
     }
-
-    return $twig_engine;
+    return $this->renderTwigTemplate($template, $variables);
   }
 
   /**
@@ -385,18 +343,27 @@ HTML;
    */
   public function renderTwigTemplate($template, array $variables = array()) {
 
-    $content = '';
-    if (file_exists($template)) {
+    $namespace = '';
+    $file = $template;
+
+    // If a namespace is provided, break it up.
+    if ($template[0] == '@') {
+      list($namespace, $file) = explode('#', $template);
+    }
+
+    try {
+      $bare = basename($file);
+
       try {
-        $twig     = $this->getTwigInstance();
-        $template = $twig->loadTemplate(basename($template));
+        $twig     = PatternkitTwigWrapper::getInstance()->getTwigInstance();
+        $template = $twig->loadTemplate("$namespace/$bare");
         $content  = $template->render($variables);
       }
       catch (Exception $e) {
         $content = t(
           'Twig error (!exc} "!error"',
           array(
-            '!exc'   => 'tst',
+            '!exc'   => get_class($e),
             '!error' => $e->getMessage(),
           )
         );
@@ -410,7 +377,7 @@ HTML;
         );
       }
     }
-    else {
+    catch (Exception $e) {
       $content = t(
         'Template (!template) not found',
         array(

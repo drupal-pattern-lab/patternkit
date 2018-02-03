@@ -11,5 +11,6 @@ files[] = src/PatternkitDrupalCachedLib.php
 files[] = src/PatternkitDrupalTwigLib.php
 files[] = src/PatternkitEditorConfig.php
 files[] = src/PatternkitLibInterface.php
+files[] = src/PatternkitTwigWrapper.php
 files[] = src/PatternkitPattern.php
 files[] = src/PatternkitRESTLib.php
