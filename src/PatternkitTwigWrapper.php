@@ -1,11 +1,12 @@
 <?php
 /**
  * @file
- * customer-portal-kbase-copy
- *
- * - Created by jassmith on 2/2/18
+ * Patternkit module - Twig wrapper.
  */
 
+/**
+ * Class PatternkitTwigWrapper.
+ */
 class PatternkitTwigWrapper {
 
   protected $metadata;
