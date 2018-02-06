@@ -10,20 +10,23 @@ class PatternkitPattern {
    *
    * @param \PatternkitLibInterface $library
    *   The library the pattern belongs to.
-   *
    * @param object|array $schema
    *   An optional JSON Schema object to use.
    */
   public function __construct(PatternkitLibInterface $library, $schema = array()) {
-    $this->subtype = NULL;
-    $this->title = NULL;
-    $this->html = NULL;
-    $this->version = NULL;
+    $this->subtype     = NULL;
+    $this->title       = NULL;
+    $this->html        = NULL;
+    $this->version     = NULL;
     $this->attachments = NULL;
-    $this->schema = $schema;
+    $this->schema      = $schema;
+
+    // If schema is undefined, initialize empty.
     if (empty($schema)) {
       return;
     }
+
+    // Walk the provided schemas and generate the library.
     foreach ($schema as $key => $value) {
       if ($key !== 'schema' && property_exists($this, (string) $key)) {
         $this->{$key} = $value;
@@ -49,9 +52,9 @@ class PatternkitPattern {
   /**
    * The subtype for the pattern. Typically "pk_$pattern".
    *
-   * @var string
+   * Must be unique across the site. Is used by Panels to address config, etc.
    *
-   * This is mostly in use with Drupal to avoid panels namespace conflicts.
+   * @var string
    */
   public $subtype;
 

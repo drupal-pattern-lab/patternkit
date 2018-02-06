@@ -65,13 +65,15 @@ abstract class PatternkitDrupalCachedLib implements PatternkitLibInterface {
     // If we are requesting data for a specific module type, return just
     // that data.
     if ($subtype !== NULL && strtolower($subtype) !== 'none') {
-      $lookup = substr($subtype, 3);
-      if (!empty($cached_metadata[strtolower($lookup)])) {
-        return $cached_metadata[strtolower($lookup)];
+      if (substr($subtype, 0, 3) == 'pk_') {
+        $subtype = substr($subtype, 3);
+      }
+      if (!empty($cached_metadata[strtolower($subtype)])) {
+        return $cached_metadata[strtolower($subtype)];
       }
       _patternkit_show_error(
         'Patternkit module does not appear to exist (%module), verify module info/usage.',
-        array('%module' => $lookup)
+        array('%module' => $subtype)
       );
 
       return NULL;

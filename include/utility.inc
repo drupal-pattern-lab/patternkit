@@ -5,7 +5,6 @@
  * Utility functions for Patternkit.
  */
 
-
 /**
  * Fetch and cache assets to render this pattern.
  *
