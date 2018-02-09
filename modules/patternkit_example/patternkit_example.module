@@ -1,0 +1,18 @@
+<?php
+
+/**
+ * @file
+ * Patternkit example module implementation.
+ */
+
+/**
+ * Implements hook_patternkit_library().
+ */
+function patternkit_example_patternkit_library() {
+  $libraries = array();
+  // Load patterns from this module for testing.
+  $module_path = drupal_get_path('module', 'patternkit_example');
+  $lib_path = "$module_path/lib/patternkit";
+  $libraries[] = new PatternkitDrupalTwigLib('pkexample', $lib_path);
+  return $libraries;
+}
