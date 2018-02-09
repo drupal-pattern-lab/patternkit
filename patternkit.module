@@ -97,12 +97,6 @@ function patternkit_pattern_libraries() {
  */
 function patternkit_patternkit_library() {
   $libraries = array();
-
-  // Load patterns from this module for testing.
-  $module_path = drupal_get_path('module', 'patternkit');
-  $lib_path = $module_path . DIRECTORY_SEPARATOR . 'lib';
-  $libraries[] = new PatternkitDrupalTwigLib('Example', $lib_path);
-
   // Load patterns from themes exposing namespaces.
   foreach (list_themes() as $theme_name => $theme) {
     if ($theme->engine !== 'twig' || !isset($theme->info['namespaces'])) {
