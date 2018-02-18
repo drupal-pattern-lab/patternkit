@@ -12,16 +12,6 @@ include __DIR__ . '/include/api.inc';
 include __DIR__ . '/include/patternkit_config_form.inc';
 include __DIR__ . '/include/utility.inc';
 
-/**
- * Implements hook_ctools_plugin_directory().
- */
-function patternkit_ctools_plugin_directory($owner, $plugin) {
-  if ($owner == 'ctools') {
-    return 'plugins/' . $plugin;
-  }
-
-  return NULL;
-}
 
 /**
  * Implements hook_flush_caches().
