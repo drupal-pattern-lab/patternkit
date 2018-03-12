@@ -46,12 +46,13 @@ class PatternkitTwigWrapper {
     $this->libraries = $libraries;
 
     // Collect all metadata.
-    $this->metadata = [];
+    $this->metadata = array();
 
+    $meta = array();
     foreach ($libraries as $library) {
-      $meta = $library->getCachedMetadata();
-      $this->metadata = array_merge($this->metadata, $meta);
+      $meta[] = $library->getCachedMetadata();
     }
+    $this->metadata = call_user_func_array('array_merge', $meta);
 
     // Setup twig environment.
     // @TODO: Properly libraryize this.
@@ -79,13 +80,14 @@ class PatternkitTwigWrapper {
           watchdog(
             'patternkit',
             'Error loading @module',
-            ['@module' => $templatesDirectory],
+            array('@module' => $templatesDirectory),
             WATCHDOG_WARNING
           );
         }
       }
     }
 
+    $theme_debug = (bool) variable_get('theme_debug', FALSE);
     $this->twigEngine = new Twig_Environment(
       $loader,
       array(
@@ -93,9 +95,12 @@ class PatternkitTwigWrapper {
         'autoescape'  => (bool) variable_get('pktwig_auto_escape', FALSE),
         'auto_reload' => (bool) variable_get('pktwig_auto_reload', FALSE),
         'cache'       => variable_get('pktwig_template_cache_path', '/tmp/twig_compilation_cache'),
-        'debug'       => (bool) variable_get('pktwig_debug', FALSE),
+        'debug'       => $theme_debug,
       )
     );
+    if ($theme_debug) {
+      $this->twigEngine->addExtension(new Twig_Extension_Debug());
+    }
 
   }
 

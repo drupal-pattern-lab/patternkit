@@ -84,9 +84,13 @@ function patternkit_patternkit_content_type_content_types() {
   $modules = _patternkit_get_metadata();
 
   // Loop through the found modules and create panes for each.
+  /** @var \PatternkitPattern $module_meta */
   foreach ($modules as $module_name => $module_meta) {
-    $module_key = 'pk_' . $module_name;
-    $category = !empty($module_meta->category) ? $module_meta->category : 'uncategorized';
+    $module_key = $module_meta->subtype;
+    $library = $module_meta->library->getTitle();
+    $legacy_module_key = $module_meta->legacySubtype;
+    $category = "$library: "
+      . (!empty($module_meta->category) ? $module_meta->category : 'uncategorized');
 
     // Create the pane config.
     $types[$module_key] = array(
@@ -163,7 +167,6 @@ function patternkit_patternkit_content_type_admin_info(
  * Implements hook_content_type_edit_form().
  */
 function patternkit_patternkit_content_type_edit_form($form, &$form_state) {
-
   // Get the subtype from the form state for simpler code.
   $subtype = $form_state['subtype_name'];
   // Instance configuration for the form is in form_state['conf'];.
@@ -218,6 +221,11 @@ function patternkit_patternkit_content_type_edit_form($form, &$form_state) {
   $config = NULL;
   if (!empty($conf['instance_config'])) {
     $config = new PatternkitEditorConfig(json_decode($conf['instance_config']));
+    if (empty($module->schema->properties)
+      || array_keys(get_object_vars($module->schema->properties))
+      !== array_keys(get_object_vars($config->fields))) {
+      drupal_set_message(t("This module's schema has been updated. You may want to recreate this pane."));
+    }
   }
   $editor = $module->library->getEditor($subtype, $config);
   if (!is_array($editor)) {
