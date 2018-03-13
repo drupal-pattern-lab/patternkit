@@ -14,5 +14,9 @@
  *   The name of the pattern to use for retrieving the schema.
  */
 function patternkit_api_pattern_schema($library, $pattern) {
-  drupal_json_output(_patternkit_get_metadata($pattern));
+  $subtype = $pattern;
+  if (!empty($library)) {
+    $subtype = "{$library}_{$pattern}";
+  }
+  drupal_json_output(_patternkit_get_metadata($subtype));
 }

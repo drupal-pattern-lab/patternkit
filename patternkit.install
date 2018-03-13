@@ -6,6 +6,15 @@
  */
 
 /**
+ * Handles any upgrades from pkplugins.
+ */
+function patternkit_install() {
+  $sandbox = array();
+  $messages = patternkit_update_7101($sandbox);
+  watchdog('patternkit', $messages);
+}
+
+/**
  * Add Schema for cache data.
  */
 function patternkit_schema() {
@@ -15,4 +24,97 @@ function patternkit_schema() {
   $schema['cache_patternkit'] = drupal_get_schema_unprocessed('system', 'cache');
 
   return $schema;
+}
+
+/**
+ * Updates legacy patternkit DB schema to use namespaces.
+ */
+function patternkit_update_7101(&$sandbox) {
+  $errors = array();
+  $pkup_count = 0;
+  // Loop through Patternkit cache and attempt to match old patterns to ones
+  // with a namespace.
+  // Re-cache & render all of the patterns.
+  // Output any that haven't found a match.
+  // @todo Finish this update function & test.
+  drupal_load('module', 'ctools');
+  drupal_load('module', 'panels');
+  drupal_load('module', 'patternkit');
+  ctools_include('content');
+  ctools_include('page', 'page_manager', 'plugins/tasks');
+  ctools_include('panel_context', 'panels', 'plugins/task_handlers');
+  // Generate the map of plugins to update.
+  $map_error = FALSE;
+  $map_conflicts = array();
+  $module_map = array();
+  $pkplugins = ctools_content_get_subtypes('patternkit');
+  foreach ($pkplugins as $subtype => $module) {
+    $sub_ids = explode('_', $subtype);
+    if ($sub_ids[0] !== 'pk' || !isset($sub_ids[2])) {
+      continue;
+    }
+    $legacy_id = substr($subtype, strlen("pk_$sub_ids[1]_"));
+    $legacy_subtype = "pk_{$legacy_id}";
+    if (isset($module_map[$legacy_id])) {
+      $errors[] = t(
+        'Cannot update legacy pattern subtype @subtype as the template name is not unique across loaded namespaces.',
+        array(
+          '@subtype' => $legacy_id,
+        ));
+      $map_error = TRUE;
+      $map_conflicts[] = $module_map[$legacy_subtype]->subtype;
+      $map_conflicts[] = "{$sub_ids[1]}: $legacy_id";
+      continue;
+    }
+    $module['subtype'] = $subtype;
+    $module_map[$legacy_subtype] = $module;
+  }
+
+  // Parse through all pages (ctools tasks) for panels plugins.
+  foreach (page_manager_get_tasks_by_type('page') as $page) {
+    $variants = page_manager_load_sorted_handlers(
+      json_decode(json_encode($page), TRUE));
+    // Parse through all page variants (ctools subtask handlers).
+    foreach ($variants as $variant) {
+      $display = panels_panel_context_get_display($variant);
+      foreach ($display->content as $pid => $pane) {
+        $subtype = $pane->subtype;
+        if ($pane->type !== 'patternkit' || strpos($subtype, 'pk_') !== 0) {
+          continue;
+        }
+        if (!isset($module_map[$subtype])) {
+          $errors[] = t(
+            'Unable to find new pattern for legacy pattern subtype @subtype. Was the library providing it disabled?',
+            array(
+              '@subtype' => $subtype,
+            ));
+          continue;
+        }
+        $module = $module_map[$subtype];
+        $pane->subtype = $module['subtype'];
+        $pane->configuration['module_subtype'] = $module['subtype'];
+        $display->content[$pid] = $pane;
+        panels_save_display($display);
+        $pkup_count++;
+      }
+    }
+  }
+  cache_clear_all(NULL, 'cache_patternkit', TRUE);
+
+  if ($map_error) {
+    $errors[] = t(
+      "Update errors encountered, try disabling conflicting library(ies) and re-running the update.\n@conflicts",
+      array(
+        '@conflicts' => implode("\n", $map_conflicts),
+      ));
+  }
+  if (!empty($errors)) {
+    return implode("\n", $errors);
+  }
+  return format_plural($pkup_count, '@module update mapped 1 legacy pattern.',
+    '@module update mapped @num legacy patterns.',
+    array(
+      '@module' => 'Patternkit',
+      '@num' => $pkup_count,
+    ));
 }

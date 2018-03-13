@@ -568,6 +568,7 @@ function _patternkit_schema_ref($properties, array &$metadata) {
       continue;
     }
     $pattern = strstr($value, '.json', TRUE);
+    // @todo Convert pattern ref '@myLib/atoms/myatom' to subtype.
     $ref = substr($value, strlen("$pattern.json"));
     if (!isset($metadata[$pattern])) {
       unset($properties->{$property});
