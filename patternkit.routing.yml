@@ -1,0 +1,7 @@
+patternkit.description:
+  path: '/admin/structure/patternkit'
+  defaults:
+    _controller: '\Drupal\patternkit\Controller\PatternkitController'
+    _title: 'Patternkit'
+  requirements:
+    _permission: 'administer patternkit'
