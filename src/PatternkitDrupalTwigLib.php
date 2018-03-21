@@ -13,6 +13,8 @@ class PatternkitDrupalTwigLib extends PatternkitDrupalCachedLib {
 
   private $metadata;
 
+  private $namespace;
+
   /**
    * PatternkitDrupalTwigLib constructor.
    *
@@ -23,7 +25,8 @@ class PatternkitDrupalTwigLib extends PatternkitDrupalCachedLib {
    */
   public function __construct($title, $path) {
     $this->title = $title;
-    $this->id = preg_replace('/[^a-z0-9]+/', '_', strtolower($title));
+    $this->namespace = preg_replace('/[^A-Za-z0-9]+/', '_', $title);
+    $this->id = strtolower($this->namespace);
     $this->path = $path;
   }
 
@@ -48,13 +51,31 @@ class PatternkitDrupalTwigLib extends PatternkitDrupalCachedLib {
   /**
    * Returns the id of the Pattern Library.
    *
-   * The id also functions as the namespace for the twig templates.
-   *
    * @return string
    *   The Pattern Library id.
    */
   public function getId() {
     return $this->id;
+  }
+
+  /**
+   * Returns the case-sensitive namespace of the Pattern Library.
+   *
+   * @return string
+   *   The Pattern Library namespace.
+   */
+  public function getNamespace() {
+    return $this->namespace;
+  }
+
+  /**
+   * Returns the relative path of the Pattern Library.
+   *
+   * @return string
+   *   The Pattern Library path.
+   */
+  public function getPath() {
+    return $this->path;
   }
 
   /**
@@ -86,7 +107,7 @@ class PatternkitDrupalTwigLib extends PatternkitDrupalCachedLib {
     }
 
     $hostname = $_SERVER['HTTP_HOST'];
-    $namespace = $pattern->library->getId();
+    $id = $pattern->library->getId();
     $schema_json = drupal_json_encode($pattern->schema);
     $starting_json = $config !== NULL ? drupal_json_encode($config->fields)
       : array();
@@ -127,7 +148,7 @@ class PatternkitDrupalTwigLib extends PatternkitDrupalCachedLib {
 
       var r = new XMLHttpRequest(); 
             
-      var replacement = this.base_url + 'patternkit/ajax/$namespace/$1/schema$2';
+      var replacement = this.base_url + 'patternkit/ajax/$id/$1/schema$2';
       var uri = url.replace(/(\w+)\.json(#.*)/, replacement);
             
       r.open("GET", uri, true);
@@ -219,7 +240,7 @@ HTML;
 
     $it = new RecursiveDirectoryIterator($this->path);
     $filter = array('json', 'twig');
-    $namespace = $this->getId();
+    $id = $this->getId();
     $this->metadata = array();
     $components = array();
 
@@ -251,7 +272,7 @@ HTML;
     }
 
     foreach ($components as $module_name => $data) {
-      $subtype = "pk_{$namespace}_{$module_name}";
+      $subtype = "pk_{$id}_{$module_name}";
       // If the component has a json file, create the pattern from it.
       $schema = NULL;
       if (!empty($data['json']) && $file_contents = file_get_contents($data['json'])) {
@@ -279,7 +300,7 @@ HTML;
       // URL is redundant for the twig based components, so we use it to
       // store namespace.
       // @todo Revisit this usage.
-      $pattern->url = $this->getId();
+      $pattern->url = $this->getNamespace();
 
       if (!empty($data['twig'])) {
         $twig_file = $data['twig'];
