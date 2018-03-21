@@ -21,8 +21,9 @@ class PatternkitPattern {
     $this->attachments = NULL;
     $this->schema      = $schema;
 
-    // If schema is undefined, initialize empty.
-    if (empty($schema)) {
+    // If schema is undefined or does not validate, initialize empty.
+    // @todo Throw an exception if schema does not validate.
+    if (empty($schema) || !self::validateSchema($schema)) {
       return;
     }
 
@@ -43,6 +44,15 @@ class PatternkitPattern {
    */
 
   /**
+   * Specifications for required properties.
+   *
+   * @var array
+   */
+  public static $requiredProperties = array(
+    'title'   => 'string',
+  );
+
+  /**
    * The Patternkit Library that loaded the pattern.
    *
    * @var \PatternkitLibInterface
@@ -50,7 +60,7 @@ class PatternkitPattern {
   public $library;
 
   /**
-   * The subtype for the pattern. Typically "pk_$pattern".
+   * The subtype for the pattern. Typically "pk_{$namespace}_{$pattern}".
    *
    * Must be unique across the site. Is used by Panels to address config, etc.
    *
@@ -114,6 +124,15 @@ class PatternkitPattern {
   public $html;
 
   /**
+   * The legacy subtype for Patternkit versions without namespacing.
+   *
+   * @var string
+   *
+   * @deprecated v1.0.0
+   */
+  public $legacySubtype;
+
+  /**
    * The JSON Schema for the pattern.
    *
    * @var object
@@ -151,6 +170,30 @@ class PatternkitPattern {
    * @var string
    */
   public $version;
+
+  /**
+   * Validates a provided schema.
+   *
+   * @param array|object $schema
+   *   The JSON Pattern schema to validate.
+   *
+   * @return array|bool
+   *   TRUE if the schema validates, otherwise an array of errors.
+   */
+  public static function validateSchema($schema) {
+    // @todo Use an existing JSON Schema Validation Library.
+    $errors = array();
+    foreach (self::$requiredProperties as $property => $type) {
+      if (!isset($schema->{$property})) {
+        $errors[] = "Required schema property $property not found.";
+        continue;
+      }
+      if (gettype($schema->{$property}) !== $type) {
+        $errors[] = "Schema property $property is not of the specified type $type";
+      }
+    }
+    return !empty($errors) ? $errors : TRUE;
+  }
 
   /**
    * Fetches the assets and updates asset references for this pattern.

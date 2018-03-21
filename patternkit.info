@@ -1,7 +1,6 @@
 name        = "Patternkit"
 description = "Adds Patternkit patterns to panels as content types."
 package     = "Presentation Framework"
-core        = 7.x
 
 dependencies[] = ctools
 dependencies[] = panels

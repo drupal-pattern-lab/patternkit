@@ -17,7 +17,7 @@ class PatternkitDrupalTwigLib extends PatternkitDrupalCachedLib {
    * PatternkitDrupalTwigLib constructor.
    *
    * @param string $title
-   *   The name of the library.
+   *   The name of the library, to also be used as the namespace.
    * @param string $path
    *   The path to the library.
    */
@@ -86,10 +86,10 @@ class PatternkitDrupalTwigLib extends PatternkitDrupalCachedLib {
     }
 
     $hostname = $_SERVER['HTTP_HOST'];
-
+    $namespace = $pattern->library->getId();
     $schema_json = drupal_json_encode($pattern->schema);
     $starting_json = $config !== NULL ? drupal_json_encode($config->fields)
-      : $config;
+      : array();
     // @todo Move to own JS file & Drupal Settings config var.
     $markup = <<<HTML
 <div id="editor-shadow-injection-target"></div>
@@ -107,19 +107,19 @@ class PatternkitDrupalTwigLib extends PatternkitDrupalCachedLib {
   jQuery('#modalContent').animate({'width': '100%', 'left':'0px', 'top':'0px'});
   jQuery('#modal-content').animate({'width': '100%', 'height': '100%'});
 
-  if (data.starting !== null && data.starting.name) {
+  if (data.starting !== null) {
     JSONEditor.defaults.options.startval = data.starting;
   }
-  
+
   // Override how references are resolved.
-  JSONEditor.base_url = '//$hostname/'
+  JSONEditor.base_url = '//$hostname/';
   JSONEditor.prototype._loadExternalRefs = function(schema, callback) {
     var self = this;
     var refs = this._getExternalRefs(schema);
-    
+
     var done = 0, waiting = 0, callback_fired = false;
-    
-    $each(refs,function(url) {
+
+    jQuery.each(refs, function (url) {
       if(self.refs[url]) return;
       if(!self.options.ajax) throw "Must set ajax option to true to load external ref "+url;
       self.refs[url] = 'loading';
@@ -127,7 +127,7 @@ class PatternkitDrupalTwigLib extends PatternkitDrupalCachedLib {
 
       var r = new XMLHttpRequest(); 
             
-      var replacement = this.base_url + 'patternkit/ajax/webrh/$1/schema$2'
+      var replacement = this.base_url + 'patternkit/ajax/$namespace/$1/schema$2';
       var uri = url.replace(/(\w+)\.json(#.*)/, replacement);
             
       r.open("GET", uri, true);
@@ -144,9 +144,9 @@ class PatternkitDrupalTwigLib extends PatternkitDrupalCachedLib {
             throw "Failed to parse external ref "+url;
           }
           if(!response || typeof response !== "object") throw "External ref does not contain a valid schema - "+url;
-          
+
           self.refs[url] = response;
-          self._loadExternalRefs(response,function() {
+          self._loadExternalRefs(response,function () {
             done++;
             if(done >= waiting && !callback_fired) {
               callback_fired = true;
@@ -162,24 +162,23 @@ class PatternkitDrupalTwigLib extends PatternkitDrupalCachedLib {
       };
       r.send();
     });
-    
+
     if(!waiting) {
       callback();
     }
-  }
-  
-  
-  // Initialize the editor with a JSON schema
+  };
+
+  // Initialize the editor with a JSON schema.
   var editor = new JSONEditor(
     target.shadowRoot.getElementById('editor_holder'), {
       schema:            data.schema,
       theme:             'bootstrap3',
       iconlib:           'fontawesome4',
       keep_oneof_values: false,
-       disable_edit_json: true,
-       disable_collapse: true,
-       //disable_properties: true,
-       //no_additional_properties: true,
+      disable_edit_json: true,
+      disable_collapse: true,
+      //disable_properties: true,
+      //no_additional_properties: true,
       ajax:              true,
       refs: {
         "config.json": "/sites/all/modules/custom/webrh/webrh/src/library/atoms/config/api/config.json"
@@ -187,11 +186,10 @@ class PatternkitDrupalTwigLib extends PatternkitDrupalCachedLib {
     }
   );
   JSONEditor.plugins.sceditor.emoticonsEnabled = false;
-  
-  editor.on('change', function() {
+
+  editor.on('change', function () {
     var config_string = JSON.stringify(editor.getValue());
     document.getElementById('schema_instance_config').value = config_string;
-    
   });
 </script>
 HTML;
@@ -215,88 +213,95 @@ HTML;
    */
   protected function getRawMetadata() {
     // Use static pattern to avoid rebuilding multiple times per request.
-    if (is_null($this->metadata)) {
+    if ($this->metadata !== NULL) {
+      return $this->metadata;
+    }
 
-      $it = new RecursiveDirectoryIterator($this->path);
-      $filter = ['json', 'twig'];
-      $this->metadata = [];
-      $components = [];
+    $it = new RecursiveDirectoryIterator($this->path);
+    $filter = array('json', 'twig');
+    $namespace = $this->getId();
+    $this->metadata = array();
+    $components = array();
 
-      /** @var \SplFileInfo $file */
-      foreach (new RecursiveIteratorIterator($it) as $file) {
-        // Skip directories and non-files.
-        if (!$file->isFile()) {
-          continue;
-        }
-        $file_path = $file->getPath();
+    /** @var \SplFileInfo $file */
+    foreach (new RecursiveIteratorIterator($it) as $file) {
+      // Skip directories and non-files.
+      if (!$file->isFile()) {
+        continue;
+      }
+      $file_path = $file->getPath();
 
-        // Skip tests folders.
-        if (strpos($file_path, '/tests') !== FALSE) {
-          continue;
-        }
-
-        // Get the file extension for the file.
-        $file_ext = $file->getExtension();
-        if (!in_array(strtolower($file_ext), $filter, TRUE)) {
-          continue;
-        }
-
-        // We use file_basename as a unique key, it is required that the
-        // JSON and twig file share this basename.
-        $file_basename = $file->getBasename('.' . $file_ext);
-
-        // Build an array of all the filenames of interest, keyed by name.
-        $components[$file_basename][$file_ext] = "$file_path/$file_basename.$file_ext";
+      // Skip tests folders.
+      if (strpos($file_path, '/tests') !== FALSE) {
+        continue;
       }
 
-      foreach ($components as $module_name => $data) {
-        // If the component has a json file, create the pattern from it.
-        if (!empty($data['json']) && $file_contents = file_get_contents($data['json'])) {
-          $pattern = $this->createPattern(json_decode($file_contents));
-
-          $subtype = "pk_$module_name";
-          $pattern->subtype = $subtype;
-          // URL is redundant for the twig based components, so we use it to
-          // store namespace.
-          $pattern->url = $this->getId();
-        }
-        else {
-          // Create the pattern from defaults.
-          $pattern = $this->createPattern(
-            (object) [
-              '$schema'    => 'http =>//json-schema.org/draft-04/schema#',
-              'category'   => 'atom',
-              'title'      => $module_name,
-              'type'       => 'object',
-              'format'     => 'grid',
-              'properties' => (object) [],
-              'required'   => [],
-            ]
-          );
-        }
-
-        if (!empty($data['twig'])) {
-          $twig_file = $data['twig'];
-          if (file_exists($twig_file)) {
-            $pattern->filename = $twig_file;
-            $pattern->template = file_get_contents($twig_file);
-          }
-        }
-
-        $this->metadata[$module_name] = $pattern;
+      // Get the file extension for the file.
+      $file_ext = $file->getExtension();
+      if (!in_array(strtolower($file_ext), $filter, TRUE)) {
+        continue;
       }
 
-      foreach ($this->metadata as $pattern_type => $pattern) {
-        // Replace any $ref links with relative paths.
-        if (!isset($pattern->schema->properties)) {
-          continue;
-        }
-        $pattern->schema->properties = _patternkit_schema_ref(
-          $pattern->schema->properties,
-          $this->metadata
+      // We use file_basename as a unique key, it is required that the
+      // JSON and twig file share this basename.
+      $file_basename = $file->getBasename('.' . $file_ext);
+
+      // Build an array of all the filenames of interest, keyed by name.
+      $components[$file_basename][$file_ext] = "$file_path/$file_basename.$file_ext";
+    }
+
+    foreach ($components as $module_name => $data) {
+      $subtype = "pk_{$namespace}_{$module_name}";
+      // If the component has a json file, create the pattern from it.
+      $schema = NULL;
+      if (!empty($data['json']) && $file_contents = file_get_contents($data['json'])) {
+        $schema = json_decode($file_contents);
+      }
+      // Don't bother attempting to interpret unsupported schema.
+      if (!empty($schema->{'$schema'})) {
+        $pattern = $this->createPattern($schema);
+      }
+      else {
+        // Create the pattern from defaults.
+        $pattern = $this->createPattern(
+          (object) array(
+            '$schema'    => 'http =>//json-schema.org/draft-04/schema#',
+            'category'   => 'atom',
+            'title'      => $module_name,
+            'type'       => 'object',
+            'format'     => 'grid',
+            'properties' => (object) array(),
+            'required'   => array(),
+          )
         );
-        $this->metadata[$pattern_type] = $pattern;
       }
+      $pattern->subtype = $subtype;
+      // URL is redundant for the twig based components, so we use it to
+      // store namespace.
+      // @todo Revisit this usage.
+      $pattern->url = $this->getId();
+
+      if (!empty($data['twig'])) {
+        $twig_file = $data['twig'];
+        if (file_exists($twig_file)) {
+          $pattern->filename = $twig_file;
+          $pattern->template = file_get_contents($twig_file);
+        }
+      }
+
+      $this->metadata[$subtype] = $pattern;
+    }
+
+    foreach ($this->metadata as $pattern_type => $pattern) {
+      // Replace any $ref links with relative paths.
+      if (!isset($pattern->schema->properties)) {
+        continue;
+      }
+      $pattern->schema->properties = _patternkit_schema_ref(
+        $pattern->schema->properties,
+        $this->metadata
+      );
+      $this->metadata[$pattern_type] = $pattern;
     }
 
     return $this->metadata;
@@ -347,7 +352,7 @@ HTML;
     $file = $template;
 
     // If a namespace is provided, break it up.
-    if ($template[0] == '@') {
+    if ($template[0] === '@') {
       list($namespace, $file) = explode('#', $template);
     }
 
