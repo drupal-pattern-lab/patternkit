@@ -173,6 +173,9 @@ function patternkit_patternkit_content_type_edit_form($form, &$form_state) {
   $conf = $form_state['conf'];
   // Get all of the module metadata from the pattern path.
   $module = _patternkit_get_metadata($subtype);
+  if (empty($module)) {
+    return $form;
+  }
 
   // Remove the title override fields.
   unset($form['override_title_markup'],

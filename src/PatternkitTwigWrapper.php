@@ -35,7 +35,7 @@ class PatternkitTwigWrapper {
   /**
    * PatternkitTwigWrapper constructor.
    *
-   * @param array $libraries
+   * @param \PatternkitDrupalTwigLib[] $libraries
    *   The collection of patterns and metadata.
    */
   protected function __construct(array $libraries) {
@@ -44,22 +44,21 @@ class PatternkitTwigWrapper {
     }
 
     $this->libraries = $libraries;
-
-    // Collect all metadata.
-    $this->metadata = array();
-
-    $meta = array();
-    foreach ($libraries as $library) {
-      $meta[] = $library->getCachedMetadata();
-    }
-    $this->metadata = call_user_func_array('array_merge', $meta);
-
     // Setup twig environment.
     // @TODO: Properly libraryize this.
     require_once DRUPAL_ROOT . '/sites/all/libraries/Twig/Autoloader.php';
     Twig_Autoloader::register();
 
     $loader = new Twig_Loader_Filesystem();
+
+    // Collect all metadata.
+    $this->metadata = array();
+    $meta = array();
+    foreach ($libraries as $library) {
+      $meta[] = $library->getCachedMetadata();
+      $loader->addPath($library->getPath(), $library->getNamespace());
+    }
+    $this->metadata = call_user_func_array('array_merge', $meta);
 
     foreach ($this->metadata as $module_name => $module) {
       if (!empty($module->filename)) {
