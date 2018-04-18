@@ -358,6 +358,14 @@ function patternkit_patternkit_content_type_render(
   // Pull the dependencies and configuration.
   $config = json_decode($instance_config['instance_config'], TRUE);
 
+  // Replace any tokens inside field values.
+  array_walk_recursive($config['fields'], function (&$value, $key, $context = array()) {
+    if ($key && is_string($value)) {
+      $value = ctools_context_keyword_substitute($value, array(), $context);
+      $value = token_replace($value);
+    }
+  }, $context);
+
   // Get the body of content.
   $content = _patternkit_render_block($module, $instance_id, $config, $context);
 
