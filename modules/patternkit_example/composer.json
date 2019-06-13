@@ -1,0 +1,13 @@
+{
+  "name": "cybtachyon/patternkit_example",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Red Hat Inc.",
+      "email": "drupal@redhat.com"
+    }
+  ],
+  "require": {},
+  "config": {},
+  "repositories": []
+}

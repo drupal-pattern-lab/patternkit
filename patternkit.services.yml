@@ -1,0 +1,23 @@
+services:
+  patternkit.library.discovery:
+    class: Drupal\patternkit\PatternkitLibraryDiscovery
+    arguments: ['@patternkit.library.discovery.collector']
+  patternkit.library.discovery.collector:
+    class: Drupal\patternkit\PatternLibraryCollector
+    arguments: ['@cache.discovery', '@config.factory', '@file_system', '@plugin.manager.library.pattern', '@lock', '@module_handler', '@app.root', '@theme.manager']
+    tags:
+      - { name: needs_destruction }
+  patternkit.library.discovery.parser:
+    class: Drupal\patternkit\PatternLibraryParser\TwigPatternLibraryParser
+    arguments: ['@serialization.json', '@app.root', '@module_handler', '@theme.manager']
+  plugin.manager.library.pattern:
+    class: Drupal\patternkit\PatternLibraryPluginManager
+    arguments: ['@container.namespaces', '@cache.discovery', '@module_handler', '@theme_handler']
+  twig.loader.patternlibrary:
+    class: Drupal\patternkit\Loader\PatternLibraryLoader
+    # We use '.' instead of '@app.root' as the path for non-namespaced template
+    # files so that they match the relative paths of templates loaded via the
+    # theme registry or via Twig namespaces.
+    arguments: ['.', '@patternkit.library.discovery.collector']
+    tags:
+      - { name: twig.loader, priority: 100 }

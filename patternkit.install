@@ -4,15 +4,3 @@
  * @file
  * Install file for patternkit module.
  */
-
-/**
- * Add Schema for cache data.
- */
-function patternkit_schema() {
-  $schema = array();
-
-  // Add the caching table.
-  $schema['cache_patternkit'] = drupal_get_schema_unprocessed('system', 'cache');
-
-  return $schema;
-}

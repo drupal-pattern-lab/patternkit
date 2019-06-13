@@ -1,0 +1,9 @@
+patternkit:
+  version: VERSION
+  css:
+    theme:
+      lib/patternkit/dist/patternkit.css: {}
+  js:
+    lib/patternkit/dist/patternkit.min.js: {}
+  patterns:
+    lib/patternkit/src: {plugin: twig}

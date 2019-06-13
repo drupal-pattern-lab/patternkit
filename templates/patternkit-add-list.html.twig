@@ -1,0 +1,22 @@
+{#
+/**
+ * @file
+ * Default theme implementation to present a list of Patternkit pattern blocks.
+ *
+ * Available content variables:
+ * - types: A collection of all the available custom block types.
+ *   Each block type contains the following:
+ *   - link: A link to add a block of this type.
+ *   - description: A description of this custom block type.
+ *
+ * @ingroup themeable
+ */
+#}
+{% spaceless %}
+  <dl>
+    {% for type in content.types %}
+      <dt>{{ type.link }}</dt>
+      <dd>{{ type.description }}</dd>
+    {% endfor %}
+  </dl>
+{% endspaceless %}

@@ -2,10 +2,15 @@
     "name": "cybtachyon/patternkit",
     "authors": [
         {
+            "name": "Derek Reese",
+            "email": "cyb.tachyon@gmail.com"
+        },
+        {
             "name": "Red Hat Inc.",
             "email": "drupal@redhat.com"
         }
     ],
+    "license": "MIT",
     "require": {},
     "config": {},
     "repositories": [],

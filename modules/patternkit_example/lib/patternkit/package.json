@@ -1,0 +1,28 @@
+{
+  "name": "patternkit",
+  "version": "1.0.0",
+  "description": "Example Pattern Library",
+  "main": "Gulpfile.js",
+  "scripts": {
+    "test": "watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cybtachyon/patternkit_patterns.git"
+  },
+  "keywords": [
+    "pattern"
+  ],
+  "author": "Derek Reese",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cybtachyon/patternkit_patterns/issues"
+  },
+  "homepage": "https://github.com/cybtachyon/patternkit_patterns#readme",
+  "devDependencies": {
+    "gulp-cli": "^2.0.1",
+    "node-sass": "^4.7.2",
+    "parcel-bundler": "^1.5.1",
+    "sass-lint": "^1.12.1"
+  }
+}

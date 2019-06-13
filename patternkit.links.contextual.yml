@@ -1,0 +1,4 @@
+patternkit.block_edit:
+  title: 'Edit'
+  group: patternkit
+  route_name: 'entity.patternkit_block.canonical'

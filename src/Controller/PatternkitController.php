@@ -1,104 +1,172 @@
 <?php
 
-namespace Drupal\patternlab\PatternkitController;
+namespace Drupal\patternkit\Controller;
+
+use Drupal\Core\Asset\LibraryDiscoveryInterface;
+use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Extension\ThemeHandlerInterface;
+use Drupal\Core\Link;
+use Drupal\Core\Url;
+use Drupal\patternkit\Pattern;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Controller routines for block example routes.
  */
-class PatternkitController {
-  /**
-   * @file
-   * Provides the admin settings form for Patternkit.
-   */
+class PatternkitController extends ControllerBase {
 
   /**
-   * Drupal Form API callback for the admin form.
+   * The custom block storage.
    *
-   * @param array $form
-   *   Drupal Form API form array.
-   * @param array $form_state
-   *   Drupal Form API form state array.
+   * @var \Drupal\Core\Entity\EntityStorageInterface
+   */
+  protected $patternkitStorage;
+
+  /**
+   * The pattern library collector.
+   *
+   * @var \Drupal\patternkit\PatternkitLibraryDiscoveryInterface
+   */
+  protected $patternLibraryDiscovery;
+
+  /**
+   * The theme handler.
+   *
+   * @var \Drupal\Core\Extension\ThemeHandlerInterface
+   */
+  protected $themeHandler;
+
+  /**
+   * Constructs a Patternkit Controller.
+   *
+   * @param \Drupal\Core\Entity\EntityStorageInterface $patternkit_storage
+   *   The Patternkit storage.
+   * @param \Drupal\Core\Asset\LibraryDiscoveryInterface $pattern_library_discovery
+   *   The Pattern Library Collector.
+   * @param \Drupal\Core\Extension\ThemeHandlerInterface $theme_handler
+   *   The theme handler.
+   */
+  public function __construct(
+    EntityStorageInterface $patternkit_storage,
+    LibraryDiscoveryInterface $pattern_library_discovery,
+    ThemeHandlerInterface $theme_handler) {
+    $this->patternkitStorage = $patternkit_storage;
+    $this->patternLibraryDiscovery = $pattern_library_discovery;
+    $this->themeHandler = $theme_handler;
+  }
+
+  /**
+   * {@inheritdoc}
+   *
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   *   Thrown if the entity type doesn't exist.
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   *   Thrown if the storage handler couldn't be loaded.
+   */
+  public static function create(ContainerInterface $container) {
+    /** @var \Drupal\Core\Entity\EntityTypeManagerInterface $entity_manager */
+    $entity_manager = $container->get('entity_type.manager');
+    /** @var \Drupal\Core\Asset\LibraryDiscoveryInterface $pattern_library_discovery */
+    $pattern_library_discovery = $container->get('patternkit.library.discovery');
+    /** @var ThemeHandlerInterface $theme_handler */
+    $theme_handler = $container->get('theme_handler');
+    return new static(
+      $entity_manager->getStorage('patternkit_block'),
+      $pattern_library_discovery,
+      $theme_handler
+    );
+  }
+
+  /**
+   * Displays add custom block links for available types.
    *
    * @return array
-   *   A Drupal Form API admin form array.
+   *   A render array for a list of the Patternkit pattern blocks that can be
+   *   added.
    */
-  function patternkit_config_form(array $form, array &$form_state) {
-    $libraries = patternkit_pattern_libraries();
-    $library_options = array();
-    $library_values = array();
-    foreach ($libraries as $library) {
-      $lib_title = $library->getTitle();
-      $lib_desc = $lib_title;
-      $lib_metadata = $library->getMetadata();
-      if (!empty($lib_metadata)) {
-        $library_values[] = $lib_title;
-        $lib_desc = t('@title (@count patterns)', array(
-          '@title' => $lib_title,
-          '@count' => count($lib_metadata),
-        ));
-      }
-      $library_options[$lib_title] = $lib_desc;
+  public function add(): array {
+    $types = $this->patternLibraryDiscovery->getAssets();
+    if (count($types) === 0) {
+      return [
+        '#markup' => $this->t('Could not find any patterns to load. Did you add a theme or module that includes a patterns definition in the libraries.yml?'),
+      ];
     }
-    $form['patternkit_libraries'] = array(
-      '#type' => 'checkboxes',
-      '#title' => t('Enabled Patternkit Libraries'),
-      '#options' => $library_options,
-      '#default_value' => $library_values,
-      '#disabled' => TRUE,
-    );
-
-    $form['patternkit_pl_host'] = array(
-      '#type' => 'textfield',
-      '#title' => t('PatternLab/Kit REST Services Host'),
-      '#default_value' => variable_get('patternkit_pl_host',
-        'http://localhost:9001'),
-      '#size' => '120',
-      '#maxlength' => '1023',
-    );
-
-    $form['patternkit_cache_enabled'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Use the Patternkit Library Cache'),
-      '#default_value' => variable_get('patternkit_cache_enabled', TRUE),
-    );
-
-    $form['patternkit_render_cache'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Use the Patternkit Disk Render Cache'),
-      '#default_value' => variable_get('patternkit_render_cache', FALSE),
-    );
-
-    $form['patternkit_default_module_ttl'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Patternkit Default Pattern TTL (in ms)'),
-      '#default_value' => variable_get('patternkit_default_module_ttl',
-        PATTERNKIT_DEFAULT_TTL),
-    );
-
-    $form['#submit'][] = 'patternkit_config_form_submit';
-
-    return system_settings_form($form);
+    $content['types'] = [];
+    $query = \Drupal::request()->query->all();
+    /** @var Pattern $type */
+    foreach ($types as $type) {
+      $id = $type->getId();
+      $label = $type->getLabel();
+      $content['types'][$id] = [
+        'link' => Link::fromTextAndUrl($label, Url::fromRoute('patternkit.add_form', ['pattern_id' => $id], ['query' => $query])),
+        'description' => [
+          '#markup' => $type->getDescription(),
+        ],
+        'title' => $label,
+        'localized_options' => [
+          'query' => $query,
+        ],
+      ];
+    }
+    return ['#theme' => 'patternkit_add_list', '#content' => $content];
   }
 
   /**
-   * Rebuilds Patternkit data on form save.
+   * Presents the Patternkit block creation form.
    *
-   * @param array $form
-   *   Drupal Form API form array.
-   * @param array $form_state
-   *   Drupal Form API form state array.
+   * @param string $pattern_id
+   *   The pattern to add.
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The current request object.
    *
-   * @see system_settings_form_submit()
+   * @return array
+   *   A form array as expected by
+   *   \Drupal\Core\Render\RendererInterface::render().
    */
-  function patternkit_config_form_submit(array $form, array &$form_state) {
-    if ($form_state['values']['patternkit_cache_enabled']
-      && !variable_get('patternkit_cache_enabled', TRUE)) {
-      $libraries = patternkit_pattern_libraries();
-      foreach ($libraries as $library) {
-        $library->getCachedMetadata(NULL, TRUE);
-      }
+  public function addForm($pattern_id, Request $request): array {
+    /** @var \Drupal\patternkit\Entity\PatternkitBlock $block */
+    $block = $this->patternkitStorage->create([
+      'type' => $pattern_id,
+    ]);
+    if (($theme = $request->query->get('theme'))
+      && array_key_exists($theme, $this->themeHandler->listInfo())) {
+      // We have navigated to this page from the block library and will keep track
+      // of the theme for redirecting the user to the configuration page for the
+      // newly created block in the given theme.
+      $block->setTheme($theme);
     }
-
-    drupal_set_message(t('Rebuilt Patternkit Library Cache.'));
+    return $this->entityFormBuilder()->getForm($block);
   }
+
+  /**
+   * Returns the JSON-encoded Patternkit schema for the provided pattern.
+   *
+   * @param string $library
+   *   The name of the pattern library to search.
+   * @param string $pattern
+   *   The name of the pattern to use for retrieving the schema.
+   *
+   * @return \Symfony\Component\HttpFoundation\JsonResponse
+   *   The schema response.
+   */
+  public function ApiPatternSchema($library, $pattern): JsonResponse {
+    return new JsonResponse($this->patternLibraryDiscovery->getLibraryAsset("$library.$pattern"));
+  }
+
+  /**
+   * Provides the page title for this controller.
+   *
+   * @param \Drupal\patternkit\Pattern $pattern
+   *   The pattern being added.
+   *
+   * @return string
+   *   The page title.
+   */
+  public function getAddFormTitle(Pattern $pattern): string {
+    return $this->t('Add %type Patternkit block', ['%type' => $pattern->getLabel()]);
+  }
+
 }

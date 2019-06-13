@@ -1,0 +1,8 @@
+patternkit.editor:
+  version: VERSION
+  js:
+    js/jsoneditor.min.js: {minified: true}
+    js/twigeditor.js: {}
+  dependencies:
+    - core/drupalSettings
+    - core/jquery

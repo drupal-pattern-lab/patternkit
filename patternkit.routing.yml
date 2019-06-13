@@ -1,7 +1,39 @@
-patternkit.description:
-  path: '/admin/structure/patternkit'
+entity.patternkit_block.collection:
+  path: '/admin/structure/block/patternkit'
   defaults:
-    _controller: '\Drupal\patternkit\Controller\PatternkitController'
-    _title: 'Patternkit'
+    _title: 'Patternkit block library'
+    _entity_list: 'patternkit_block'
   requirements:
-    _permission: 'administer patternkit'
+    _permission: 'administer blocks'
+patternkit.add_form:
+  path: '/patternkit_block/add/{pattern_id}'
+  defaults:
+    _controller: '\Drupal\patternkit\Controller\PatternkitController::addForm'
+    _title_callback: 'Drupal\patternkit\Controller\PatternkitController::getAddFormTitle'
+  options:
+    _admin_route: TRUE
+  requirements:
+    _permission: 'administer blocks'
+patternkit.add_page:
+  path: '/patternkit_block/add'
+  defaults:
+    _controller: '\Drupal\patternkit\Controller\PatternkitController::add'
+    _title: 'Add Patternkit block'
+  options:
+    _admin_route: TRUE
+  requirements:
+    _permission: 'administer blocks'
+patternkit.api.schema:
+  path: 'api/patternkit/{library}/{pattern}/schema'
+  defaults:
+    _controller: '\Drupal\patternkit\Controller\PatternkitController::apiPatternSchema'
+patternkit.settings:
+  path: 'admin/config/user-interface/patternkit'
+  defaults:
+    _form: '\Drupal\patternkit\Form\PatternkitSettingsForm'
+    _title: 'Patternkit settings'
+    _description: 'Configure Patternkit Pattern Library Support.'
+  options:
+    _admin_route: TRUE
+  requirements:
+    _permission: 'access administration pages'

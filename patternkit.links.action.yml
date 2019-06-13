@@ -1,0 +1,7 @@
+patternkit_add_action:
+  route_name: patternkit.add_page
+  title: 'Add Patternkit block'
+  appears_on:
+    - block.admin_library
+    - entity.block_content.collection
+  class: \Drupal\patternkit\Plugin\Menu\LocalAction\PatternkitAddLocalAction

@@ -2,128 +2,19 @@
 
 /**
  * @file
- * Patternkit wrapper/abstraction for panels.
+ * Patternkit parses pattern libraries and ingests them into Drupal Blocks.
  */
 
 // Default TTL is 30 * 24 * 60 * 60, 30 minutes.
 const PATTERNKIT_DEFAULT_TTL = 2592000;
 
-include __DIR__ . '/include/api.inc';
-include __DIR__ . '/include/patternkit_config_form.inc';
-include __DIR__ . '/include/utility.inc';
-
-
 /**
- * Implements hook_flush_caches().
+ * Implements hook_theme().
  */
-function patternkit_flush_caches() {
-  return array('cache_patternkit');
-}
-
-/**
- * Implements hook_admin_menu_cache_info().
- */
-function patternkit_admin_menu_cache_info() {
-  $caches['patternkit'] = array(
-    'title'    => t('Flush Patternkit caches'),
-    'callback' => 'patternkit_cache_clear_all',
-  );
-
-  return $caches;
-}
-
-/**
- * Callback for hook_admin_menu_cache_info() to clear all of the caches.
- */
-function patternkit_cache_clear_all() {
-  foreach (patternkit_flush_caches() as $cache_bin) {
-    cache_clear_all('*', $cache_bin, TRUE);
-  }
-}
-
-/**
- * Flush the patternkit metadata cache.
- */
-function patternkit_flush_metadata_cache() {
-  $caches = array();
-  foreach (patternkit_pattern_libraries() as $library) {
-    $caches[] = 'patternkit_pk_metadata_' . $library->getId();
-  }
-  cache_clear_all($caches, 'cache', FALSE);
-}
-
-/**
- * Returns all registered pattern libraries.
- *
- * @return \PatternkitDrupalCachedLib[]
- *   An array of Pattern Kit Library objects.
- */
-function patternkit_pattern_libraries() {
-  static $libraries;
-
-  // If undefined, create the libraries metadata.
-  if (is_null($libraries)) {
-    if ($cache = cache_get('patternkit_libraries')) {
-      $libraries = $cache->data;
-    }
-    else {
-      $libraries = module_invoke_all('patternkit_library');
-
-      if (!empty($libraries)) {
-        // Cache for one day.
-        cache_set('patternkit_library', $libraries, time() + 60 * 60 * 24);
-      }
-    }
-  }
-
-  // Triggers initialization of the Twig wrapper.
-  PatternkitTwigWrapper::getInstance($libraries);
-
-  return $libraries;
-}
-
-/**
- * Implements hook_patternkit_library().
- */
-function patternkit_patternkit_library() {
-  $libraries = array();
-
-  // Load patterns from this module for testing.
-  $module_path = drupal_get_path('module', 'patternkit');
-  $lib_path = $module_path . DIRECTORY_SEPARATOR . 'lib';
-  $libraries[] = new PatternkitDrupalTwigLib('Example', $lib_path);
-
-  // Load patterns from themes exposing namespaces.
-  foreach (list_themes() as $theme_name => $theme) {
-    if ($theme->engine !== 'twig' || !isset($theme->info['namespaces'])) {
-      continue;
-    }
-    foreach ($theme->info['namespaces'] as $namespace => $path) {
-      $theme_path = dirname($theme->filename);
-      $lib_path = $theme_path . DIRECTORY_SEPARATOR . $path;
-      $libraries[] = new PatternkitDrupalTwigLib($namespace, $lib_path);
-    }
-  }
-
-  return $libraries;
-}
-
-/**
- * Implements hook_menu().
- */
-function patternkit_menu() {
-  $items = array();
-  $items['admin/config/user-interface/patternkit'] = array(
-    'title' => 'Patternkit settings',
-    'description' => 'Configure Patternkit Pattern Library Support.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('patternkit_config_form'),
-    'access arguments' => array('access administration pages'),
-  );
-  $items['patternkit/ajax/%/%/schema'] = array(
-    'page callback' => 'patternkit_api_pattern_schema',
-    'page arguments' => array(2, 3),
-    'access callback' => TRUE,
-  );
-  return $items;
+function patternkit_theme($existing, $type, $theme, $path) {
+  return [
+    'patternkit_add_list' => [
+      'variables' => ['content' => NULL],
+    ],
+  ];
 }

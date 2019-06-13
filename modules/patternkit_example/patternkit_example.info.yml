@@ -1,0 +1,7 @@
+name: Patternkit Example
+description: Adds Patternkit example patterns.
+type: module
+package: Presentation Framework
+core: 8.x
+dependencies:
+  - patternkit

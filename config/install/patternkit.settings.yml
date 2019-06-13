@@ -1,0 +1,3 @@
+patternkit_cache_enabled: true
+patternkit_default_module_ttl: 560000
+patternkit_render_cache: true
