@@ -1,7 +1,5 @@
 name: Patternkit
-description: Adds Patternkit patterns to panels as content types.
+description: Adds Patternkit patterns as blocks.
+type: module
 package: Presentation Framework
 core: 8.x
-dependencies:
- - drupal:ctools
- - drupal:panels
