@@ -1,4 +1,7 @@
 services:
+  logger.channel.patternkit:
+    parent: logger.channel_base
+    arguments: ['patternkit']
   patternkit.library.discovery:
     class: Drupal\patternkit\PatternkitLibraryDiscovery
     arguments: ['@patternkit.library.discovery.collector']
@@ -18,6 +21,6 @@ services:
     # We use '.' instead of '@app.root' as the path for non-namespaced template
     # files so that they match the relative paths of templates loaded via the
     # theme registry or via Twig namespaces.
-    arguments: ['.', '@patternkit.library.discovery.collector']
+    arguments: ['.', '@logger.channel.patternkit', '@patternkit.library.discovery.collector']
     tags:
       - { name: twig.loader, priority: 100 }

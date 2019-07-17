@@ -5,7 +5,9 @@ namespace Drupal\patternkit;
 use Drupal\Core\Asset\LibraryDiscovery;
 
 /**
- * The PatternkitLibraryDiscovery is meant to be an enhancement to Drupal Core
+ * Enhances core library handling.
+ *
+ * PatternkitLibraryDiscovery is meant to be an enhancement to Drupal Core
  * Library handling that allows for arbitrary libraries and loading via plugins.
  *
  * The existing library infrastructure is likely overcomplicated and could be
@@ -22,7 +24,11 @@ use Drupal\Core\Asset\LibraryDiscovery;
  */
 class PatternkitLibraryDiscovery extends LibraryDiscovery implements PatternkitLibraryDiscoveryInterface {
 
-  /** @var \Drupal\patternkit\PatternLibraryCollector */
+  /**
+   * Collects libraries in a cache-able manner and is destructible.
+   *
+   * @var \Drupal\patternkit\PatternLibraryCollector
+   */
   protected $collector;
 
   /**

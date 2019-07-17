@@ -16,6 +16,7 @@ use Drupal\patternkit\Pattern;
 use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternkitLibraryDiscoveryInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
+use Exception;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -159,7 +160,13 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $pattern_id = $configuration['id'];
     $plugin = $this->getPluginDefinition();
     /** @var \Drupal\patternkit\Pattern $pattern */
-    $pattern = $plugin['pattern'] ?? $this->patternDiscovery->getLibraryAsset($pattern_id);
+    try {
+      $pattern = $plugin['pattern'] ?? $this->patternDiscovery->getLibraryAsset($pattern_id);
+    }
+    catch (Exception $exception) {
+      \Drupal::messenger()->addError($this->t('Unable to load the pattern @pattern. Check the logs for more info.', ['@pattern' => $pattern_id]));
+      return ['#markup' => $this->t('Unable to edit a Patternkit block when the pattern fails to load.')];
+    }
     $form_state->set('pattern', $pattern);
     // Remove the title override fields.
     unset($form['label'],

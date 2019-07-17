@@ -4,13 +4,19 @@ namespace Drupal\patternkit;
 
 use Drupal\Core\Asset\LibraryDiscoveryInterface;
 
+/**
+ * Allows for implementations of a Pattern Library Discovery service.
+ */
 interface PatternkitLibraryDiscoveryInterface extends LibraryDiscoveryInterface {
 
   /**
    * Returns an array of library assets keyed by library and file.
    *
-   * @return array
+   * @return \Drupal\patternkit\Pattern[]
    *   An array of library assets.
+   *
+   * @throws \Drupal\Core\Asset\Exception\IncompleteLibraryDefinitionException
+   * @throws \Drupal\Core\Asset\Exception\InvalidLibraryFileException
    */
   public function getAssets(): array;
 
@@ -23,12 +29,20 @@ interface PatternkitLibraryDiscoveryInterface extends LibraryDiscoveryInterface 
    * @param string $key
    *   The asset key.
    *
-   * @return mixed
+   * @return mixed|null
+   *   The specific asset requested or NULL if not found.
+   *
+   * @throws \Drupal\Core\Asset\Exception\IncompleteLibraryDefinitionException
+   * @throws \Drupal\Core\Asset\Exception\InvalidLibraryFileException
    */
   public function getLibraryAsset($key);
 
   /**
-   * @return \Drupal\patternkit\Pattern[]
+   * Returns an array of all libraries.
+   *
+   * @return array
+   *   All libraries as definitions, keyed by library name.
    */
   public function getLibraries(): array;
+
 }

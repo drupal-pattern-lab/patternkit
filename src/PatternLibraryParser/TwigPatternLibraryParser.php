@@ -3,11 +3,16 @@
 namespace Drupal\patternkit\PatternLibraryParser;
 
 use Drupal\Component\Serialization\SerializationInterface;
+use Drupal\Core\Asset\Exception\InvalidLibraryFileException;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Theme\ThemeManagerInterface;
 use Drupal\patternkit\Pattern;
 use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternLibraryParserBase;
+use function dump;
+use function file_exists;
+use function get_call_stack;
+use function kint_trace;
 use function strlen;
 use Symfony\Component\Finder\Iterator\RecursiveDirectoryIterator;
 
@@ -115,16 +120,19 @@ class TwigPatternLibraryParser extends PatternLibraryParserBase {
    *   An array of parsed library data.
    *
    * @throws \Drupal\Core\Asset\Exception\InvalidLibraryFileException
-   *   Thrown when a parser exception got thrown.
+   *   Thrown when a parser exception was thrown.
    */
   public function parseLibraryInfo($library, $path, array $library_data = []): array {
-    $it = new RecursiveDirectoryIterator($path, \FilesystemIterator::KEY_AS_PATHNAME | \FilesystemIterator::CURRENT_AS_FILEINFO);
+    if (!file_exists($path)) {
+      throw new InvalidLibraryFileException("Path $path does not exist.");
+    }
+    $rdit = new RecursiveDirectoryIterator($path, \FilesystemIterator::KEY_AS_PATHNAME | \FilesystemIterator::CURRENT_AS_FILEINFO);
     $filter = ['json', 'twig'];
     $metadata = [];
     $components = [];
 
     /** @var \SplFileInfo $file */
-    foreach (new \RecursiveIteratorIterator($it) as $file) {
+    foreach (new \RecursiveIteratorIterator($rdit) as $file) {
       // Skip directories and non-files.
       if (!$file->isFile()) {
         continue;
@@ -153,7 +161,7 @@ class TwigPatternLibraryParser extends PatternLibraryParserBase {
     foreach ($components as $name => $data) {
       // If the component has a json file, create the pattern from it.
       if (!empty($data['json']) && $file_contents = file_get_contents($data['json'])) {
-        $pattern = $this->createPattern($name, $this->serializer::decode($file_contents) + $library_data);
+        $pattern = $this->createPattern($name, (array) $this->serializer::decode($file_contents) + $library_data);
         $pattern->name = $name;
         // URL is redundant for the twig based components, so we use it to
         // store namespace.
@@ -164,7 +172,7 @@ class TwigPatternLibraryParser extends PatternLibraryParserBase {
       else {
         // Create the pattern from defaults.
         $pattern = $this->createPattern($name,
-          (object) [
+          [
             '$schema'    => 'http =>//json-schema.org/draft-04/schema#',
             'category'   => 'atom',
             'title'      => $name,

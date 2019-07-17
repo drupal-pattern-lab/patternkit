@@ -146,9 +146,9 @@ class PatternLibraryCollector extends CacheCollector implements ContainerInjecti
    */
   public function getLibraryDefinitions(): array {
     $config = $this->configFactory->get(PatternkitSettingsForm::SETTINGS);
-    $patternkit_cache_enabled = $config->get('patternkit_cache_enabled');
+    $cache_enabled = $config->get('patternkit_cache_enabled');
     // If cache is enabled, attempt to load from cache.
-    if ($patternkit_cache_enabled
+    if ($cache_enabled
       && ($cache = $this->cache->get(static::PERSISTENT_CACHE_ID))) {
       $cached_metadata = $cache->data;
     }
@@ -156,7 +156,7 @@ class PatternLibraryCollector extends CacheCollector implements ContainerInjecti
       $cached_metadata = $this->getLibraryMetadata();
       // Cache the data so that we don't have to build it again.
       // (if cache enabled, otherwise just a slow, redundant memcache set).
-      if ($patternkit_cache_enabled === TRUE) {
+      if ($cache_enabled === TRUE) {
         // Explicit copy of the data into cache_set to avoid implicit copy.
         $this->cache->set(static::PERSISTENT_CACHE_ID,
           $cached_metadata);
@@ -294,10 +294,13 @@ class PatternLibraryCollector extends CacheCollector implements ContainerInjecti
 
   /**
    * Returns a specific library by name, collected from all extensions.
+   *
    * @param string $name
    *   The name of the library, registered by libraries.yml.
+   *
    * @return array|null
    *   The pattern library metadata.
+   *
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    */
   public function getLibraryByName($name): ?array {
@@ -394,6 +397,8 @@ class PatternLibraryCollector extends CacheCollector implements ContainerInjecti
    *   When a circular reference is detected.
    * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
    *   When the service is not defined.
+   * @throws \Drupal\Core\Asset\Exception\InvalidLibraryFileException
+   *   Thrown if an invalid library path was passed to the parser.
    */
   protected function getLibraryMetadata(): array {
     $container = \Drupal::getContainer();

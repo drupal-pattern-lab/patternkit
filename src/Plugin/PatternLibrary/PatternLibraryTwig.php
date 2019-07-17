@@ -52,17 +52,16 @@ class PatternLibraryTwig extends PatternLibraryPluginDefault implements Containe
    * @param string $root
    *   The application root path.
    *   e.g. '/var/www/docroot'.
-   * @param \Drupal\Core\Asset\LibraryDiscoveryInterface $library_discovery
-   *   Library discovery service.
    * @param \Drupal\Component\Serialization\SerializationInterface $serializer
    *   Serialization service.
-   * @param \Drupal\Core\Template\TwigEnvironment $twig
-   *   Twig template service.
    * @param \Drupal\patternkit\PatternLibraryParser\TwigPatternLibraryParser $twig_parser
    *   Twig pattern library parser service.
-   *
-   * {@inheritdoc}
-   *
+   * @param array $configuration
+   *   Config.
+   * @param string $plugin_id
+   *   Plugin ID.
+   * @param mixed $plugin_definition
+   *   Plugin Definition.
    */
   public function __construct(
     $root,
@@ -79,13 +78,15 @@ class PatternLibraryTwig extends PatternLibraryPluginDefault implements Containe
   }
 
   /**
+   * Creates a new Twig Pattern Library using the given container.
+   *
    * {@inheritDoc}
    */
-  public static function create(ContainerInterface $container, $configuration, $plugin_id, $plugin_definition): PatternLibraryTwig {
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): PatternLibraryTwig {
     $root = $container->get('app.root');
     /** @var \Drupal\Component\Serialization\SerializationInterface $serializer */
     $serializer = $container->get('serialization.json');
-    /** @var TwigPatternLibraryParser $twig_parser */
+    /** @var \Drupal\patternkit\PatternLibraryParser\TwigPatternLibraryParser $twig_parser */
     $twig_parser = $container->get('patternkit.library.discovery.parser');
     return new static($root, $serializer, $twig_parser, $configuration, $plugin_id, $plugin_definition);
   }
@@ -134,6 +135,9 @@ HTML;
    *
    * @return array
    *   The metadata for this library.
+   *
+   * @throws \Drupal\Core\Asset\Exception\InvalidLibraryFileException
+   *   Thrown if an invalid library path was passed to the parser.
    *
    * @todo Provide full library metadata.
    */

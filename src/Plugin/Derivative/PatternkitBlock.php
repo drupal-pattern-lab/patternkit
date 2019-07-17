@@ -4,26 +4,40 @@ namespace Drupal\patternkit\Plugin\Derivative;
 
 use Drupal\Component\Plugin\Derivative\DeriverBase;
 use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Plugin\Discovery\ContainerDeriverInterface;
 use Drupal\patternkit\PatternkitLibraryDiscoveryInterface;
+use Exception;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
 
-  /** @var \Drupal\patternkit\PatternkitLibraryDiscoveryInterface */
-  protected $patternLibraryDiscovery;
+  /**
+   * Logs to the patternkit channel.
+   *
+   * @var \Drupal\Core\Logger\LoggerChannelInterface
+   */
+  protected $logger;
 
-  /** @var \Drupal\Core\Entity\EntityStorageInterface */
+    /** @var \Drupal\Core\Entity\EntityStorageInterface */
   protected $patternkitStorage;
+
+  /** @var \Drupal\patternkit\PatternkitLibraryDiscoveryInterface */
+  protected $libraryDiscovery;
 
   /**
    * PatternkitBlock constructor.
    *
+   * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
+   *   Generates and provides log channels.
    * @param \Drupal\patternkit\PatternkitLibraryDiscoveryInterface $pattern_discovery
+   *   Provides a list of pattern libraries with metadata.
    * @param \Drupal\Core\Entity\EntityStorageInterface $storage
+   *   Loads and saves entities to storage.
    */
-  public function __construct(PatternkitLibraryDiscoveryInterface $pattern_discovery, EntityStorageInterface $storage) {
-    $this->patternLibraryDiscovery = $pattern_discovery;
+  public function __construct(LoggerChannelInterface $logger, PatternkitLibraryDiscoveryInterface $pattern_discovery, EntityStorageInterface $storage) {
+    $this->logger = $logger;
+    $this->libraryDiscovery = $pattern_discovery;
     $this->patternkitStorage = $storage;
   }
 
@@ -38,22 +52,32 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
   public static function create(ContainerInterface $container, $base_plugin_id): PatternkitBlock {
     /** @var \Drupal\Core\Entity\EntityTypeManagerInterface $entity_manager */
     $entity_manager = $container->get('entity.manager');
+    /** @var \Drupal\Core\Logger\LoggerChannelInterface $logger */
+    $logger = $container->get('logger.channel.patternkit');
     /** @var \Drupal\patternkit\PatternkitLibraryDiscoveryInterface $pattern_discovery */
     $pattern_discovery = $container->get('patternkit.library.discovery');
     return new static(
+      $logger,
       $pattern_discovery,
       $entity_manager->getStorage('patternkit_block'));
   }
 
   /**
+   * Provides block definitions from pattern libraries and reusable patterns.
+   *
    * {@inheritDoc}
    */
-  public function getDerivativeDefinitions($base_plugin_definition): array {
+  public function getDerivativeDefinitions($base_definition): array {
     // Reset the discovered definitions.
     $this->derivatives = [];
     // @todo: Add support for ContextDefinition('entity:node') etc.
-    /** @var \Drupal\patternkit\Pattern[] $patterns */
-    $patterns = $this->patternLibraryDiscovery->getAssets();
+    try {
+      /** @var \Drupal\patternkit\Pattern[] $patterns */
+      $patterns = $this->libraryDiscovery->getAssets();
+    }
+    catch (Exception $exception) {
+      $this->logger->error('Error loading patterns for derivative blocks: @message', ['@message' => $exception->getMessage()]);
+    }
     foreach ($patterns as $pattern_id => $pattern) {
       $this->derivatives[$pattern_id] = [
         'category'    => t(
@@ -71,17 +95,18 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
         ),
         'pattern' => $pattern,
       ];
-      $this->derivatives[$pattern_id] += $base_plugin_definition;
+      $this->derivatives[$pattern_id] += $base_definition;
     }
 
     $patternkit_blocks = $this->patternkitStorage->loadByProperties(['reusable' => TRUE]);
     foreach ($patternkit_blocks as $patternkit_block) {
-      $this->derivatives[$patternkit_block->uuid()] = $base_plugin_definition;
+      $this->derivatives[$patternkit_block->uuid()] = $base_definition;
       $this->derivatives[$patternkit_block->uuid()]['admin_label'] = $patternkit_block->label();
       $this->derivatives[$patternkit_block->uuid()]['config_dependencies']['content'] = [
         $patternkit_block->getConfigDependencyName(),
       ];
     }
-    return parent::getDerivativeDefinitions($base_plugin_definition);
+    return parent::getDerivativeDefinitions($base_definition);
   }
+
 }

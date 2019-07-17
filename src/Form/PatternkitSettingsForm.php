@@ -6,6 +6,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\patternkit\PatternkitLibraryDiscoveryInterface;
+use Exception;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class PatternkitSettingsForm extends ConfigFormBase {
@@ -14,10 +15,10 @@ class PatternkitSettingsForm extends ConfigFormBase {
   public const SETTINGS = 'patternkit.settings';
 
   /** @var \Drupal\patternkit\PatternkitLibraryDiscoveryInterface */
-  protected $patternLibraryDiscovery;
+  protected $libraryDiscovery;
 
   public function __construct(ConfigFactoryInterface $config_factory, PatternkitLibraryDiscoveryInterface $pattern_discovery) {
-    $this->patternLibraryDiscovery = $pattern_discovery;
+    $this->libraryDiscovery = $pattern_discovery;
     parent::__construct($config_factory);
   }
 
@@ -34,7 +35,16 @@ class PatternkitSettingsForm extends ConfigFormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state) :array {
     $config = $this->config(static::SETTINGS);
-    $libraries = $this->patternLibraryDiscovery->getLibraries();
+    try {
+      $libraries = $this->libraryDiscovery->getLibraries();
+    }
+    catch (Exception $exception) {
+      $this->getLogger('patternkit')->error('Unable to load Patternkit libraries list: @message', ['@message' => $exception->getMessage()]);
+      \Drupal::messenger()->addMessage(t('Unable to load Patternkit libraries list. Check the logs for more information.'), 'error');
+      return [
+        '#markup' => $this->t('Settings are unavailable when Pattern libraries fail to load to prevent config errors.'),
+      ];
+    }
     $library_options = array();
     $library_values = array();
     foreach ($libraries as $lib_title => $library) {
@@ -98,13 +108,11 @@ class PatternkitSettingsForm extends ConfigFormBase {
     $config = $this->config(static::SETTINGS);
     if ($form_state['values']['patternkit_cache_enabled']
       && !$config->get('patternkit_cache_enabled')) {
-      $libraries = $this->patternLibraryDiscovery->getLibraries();
-      foreach ($libraries as $library) {
-        $library->getCachedMetadata(NULL, TRUE);
-      }
+      $this->libraryDiscovery->clearCachedDefinitions();
     }
-
-    $this->messenger()->addStatus($this->t('Rebuilt Patternkit Library Cache.'));
+    $libraries = $this->libraryDiscovery->getLibraries();
+    $count = count($libraries);
+    $this->messenger()->addStatus($this->t('Rebuilt Patternkit Library Cache with @count libraries.', ['@count' => $count]));
     parent::submitForm($form, $form_state);
   }
 
