@@ -2,6 +2,9 @@
 
 namespace Drupal\patternkit;
 
+use function is_string;
+use function PHPSTORM_META\type;
+
 /**
  * A collection of a JSON schema and renderable markup.
  *
@@ -11,35 +14,6 @@ namespace Drupal\patternkit;
  */
 class Pattern {
 
-  /**
-   * PatternkitPattern constructor.
-   *
-   * @param string $name
-   *   The name of the pattern.
-   * @param object|array $schema
-   *   An optional JSON Schema object to use.
-   */
-  public function __construct($name, $schema = NULL) {
-    $this->name        = $name;
-    $this->category    = 'default';
-    $this->title       = NULL;
-    $this->html        = NULL;
-    $this->version     = NULL;
-    $this->attachments = NULL;
-    $this->schema      = $schema;
-
-    // If schema is undefined, initialize empty.
-    if (empty($schema)) {
-      return;
-    }
-
-    // Walk the provided schemas and generate the pattern.
-    foreach ($schema as $key => $value) {
-      if ($key !== 'schema' && property_exists($this, (string) $key)) {
-        $this->{$key} = $value;
-      }
-    }
-  }
 
   /**
    * The required minimum data for a pattern.
@@ -162,6 +136,36 @@ class Pattern {
   protected $libraryPluginId;
 
   /**
+   * PatternkitPattern constructor.
+   *
+   * @param string $name
+   *   The name of the pattern.
+   * @param object|array $schema
+   *   An optional JSON Schema object to use.
+   */
+  public function __construct($name, $schema = NULL) {
+    $this->name        = $name;
+    $this->category    = 'default';
+    $this->title       = NULL;
+    $this->html        = NULL;
+    $this->version     = NULL;
+    $this->attachments = NULL;
+    $this->schema      = $schema;
+
+    // If schema is undefined, initialize empty.
+    if (empty($schema)) {
+      return;
+    }
+
+    // Walk the provided schemas and generate the pattern.
+    foreach ($schema as $key => $value) {
+      if ($key !== 'schema' && property_exists($this, (string) $key)) {
+        $this->{$key} = $value;
+      }
+    }
+  }
+
+  /**
    * Returns the pattern description.
    *
    * @return string
@@ -188,7 +192,7 @@ class Pattern {
    *   The label of the pattern.
    */
   public function getLabel(): string {
-    return !empty($this->title) ? $this->title : $this->name;
+    return !empty($this->title) && is_string($this->title) ? $this->title : $this->name;
   }
 
   /**

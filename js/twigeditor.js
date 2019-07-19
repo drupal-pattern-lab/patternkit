@@ -1,3 +1,14 @@
+/**
+ * @file
+ * Provides Twig Pattern Library Editing Functionality.
+ *
+ * @external Drupal
+ *
+ * @external jQuery
+ *
+ * @external JSONEditor
+ */
+
 (function ($, Drupal) {
   Drupal.behaviors.patternkitEditor = {
     attach: function (context, settings) {

@@ -9,6 +9,9 @@ use Drupal\patternkit\Pattern;
 use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternLibraryParser\TwigPatternLibraryParser;
 use Drupal\patternkit\PatternLibraryPluginDefault;
+use function print_r;
+use function strchr;
+use function strlen;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -97,7 +100,13 @@ class PatternLibraryTwig extends PatternLibraryPluginDefault implements Containe
   public function getEditor(Pattern $pattern = NULL,
     PatternEditorConfig $config = NULL) {
     $hostname = $_SERVER['HTTP_HOST'];
-    $pattern_schema = $pattern ? $pattern->schema : new \stdClass();
+    $pattern_schema = $pattern->schema ?? new \stdClass();
+    if (empty($pattern_schema['properties'])) {
+      $filename = $pattern->filename ?? '';
+      $filename = substr($filename, 0, -(int) strrchr($filename, '.'));
+      $this->messenger()->addStatus($this->t('You need to manually add pattern fields since none were found in a proper JSON Schema properties value in @filename.json.',
+        ['@filename' => $filename]));
+    }
     $schema_json = $this->serializer::encode($pattern_schema);
     $starting_json = $config !== NULL
       ? $this->serializer::encode($config->fields)
@@ -154,9 +163,10 @@ HTML;
   public function render(array $assets): array {
     $elements = [];
     foreach ($assets as $pattern) {
-      if (empty($pattern->filename) || empty($pattern->config)) {
+      if (empty($pattern->filename)) {
         return [];
       }
+      // @todo Allow filename to cache the template contents based on settings.
       $template = $pattern->filename;
       // Add the namespace, if provided.
       if (!empty($pattern->url)) {
@@ -172,7 +182,7 @@ HTML;
       /** @var \Drupal\Core\Template\TwigEnvironment $twig */
       $twig       = \Drupal::service('twig');
       $template   = $twig->load("$namespace/$pattern->filename");
-      $elements[] = $template->render($pattern->config);
+      $elements[] = $template->render($pattern->config ?? []);
     }
     return $elements;
   }

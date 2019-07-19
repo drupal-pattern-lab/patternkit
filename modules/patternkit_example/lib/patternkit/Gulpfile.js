@@ -1,6 +1,6 @@
 /**
  * @file
- * Gulp theme compilation script for rhc_ops_ui.
+ * Gulp theme compilation script for patternkit_example.
  */
 
 /* eslint-env node */
@@ -58,7 +58,7 @@ options.tslint = {
 
 options.styleguide = {
   builder: 'node_modules/kss/builder/twig',
-  namespace: 'rhcOpsLib:' + options.theme.patterns,
+  namespace: 'patternkit:' + options.theme.patterns,
   source: [
     options.theme.patterns
   ],
@@ -67,7 +67,7 @@ options.styleguide = {
   // The css and js paths are URLs, like '/misc/jquery.js'.
   // The following paths are relative to the generated style guide.
   css: [
-    path.relative(options.paths.styleguide, options.theme.css + '/rhc_ops_ui.css'),
+    path.relative(options.paths.styleguide, options.theme.css + '/patternkit.css'),
     path.relative(options.paths.styleguide, options.theme.css + '/patternfly.min.css'),
     path.relative(options.paths.styleguide, options.theme.css + '/patternfly-additions.min.css')
   ],
@@ -91,7 +91,7 @@ options.styleguide = {
     path.relative(options.paths.styleguide, options.theme.js + '/patternfly-functions.min.js'),
     path.relative(options.paths.styleguide, options.theme.js + '/patternfly-settings.min.js')
   ],
-  title: 'RHC Ops UI Style Guide'
+  title: 'Patternkit UI Style Guide'
 };
 
 options.gulpWatchOptions = {};

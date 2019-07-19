@@ -9,11 +9,6 @@ use Drupal\Core\Theme\ThemeManagerInterface;
 use Drupal\patternkit\Pattern;
 use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternLibraryParserBase;
-use function dump;
-use function file_exists;
-use function get_call_stack;
-use function kint_trace;
-use function strlen;
 use Symfony\Component\Finder\Iterator\RecursiveDirectoryIterator;
 
 /**
@@ -163,11 +158,6 @@ class TwigPatternLibraryParser extends PatternLibraryParserBase {
       if (!empty($data['json']) && $file_contents = file_get_contents($data['json'])) {
         $pattern = $this->createPattern($name, (array) $this->serializer::decode($file_contents) + $library_data);
         $pattern->name = $name;
-        // URL is redundant for the twig based components, so we use it to
-        // store namespace.
-        $pattern->url = $library;
-        // @todo add default of library version fallback to extension version.
-        $pattern->version = $pattern->version ?? 'VERSION';
       }
       else {
         // Create the pattern from defaults.
@@ -190,6 +180,11 @@ class TwigPatternLibraryParser extends PatternLibraryParserBase {
         if (file_exists($twig_file)) {
           $pattern->filename = trim(substr($twig_file, strlen($path)), '/\\');
           $pattern->template = file_get_contents($twig_file);
+          // URL is redundant for the twig based components, so we use it to
+          // store namespace.
+          $pattern->url = $library;
+          // @todo add default of library version fallback to extension version.
+          $pattern->version = $pattern->version ?? 'VERSION';
         }
       }
 
