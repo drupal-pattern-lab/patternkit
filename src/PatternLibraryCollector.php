@@ -428,6 +428,9 @@ class PatternLibraryCollector extends CacheCollector implements ContainerInjecti
       /** \Drupal\Core\Extension\Extension[] $extension_list */
       $extension_list = $container->get($service_name)->getList();
       foreach ($extension_list as $extension_name => $extension) {
+        if (empty($extension->status)) {
+          continue;
+        }
         $libraries = $this->buildByExtension($extension_type, $extension_name);
         foreach ($libraries as $library_name => $library) {
           $pattern_libraries = $library['patterns'] ?? [];

@@ -3,6 +3,7 @@
 namespace Drupal\patternkit;
 
 use Drupal\Core\Asset\LibraryDiscoveryParser;
+use Symfony\Component\Finder\Iterator\RecursiveDirectoryIterator;
 
 /**
  * Base functionality for a pattern library parser.
@@ -12,13 +13,62 @@ use Drupal\Core\Asset\LibraryDiscoveryParser;
 abstract class PatternLibraryParserBase extends LibraryDiscoveryParser {
 
   /**
-   * Additional library data override.
+   * Returns a new Patternkit Pattern.
    *
-   * {@inheritDoc}
+   * @param string $name
+   *   The name of the pattern.
+   * @param array|object $schema
+   *   The optional schema for the pattern.
+   *
+   * @return \Drupal\patternkit\Pattern
+   *   A fully-instantiated Patternkit Pattern.
    */
-  public function parseLibraryInfo($extension, $path, array $library_data = []): array {
-    return parent::parseLibraryInfo($extension,
-      $path);
+  public function createPattern($name, $schema): Pattern {
+    return new Pattern($name, $schema);
+  }
+
+  /**
+   * Returns an array of file components grouped by file basename and extension.
+   *
+   * @param string $path
+   *   The fully-qualified path to discover component files.
+   * @param array $filter
+   *   An optional filter of file extensions to search for.
+   *
+   * @return array
+   *   Array of file components.
+   *   [basename][extension] = filename.
+   */
+  public static function discoverComponents($path, array $filter = []): array {
+    $components = [];
+    $rdit = new RecursiveDirectoryIterator($path, \FilesystemIterator::KEY_AS_PATHNAME | \FilesystemIterator::CURRENT_AS_FILEINFO);
+    /** @var \SplFileInfo $file */
+    foreach (new \RecursiveIteratorIterator($rdit) as $file) {
+      // Skip directories and non-files.
+      if (!$file->isFile()) {
+        continue;
+      }
+      $file_path = $file->getPath();
+
+      // Skip tests folders.
+      if (strpos($file_path, '/tests') !== FALSE) {
+        continue;
+      }
+
+      // Get the file extension for the file.
+      $file_ext = $file->getExtension();
+      if (!in_array(strtolower($file_ext), $filter, TRUE)) {
+        continue;
+      }
+
+      // We use file_basename as a unique key, it is required that the
+      // JSON and twig file share this basename.
+      $file_basename = $file->getBasename('.' . $file_ext);
+
+      // Build an array of all the filenames of interest, keyed by name.
+      $components[$file_basename][$file_ext] = "$file_path/$file_basename.$file_ext";
+    }
+    return $components;
   }
 
   /**
@@ -358,7 +408,6 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser {
     return $pk_obj;
   }
 
-
   /**
    * Merge js dependency arrays.
    *
@@ -401,40 +450,4 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser {
     return $ret;
   }
 
-  /**
-   * Parses schema properties for $ref and updates their location.
-   *
-   * @param object $properties
-   *   The properties to parse.
-   * @param array &$metadata
-   *   The library metadata for looking up referenced patterns.
-   *
-   * @return object
-   *   The updated schema properties object.
-   */
-  public static function schemaDereference($properties, array &$metadata) {
-    foreach ($properties as $property => $value) {
-      if (!is_scalar($value)) {
-        $new_value = static::schemaDereference($value, $metadata);
-        if (is_object($properties)) {
-          $properties->{$property} = $new_value;
-        }
-        if (is_array($properties)) {
-          $properties[$property] = $new_value;
-        }
-        continue;
-      }
-      if ($property !== '$ref') {
-        continue;
-      }
-      $pattern = strstr($value, '.json', TRUE);
-      $ref = substr($value, strlen("$pattern.json"));
-      if (!isset($metadata[$pattern])) {
-        unset($properties[$property]);
-        continue;
-      }
-      $properties[$property] = $metadata[$pattern]->url . $ref;
-    }
-    return $properties;
-  }
 }
