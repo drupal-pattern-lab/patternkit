@@ -10,9 +10,12 @@ use Drupal\Core\Link;
 use Drupal\Core\Url;
 use Drupal\patternkit\Pattern;
 use Exception;
+use RuntimeException;
+use function str_replace;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Controller routines for block example routes.
@@ -153,17 +156,53 @@ class PatternkitController extends ControllerBase {
   /**
    * Returns the JSON-encoded Patternkit schema for the provided pattern.
    *
-   * @param string $library
-   *   The name of the pattern library to search.
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The request object.
+   * @param string $pattern
+   *   The name of the pattern to use for retrieving the schema.
+   *
+   * @return \Symfony\Component\HttpFoundation\Response
+   *   The schema response.
+   */
+  public function apiPattern(Request $request, $pattern = NULL): Response {
+    $pattern = $request->query->get('pattern') ?? $pattern;
+    if (!$pattern) {
+      return new Response();
+    }
+    $test_len = strlen('/schema');
+    if (substr_compare($pattern, '/schema', strlen($pattern) - $test_len, $test_len) === 0) {
+      return $this->apiPatternSchema(substr($pattern, 0, -$test_len));
+    }
+    $asset_id = str_replace('/', '.', $pattern);
+    try {
+      $response = $this->libraryDiscovery->getLibraryAsset($asset_id);
+      if ($response === NULL) {
+        throw new RuntimeException("Unable to locate $pattern.");
+      }
+    }
+    catch (Exception $exception) {
+      $response = ['error' => $exception->getMessage()];
+    }
+    return new JsonResponse($response);
+  }
+
+  /**
+   * Returns the JSON-encoded Patternkit schema for the provided pattern.
+   *
    * @param string $pattern
    *   The name of the pattern to use for retrieving the schema.
    *
    * @return \Symfony\Component\HttpFoundation\JsonResponse
    *   The schema response.
    */
-  public function apiPatternSchema($library, $pattern): JsonResponse {
+  public function apiPatternSchema($pattern): JsonResponse {
+    $asset_id = str_replace('/', '.', $pattern);
     try {
-      $response = $this->libraryDiscovery->getLibraryAsset("$library.$pattern");
+      $pattern_asset = $this->libraryDiscovery->getLibraryAsset($asset_id);
+      if ($pattern_asset === NULL) {
+        throw new RuntimeException("Unable to locate $pattern.");
+      }
+      $response = $pattern_asset->schema ?? [];
     }
     catch (Exception $exception) {
       $response = ['error' => $exception->getMessage()];

@@ -27,15 +27,15 @@ interface PatternLibraryPluginInterface {
    *
    * @param \Drupal\Core\Extension\Extension $extension
    *   The extension to retrieve pattern metadata from.
-   * @param string $library
-   *   The name of the library that is being retrieved.
+   * @param array $library
+   *   The metadata for the library that is being retrieved.
    * @param string $path
    *   The path to the pattern library collection.
    *
    * @return \Drupal\patternkit\Pattern[]
    *   The resulting pattern metadata.
    */
-  public function getMetadata(Extension $extension, $library, $path): array;
+  public function getMetadata(Extension $extension, array $library, $path): array;
 
   /**
    * Returns renderable data or markup for a provided array of patterns.

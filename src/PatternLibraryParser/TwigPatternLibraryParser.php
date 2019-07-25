@@ -93,12 +93,10 @@ class TwigPatternLibraryParser extends PatternLibraryParserBase {
    * See https://www.drupal.org/node/2274843#define-library for more
    * information.
    *
-   * @param string $library
-   *   The name of the library that was registered.
+   * @param array $library
+   *   The data of the library that was registered.
    * @param string $path
    *   The relative path to the extension.
-   * @param array $library_data
-   *   An optional set of additional data to add to each pattern.
    *
    * @return array
    *   An array of parsed library data.
@@ -106,7 +104,7 @@ class TwigPatternLibraryParser extends PatternLibraryParserBase {
    * @throws \Drupal\Core\Asset\Exception\InvalidLibraryFileException
    *   Thrown when a parser exception was thrown.
    */
-  public function parseLibraryInfo($library, $path, array $library_data = []): array {
+  public function parsePatternLibraryInfo(array $library, $path): array {
     if (!file_exists($path)) {
       throw new InvalidLibraryFileException("Path $path does not exist.");
     }
@@ -116,38 +114,39 @@ class TwigPatternLibraryParser extends PatternLibraryParserBase {
         continue;
       }
       // If the component has a json file, create the pattern from it.
-      $category = $library_data['category'] ?? 'default';
+      $category = $library['category'] ?? 'default';
+      $library_defaults = [
+        '$schema'    => 'http =>//json-schema.org/draft-04/schema#',
+        'category'   => $category,
+        'title'      => $name,
+        'type'       => 'object',
+        'format'     => 'grid',
+        'license'    => $library['license'] ?? [],
+        'name'       => $name,
+        'properties' => (object) [],
+        'required'   => [],
+        'version'    => $library['version'] ?? '',
+      ];
       if (!empty($data['json']) && $file_contents = file_get_contents($data['json'])) {
-        $pattern = $this->createPattern($name, (array) $this->serializer::decode($file_contents) + $library_data);
+        $pattern = $this->createPattern($name, (array) $this->serializer::decode($file_contents) + $library_defaults);
         $pattern_path = trim(substr($data['json'], strlen($path), -strlen('.json')), '/\\');
-        $category_guess = $library_data['category'] ?? strstr($pattern_path, DIRECTORY_SEPARATOR, TRUE);
+        $category_guess = $library['category'] ?? strstr($pattern_path, DIRECTORY_SEPARATOR, TRUE);
         $pattern->category = $pattern->category ?? $category_guess;
       }
       else {
         // Create the pattern from defaults.
         // @todo Have this cleverly infer defaults from the template.
-        $pattern = $this->createPattern($name,
-          [
-            '$schema'    => 'http =>//json-schema.org/draft-04/schema#',
-            'category'   => $category,
-            'title'      => $name,
-            'type'       => 'object',
-            'format'     => 'grid',
-            'name'       => $name,
-            'properties' => (object) [],
-            'required'   => [],
-          ] + $library_data
-        );
+        $pattern = $this->createPattern($name, $library_defaults);
       }
       $pattern->filename = trim(substr($data['twig'], strlen($path)), '/\\');
-      $pattern_path = substr($pattern->filename, 0, -strlen('.twig'));
+      $pattern->path = substr($pattern->filename, 0, -strlen('.twig'));
       $pattern->template = file_get_contents($data['twig']);
       // URL is redundant for the twig based components, so we use it to
       // store namespace.
-      $pattern->url = $library;
+      $pattern->url = $library['name'];
       // @todo add default of library version fallback to extension version.
       $pattern->version = $pattern->version ?? 'VERSION';
-      $metadata["@$library/$pattern_path"] = $pattern;
+      $metadata['@' . $library['name'] . '/' . $pattern->path] = $pattern;
     }
 
     foreach ($metadata as $pattern_type => $pattern) {

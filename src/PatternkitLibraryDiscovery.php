@@ -32,7 +32,7 @@ class PatternkitLibraryDiscovery extends LibraryDiscovery implements PatternkitL
   protected $collector;
 
   /**
-   * {@inheritdoc}
+   * {@inheritDoc}
    *
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    */

@@ -2,6 +2,10 @@ services:
   logger.channel.patternkit:
     parent: logger.channel_base
     arguments: ['patternkit']
+  path_processor.patterns:
+    class: Drupal\patternkit\PathProcessor\PathProcessorPatterns
+    tags:
+      - { name: path_processor_inbound, priority: 200 }
   patternkit.library.discovery:
     class: Drupal\patternkit\PatternkitLibraryDiscovery
     arguments: ['@patternkit.library.discovery.collector']

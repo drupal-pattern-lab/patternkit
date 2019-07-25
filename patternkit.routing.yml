@@ -23,12 +23,14 @@ patternkit.add_page:
     _admin_route: TRUE
   requirements:
     _permission: 'administer blocks'
-patternkit.api.schema:
-  path: 'api/patternkit/{library}/{pattern}/schema'
+patternkit.api:
+  path: '/api/patternkit'
   defaults:
-    _controller: '\Drupal\patternkit\Controller\PatternkitController::apiPatternSchema'
+    _controller: '\Drupal\patternkit\Controller\PatternkitController::apiPattern'
+  requirements:
+    _access: 'TRUE'
 patternkit.settings:
-  path: 'admin/config/user-interface/patternkit'
+  path: '/admin/config/user-interface/patternkit'
   defaults:
     _form: '\Drupal\patternkit\Form\PatternkitSettingsForm'
     _title: 'Patternkit settings'

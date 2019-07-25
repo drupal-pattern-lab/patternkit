@@ -9,9 +9,6 @@ use Drupal\patternkit\Pattern;
 use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternLibraryParser\TwigPatternLibraryParser;
 use Drupal\patternkit\PatternLibraryPluginDefault;
-use function print_r;
-use function strchr;
-use function strlen;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -137,8 +134,8 @@ HTML;
    *
    * @param \Drupal\Core\Extension\Extension $extension
    *   The extension that contains the library.
-   * @param string $library
-   *   The name of the library, which will also be used as the Twig namespace.
+   * @param array $library
+   *   The metadata of the library.
    * @param string $path
    *   The path to the Twig pattern library.
    *
@@ -150,9 +147,9 @@ HTML;
    *
    * @todo Provide full library metadata.
    */
-  public function getMetadata(Extension $extension, $library, $path): array {
+  public function getMetadata(Extension $extension, array $library, $path): array {
     $path = $this->root . '/' . $path;
-    return $this->twigParser->parseLibraryInfo($library, $path, ['libraryPluginId' => $this->pluginId]);
+    return $this->twigParser->parsePatternLibraryInfo($library, $path);
   }
 
   /**

@@ -2,9 +2,6 @@
 
 namespace Drupal\patternkit;
 
-use function is_string;
-use function PHPSTORM_META\type;
-
 /**
  * A collection of a JSON schema and renderable markup.
  *
@@ -59,7 +56,9 @@ class Pattern {
   /**
    * The configuration object containing token data.
    *
-   * @var object
+   * This only exists once a pattern has been configured.
+   *
+   * @var object|array
    */
   public $config;
 
@@ -78,7 +77,7 @@ class Pattern {
   public $body;
 
   /**
-   * The pattern template file.
+   * The filesystem pattern template file path relative to the library.
    *
    * @var string
    */
@@ -92,9 +91,18 @@ class Pattern {
   public $html;
 
   /**
+   * The library path to the pattern root directory.
+   *
+   * @var string
+   *
+   * @code 'atoms/example/src/' @endcode
+   */
+  public $path;
+
+  /**
    * The JSON Schema for the pattern.
    *
-   * @var object
+   * @var object|array
    */
   public $schema;
 
@@ -116,6 +124,8 @@ class Pattern {
 
   /**
    * The API URL for the pattern.
+   *
+   * In Twig libraries this is often the namespace.
    *
    * @var string
    */

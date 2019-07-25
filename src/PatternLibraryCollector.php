@@ -15,6 +15,7 @@ use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Serialization\Yaml;
 use Drupal\Core\Theme\ThemeManagerInterface;
 use Drupal\patternkit\Form\PatternkitSettingsForm;
+use function str_replace;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Cache\CacheCollector;
 use Drupal\Core\Lock\LockBackendInterface;
@@ -442,13 +443,13 @@ class PatternLibraryCollector extends CacheCollector implements ContainerInjecti
             $plugin_id = $info['plugin'] ?? 'twig';
             /** @var \Drupal\patternkit\PatternLibraryPluginInterface $plugin */
             $plugin = $this->libraryPluginManager->createInstance($plugin_id);
+            $metadata[$library_name]['name'] = $library_name;
             $metadata[$library_name] += $info;
             /** @var \Drupal\patternkit\Pattern $pattern */
-            foreach ($plugin->getMetadata($extension, $library_name, $info['data']) as $pattern) {
-              $pattern_id = $pattern->getId();
-              $category = $pattern->category;
+            foreach ($plugin->getMetadata($extension, $metadata[$library_name], $info['data']) as $pattern_path => $pattern) {
               $pattern->setLibraryPluginId($plugin_id);
-              $metadata[$library_name]['patterns']["$library_name.$category.$pattern_id"] = $pattern;
+              $cache_id = str_replace('/', '.', trim($pattern_path, '@'));
+              $metadata[$library_name]['patterns'][$cache_id] = $pattern;
             }
           }
         }
