@@ -14,12 +14,23 @@ services:
     arguments: ['@cache.discovery', '@config.factory', '@file_system', '@plugin.manager.library.pattern', '@lock', '@module_handler', '@app.root', '@theme.manager']
     tags:
       - { name: needs_destruction }
-  patternkit.library.discovery.parser:
+  patternkit.library.discovery.parser.json:
+    class: Drupal\patternkit\PatternLibraryParser\JSONPatternLibraryParser
+    arguments: ['@serialization.json', '@app.root', '@module_handler', '@theme.manager']
+  patternkit.library.discovery.parser.twig:
     class: Drupal\patternkit\PatternLibraryParser\TwigPatternLibraryParser
     arguments: ['@serialization.json', '@app.root', '@module_handler', '@theme.manager']
   plugin.manager.library.pattern:
     class: Drupal\patternkit\PatternLibraryPluginManager
     arguments: ['@container.namespaces', '@cache.discovery', '@module_handler', '@theme_handler']
+  stream_wrapper.library:
+    class: Drupal\patternkit\StreamWrapper\LibraryStream
+    tags:
+      - { name: stream_wrapper, scheme: library }
+  stream_wrapper.patternkit:
+    class: Drupal\patternkit\StreamWrapper\PatternkitStream
+    tags:
+      - { name: stream_wrapper, scheme: patternkit }
   twig.loader.patternlibrary:
     class: Drupal\patternkit\Loader\PatternLibraryLoader
     # We use '.' instead of '@app.root' as the path for non-namespaced template

@@ -2,13 +2,7 @@
 
 namespace Drupal\patternkit\Plugin\PatternLibrary;
 
-use Drupal\Component\Serialization\SerializationInterface;
-use Drupal\Core\Extension\Extension;
-use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Drupal\patternkit\Pattern;
-use Drupal\patternkit\PatternEditorConfig;
-use Drupal\patternkit\PatternLibraryParser\TwigPatternLibraryParser;
-use Drupal\patternkit\PatternLibraryPluginDefault;
+use Drupal\patternkit\PatternLibraryPluginInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -18,22 +12,13 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   id = "twig",
  * )
  */
-class PatternLibraryTwig extends PatternLibraryPluginDefault implements ContainerFactoryPluginInterface {
+class PatternLibraryTwig extends PatternLibraryJSON {
 
   /**
-   * @var string
-   *   The application root path.
-   *   e.g. '/var/www/docroot'.
+   * Twig environment service.
+   *
+   * @var \Drupal\Core\Template\TwigEnvironment
    */
-  protected $root;
-
-  /** @var \Symfony\Component\Serializer\SerializerInterface */
-  protected $serializer;
-
-  /** @var \Drupal\Core\State\StateInterface */
-  protected $state;
-
-  /** @var \Drupal\Core\Template\TwigEnvironment */
   protected $twig;
 
   /**
@@ -43,116 +28,34 @@ class PatternLibraryTwig extends PatternLibraryPluginDefault implements Containe
    */
   protected $twigLoader;
 
-  /** @var \Drupal\patternkit\PatternLibraryParser\TwigPatternLibraryParser */
-  protected $twigParser;
-
   /**
-   * Constructs a Twig PatternLibrary.
+   * Twig pattern library parser service.
    *
-   * @param string $root
-   *   The application root path.
-   *   e.g. '/var/www/docroot'.
-   * @param \Drupal\Component\Serialization\SerializationInterface $serializer
-   *   Serialization service.
-   * @param \Drupal\patternkit\PatternLibraryParser\TwigPatternLibraryParser $twig_parser
-   *   Twig pattern library parser service.
-   * @param array $configuration
-   *   Config.
-   * @param string $plugin_id
-   *   Plugin ID.
-   * @param mixed $plugin_definition
-   *   Plugin Definition.
+   * @var \Drupal\patternkit\PatternLibraryParser\TwigPatternLibraryParser
    */
-  public function __construct(
-    $root,
-    SerializationInterface $serializer,
-    TwigPatternLibraryParser $twig_parser,
-    array $configuration,
-    $plugin_id,
-    $plugin_definition) {
-
-    $this->root = $root;
-    $this->serializer = $serializer;
-    $this->twigParser = $twig_parser;
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
-  }
+  protected $twigParser;
 
   /**
    * Creates a new Twig Pattern Library using the given container.
    *
    * {@inheritDoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): PatternLibraryTwig {
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): PatternLibraryPluginInterface {
     $root = $container->get('app.root');
     /** @var \Drupal\Component\Serialization\SerializationInterface $serializer */
     $serializer = $container->get('serialization.json');
-    /** @var \Drupal\patternkit\PatternLibraryParser\TwigPatternLibraryParser $twig_parser */
-    $twig_parser = $container->get('patternkit.library.discovery.parser');
-    return new static($root, $serializer, $twig_parser, $configuration, $plugin_id, $plugin_definition);
+    /** @var \Drupal\Core\State\StateInterface $state */
+    $state = $container->get('state');
+    /** @var \Drupal\patternkit\PatternLibraryParserInterface $twig_parser */
+    $twig_parser = $container->get('patternkit.library.discovery.parser.twig');
+    /** @var \Drupal\Core\Config\ConfigFactoryInterface $config_factory */
+    $config_factory = $container->get('config.factory');
+    return new static($root, $serializer, $state, $twig_parser, $config_factory, $configuration, $plugin_id, $plugin_definition);
   }
 
   /**
-   * {@inheritdoc}
-   */
-  public function getEditor(Pattern $pattern = NULL,
-    PatternEditorConfig $config = NULL) {
-    $hostname = $_SERVER['HTTP_HOST'];
-    $pattern_schema = $pattern->schema ?? new \stdClass();
-    if (empty($pattern_schema['properties'])) {
-      $filename = $pattern->filename ?? '';
-      $filename = substr($filename, 0, -(int) strrchr($filename, '.'));
-      $this->messenger()->addStatus($this->t('You need to manually add pattern fields since none were found in a proper JSON Schema properties value in @filename.json.',
-        ['@filename' => $filename]));
-    }
-    $schema_json = $this->serializer::encode($pattern_schema);
-    $starting_json = $config !== NULL
-      ? $this->serializer::encode($config->fields)
-      : $config;
-    // @todo Move to own JS file & Drupal Settings config var.
-    $markup = <<<HTML
-<div id="editor-shadow-injection-target"></div>
-HTML;
-
-    return [
-      '#type'     => 'markup',
-      '#markup'   => $markup,
-      '#attached' => [
-        'drupalSettings' => [
-          'patternkitEditor' => [
-            'hostname' => $hostname,
-            'schemaJson' => $schema_json,
-            'startingJson' => $starting_json,
-          ],
-        ],
-        'library' => ['patternkit/patternkit.editor'],
-      ],
-    ];
-  }
-
-  /**
-   * Returns the metadata for a Twig pattern library.
+   * Overrides the JSON Library render method.
    *
-   * @param \Drupal\Core\Extension\Extension $extension
-   *   The extension that contains the library.
-   * @param array $library
-   *   The metadata of the library.
-   * @param string $path
-   *   The path to the Twig pattern library.
-   *
-   * @return array
-   *   The metadata for this library.
-   *
-   * @throws \Drupal\Core\Asset\Exception\InvalidLibraryFileException
-   *   Thrown if an invalid library path was passed to the parser.
-   *
-   * @todo Provide full library metadata.
-   */
-  public function getMetadata(Extension $extension, array $library, $path): array {
-    $path = $this->root . '/' . $path;
-    return $this->twigParser->parsePatternLibraryInfo($library, $path);
-  }
-
-  /**
    * {@inheritdoc}
    *
    * @throws \Throwable

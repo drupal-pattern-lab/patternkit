@@ -2,12 +2,10 @@
 
 namespace Drupal\patternkit;
 
-use stdClass;
-
 /**
  * Class PatternkitEditorConfig.
  */
-class PatternEditorConfig extends stdClass {
+class PatternEditorConfig {
 
   /**
    * PatternkitPattern constructor.
@@ -30,6 +28,20 @@ class PatternEditorConfig extends stdClass {
    * @var object
    */
   public $fields;
+
+  /**
+   * Application hostname.
+   *
+   * @var string
+   */
+  public $hostname;
+
+  /**
+   * The URL to the icon stylesheet.
+   *
+   * @var string
+   */
+  public $iconStylesheet;
 
   // phpcs:disable Drupal.NamingConventions.ValidVariableName.LowerCamelName
   /**
@@ -75,5 +87,9 @@ class PatternEditorConfig extends stdClass {
    * @var string
    */
   public $rawJSON;
+
+  public $theme;
+
+  public $themeStylesheet;
 
 }

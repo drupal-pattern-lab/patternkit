@@ -1,4 +1,4 @@
-patternkit.editor:
+patternkit.jsoneditor:
   version: VERSION
   js:
     js/jsoneditor.min.js: {minified: true}
@@ -6,3 +6,9 @@ patternkit.editor:
   dependencies:
     - core/drupalSettings
     - core/jquery
+
+patternkit.jsoneditor.theme.bootstrap4:
+  version: v4.0.0
+  css:
+    theme:
+      css/bootstrap.min.css: {minified: true}

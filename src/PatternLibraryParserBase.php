@@ -10,7 +10,7 @@ use Symfony\Component\Finder\Iterator\RecursiveDirectoryIterator;
  *
  * {@inheritDoc}
  */
-abstract class PatternLibraryParserBase extends LibraryDiscoveryParser {
+abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implements PatternLibraryParserInterface {
 
   /**
    * Returns a new Patternkit Pattern.
@@ -72,19 +72,13 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser {
   }
 
   /**
-   * Fetch and cache assets to render this pattern.
+   * Implements fetchAssets().
    *
-   * @param string $subtype
-   *   Pattern machine name.
-   * @param object $config
-   *   Configuration object for this instance of the pattern.
-   *
-   * @return object
-   *   The patternkit object of interest.
+   * {@inheritDoc}
    *
    * @todo Finish implementation.
    */
-  public static function fetchAssets($subtype, $config) {
+  public static function fetchAssets($subtype, $config): Pattern {
     $patternkit_host = variable_get(
       'patternkit_pl_host',
       'http://localhost:9001'
@@ -185,6 +179,24 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser {
   }
 
   /**
+   * Fetches all assets for a pattern.
+   *
+   * @param \Drupal\patternkit\Pattern $pattern
+   *   The pattern to use for asset retrieval.
+   * @param \Drupal\patternkit\PatternEditorConfig $config
+   *   The configuration object to use for provisioning the pattern.
+   *
+   * @return \Drupal\patternkit\Pattern
+   *   The pattern parameter with updated asset references.
+   */
+  public function fetchPatternAssets(Pattern $pattern,
+    PatternEditorConfig $config): Pattern {
+    // @todo Add support for twig lib attachments such as JS and images.
+    $pattern->attachments = array();
+    return $pattern;
+  }
+
+  /**
    * Fetch a single asset from the patternkit platform.
    *
    * @param string $dir
@@ -245,21 +257,13 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser {
   }
 
   /**
-   * Fetch and cache assets to render this pattern.
+   * Implements fetchFragmentAssets.
    *
-   * @param string $subtype
-   *   Pattern machine name.
-   * @param object $config
-   *   Configuration object for this instance of the pattern.
-   * @param object $pk_obj
-   *   The patternkit pattern object to extend.
-   *
-   * @return object
-   *   The patternkit object representing the pattern.
+   * {@inheritDoc}
    *
    * @todo Finish implementation.
    */
-  function fetchFragmentAssets($subtype, $config, &$pk_obj) {
+  public function fetchFragmentAssets($subtype, $config, &$pk_obj): Pattern {
     $patternkit_host = variable_get(
       'patternkit_pl_host',
       'http://localhost:9001'
