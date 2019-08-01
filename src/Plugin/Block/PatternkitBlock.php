@@ -16,7 +16,6 @@ use Drupal\patternkit\Pattern;
 use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternkitLibraryDiscoveryInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
-use Exception;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -51,13 +50,6 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    * @var \Drupal\Core\Config\ImmutableConfig
    */
   protected $config;
-
-  /**
-   * Loads patternkit configuration storage.
-   *
-   * @var \Drupal\Core\Config\ConfigFactoryInterface
-   */
-  protected $configFactory;
 
   /**
    * Loads and saves the attached patternkit data content entity.
@@ -137,8 +129,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
 
     $this->blockManager = $block_manager;
     $this->cache = $cache;
-    $this->configFactory = $config_factory;
-    $this->config = $this->configFactory->get(PatternkitSettingsForm::SETTINGS);
+    $this->config = $config_factory->get(PatternkitSettingsForm::SETTINGS);
     $this->entityTypeManager = $entity_type_manager;
     $this->patternDiscovery = $pattern_discovery;
     $this->patternLibraryPluginManager = $pattern_plugin_manager;
@@ -163,7 +154,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     try {
       $pattern = $plugin['pattern'] ?? $this->patternDiscovery->getLibraryAsset($pattern_id);
     }
-    catch (Exception $exception) {
+    catch (\Exception $exception) {
       \Drupal::messenger()->addError($this->t('Unable to load the pattern @pattern. Check the logs for more info.', ['@pattern' => $pattern_id]));
       return ['#markup' => $this->t('Unable to edit a Patternkit block when the pattern fails to load.')];
     }
@@ -482,10 +473,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    * @return array
    *   Configuration defaults array.
    */
-  public function defaultConfiguration() {
-    $plugin = $this->getPluginDefinition();
-    /** @var \Drupal\patternkit\Pattern $pattern */
-    $pattern = $plugin['pattern'] ?? $this->patternDiscovery->getLibraryAsset($pattern_id);
+  public function defaultConfiguration(): array {
     $configuration = [
       'presentation_style' => 'html',
       'version' => NULL,

@@ -15,15 +15,44 @@
       var $target = $('#editor-shadow-injection-target', context);
       $target.once('patternkit-editor').each(function () {
         var shadow = this.attachShadow({mode: 'open'});
-        shadow.innerHTML = '<link rel="stylesheet" id="theme_stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css"><link rel="stylesheet" id="icon_stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.3/css/font-awesome.css"><div id="editor_holder"></div>';
+        var theme_js = drupalSettings.patternkitEditor.themeJS;
+        if (typeof theme_js == 'string') {
+          theme_js = [theme_js];
+        }
+        for (var i = 0; theme_js && i < theme_js.length; i++) {
+          var script_element = document.createElement('script');
+          script_element.type = "text/javascript";
+          script_element.src = theme_js[i];
+          document.getElementsByTagName('head')[0].appendChild(script_element);
+        }
+        if (drupalSettings.patternkitEditor.themeStylesheet) {
+          var editor_dom = '<link rel="stylesheet" id="theme_stylesheet" href="' + drupalSettings.patternkitEditor.themeStylesheet + '">';
+        }
+        // @todo Re-eval with this shadow dom webfont bug: https://bugs.chromium.org/p/chromium/issues/detail?id=336876
+        if (drupalSettings.patternkitEditor.iconStylesheet) {
+          var icons_element = document.createElement('link');
+          icons_element.rel = "stylesheet";
+          icons_element.id = "icon_stylesheet";
+          icons_element.href = drupalSettings.patternkitEditor.iconStylesheet;
+          document.getElementsByTagName('head')[0].appendChild(icons_element);
+        }
+        editor_dom += '<div id="editor_holder"></div>';
+        shadow.innerHTML += editor_dom;
 
         var data = {};
         data.schema = JSON.parse(drupalSettings.patternkitEditor.schemaJson);
         data.starting = JSON.parse(drupalSettings.patternkitEditor.startingJson);
+        data.icons = drupalSettings.patternkitEditor.icons;
 
         if (data.starting !== null) {
           JSONEditor.defaults.options.startval = data.starting;
         }
+        JSONEditor.defaults.options.theme = drupalSettings.patternkitEditor.theme;
+        JSONEditor.defaults.options.iconlib = drupalSettings.patternkitEditor.icons;
+        JSONEditor.defaults.options.keep_oneof_values = false;
+        JSONEditor.defaults.options.disable_edit_json = true;
+        JSONEditor.defaults.options.disable_collapse = true;
+        JSONEditor.defaults.options.ajax = true;
 
         // Override how references are resolved.
         JSONEditor.prototype._loadExternalRefs = function (schema, callback) {
@@ -90,21 +119,22 @@
         // Initialize the editor with a JSON schema.
         var editor = new JSONEditor(
           $target[0].shadowRoot.getElementById('editor_holder'), {
-            schema:            data.schema,
-            theme:             'bootstrap3',
-            iconlib:           'fontawesome4',
-            keep_oneof_values: false,
-            disable_edit_json: true,
-            disable_collapse:  true,
-            ajax:              true,
+            schema: data.schema,
             refs: { }
           }
         );
         JSONEditor.plugins.sceditor.emoticonsEnabled = false;
 
+        editor.on('ready', function () {
+          if (window.M) {
+            window.M.updateTextFields();
+          }
+        });
         editor.on('change', function () {
           document.getElementById('schema_instance_config').value = JSON.stringify(editor.getValue());
-
+          if (window.M) {
+            window.M.updateTextFields();
+          }
         });
       });
     }

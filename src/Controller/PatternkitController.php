@@ -9,9 +9,6 @@ use Drupal\Core\Extension\ThemeHandlerInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Url;
 use Drupal\patternkit\Pattern;
-use Exception;
-use RuntimeException;
-use function str_replace;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -95,7 +92,7 @@ class PatternkitController extends ControllerBase {
     try {
       $types = $this->libraryDiscovery->getAssets();
     }
-    catch (Exception $exception) {
+    catch (\Exception $exception) {
       $this->getLogger('patternkit')->error('Error loading pattern library assets: ', ['@message' => $exception->getMessage()]);
       return [
         '#markup' => $this->t('Error loading pattern library assets - check the log or the format of your libraries.yml.'),
@@ -177,10 +174,10 @@ class PatternkitController extends ControllerBase {
     try {
       $response = $this->libraryDiscovery->getLibraryAsset($asset_id);
       if ($response === NULL) {
-        throw new RuntimeException("Unable to locate $pattern.");
+        throw new \RuntimeException("Unable to locate $pattern.");
       }
     }
-    catch (Exception $exception) {
+    catch (\Exception $exception) {
       $response = ['error' => $exception->getMessage()];
     }
     return new JsonResponse($response);
@@ -200,11 +197,11 @@ class PatternkitController extends ControllerBase {
     try {
       $pattern_asset = $this->libraryDiscovery->getLibraryAsset($asset_id);
       if ($pattern_asset === NULL) {
-        throw new RuntimeException("Unable to locate $pattern.");
+        throw new \RuntimeException("Unable to locate $pattern.");
       }
       $response = $pattern_asset->schema ?? [];
     }
-    catch (Exception $exception) {
+    catch (\Exception $exception) {
       $response = ['error' => $exception->getMessage()];
     }
     return new JsonResponse($response);
