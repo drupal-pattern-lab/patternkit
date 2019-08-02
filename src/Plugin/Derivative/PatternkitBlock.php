@@ -70,6 +70,7 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
   public function getDerivativeDefinitions($base_definition): array {
     // Reset the discovered definitions.
     $this->derivatives = [];
+    $patterns = [];
     // @todo: Add support for ContextDefinition('entity:node') etc.
     try {
       /** @var \Drupal\patternkit\Pattern[] $patterns */
