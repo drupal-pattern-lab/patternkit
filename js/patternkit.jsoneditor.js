@@ -7,6 +7,8 @@
  * @external jQuery
  *
  * @external JSONEditor
+ *
+ * @todo .editor-shadow-injection-target .card all: initial
  */
 
 (function ($, Drupal) {
@@ -35,8 +37,9 @@
           icons_element.id = "icon_stylesheet";
           icons_element.href = drupalSettings.patternkitEditor.iconStylesheet;
           document.getElementsByTagName('head')[0].appendChild(icons_element);
+          editor_dom += '<link rel="stylesheet" id="icon_stylesheet" href="' + drupalSettings.patternkitEditor.iconStylesheet + '">';
         }
-        editor_dom += '<div id="editor_holder"></div>';
+        editor_dom += '<div id="editor_holder" style="all: initial"></div>';
         shadow.innerHTML += editor_dom;
 
         var data = {};
