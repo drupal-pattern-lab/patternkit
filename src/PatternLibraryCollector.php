@@ -2,6 +2,7 @@
 
 namespace Drupal\patternkit;
 
+use Drupal\Component\Plugin\Exception\PluginNotFoundException;
 use Drupal\Component\Serialization\Exception\InvalidDataTypeException;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Asset\Exception\InvalidLibrariesOverrideSpecificationException;
@@ -440,11 +441,17 @@ class PatternLibraryCollector extends CacheCollector implements ContainerInjecti
             unset($metadata[$library_name]['patterns']);
           }
           foreach ($pattern_libraries as $info) {
-            $plugin_id = $info['plugin'] ?? 'twig';
-            /** @var \Drupal\patternkit\PatternLibraryPluginInterface $plugin */
-            $plugin = $this->libraryPluginManager->createInstance($plugin_id);
             $metadata[$library_name]['name'] = $library_name;
             $metadata[$library_name] += $info;
+            $plugin_id = $info['plugin'] ?? 'twig';
+            /** @var \Drupal\patternkit\PatternLibraryPluginInterface $plugin */
+            try {
+              $plugin = $this->libraryPluginManager->createInstance($plugin_id);
+            }
+            catch (PluginNotFoundException $exception) {
+              \Drupal::logger('patternkit')->error('Error loading pattern libraries: @message', ['@message' => $exception->getMessage()]);
+              continue;
+            }
             /** @var \Drupal\patternkit\Pattern $pattern */
             foreach ($plugin->getMetadata($extension, $metadata[$library_name], $info['data']) as $pattern_path => $pattern) {
               $pattern->setLibraryPluginId($plugin_id);
