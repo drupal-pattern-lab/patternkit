@@ -40,10 +40,6 @@ trait PatternLibraryJSONParserTrait {
       if ($property !== '$ref') {
         continue;
       }
-      if (!isset($metadata[$value])) {
-        unset($properties[$property]);
-        continue;
-      }
       $properties[$property] = 'api/patternkit/' . trim($value, '@');
     }
     return $properties;

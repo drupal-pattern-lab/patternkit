@@ -24,7 +24,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @Block(
  *   id = "patternkit_block",
  *   admin_label = @Translation("Patternkit block"),
- *   category="Patternkit",
+ *   category = @Translation("Patternkit Reusable"),
  *   deriver = "Drupal\patternkit\Plugin\Derivative\PatternkitBlock"
  * )
  */
@@ -159,9 +159,12 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       return ['#markup' => $this->t('Unable to edit a Patternkit block when the pattern fails to load.')];
     }
     $form_state->set('pattern', $pattern);
-    // Remove the title override fields.
-    unset($form['label'],
-      $form['label_display']);
+
+    $form['reusable'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Reusable'),
+      '#default_value' => $configuration['reusable'] ?? FALSE,
+    ];
 
     // @TODO: Re-enable the other formats like JSON and webcomponent.
     $form['presentation_style'] = [
@@ -231,6 +234,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $values = [
       'data' => $form_state->getValue('instance_config'),
       'info' => $form_state->getValue('label'),
+      'reusable' => $form_state->getValue('reusable'),
       'published' => TRUE,
     ];
     /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
@@ -412,6 +416,21 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     }
 
     return $content;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+    $form = parent::buildConfigurationForm($form, $form_state);
+    // Remove the title override fields.
+    unset($form['label_display']);
+    $form['label']['#states'] = [
+      'visible' => [
+        ':input[name="settings[reusable]"]' => ['checked' => TRUE],
+      ],
+    ];
+    return $form;
   }
 
   /**

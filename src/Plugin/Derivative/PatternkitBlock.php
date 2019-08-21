@@ -9,6 +9,7 @@ use Drupal\Core\Plugin\Discovery\ContainerDeriverInterface;
 use Drupal\patternkit\PatternkitLibraryDiscoveryInterface;
 use Exception;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use function strstr;
 
 class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
 
@@ -84,7 +85,7 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
         'category'    => t(
           'Patternkit:@lib/@category',
           [
-            '@lib'     => $pattern->library ?? 'patternkit',
+            '@lib'     => strstr($pattern_id, '.', TRUE) ?? 'patternkit',
             '@category' => $pattern->category ?? 'default',
           ]
         ),

@@ -105,7 +105,7 @@ trait JSONSchemaEditorTrait {
     }
     // @todo Move to own JS file & Drupal Settings config var.
     $markup = <<<HTML
-<div id="editor-shadow-injection-target"></div>
+<div id="editor-shadow-injection-target" style="all: initial; background: white; display: inline-block; width: 100%;"></div>
 HTML;
 
     return [

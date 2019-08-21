@@ -1,0 +1,5 @@
+patternkit.links.settings:
+  title: Patternkit
+  description: 'Configure Patternkit pattern library support.'
+  route_name: patternkit.settings
+  parent: system.admin_config_ui

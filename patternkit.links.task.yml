@@ -2,11 +2,6 @@ entity.patternkit_block.collection:
   title: 'Patternkit library'
   route_name: entity.patternkit_block.collection
   base_route: block.admin_display
-patternkit.list_sub:
-  title: Blocks
-  route_name: entity.patternkit_block.collection
-  parent_id: entity.patternkit_block.collection
-
 entity.patternkit_block.canonical:
   title: Edit
   route_name: entity.patternkit_block.canonical
@@ -15,3 +10,11 @@ entity.patternkit_block.delete_form:
   title: Delete
   route_name: entity.patternkit_block.delete_form
   base_route: entity.patternkit_block.canonical
+patternkit.list_sub:
+  title: Blocks
+  route_name: entity.patternkit_block.collection
+  parent_id: entity.patternkit_block.collection
+patternkit.settings.json_settings:
+  title: 'JSON Pattern Library Settings'
+  route_name: patternkit.settings.json_settings
+  base_route: patternkit.settings

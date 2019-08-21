@@ -39,7 +39,7 @@
           document.getElementsByTagName('head')[0].appendChild(icons_element);
           editor_dom += '<link rel="stylesheet" id="icon_stylesheet" href="' + drupalSettings.patternkitEditor.iconStylesheet + '">';
         }
-        editor_dom += '<div id="editor_holder" style="all: initial"></div>';
+        editor_dom += '<div id="editor_holder"></div>';
         shadow.innerHTML += editor_dom;
 
         var data = {};
@@ -54,7 +54,8 @@
         JSONEditor.defaults.options.iconlib = drupalSettings.patternkitEditor.icons;
         JSONEditor.defaults.options.keep_oneof_values = false;
         JSONEditor.defaults.options.disable_edit_json = true;
-        JSONEditor.defaults.options.disable_collapse = true;
+        JSONEditor.defaults.options.disable_collapse = false;
+        JSONEditor.defaults.options.collapse = false;
         JSONEditor.defaults.options.ajax = true;
 
         // Override how references are resolved.

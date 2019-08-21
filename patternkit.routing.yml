@@ -39,3 +39,13 @@ patternkit.settings:
     _admin_route: TRUE
   requirements:
     _permission: 'access administration pages'
+patternkit.settings.json_settings:
+  path: '/admin/config/user-interface/patternkit/json'
+  defaults:
+    _form: '\Drupal\patternkit\Form\PatternLibraryJSONForm'
+    _title: 'Patternkit JSON Library settings'
+    _description: 'Configure Patternkit JSON Pattern Library Support.'
+  options:
+    _admin_route: TRUE
+  requirements:
+    _permission: 'access administration pages'
