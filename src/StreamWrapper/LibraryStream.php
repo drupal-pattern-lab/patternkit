@@ -2,7 +2,6 @@
 
 namespace Drupal\patternkit\StreamWrapper;
 
-use function array_merge;
 use Drupal\Core\Asset\AttachedAssets;
 use Drupal\Core\StreamWrapper\PublicStream;
 

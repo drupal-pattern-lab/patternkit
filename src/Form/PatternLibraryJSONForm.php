@@ -86,17 +86,19 @@ class PatternLibraryJSONForm extends ConfigFormBase {
   public function buildForm(array $form, FormStateInterface $form_state) :array {
     $config = $this->config(static::SETTINGS);
 
+    $themes = array_keys(static::THEMES);
     $form['patternkit_json_editor_theme'] = array(
       '#type' => 'select',
       '#title' => t('Select the JSON Editor Theme'),
-      '#options' => array_keys(static::THEMES),
+      '#options' => array_combine($themes, $themes),
       '#default_value' => $config->get('patternkit_json_editor_theme'),
     );
 
+    $icons = array_keys(static::ICONS);
     $form['patternkit_json_editor_icons'] = array(
       '#type' => 'select',
       '#title' => t('Select the icons to be used with the editor'),
-      '#options' => array_keys(static::ICONS),
+      '#options' => array_combine($icons, $icons),
       '#default_value' => $config->get('patternkit_json_editor_icons'),
     );
 

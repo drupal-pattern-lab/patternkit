@@ -16,7 +16,6 @@ use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Serialization\Yaml;
 use Drupal\Core\Theme\ThemeManagerInterface;
 use Drupal\patternkit\Form\PatternkitSettingsForm;
-use function str_replace;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Cache\CacheCollector;
 use Drupal\Core\Lock\LockBackendInterface;

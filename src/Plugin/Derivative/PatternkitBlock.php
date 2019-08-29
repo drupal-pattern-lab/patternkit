@@ -3,15 +3,18 @@
 namespace Drupal\patternkit\Plugin\Derivative;
 
 use Drupal\Component\Plugin\Derivative\DeriverBase;
+use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Plugin\Discovery\ContainerDeriverInterface;
+use Drupal\patternkit\Form\PatternkitSettingsForm;
 use Drupal\patternkit\PatternkitLibraryDiscoveryInterface;
-use Exception;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use function strstr;
 
 class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
+
+  /** @var \Drupal\Core\Config\ImmutableConfig */
+  protected $config;
 
   /**
    * Logs to the patternkit channel.
@@ -29,6 +32,8 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
   /**
    * PatternkitBlock constructor.
    *
+   * @param \Drupal\Core\Config\ImmutableConfig $config
+   *   Provides patternkit configurable settings.
    * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
    *   Generates and provides log channels.
    * @param \Drupal\patternkit\PatternkitLibraryDiscoveryInterface $pattern_discovery
@@ -36,7 +41,12 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
    * @param \Drupal\Core\Entity\EntityStorageInterface $storage
    *   Loads and saves entities to storage.
    */
-  public function __construct(LoggerChannelInterface $logger, PatternkitLibraryDiscoveryInterface $pattern_discovery, EntityStorageInterface $storage) {
+  public function __construct(
+    ImmutableConfig $config,
+    LoggerChannelInterface $logger,
+    PatternkitLibraryDiscoveryInterface $pattern_discovery,
+    EntityStorageInterface $storage) {
+    $this->config = $config;
     $this->logger = $logger;
     $this->libraryDiscovery = $pattern_discovery;
     $this->patternkitStorage = $storage;
@@ -51,6 +61,9 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
    *   Thrown if the storage handler couldn't be loaded.
    */
   public static function create(ContainerInterface $container, $base_plugin_id): PatternkitBlock {
+    /** @var \Drupal\Core\Config\ConfigFactoryInterface $config_factory */
+    $config_factory = $container->get('config.factory');
+    $config = $config_factory->get(PatternkitSettingsForm::SETTINGS);
     /** @var \Drupal\Core\Entity\EntityTypeManagerInterface $entity_manager */
     $entity_manager = $container->get('entity.manager');
     /** @var \Drupal\Core\Logger\LoggerChannelInterface $logger */
@@ -58,6 +71,7 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
     /** @var \Drupal\patternkit\PatternkitLibraryDiscoveryInterface $pattern_discovery */
     $pattern_discovery = $container->get('patternkit.library.discovery');
     return new static(
+      $config,
       $logger,
       $pattern_discovery,
       $entity_manager->getStorage('patternkit_block'));
@@ -77,15 +91,22 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
       /** @var \Drupal\patternkit\Pattern[] $patterns */
       $patterns = $this->libraryDiscovery->getAssets();
     }
-    catch (Exception $exception) {
+    catch (\Exception $exception) {
       $this->logger->error('Error loading patterns for derivative blocks: @message', ['@message' => $exception->getMessage()]);
     }
+
+    $libraries_config = $this->config->get('patternkit_libraries');
     foreach ($patterns as $pattern_id => $pattern) {
+      $lib = strstr($pattern_id, '.', TRUE);
+      if (isset($libraries_config[$lib])
+        && ($libraries_config[$lib]['enabled'] === 0 || $libraries_config[$lib]['visible'] === 0)) {
+        continue;
+      }
       $this->derivatives[$pattern_id] = [
         'category'    => t(
           'Patternkit:@lib/@category',
           [
-            '@lib'     => strstr($pattern_id, '.', TRUE) ?? 'patternkit',
+            '@lib'     => $lib ?? 'patternkit',
             '@category' => $pattern->category ?? 'default',
           ]
         ),

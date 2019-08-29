@@ -14,6 +14,10 @@ patternkit.list_sub:
   title: Blocks
   route_name: entity.patternkit_block.collection
   parent_id: entity.patternkit_block.collection
+patternkit.settings:
+  title: 'Patternkit Settings'
+  route_name: patternkit.settings
+  base_route: patternkit.settings
 patternkit.settings.json_settings:
   title: 'JSON Pattern Library Settings'
   route_name: patternkit.settings.json_settings

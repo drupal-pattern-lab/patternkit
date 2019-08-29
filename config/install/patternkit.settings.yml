@@ -4,4 +4,5 @@ patternkit_json_editor_css: ""
 patternkit_json_editor_icons: fontawesome5
 patternkit_json_editor_js: ""
 patternkit_json_editor_theme: bootstrap4
+patternkit_libraries: []
 patternkit_render_cache: true
