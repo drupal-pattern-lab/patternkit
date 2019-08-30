@@ -1,3 +1,4 @@
+//@ sourceURL=patternkit.jsoneditor.js
 /**
  * @file
  * Provides Twig Pattern Library Editing Functionality.
@@ -128,18 +129,37 @@
           }
         );
         JSONEditor.plugins.sceditor.emoticonsEnabled = false;
+        var saveSchema = function () {
+          $('#schema_instance_config').val(JSON.stringify(editor.getValue()));
+          if (window.M) {
+            window.M.updateTextFields();
+          }
+        };
 
         editor.on('ready', function () {
           if (window.M) {
             window.M.updateTextFields();
           }
         });
-        editor.on('change', function () {
-          document.getElementById('schema_instance_config').value = JSON.stringify(editor.getValue());
-          if (window.M) {
-            window.M.updateTextFields();
-          }
+        editor.on('change', saveSchema);
+        $('[data-drupal-selector="edit-actions-submit"]').on('input', function (e) {
+          saveSchema();
         });
+        // Drupal triggers Ajax submit via input events.
+        // This is before allowing other events, so we need to add a pre-hook
+        // to trigger the editor update with latest field values.
+        // @TODO Add handling for AJAX errors and re-attach.
+        Drupal.Ajax.prototype.beforeSubmit = function(formValues, element, options) {
+          debugger;
+          editor.disable();
+          saveSchema();
+          for (var v = 0; v < formValues.length; v++) {
+            if (formValues[v]['name'] === 'settings[instance_config]') {
+              formValues[v]['value'] = JSON.stringify(editor.getValue());
+            }
+          }
+          editor.destroy();
+        };
       });
     }
   };

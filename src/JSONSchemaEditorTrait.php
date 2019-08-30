@@ -104,13 +104,14 @@ trait JSONSchemaEditorTrait {
       }
     }
     // @todo Move to own JS file & Drupal Settings config var.
-    $markup = <<<HTML
-<div id="editor-shadow-injection-target" style="all: initial; background: white; display: inline-block; width: 100%;"></div>
-HTML;
-
     return [
-      '#type'     => 'markup',
-      '#markup'   => $markup,
+      '#type'     => 'html_tag',
+      '#tag'      => 'div',
+      '#value'    => '',
+      '#attributes' => [
+        'id' => 'editor-shadow-injection-target',
+        'style' => ['all: initial; background: white; display: inline-block; width: 100%;']
+      ],
       '#attached' => [
         'drupalSettings' => [
           'patternkitEditor' => $editor_settings,

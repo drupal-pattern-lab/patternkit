@@ -265,6 +265,23 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $this->setConfiguration($updated_config + $configuration);
     // Invalidate the block cache to update custom block-based derivatives.
     $this->blockManager->clearCachedDefinitions();
+    // Invalidate custom cache.
+    // @todo Replace with cache_backend->set().
+    $language = \Drupal::languageManager()->getCurrentLanguage();
+    $context = $this->getContextValues();
+    $configuration = $this->getConfiguration();
+    $pattern_id = $this->getDerivativeId();
+    $instance_id = $configuration['instance_uuid'] ?? $pattern_id;
+    $cid = "patternkit:{$pattern_id}:{$instance_id}:";
+    $cid .= md5(
+      $this->serializer::encode([
+        \Drupal::currentUser()->isAuthenticated(),
+        $context,
+        $configuration,
+        $language->getId(),
+      ])
+    );
+    $this->cache->delete($cid);
     parent::blockSubmit($form, $form_state);
   }
 
@@ -288,13 +305,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
 
     // If an instance configuration provides a UUID, use it. If not, we should
     // not cache this item because the uuid will be different each time.
-    if (empty($configuration['instance_uuid'])) {
-      $cacheable = FALSE;
-      $instance_id = $this->getDerivativeId();
-    }
-    else {
-      $instance_id = $configuration['instance_uuid'];
-    }
+    $instance_id = $configuration['instance_uuid'] ?? $pattern_id;
 
     // Create the cache key to be used for this object. Note that we are relying
     // on code elsewhere to clear this cache on modification. The md5 against
@@ -303,7 +314,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     // logged-in check to prevent cached admin links from appearing in frontend.
     // It also mitigates the difference between esi delivery when logged in vs
     // not.
-    // @todo Replace with getCacheTags().
+    // @todo Replace with getCacheTags() and cache_backend->get().
     $language = \Drupal::languageManager()->getCurrentLanguage();
     $cid = "patternkit:{$pattern_id}:{$instance_id}:";
     $cid .= md5(
@@ -330,7 +341,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
 
     // Initialize our static (if necessary).
     if ($is_processed === NULL) {
-      $is_processed = array();
+      $is_processed = [];
     }
 
     // If we've already processed this module, don't add it to active again.
@@ -352,12 +363,12 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     }
 
     // If the item is cache-able, fetch it and return it.
-    if ($cacheable === TRUE) {
-      // Attempt to fetch the cached pane.
-      $cached = $this->cache->get($cid, 'cache_patternkit');
+    if ($cacheable) {
+      // Attempt to fetch the cached block.
+      $cached = $this->cache->get($cid);
       if ($cached !== FALSE) {
 
-        // Set flag to let other modules know content is patternkit stuff.
+        // Set flag to let other modules know content is patternkit cache.
         $cached->patternkit = 1;
 
         return $cached->data;
@@ -411,7 +422,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       '#attached' => $config['pkdata']['attachments'] ?? [],
     ];
     // Save to the cache bin (if caching is enabled).
-    if ($cacheable === TRUE) {
+    if ($cacheable) {
       $this->cache->set($cid, $content, time() + $ttl, ['cache_patternkit']);
     }
 
