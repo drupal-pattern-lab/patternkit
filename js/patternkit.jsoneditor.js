@@ -46,11 +46,7 @@
         var data = {};
         data.schema = JSON.parse(drupalSettings.patternkitEditor.schemaJson);
         data.starting = JSON.parse(drupalSettings.patternkitEditor.startingJson);
-        data.icons = drupalSettings.patternkitEditor.icons;
 
-        if (data.starting !== null) {
-          JSONEditor.defaults.options.startval = data.starting;
-        }
         JSONEditor.defaults.options.theme = drupalSettings.patternkitEditor.theme;
         JSONEditor.defaults.options.iconlib = drupalSettings.patternkitEditor.icons;
         JSONEditor.defaults.options.keep_oneof_values = false;
@@ -122,12 +118,14 @@
         };
 
         // Initialize the editor with a JSON schema.
-        var editor = new JSONEditor(
-          $target[0].shadowRoot.getElementById('editor_holder'), {
-            schema: data.schema,
-            refs: { }
-          }
-        );
+        var config = {
+          schema: data.schema,
+          refs: { }
+        };
+        if (typeof data.starting === 'object' && !$.isEmptyObject(data.starting)) {
+          config.startval = data.starting;
+        }
+        var editor = new JSONEditor($target[0].shadowRoot.getElementById('editor_holder'), config);
         JSONEditor.plugins.sceditor.emoticonsEnabled = false;
         var saveSchema = function () {
           $('#schema_instance_config').val(JSON.stringify(editor.getValue()));
@@ -150,7 +148,6 @@
         // to trigger the editor update with latest field values.
         // @TODO Add handling for AJAX errors and re-attach.
         Drupal.Ajax.prototype.beforeSubmit = function(formValues, element, options) {
-          debugger;
           editor.disable();
           saveSchema();
           for (var v = 0; v < formValues.length; v++) {

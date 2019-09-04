@@ -4,7 +4,6 @@ namespace Drupal\patternkit\Loader;
 
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\patternkit\PatternLibraryCollector;
-use Exception;
 
 /**
  * Functionality for parsing Twig pattern libraries.
@@ -31,7 +30,7 @@ class PatternLibraryLoader extends \Twig_Loader_Filesystem {
     try {
       $libraries = $pattern_collector->getLibraryDefinitions();
     }
-    catch (Exception $exception) {
+    catch (\Exception $exception) {
       $logger->error('Error loading pattern libraries: @message', ['@message' => $exception->getMessage()]);
     }
     foreach ($libraries as $namespace => $library) {

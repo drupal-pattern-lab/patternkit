@@ -157,7 +157,7 @@ class PatternLibraryCollector extends CacheCollector implements ContainerInjecti
       $cached_metadata = $this->getLibraryMetadata();
       // Cache the data so that we don't have to build it again.
       // (if cache enabled, otherwise just a slow, redundant memcache set).
-      if ($cache_enabled === TRUE) {
+      if ($cache_enabled) {
         // Explicit copy of the data into cache_set to avoid implicit copy.
         $this->cache->set(static::PERSISTENT_CACHE_ID,
           $cached_metadata);
