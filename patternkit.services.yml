@@ -20,6 +20,9 @@ services:
   patternkit.library.discovery.parser.twig:
     class: Drupal\patternkit\PatternLibraryParser\TwigPatternLibraryParser
     arguments: ['@serialization.json', '@app.root', '@module_handler', '@theme.manager']
+  patternkit.opener.jsonlibrary:
+    class: Drupal\patternkit\MediaLibraryJSONLibraryOpener
+    arguments: ['@entity_type.manager']
   plugin.manager.library.pattern:
     class: Drupal\patternkit\PatternLibraryPluginManager
     arguments: ['@container.namespaces', '@cache.discovery', '@module_handler', '@theme_handler']
