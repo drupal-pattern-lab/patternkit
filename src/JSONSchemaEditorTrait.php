@@ -2,7 +2,10 @@
 
 namespace Drupal\patternkit;
 
+use Drupal\Core\Url;
+use Drupal\media_library\MediaLibraryState;
 use Drupal\patternkit\Form\PatternLibraryJSONForm;
+use function urlencode;
 
 /**
  * Adds a schema editor render array generator without needing a full service.
@@ -79,6 +82,9 @@ trait JSONSchemaEditorTrait {
       'theme' => $theme,
     ];
 
+    // @todo: Add support for multiple file/image URL editors.
+    $editor_settings['imageUrl'] = Url::fromRoute('patternkit.media_library')->toString();
+
     if (isset(PatternLibraryJSONForm::THEMES[$theme])) {
       $theme_info = PatternLibraryJSONForm::THEMES[$theme];
       $editor_settings['themeStylesheet'] = !empty($theme_info['css']) ? $this->getLibraryAssetUrlFromUri($theme_info['css']) : '';
@@ -116,7 +122,7 @@ trait JSONSchemaEditorTrait {
         'drupalSettings' => [
           'patternkitEditor' => $editor_settings,
         ],
-        'library' => ['patternkit/patternkit.jsoneditor'],
+        'library' => ['patternkit/patternkit.jsoneditor', 'media_library/ui'],
       ],
     ];
   }

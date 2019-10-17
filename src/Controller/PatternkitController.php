@@ -2,14 +2,21 @@
 
 namespace Drupal\patternkit\Controller;
 
+use Drupal\Console\Command\Generate\AjaxCommand;
+use Drupal\Console\Generator\AjaxCommandGenerator;
+use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Asset\LibraryDiscoveryInterface;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Extension\ThemeHandlerInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Url;
+use Drupal\media_library\MediaLibraryState;
+use Drupal\media_library\MediaLibraryUiBuilder;
 use Drupal\patternkit\Pattern;
+use Exception;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -218,6 +225,35 @@ class PatternkitController extends ControllerBase {
    */
   public function getAddFormTitle(Pattern $pattern): string {
     return $this->t('Add %type Patternkit block', ['%type' => $pattern->getLabel()]);
+  }
+
+  /**
+   * Returns a media library display especially for Patternkit.
+   *
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *
+   * @return array
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
+   */
+  public function mediaLibrary(Request $request): array {
+    $query = $request->query;
+    $ml_state = MediaLibraryState::create(
+      $query->get('media_library_opener_id'),
+      $query->get('media_library_allowed_types', []),
+      $query->get('media_library_selected_type'),
+      $query->get('media_library_remaining'),
+      $query->get('media_library_opener_parameters', [])
+    );
+    if (!\Drupal::hasService('media_library.ui_builder')) {
+      throw new ServiceNotFoundException('media_library.ui_builder');
+    }
+    /** @var MediaLibraryUiBuilder $ml_ui_builder */
+    $ml_ui_builder = \Drupal::service('media_library.ui_builder');
+
+    return $ml_ui_builder->buildUi($ml_state);
   }
 
 }

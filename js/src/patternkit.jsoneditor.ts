@@ -1,4 +1,8 @@
+/*globals Console:false */
+/*globals Drupal:false */
+/*globals jQuery:false */
 /*globals JSONEditor:false */
+///<reference path="typings/jquery/jquery.d.ts" />
 /**
  * @file
  * Provides Twig Pattern Library Editing Functionality.
@@ -20,17 +24,6 @@
       if (!window.JSONEditor) {
         return;
       }
-
-      // Ajax command response to allow updating Editor field values.
-      Drupal.AjaxCommands.prototype.patternkitEditorUpdate = function(ajax, response, status) {
-        window.patternkitEditor.getEditor(response.selector).setValue(response.value);
-      };
-
-      // This forces Drupal to re-attach
-      $(window).on('dialog:afterclose', function (e, dialog, $element) {
-        Drupal.attachBehaviors($(':root'), settings);
-      });
-
       var $target = $('#editor-shadow-injection-target', context);
       $target.once('patternkit-editor').each(function () {
         var shadow = this.attachShadow({mode: 'open'});
@@ -83,20 +76,17 @@
             // Don't show uploader if this is readonly
             if(!this.schema.readOnly && !this.schema.readonly) {
               this.urlfield = this.theme.getFormInputField('text');
-              this.button = this.getButton(this.path + '-media', 'upload', Drupal.t('Select/Upload Media'));
-              // @todo: Add support for multiple file/image URL editors.
-              var media_library_settings = 'media_library_opener_id=patternkit.opener.jsonlibrary' +
-                '&' + encodeURIComponent('media_library_allowed_types[0]') + '=image' +
-                '&media_library_selected_type=image' +
-                '&media_library_remaining=1' +
-                '&' + encodeURIComponent('media_library_opener_parameters[field_widget_id]') + '=' + this.path;
+              var media_library_opener_parameters = {
+                field_widget_id: this.urlfield.id
+              };
+              var opener_encoded = encodeURIComponent(JSON.stringify(media_library_opener_parameters));
 
-              this.button.addEventListener('click', function(e) {
+              this.urlfield.addEventListener('change',function(e) {
                 e.preventDefault();
                 e.stopPropagation();
 
-                this.dialog = Drupal.dialog($('#drupal-modal').append($('<span>', {id: 'patternkit_image_dialog_loading'})), { title: Drupal.t('Choose Image'), width: 900, height: 900 }).showModal();
-                Drupal.ajax({ url: settings.patternkitEditor.imageUrl + '?' + media_library_settings, base: 'drupal-modal', wrapper: 'patternkit_image_dialog_loading' }).execute();
+                Drupal.dialog(jQuery('<div>', {id: 'patternkit_jsonlibrary_image_dialog'}).append(jQuery('<span>', {id: 'patternkit_image_dialog_loading'})), { title: Drupal.t('Choose Image'), width: 900, height: 900 }).showModal();
+                Drupal.ajax({ url: settings.patternkitEditor.imageUrl + "&media_library_opener_parameters=" + opener_encoded, base: 'patternkit_jsonlibrary_image_dialog', wrapper: 'patternkit_image_dialog_loading' }).execute();
               });
             }
 
@@ -111,10 +101,6 @@
             this.control = this.theme.getFormControl(this.label, this.urlfield||this.input, this.preview);
             this.container.appendChild(this.control);
 
-            if (this.button) {
-              this.container.appendChild(this.button);
-            }
-
             window.requestAnimationFrame(function() {
               if (self.value) {
                 var img = document.createElement('img');
@@ -124,7 +110,7 @@
                   self.preview.appendChild(img);
                 };
                 img.onerror = function(error) {
-                  window.console.error('upload error', error);
+                  Console.error('upload error', error);
                 };
                 img.src = self.container.querySelector('a').href;
               }
@@ -337,21 +323,21 @@
         if (typeof data.starting === 'object' && !$.isEmptyObject(data.starting)) {
           config.startval = data.starting;
         }
-        window.patternkitEditor = new JSONEditor($target[0].shadowRoot.getElementById('editor_holder'), config);
+        var editor = new JSONEditor($target[0].shadowRoot.getElementById('editor_holder'), config);
         JSONEditor.plugins.sceditor.emoticonsEnabled = false;
         var saveSchema = function () {
-          $('#schema_instance_config').val(JSON.stringify(window.patternkitEditor.getValue()));
+          $('#schema_instance_config').val(JSON.stringify(editor.getValue()));
           if (window.M) {
             window.M.updateTextFields();
           }
         };
 
-        window.patternkitEditor.on('ready', function () {
+        editor.on('ready', function () {
           if (window.M) {
             window.M.updateTextFields();
           }
         });
-        window.patternkitEditor.on('change', saveSchema);
+        editor.on('change', saveSchema);
         $('[data-drupal-selector="edit-actions-submit"]').on('input', function (e) {
           saveSchema();
         });
@@ -359,19 +345,15 @@
         // This is before allowing other events, so we need to add a pre-hook
         // to trigger the editor update with latest field values.
         // @TODO Add handling for AJAX errors and re-attach.
-        var beforeSubmitHandler = Drupal.Ajax.prototype.beforeSubmit;
         Drupal.Ajax.prototype.beforeSubmit = function(formValues, element, options) {
-          if ( $(element).parents("#editor_holder").length !== 1 ) {
-            return beforeSubmitHandler(formValues, element, options);
-          }
-          window.patternkitEditor.disable();
+          editor.disable();
           saveSchema();
           for (var v = 0; v < formValues.length; v++) {
             if (formValues[v].name === 'settings[instance_config]') {
-              formValues[v].value = JSON.stringify(window.patternkitEditor.getValue());
+              formValues[v].value = JSON.stringify(editor.getValue());
             }
           }
-          window.patternkitEditor.destroy();
+          editor.destroy();
         };
       });
     }

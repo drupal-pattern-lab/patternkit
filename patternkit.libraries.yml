@@ -4,6 +4,8 @@ patternkit.jsoneditor:
     js/jsoneditor.min.js: {minified: true}
     js/patternkit.jsoneditor.js: {}
   dependencies:
+    - core/drupal.dialog
+    - core/drupal.dialog.ajax
     - core/drupalSettings
     - core/jquery
 
