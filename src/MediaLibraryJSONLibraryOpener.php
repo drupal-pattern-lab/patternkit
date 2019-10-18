@@ -10,7 +10,6 @@ use Drupal\media\Entity\Media;
 use Drupal\media_library\MediaLibraryOpenerInterface;
 use Drupal\media_library\MediaLibraryState;
 use Drupal\patternkit\AJAX\PatternkitEditorUpdateCommand;
-use Exception;
 
 /**
  * The media library opener for field widgets.
@@ -62,7 +61,7 @@ class MediaLibraryJSONLibraryOpener implements MediaLibraryOpenerInterface {
       $fid = $media->getSource()->getSourceFieldValue($media);
       $file = $this->entityTypeManager->getStorage('file')->load($fid);
     }
-    catch (Exception $exception) {
+    catch (\Exception $exception) {
       return $response;
     }
     if (!$file) {
@@ -80,7 +79,7 @@ class MediaLibraryJSONLibraryOpener implements MediaLibraryOpenerInterface {
       }
       $response->addCommand(new PatternkitEditorUpdateCommand($widget_id, $url));
     }
-    catch (Exception $exception) {
+    catch (\Exception $exception) {
       return $response;
     }
 

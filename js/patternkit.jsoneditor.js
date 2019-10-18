@@ -28,8 +28,15 @@
 
       // This forces Drupal to re-attach
       $(window).on('dialog:afterclose', function (e, dialog, $element) {
-        Drupal.attachBehaviors($(':root'), settings);
+        Drupal.attachBehaviors();
       });
+
+      var saveSchema = function () {
+        $('#schema_instance_config').val(JSON.stringify(window.patternkitEditor.getValue()));
+        if (window.M) {
+          window.M.updateTextFields();
+        }
+      };
 
       var $target = $('#editor-shadow-injection-target', context);
       $target.once('patternkit-editor').each(function () {
@@ -91,6 +98,12 @@
                 '&media_library_remaining=1' +
                 '&' + encodeURIComponent('media_library_opener_parameters[field_widget_id]') + '=' + this.path;
 
+              this.urlfield.addEventListener('change', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                self.value = this.value;
+                self.refreshPreview();
+              });
               this.button.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -115,7 +128,7 @@
               this.container.appendChild(this.button);
             }
 
-            window.requestAnimationFrame(function() {
+            window.requestAnimationFrame(function () {
               if (self.value) {
                 var img = document.createElement('img');
                 img.style.maxWidth = '100%';
@@ -123,128 +136,55 @@
                 img.onload = function (event) {
                   self.preview.appendChild(img);
                 };
-                img.onerror = function(error) {
-                  window.console.error('upload error', error);
-                };
                 img.src = self.container.querySelector('a').href;
               }
             });
-
           },
-          refreshPreview: function() {
-            if (this.last_preview === this.preview_value) {
+          refreshPreview: function () {
+            if (this.last_preview === this.value) {
               return;
             }
-            this.last_preview = this.preview_value;
-
+            this.last_preview = this.value;
             this.preview.innerHTML = '';
-
-            if (!this.preview_value) {
+            if (!this.value) {
               return;
             }
 
-            var self = this;
-
-            var mime = this.preview_value.match(/^data:([^;,]+)[;,]/);
-            if (mime) {
-              mime = mime[1];
-            }
-            else {
-              mime = 'unknown';
-            }
-
-            var file = this.urlfield.files[0];
-
-            this.preview.innerHTML = '<strong>Type:</strong> '+mime+', <strong>Size:</strong> '+file.size+' bytes';
-            if(mime.substr(0,5)==="image") {
-              this.preview.innerHTML += '<br>';
-              var img = document.createElement('img');
-              img.style.maxWidth = '100%';
-              img.style.maxHeight = '100px';
-              img.src = this.preview_value;
-              this.preview.appendChild(img);
-            }
-
-            this.preview.innerHTML += '<br>';
-            var uploadButton = this.getButton('Upload', 'upload', 'Upload');
-            this.preview.appendChild(uploadButton);
-            uploadButton.addEventListener('click',function(event) {
-              event.preventDefault();
-
-              uploadButton.setAttribute("disabled", "disabled");
-              self.theme.removeInputError(self.uploader);
-
-              if (self.theme.getProgressBar) {
-                self.progressBar = self.theme.getProgressBar();
-                self.preview.appendChild(self.progressBar);
-              }
-
-              self.jsoneditor.options.upload(self.path, file, {
-                success: function(url) {
-                  self.setValue(url);
-
-                  if (self.parent) {
-                    self.parent.onChildEditorChange(self);
-                  }
-                  else {
-                    self.jsoneditor.onChange();
-                  }
-
-                  if (self.progressBar) {
-                    self.preview.removeChild(self.progressBar);
-                  }
-                  uploadButton.removeAttribute("disabled");
-                },
-                failure: function(error) {
-                  self.theme.addInputError(self.uploader, error);
-                  if (self.progressBar) {
-                    self.preview.removeChild(self.progressBar);
-                  }
-                  uploadButton.removeAttribute("disabled");
-                },
-                updateProgress: function(progress) {
-                  if (self.progressBar) {
-                    if (progress) {
-                      self.theme.updateProgressBar(self.progressBar, progress);
-                    }
-                    else {
-                      self.theme.updateProgressBarUnknown(self.progressBar);
-                    }
-                  }
-                }
-              });
-            });
-
-            if(this.jsoneditor.options.auto_upload || this.schema.options.auto_upload) {
-              uploadButton.dispatchEvent(new MouseEvent('click'));
-              this.preview.removeChild(uploadButton);
-            }
+            var img = document.createElement('img');
+            img.style.maxWidth = '100%';
+            img.style.maxHeight = '100px';
+            img.src = this.value;
+            this.preview.appendChild(img);
           },
-          enable: function() {
-            if(!this.always_disabled) {
-              if(this.urlfield) {
+          enable: function () {
+            if (!this.always_disabled) {
+              if (this.urlfield) {
                 this.urlfield.disabled = false;
               }
               this._super();
             }
           },
-          disable: function(always_disabled) {
-            if(always_disabled) {
+          disable: function (always_disabled) {
+            if (always_disabled) {
               this.always_disabled = true;
             }
-            if(this.urlfield) {
+            if (this.urlfield) {
               this.urlfield.disabled = true;
+            }
+            if (this.button) {
+              this.button.disabled = true;
             }
             this._super();
           },
-          setValue: function(val) {
-            if(this.value !== val) {
+          setValue: function (val) {
+            if (this.value !== val) {
               this.value = val;
               this.urlfield.value = this.value;
-              this.onChange();
+              this.refreshPreview();
+              this.onChange(true);
             }
           },
-          destroy: function() {
+          destroy: function () {
             if(this.preview && this.preview.parentNode) {
               this.preview.parentNode.removeChild(this.preview);
             }
@@ -261,7 +201,7 @@
             this._super();
           }
         });
-        JSONEditor.defaults.resolvers.unshift(function(schema) {
+        JSONEditor.defaults.resolvers.unshift(function (schema) {
           if (schema.type === 'string' && schema.format === 'image') {
             return 'drupal_image';
           }
@@ -339,12 +279,6 @@
         }
         window.patternkitEditor = new JSONEditor($target[0].shadowRoot.getElementById('editor_holder'), config);
         JSONEditor.plugins.sceditor.emoticonsEnabled = false;
-        var saveSchema = function () {
-          $('#schema_instance_config').val(JSON.stringify(window.patternkitEditor.getValue()));
-          if (window.M) {
-            window.M.updateTextFields();
-          }
-        };
 
         window.patternkitEditor.on('ready', function () {
           if (window.M) {
@@ -359,20 +293,13 @@
         // This is before allowing other events, so we need to add a pre-hook
         // to trigger the editor update with latest field values.
         // @TODO Add handling for AJAX errors and re-attach.
-        var beforeSubmitHandler = Drupal.Ajax.prototype.beforeSubmit;
-        Drupal.Ajax.prototype.beforeSubmit = function(formValues, element, options) {
-          if ( $(element).parents("#editor_holder").length !== 1 ) {
-            return beforeSubmitHandler(formValues, element, options);
-          }
+        $('#edit-actions-submit').parent().submit(function (e) {
+          e.preventDefault();
           window.patternkitEditor.disable();
           saveSchema();
-          for (var v = 0; v < formValues.length; v++) {
-            if (formValues[v].name === 'settings[instance_config]') {
-              formValues[v].value = JSON.stringify(window.patternkitEditor.getValue());
-            }
-          }
           window.patternkitEditor.destroy();
-        };
+          $(this).unbind('submit').submit();
+        });
       });
     }
   };
