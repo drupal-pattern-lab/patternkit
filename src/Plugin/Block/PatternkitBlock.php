@@ -387,6 +387,8 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $library_plugin = $this->patternLibraryPluginManager->createInstance($library_plugin_id);
     $elements = $library_plugin->render([$pattern]);
 
+    // @todo If context is available, tokenize context instead of the template.
+    // This is mostly useful for twig-based libraries.
     $markup = '';
     foreach ($elements as $element) {
       // Replace context tokens.
@@ -418,7 +420,10 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     }
 
     $content = [
-      '#markup'   => $markup,
+      'pattern'   => [
+        '#type' => 'inline_template',
+        '#template' => $markup,
+      ],
       '#attached' => $config['pkdata']['attachments'] ?? [],
     ];
     // Save to the cache bin (if caching is enabled).

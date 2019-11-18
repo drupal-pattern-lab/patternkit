@@ -59,6 +59,8 @@ class PatternLibraryTwig extends PatternLibraryJSON {
    * {@inheritdoc}
    *
    * @throws \Throwable
+   *
+   * @todo Return render arrays for Twig only.
    */
   public function render(array $assets): array {
     $elements = [];
