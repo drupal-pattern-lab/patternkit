@@ -287,27 +287,28 @@
         // @TODO Add handling for AJAX errors and re-attach.
         var parent_call = Drupal.Ajax.prototype.beforeSubmit;
         Drupal.Ajax.prototype.beforeSubmit = function (formValues, elementSettings, options) {
-          debugger;
           if (window.patternkitEditor) {
             window.patternkitEditor.disable();
             saveSchema();
-            var index = formValues.findIndex(function (o) { return o.name == "settings[instance_config]"; });
+            var index = formValues.findIndex(function (o) { return o.name === "settings[instance_config]"; });
             formValues[index] = {
               name: "settings[instance_config]",
               value: JSON.stringify(window.patternkitEditor.getValue()),
               type: "hidden",
               required: false
             };
-            window.patternkitEditor.destroy()
+            window.patternkitEditor.destroy();
+            delete window.patternkitEditor;
           }
           parent_call.call(this, formValues, elementSettings, options);
-        }
+        };
         $('[data-drupal-selector="edit-actions-submit"]').parent('form').once().each(function () {
           $(this).submit(function (e) {
             e.preventDefault();
             window.patternkitEditor.disable();
             saveSchema();
             window.patternkitEditor.destroy();
+            delete window.patternkitEditor;
             $(this).unbind('submit').submit();
           });
         });
