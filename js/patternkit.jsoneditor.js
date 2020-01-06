@@ -26,11 +26,6 @@
         window.patternkitEditor.getEditor(response.selector).setValue(response.value);
       };
 
-      // This forces Drupal to re-attach
-      $(window).on('dialog:afterclose', function (e, dialog, $element) {
-        Drupal.attachBehaviors();
-      });
-
       var saveSchema = function () {
         $('#schema_instance_config').val(JSON.stringify(window.patternkitEditor.getValue()));
         if (window.M) {
@@ -286,19 +281,35 @@
           }
         });
         window.patternkitEditor.on('change', saveSchema);
-        $('[data-drupal-selector="edit-actions-submit"]').on('input', function (e) {
-          saveSchema();
-        });
         // Drupal triggers Ajax submit via input events.
         // This is before allowing other events, so we need to add a pre-hook
         // to trigger the editor update with latest field values.
         // @TODO Add handling for AJAX errors and re-attach.
-        $('#edit-actions-submit').parent().submit(function (e) {
-          e.preventDefault();
-          window.patternkitEditor.disable();
-          saveSchema();
-          window.patternkitEditor.destroy();
-          $(this).unbind('submit').submit();
+        var parent_call = Drupal.Ajax.prototype.beforeSubmit;
+        Drupal.Ajax.prototype.beforeSubmit = function (formValues, elementSettings, options) {
+          debugger;
+          if (window.patternkitEditor) {
+            window.patternkitEditor.disable();
+            saveSchema();
+            var index = formValues.findIndex(function (o) { return o.name == "settings[instance_config]"; });
+            formValues[index] = {
+              name: "settings[instance_config]",
+              value: JSON.stringify(window.patternkitEditor.getValue()),
+              type: "hidden",
+              required: false
+            };
+            window.patternkitEditor.destroy()
+          }
+          parent_call.call(this, formValues, elementSettings, options);
+        }
+        $('[data-drupal-selector="edit-actions-submit"]').parent('form').once().each(function () {
+          $(this).submit(function (e) {
+            e.preventDefault();
+            window.patternkitEditor.disable();
+            saveSchema();
+            window.patternkitEditor.destroy();
+            $(this).unbind('submit').submit();
+          });
         });
       });
     }
