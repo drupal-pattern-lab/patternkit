@@ -288,17 +288,19 @@
         var parent_call = Drupal.Ajax.prototype.beforeSubmit;
         Drupal.Ajax.prototype.beforeSubmit = function (formValues, elementSettings, options) {
           if (window.patternkitEditor) {
-            window.patternkitEditor.disable();
-            saveSchema();
             var index = formValues.findIndex(function (o) { return o.name === "settings[instance_config]"; });
-            formValues[index] = {
-              name: "settings[instance_config]",
-              value: JSON.stringify(window.patternkitEditor.getValue()),
-              type: "hidden",
-              required: false
-            };
-            window.patternkitEditor.destroy();
-            delete window.patternkitEditor;
+            if (index !== -1) {
+              window.patternkitEditor.disable();
+              saveSchema();
+              formValues[index] = {
+                name: "settings[instance_config]",
+                value: JSON.stringify(window.patternkitEditor.getValue()),
+                type: "hidden",
+                required: false
+              };
+              window.patternkitEditor.destroy();
+              delete window.patternkitEditor;
+            }
           }
           parent_call.call(this, formValues, elementSettings, options);
         };
