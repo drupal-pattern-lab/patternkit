@@ -448,8 +448,15 @@ class PatternLibraryCollector extends CacheCollector implements ContainerInjecti
               $plugin = $this->libraryPluginManager->createInstance($plugin_id);
             }
             catch (PluginNotFoundException $exception) {
-              \Drupal::logger('patternkit')->error('Error loading pattern libraries: @message', ['@message' => $exception->getMessage()]);
-              continue;
+              // Allow plugin fallbacks of type 'base_plugin.override_plugin'.
+              $plugin_id = strstr($plugin_id, '.', TRUE);
+              try {
+                $plugin = $this->libraryPluginManager->createInstance($plugin_id);
+              }
+              catch (PluginNotFoundException $exception) {
+                \Drupal::logger('patternkit')->error('Error loading pattern libraries: @message', ['@message' => $exception->getMessage()]);
+                continue;
+              }
             }
             /** @var \Drupal\patternkit\Pattern $pattern */
             foreach ($plugin->getMetadata($extension, $metadata[$library_name], $info['data']) as $pattern_path => $pattern) {
