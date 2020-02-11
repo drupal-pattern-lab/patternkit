@@ -3,9 +3,7 @@
 namespace Drupal\patternkit;
 
 use Drupal\Core\Url;
-use Drupal\media_library\MediaLibraryState;
 use Drupal\patternkit\Form\PatternLibraryJSONForm;
-use function urlencode;
 
 /**
  * Adds a schema editor render array generator without needing a full service.

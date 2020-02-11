@@ -69,10 +69,10 @@ class MediaLibraryJSONLibraryOpener implements MediaLibraryOpenerInterface {
     }
     try {
       if ($file->hasLinkTemplate('canonical')) {
-        $url = $file->toUrl()->setAbsolute(TRUE);
+        $url = $file->toUrl()->setAbsolute(FALSE);
       }
       elseif ($file->access('download')) {
-        $url = file_create_url($file->getFileUri());
+        $url = file_url_transform_relative(file_create_url($file->getFileUri()));
       }
       else {
         $url = $file->label();
