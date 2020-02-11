@@ -96,8 +96,7 @@
               this.urlfield.addEventListener('change', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                self.value = this.value;
-                self.refreshPreview();
+                self.setValue(this.value);
               });
               this.button.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -176,6 +175,7 @@
               this.value = val;
               this.urlfield.value = this.value;
               this.refreshPreview();
+              this.refreshWatchedFieldValues();
               this.onChange(true);
             }
           },

@@ -2,9 +2,6 @@
 
 namespace Drupal\patternkit\Controller;
 
-use Drupal\Console\Command\Generate\AjaxCommand;
-use Drupal\Console\Generator\AjaxCommandGenerator;
-use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Asset\LibraryDiscoveryInterface;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Entity\EntityStorageInterface;
@@ -14,7 +11,6 @@ use Drupal\Core\Url;
 use Drupal\media_library\MediaLibraryState;
 use Drupal\media_library\MediaLibraryUiBuilder;
 use Drupal\patternkit\Pattern;
-use Exception;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\HttpFoundation\JsonResponse;
