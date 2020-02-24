@@ -6,6 +6,7 @@ use Drupal\Component\Serialization\SerializationInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\State\StateInterface;
+use Drupal\patternkit\Annotation\PatternLibrary;
 use Drupal\patternkit\JSONSchemaEditorTrait;
 use Drupal\patternkit\Pattern;
 use Drupal\patternkit\PatternEditorConfig;
@@ -23,13 +24,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class PatternLibraryJSON extends PatternLibraryPluginDefault implements ContainerFactoryPluginInterface {
   use JSONSchemaEditorTrait;
-
-  /**
-   * State machine service.
-   *
-   * @var \Drupal\Core\State\StateInterface
-   */
-  protected $state;
 
   /**
    * Attaches services.

@@ -83,8 +83,13 @@ class PatternLibraryTwig extends PatternLibraryJSON {
       $bare       = basename($file);
       /** @var \Drupal\Core\Template\TwigEnvironment $twig */
       $twig       = \Drupal::service('twig');
-      $template   = $twig->load("$namespace/$pattern->filename");
-      $elements[] = $template->render($pattern->config ?? []);
+      try {
+        $template   = $twig->load("$namespace/$pattern->filename");
+        $elements[] = $template->render($pattern->config ?? []);
+      }
+      catch (\Exception $exception) {
+        // @todo Use twig logger and log this exception.
+      }
     }
     return $elements;
   }
