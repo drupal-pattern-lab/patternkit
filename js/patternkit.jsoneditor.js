@@ -6,7 +6,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.DrupalImageEditor = void 0;
 
+/*globals Drupal:false */
+
 /*globals JSONEditor:false */
+
+/*globals jQuery:false */
 
 /**
  * @file DrupalImageEditor class.
@@ -14,6 +18,8 @@ exports.DrupalImageEditor = void 0;
  * @external Drupal
  *
  * @external JSONEditor
+ *
+ * @external jQuery
  */
 var DrupalImageEditor = JSONEditor.AbstractEditor.extend({
   getNumColumns: function getNumColumns() {
@@ -22,20 +28,38 @@ var DrupalImageEditor = JSONEditor.AbstractEditor.extend({
   build: function build() {
     var _this = this;
 
-    this.title = this.header = this.label = this.theme.getFormInputLabel(this.getTitle(), this.isRequired()); // Don't show uploader if this is readonly
+    this.title = this.header = this.label = this.theme.getFormInputLabel(this.getTitle(), this.isRequired()); // Editor options.
+    // @todo Replace JSONEditor.defaults with this.defaults.
+
+    this.options = jQuery.extend({}, {
+      'title': 'Browse',
+      'icon': '',
+      'image_url': '/'
+    }, JSONEditor.defaults.options.drupal_image || {}, this.options.drupal_image || {}); // Don't show uploader if this is readonly
 
     if (!this.schema.readOnly && !this.schema.readonly) {
-      this.urlfield = this.theme.getFormInputField('text');
-      var media_library_opener_parameters = {
-        field_widget_id: this.urlfield.id
-      };
-      var opener_encoded = encodeURIComponent(JSON.stringify(media_library_opener_parameters));
-      this.urlfield.addEventListener('change', function (e) {
+      this.input = this.theme.getFormInputField('text');
+      this.button = this.getButton(this.path + '-media', 'upload', Drupal.t('Select/Upload Media')); // @todo: Add support for multiple file/image URL editors.
+
+      var media_library_settings = 'media_library_opener_id=patternkit.opener.jsonlibrary' + '&' + encodeURIComponent('media_library_allowed_types[0]') + '=image' + '&media_library_selected_type=image' + '&media_library_remaining=1' + '&' + encodeURIComponent('media_library_opener_parameters[field_widget_id]') + '=' + this.path;
+      this.input.addEventListener('change', function (e) {
         e.preventDefault();
         e.stopPropagation();
-        Drupal.dialog(jQuery('<div>', {
-          id: 'patternkit_jsonlibrary_image_dialog'
-        }).append(jQuery('<span>', {
+
+        _this.setValue(e.target.value);
+      });
+      this.button.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation(); // @see /core/misc/dialog/dialog.ajax.es6.js
+
+        var $dialog = jQuery('#drupal-modal');
+
+        if (!$dialog.length) {
+          // Create the element if needed.
+          $dialog = jQuery("<div id=\"drupal-modal\" class=\"ui-front\"/>").appendTo('body');
+        }
+
+        _this.dialog = Drupal.dialog($dialog.append(jQuery('<span>', {
           id: 'patternkit_image_dialog_loading'
         })), {
           title: Drupal.t('Choose Image'),
@@ -43,131 +67,66 @@ var DrupalImageEditor = JSONEditor.AbstractEditor.extend({
           height: 900
         }).showModal();
         Drupal.ajax({
-          url: settings.imageUrl + "&media_library_opener_parameters=" + opener_encoded,
-          base: 'patternkit_jsonlibrary_image_dialog',
+          url: _this.options.image_url + '?' + media_library_settings,
+          base: 'drupal-modal',
           wrapper: 'patternkit_image_dialog_loading'
-        }).execute({});
+        }).execute();
       });
     }
 
     var description = this.schema.description || '';
     this.preview = this.theme.getFormInputDescription(description);
     this.container.appendChild(this.preview);
-    this.control = this.theme.getFormControl(this.label, this.urlfield || this.input, this.preview);
+    this.control = this.theme.getFormControl(this.label, this.input, this.preview);
     this.container.appendChild(this.control);
+
+    if (this.button) {
+      this.container.appendChild(this.button);
+    }
+
     window.requestAnimationFrame(function () {
-      if (_this.value) {
-        var img = document.createElement('img');
-        img.style.maxWidth = '100%';
-        img.style.maxHeight = '100px';
-
-        img.onload = function (event) {
-          _this.preview.appendChild(img);
-        };
-
-        img.onerror = function (error) {
-          console.error('upload error', error);
-        };
-
-        img.src = _this.container.querySelector('a').href;
-      }
+      _this.refreshPreview();
     });
   },
-  refreshPreview: function refreshPreview() {
+  afterInputReady: function afterInputReady() {
     var _this2 = this;
 
-    if (this.last_preview === this.preview_value) {
-      return;
-    }
-
-    this.last_preview = this.preview_value;
-    this.preview.innerHTML = '';
-
-    if (!this.preview_value) {
-      return;
-    }
-
-    var mime = this.preview_value.match(/^data:([^;,]+)[;,]/);
-
-    if (mime) {
-      mime = mime[1];
-    } else {
-      mime = 'unknown';
-    }
-
-    var file = this.urlfield.files[0];
-    this.preview.innerHTML = '<strong>Type:</strong> ' + mime + ', <strong>Size:</strong> ' + file.size + ' bytes';
-
-    if (mime.substr(0, 5) === "image") {
-      this.preview.innerHTML += '<br>';
+    if (this.value) {
       var img = document.createElement('img');
       img.style.maxWidth = '100%';
       img.style.maxHeight = '100px';
-      img.src = this.preview_value;
-      this.preview.appendChild(img);
+
+      img.onload = function (event) {
+        _this2.preview.appendChild(img);
+      };
+
+      img.onerror = function (error) {
+        console.error('upload error', error, _this2);
+      };
+
+      img.src = this.container.querySelector('input').value;
     }
 
-    this.preview.innerHTML += '<br>';
-    var uploadButton = this.getButton('Upload', 'upload', 'Upload');
-    this.preview.appendChild(uploadButton);
-    uploadButton.addEventListener('click', function (event) {
-      event.preventDefault();
-      uploadButton.setAttribute("disabled", "disabled");
-
-      _this2.theme.removeInputError(_this2.uploader);
-
-      if (_this2.theme.getProgressBar) {
-        _this2.progressBar = _this2.theme.getProgressBar();
-
-        _this2.preview.appendChild(_this2.progressBar);
-      }
-
-      _this2.jsoneditor.options.upload(_this2.path, file, {
-        success: function success(url) {
-          _this2.setValue(url);
-
-          if (_this2.parent) {
-            _this2.parent.onChildEditorChange(_this2);
-          } else {
-            _this2.jsoneditor.onChange();
-          }
-
-          if (_this2.progressBar) {
-            _this2.preview.removeChild(_this2.progressBar);
-          }
-
-          uploadButton.removeAttribute("disabled");
-        },
-        failure: function failure(error) {
-          _this2.theme.addInputError(_this2.uploader, error);
-
-          if (_this2.progressBar) {
-            _this2.preview.removeChild(_this2.progressBar);
-          }
-
-          uploadButton.removeAttribute("disabled");
-        },
-        updateProgress: function updateProgress(progress) {
-          if (_this2.progressBar) {
-            if (progress) {
-              _this2.theme.updateProgressBar(_this2.progressBar, progress);
-            } else {
-              _this2.theme.updateProgressBarUnknown(_this2.progressBar);
-            }
-          }
-        }
-      });
-    });
-
-    if (this.jsoneditor.options.auto_upload || this.schema.options.auto_upload) {
-      uploadButton.dispatchEvent(new MouseEvent('click'));
-      this.preview.removeChild(uploadButton);
+    this.theme.afterInputReady(this.input);
+  },
+  refreshPreview: function refreshPreview() {
+    if (this.last_preview === this.value) {
+      return;
     }
+
+    this.last_preview = this.value;
+    this.preview.innerHTML = '';
+
+    if (!this.value) {
+      return;
+    }
+
+    this.afterInputReady();
   },
   enable: function enable() {
     if (!this.always_disabled) {
-      if (this.urlfield) {
-        this.urlfield.disabled = false;
+      if (this.input) {
+        this.input.disabled = false;
       }
 
       this._super();
@@ -178,8 +137,12 @@ var DrupalImageEditor = JSONEditor.AbstractEditor.extend({
       this.always_disabled = true;
     }
 
-    if (this.urlfield) {
-      this.urlfield.disabled = true;
+    if (this.input) {
+      this.input.disabled = true;
+    }
+
+    if (this.button) {
+      this.button.disabled = true;
     }
 
     this._super();
@@ -187,8 +150,10 @@ var DrupalImageEditor = JSONEditor.AbstractEditor.extend({
   setValue: function setValue(val) {
     if (this.value !== val) {
       this.value = val;
-      this.urlfield.value = this.value;
-      this.onChange();
+      this.input.value = this.value;
+      this.refreshPreview();
+      this.refreshWatchedFieldValues();
+      this.onChange(true);
     }
   },
   destroy: function destroy() {
@@ -204,8 +169,8 @@ var DrupalImageEditor = JSONEditor.AbstractEditor.extend({
       this.input.parentNode.removeChild(this.input);
     }
 
-    if (this.urlfield && this.urlfield.parentNode) {
-      this.urlfield.parentNode.removeChild(this.urlfield);
+    if (this.input && this.input.parentNode) {
+      this.input.parentNode.removeChild(this.input);
     }
 
     this._super();
@@ -290,6 +255,9 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         JSONEditor.defaults.options.disable_collapse = false;
         JSONEditor.defaults.options.collapse = false;
         JSONEditor.defaults.options.ajax = true;
+        JSONEditor.defaults.options.drupal_image = {
+          image_url: settings.patternkitEditor.imageUrl
+        };
         JSONEditor.defaults.editors.drupal_image = _DrupalImageEditor.DrupalImageEditor;
         JSONEditor.defaults.resolvers.unshift(function (schema) {
           if (schema.type === 'string' && schema.format === 'image') {

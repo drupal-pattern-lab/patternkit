@@ -73,7 +73,11 @@ import {DrupalImageEditor} from "./DrupalImageEditor.es6";
         JSONEditor.defaults.options.disable_collapse = false;
         JSONEditor.defaults.options.collapse = false;
         JSONEditor.defaults.options.ajax = true;
+        JSONEditor.defaults.options.drupal_image = {
+          image_url: settings.patternkitEditor.imageUrl
+        };
         JSONEditor.defaults.editors.drupal_image = DrupalImageEditor;
+
         JSONEditor.defaults.resolvers.unshift(function (schema) {
           if (schema.type === 'string' && schema.format === 'image') {
             return 'drupal_image';
