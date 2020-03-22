@@ -140,8 +140,7 @@ import {DrupalImageEditor} from "./DrupalImageEditor.es6";
         // Initialize the editor with a JSON schema.
         let config = {
           schema: data.schema,
-          refs: {},
-          startval: {}
+          refs: {}
         };
         if (typeof data.starting === 'object' && !$.isEmptyObject(data.starting)) {
           config.startval = data.starting;
