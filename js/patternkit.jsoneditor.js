@@ -336,8 +336,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
         var config = {
           schema: data.schema,
-          refs: {},
-          startval: {}
+          refs: {}
         };
 
         if (_typeof(data.starting) === 'object' && !$.isEmptyObject(data.starting)) {
