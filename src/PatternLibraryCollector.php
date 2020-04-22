@@ -13,6 +13,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Serialization\Yaml;
 use Drupal\Core\Theme\ThemeManagerInterface;
 use Drupal\patternkit\Form\PatternkitSettingsForm;
@@ -50,6 +51,9 @@ class PatternLibraryCollector extends CacheCollector implements ContainerInjecti
   /** @var \Drupal\patternkit\PatternLibraryPluginManager */
   protected $libraryPluginManager;
 
+  /** @var \Drupal\Core\Logger\LoggerChannelInterface */
+  protected $logger;
+
   /** @var \Drupal\Core\Extension\ModuleHandlerInterface */
   protected $moduleHandler;
 
@@ -74,6 +78,8 @@ class PatternLibraryCollector extends CacheCollector implements ContainerInjecti
    *   Provide the file system service.
    * @param \Drupal\Core\Lock\LockBackendInterface $lock
    *   Provide the lock backend.
+   * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
+   *   Provide the logging channel.
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
    *   Provide a module handler.
    * @param \Drupal\patternkit\PatternLibraryPluginManager $library_plugin_manager
@@ -89,6 +95,7 @@ class PatternLibraryCollector extends CacheCollector implements ContainerInjecti
     FileSystemInterface $file_system,
     PatternLibraryPluginManager $library_plugin_manager,
     LockBackendInterface $lock,
+    LoggerChannelInterface $logger,
     ModuleHandlerInterface $module_handler,
     $root,
     ThemeManagerInterface $theme_manager) {
@@ -97,6 +104,7 @@ class PatternLibraryCollector extends CacheCollector implements ContainerInjecti
     $this->config = $this->configFactory->get(PatternkitSettingsForm::SETTINGS);
     $this->fileSystem = $file_system;
     $this->libraryPluginManager = $library_plugin_manager;
+    $this->logger = $logger;
     $this->moduleHandler = $module_handler;
     $this->root = $root;
     $this->themeManager = $theme_manager;
@@ -120,6 +128,8 @@ class PatternLibraryCollector extends CacheCollector implements ContainerInjecti
     $file_system = $container->get('file_system');
     /** @var \Drupal\Core\Lock\LockBackendInterface $lock */
     $lock = $container->get('lock');
+    /** @var \Drupal\Core\Logger\LoggerChannelInterface $logger */
+    $logger = $container->get('@logger.channel.default');
     /** @var \Drupal\Core\Extension\ModuleHandlerInterface $module_handler */
     $module_handler = $container->get('module_handler');
     /** @var string $root */
@@ -132,6 +142,7 @@ class PatternLibraryCollector extends CacheCollector implements ContainerInjecti
       $file_system,
       $library_plugin_manager,
       $lock,
+      $logger,
       $module_handler,
       $root,
       $theme_manager);
@@ -159,8 +170,13 @@ class PatternLibraryCollector extends CacheCollector implements ContainerInjecti
       // (if cache enabled, otherwise just a slow, redundant memcache set).
       if ($cache_enabled) {
         // Explicit copy of the data into cache_set to avoid implicit copy.
+        // @todo Evaluate encoding via JSON instead to shrink data size.
         $this->cache->set(static::PERSISTENT_CACHE_ID,
           $cached_metadata);
+        $cache = $this->cache->get(static::PERSISTENT_CACHE_ID);
+        if ($cache->data !== $cached_metadata) {
+          $this->logger->warning('Error storing Patternkit Library Metadata in cache. Check that memcache or your caching module has be configured correctly.');
+        }
       }
     }
     return $cached_metadata;
