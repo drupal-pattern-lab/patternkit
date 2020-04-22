@@ -11,7 +11,7 @@ services:
     arguments: ['@patternkit.library.discovery.collector']
   patternkit.library.discovery.collector:
     class: Drupal\patternkit\PatternLibraryCollector
-    arguments: ['@cache.discovery', '@config.factory', '@file_system', '@plugin.manager.library.pattern', '@lock', '@module_handler', '@app.root', '@theme.manager']
+    arguments: ['@cache.discovery', '@config.factory', '@file_system', '@plugin.manager.library.pattern', '@lock', '@logger.channel.default', '@module_handler', '@app.root', '@theme.manager']
     tags:
       - { name: needs_destruction }
   patternkit.library.discovery.parser.file:
