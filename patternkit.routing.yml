@@ -55,3 +55,13 @@ patternkit.settings.json_settings:
     _admin_route: TRUE
   requirements:
     _permission: 'access administration pages'
+patternkit.settings.rest_settings:
+  path: '/admin/config/user-interface/patternkit/rest'
+  defaults:
+    _form: '\Drupal\patternkit\Form\PatternLibraryRESTForm'
+    _title: 'Patternkit REST Library settings'
+    _description: 'Configure Patternkit REST Pattern Library Support.'
+  options:
+    _admin_route: TRUE
+  requirements:
+    _permission: 'access administration pages'

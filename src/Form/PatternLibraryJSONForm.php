@@ -133,4 +133,17 @@ class PatternLibraryJSONForm extends ConfigFormBase {
     return 'patternkit_json_editor_config';
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public function submitForm(array &$form, FormStateInterface $form_state): void {
+    $this->config(static::SETTINGS)
+      ->set('patternkit_json_editor_theme', $form_state->getValue('patternkit_json_editor_theme'))
+      ->set('patternkit_json_editor_icons', $form_state->getValue('patternkit_json_editor_icons'))
+      ->set('patternkit_json_editor_css', $form_state->getValue('patternkit_json_editor_css'))
+      ->set('patternkit_json_editor_js', $form_state->getValue('patternkit_json_editor_js'))
+      ->save();
+    parent::submitForm($form, $form_state);
+  }
+
 }

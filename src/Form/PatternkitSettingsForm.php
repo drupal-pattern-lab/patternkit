@@ -2,6 +2,7 @@
 
 namespace Drupal\patternkit\Form;
 
+use Drupal\Core\Config\Config;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -130,8 +131,7 @@ class PatternkitSettingsForm extends ConfigFormBase {
    * {@inheritDoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state): void {
-    $config = $this->config(static::SETTINGS);
-    $config
+    $config = $this->config(static::SETTINGS)
       ->set('patternkit_libraries', $form_state->getValue('patternkit_libraries'))
       ->set('patternkit_cache_enabled', $form_state->getValue('patternkit_cache_enabled'))
       ->set('patternkit_render_cache', $form_state->getValue('patternkit_render_cache'))

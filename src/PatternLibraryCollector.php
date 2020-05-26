@@ -20,6 +20,7 @@ use Drupal\patternkit\Form\PatternkitSettingsForm;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Cache\CacheCollector;
 use Drupal\Core\Lock\LockBackendInterface;
+use function is_array;
 
 /**
  * The PatternLibraryCollector caches library information and performs retrieval
@@ -129,7 +130,7 @@ class PatternLibraryCollector extends CacheCollector implements ContainerInjecti
     /** @var \Drupal\Core\Lock\LockBackendInterface $lock */
     $lock = $container->get('lock');
     /** @var \Drupal\Core\Logger\LoggerChannelInterface $logger */
-    $logger = $container->get('@logger.channel.default');
+    $logger = $container->get('logger.channel.patternkit');
     /** @var \Drupal\Core\Extension\ModuleHandlerInterface $module_handler */
     $module_handler = $container->get('module_handler');
     /** @var string $root */
@@ -210,7 +211,7 @@ class PatternLibraryCollector extends CacheCollector implements ContainerInjecti
     $libraries = $this->applyLibrariesOverride($libraries, $extension);
 
     foreach ($libraries as $id => &$library) {
-      if (!isset($library['patterns'])) {
+      if (!isset($library['patterns']) || !is_array($library['patterns'])) {
         unset($libraries[$id]);
         continue;
       }

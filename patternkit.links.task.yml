@@ -22,3 +22,7 @@ patternkit.settings.json_settings:
   title: 'JSON Pattern Library Settings'
   route_name: patternkit.settings.json_settings
   base_route: patternkit.settings
+patternkit.settings.rest_settings:
+  title: 'REST Pattern Library Settings'
+  route_name: patternkit.settings.rest_settings
+  base_route: patternkit.settings

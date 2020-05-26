@@ -20,6 +20,9 @@ services:
   patternkit.library.discovery.parser.json:
     class: Drupal\patternkit\PatternLibraryParser\JSONPatternLibraryParser
     arguments: ['@serialization.json', '@app.root', '@module_handler', '@theme.manager']
+  patternkit.library.discovery.parser.rest:
+    class: Drupal\patternkit\PatternLibraryParser\RESTPatternLibraryParser
+    arguments: ['@cache.default', '@http_client', '@config.factory', '@file_system', '@logger.channel.patternkit', '@serialization.json', '@stream_wrapper_manager']
   patternkit.library.discovery.parser.twig:
     class: Drupal\patternkit\PatternLibraryParser\TwigPatternLibraryParser
     arguments: ['@serialization.json', '@app.root', '@module_handler', '@theme.manager']

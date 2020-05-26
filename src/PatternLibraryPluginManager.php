@@ -12,7 +12,6 @@ use Drupal\Core\Plugin\Discovery\AnnotatedClassDiscovery;
 use Drupal\Core\Plugin\Discovery\ContainerDerivativeDiscoveryDecorator;
 use Drupal\Core\Plugin\FilteredPluginManagerTrait;
 use Drupal\patternkit\Annotation\PatternLibrary;
-use Traversable;
 
 class PatternLibraryPluginManager extends DefaultPluginManager {
 
@@ -38,7 +37,7 @@ class PatternLibraryPluginManager extends DefaultPluginManager {
    * @param \Drupal\Core\Extension\ThemeHandlerInterface $theme_handler
    *   The theme handler to invoke the alter hook with.
    */
-  public function __construct(Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler, ThemeHandlerInterface $theme_handler) {
+  public function __construct(\Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler, ThemeHandlerInterface $theme_handler) {
     parent::__construct('Plugin/PatternLibrary', $namespaces, $module_handler, PatternLibraryPluginInterface::class, PatternLibrary::class);
     $this->themeHandler = $theme_handler;
 

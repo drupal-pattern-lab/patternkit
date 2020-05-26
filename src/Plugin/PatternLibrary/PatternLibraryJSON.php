@@ -28,8 +28,8 @@ class PatternLibraryJSON extends PatternLibraryPluginDefault implements Containe
   /**
    * Attaches services.
    *
-   * @param string $root
-   *   The application root path.
+   * @param mixed $root
+   *   The application root path(s).
    *   e.g. '/var/www/docroot'.
    * @param \Drupal\Component\Serialization\SerializationInterface $serializer
    *   Serialization service.

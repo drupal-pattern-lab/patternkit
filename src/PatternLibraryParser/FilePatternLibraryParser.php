@@ -10,6 +10,7 @@ use Drupal\patternkit\Pattern;
 use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternLibraryJSONParserTrait;
 use Drupal\patternkit\PatternLibraryParserBase;
+use Symfony\Component\Finder\Iterator\RecursiveDirectoryIterator;
 
 /**
  * Parses a File pattern library collection into usable metadata.
@@ -37,6 +38,50 @@ class FilePatternLibraryParser extends PatternLibraryParserBase {
 
     $this->serializer = $serializer;
     parent::__construct($root, $module_handler, $theme_manager);
+  }
+
+  /**
+   * Returns an array of file components grouped by file basename and extension.
+   *
+   * @param string $path
+   *   The fully-qualified path to discover component files.
+   * @param array $filter
+   *   An optional filter of file extensions to search for.
+   *
+   * @return array
+   *   Array of file components.
+   *   [basename][extension] = filename.
+   */
+  public static function discoverComponents($path, array $filter = []): array {
+    $components = [];
+    $rdit = new RecursiveDirectoryIterator($path, \FilesystemIterator::KEY_AS_PATHNAME | \FilesystemIterator::CURRENT_AS_FILEINFO);
+    /** @var \SplFileInfo $file */
+    foreach (new \RecursiveIteratorIterator($rdit) as $file) {
+      // Skip directories and non-files.
+      if (!$file->isFile()) {
+        continue;
+      }
+      $file_path = $file->getPath();
+
+      // Skip tests folders.
+      if (strpos($file_path, '/tests') !== FALSE) {
+        continue;
+      }
+
+      // Get the file extension for the file.
+      $file_ext = $file->getExtension();
+      if (!in_array(strtolower($file_ext), $filter, TRUE)) {
+        continue;
+      }
+
+      // We use file_basename as a unique key, it is required that the
+      // JSON and twig file share this basename.
+      $file_basename = $file->getBasename('.' . $file_ext);
+
+      // Build an array of all the filenames of interest, keyed by name.
+      $components[$file_basename][$file_ext] = "$file_path/$file_basename.$file_ext";
+    }
+    return $components;
   }
 
   /**
