@@ -7,10 +7,10 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\State\StateInterface;
 use Drupal\patternkit\Annotation\PatternLibrary;
+use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\JSONSchemaEditorTrait;
-use Drupal\patternkit\Pattern;
 use Drupal\patternkit\PatternEditorConfig;
-use Drupal\patternkit\PatternLibraryParserInterface;
+use Drupal\patternkit\Asset\PatternLibraryParserInterface;
 use Drupal\patternkit\PatternLibraryPluginDefault;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -35,7 +35,7 @@ class PatternLibraryJSON extends PatternLibraryPluginDefault implements Containe
    *   Serialization service.
    * @param \Drupal\Core\State\StateInterface $state
    *   Static state of the application.
-   * @param \Drupal\patternkit\PatternLibraryParserInterface $parser
+   * @param \Drupal\patternkit\Asset\PatternLibraryParserInterface $parser
    *   Pattern library parser service.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   Extension config retrieval.
@@ -72,8 +72,8 @@ class PatternLibraryJSON extends PatternLibraryPluginDefault implements Containe
     $serializer = $container->get('serialization.json');
     /** @var \Drupal\Core\State\StateInterface $state */
     $state = $container->get('state');
-    /** @var \Drupal\patternkit\PatternLibraryParserInterface $json_parser */
-    $json_parser = $container->get('patternkit.library.discovery.parser.json');
+    /** @var \Drupal\patternkit\Asset\PatternLibraryParserInterface $json_parser */
+    $json_parser = $container->get('patternkit.asset.library.parser.json');
     /** @var \Drupal\Core\Config\ConfigFactoryInterface $config_factory */
     $config_factory = $container->get('config.factory');
     return new static($root, $serializer, $state, $json_parser, $config_factory, $configuration, $plugin_id, $plugin_definition);
@@ -84,12 +84,12 @@ class PatternLibraryJSON extends PatternLibraryPluginDefault implements Containe
    *
    * {@inheritDoc}
    */
-  public function getEditor(Pattern $pattern = NULL,
+  public function getEditor(PatternInterface $pattern = NULL,
     PatternEditorConfig $config = NULL) {
     $config = $config ?? new PatternEditorConfig();
     $config->hostname = \Drupal::request()->getHost() ?? 'default';
     // @todo Update config JS/CSS with module path.
-    return $this->schemaEditor($pattern->schema ?? new \stdClass(), $config);
+    return $this->schemaEditor($pattern->getSchema() ?? '', $config);
   }
 
   /**

@@ -3,12 +3,12 @@
 namespace Drupal\patternkit\Loader;
 
 use Drupal\Core\Logger\LoggerChannelInterface;
-use Drupal\patternkit\PatternLibraryCollector;
+use Drupal\patternkit\Asset\LibraryInterface;
 
 /**
  * Functionality for parsing Twig pattern libraries.
  */
-class PatternLibraryLoader extends \Twig_Loader_Filesystem {
+class PatternLibraryLoader extends \Twig_Loader_Filesystem implements \Twig_LoaderInterface {
 
   /**
    * Overrides to add paths from pattern libraries.
@@ -17,24 +17,25 @@ class PatternLibraryLoader extends \Twig_Loader_Filesystem {
    *   Paths to pass to the Filesystem loader.
    * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
    *   Logs to the patternkit channel.
-   * @param \Drupal\patternkit\PatternLibraryCollector $pattern_collector
+   * @param \Drupal\patternkit\Asset\LibraryInterface $library
    *   Provides library names and paths.
-   *
-   * @throws \Twig\Error\LoaderError
    */
   public function __construct($paths,
     LoggerChannelInterface $logger,
-    PatternLibraryCollector $pattern_collector) {
+    LibraryInterface $library) {
     parent::__construct($paths);
     $libraries = [];
     try {
-      $libraries = $pattern_collector->getLibraryDefinitions();
+      $libraries = $library->getLibraryDefinitions();
     }
     catch (\Exception $exception) {
       $logger->error('Error loading pattern libraries: @message', ['@message' => $exception->getMessage()]);
     }
     foreach ($libraries as $namespace => $library) {
-      $path = $library['data'];
+      if (!isset($library->getPatternInfo()['data'])) {
+        continue;
+      }
+      $path = $library->getPatternInfo()['data'];
       $this->addPath($path, $namespace);
     }
   }

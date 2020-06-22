@@ -9,7 +9,7 @@ patternkit.add_form:
   path: '/patternkit_block/add/{pattern_id}'
   defaults:
     _controller: '\Drupal\patternkit\Controller\PatternkitController::addForm'
-    _title_callback: 'Drupal\patternkit\Controller\PatternkitController::getAddFormTitle'
+    _title_callback: '\Drupal\patternkit\Controller\PatternkitController::getAddFormTitle'
   options:
     _admin_route: TRUE
   requirements:
@@ -29,12 +29,6 @@ patternkit.api:
     _controller: '\Drupal\patternkit\Controller\PatternkitController::apiPattern'
   requirements:
     _access: 'TRUE'
-patternkit.media_library:
-  path: '/patternkit_media_library'
-  defaults:
-    _controller: '\Drupal\patternkit\Controller\PatternkitController::mediaLibrary'
-  requirements:
-    _permission: 'administer blocks,view media'
 patternkit.settings:
   path: '/admin/config/user-interface/patternkit'
   defaults:

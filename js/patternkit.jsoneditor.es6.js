@@ -14,8 +14,6 @@
  *
  * @todo .editor-shadow-injection-target .card all: initial
  */
-import {DrupalImageEditor} from "./DrupalImageEditor.es6";
-
 (function ($, Drupal, JSONEditor) {
   'use strict';
   Drupal.behaviors.patternkitEditor = {
@@ -73,16 +71,8 @@ import {DrupalImageEditor} from "./DrupalImageEditor.es6";
         JSONEditor.defaults.options.disable_collapse = false;
         JSONEditor.defaults.options.collapse = false;
         JSONEditor.defaults.options.ajax = true;
-        JSONEditor.defaults.options.drupal_image = {
-          image_url: settings.patternkitEditor.imageUrl
-        };
-        JSONEditor.defaults.editors.drupal_image = DrupalImageEditor;
+        // @todo Loop through all editor plugins and add them at runtime.
 
-        JSONEditor.defaults.resolvers.unshift(function (schema) {
-          if (schema.type === 'string' && schema.format === 'image') {
-            return 'drupal_image';
-          }
-        });
         // Override how references are resolved.
         JSONEditor.prototype._loadExternalRefs = function (schema, callback) {
           let refs = this._getExternalRefs(schema);
@@ -113,6 +103,7 @@ import {DrupalImageEditor} from "./DrupalImageEditor.es6";
                   window.console.log(e);
                   throw "Failed to parse external ref " + url;
                 }
+                // @todo Actually validate the schema so we can throw an error.
                 if (!response || typeof response !== "object") {
                   throw "External ref does not contain a valid schema - " + url;
                 }
@@ -142,12 +133,18 @@ import {DrupalImageEditor} from "./DrupalImageEditor.es6";
           schema: data.schema,
           refs: {}
         };
-        if (typeof data.starting === 'object' && !$.isEmptyObject(data.starting)) {
-          config.startval = data.starting;
-        }
         window.patternkitEditor = new JSONEditor($target[0].shadowRoot.getElementById('editor_holder'), config);
-        JSONEditor.plugins.sceditor.emoticonsEnabled = false;
         window.patternkitEditor.on('ready', function () {
+          // If we provide starting JSON as a value, JSON Editor hides all
+          // non-required fields, which is desired behavior by most users of the
+          // library. For patterns, we want to include any new schema fields in
+          // our values so they are displayed by default, optional or not.
+          // This also allows us to pre-populate based on the schema provided.
+          if (typeof data.starting === 'object' && !$.isEmptyObject(data.starting)) {
+            window.patternkitEditor.setValue({...window.patternkitEditor.getValue(), ...data.starting});
+          }
+          // Material Design JS doesn't update fields on ready event.
+          // We call it to make up for that gap.
           if (window.M) {
             window.M.updateTextFields();
           }
@@ -156,7 +153,7 @@ import {DrupalImageEditor} from "./DrupalImageEditor.es6";
         // Drupal triggers Ajax submit via input events.
         // This is before allowing other events, so we need to add a pre-hook
         // to trigger the editor update with latest field values.
-        // @TODO Add handling for AJAX errors and re-attach.
+        // @todo Add handling for AJAX errors and re-attach.
         let parent_call = Drupal.Ajax.prototype.beforeSubmit;
         Drupal.Ajax.prototype.beforeSubmit = function (formValues, elementSettings, options) {
           if (window.patternkitEditor) {

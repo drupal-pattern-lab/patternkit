@@ -2,17 +2,14 @@
 
 namespace Drupal\patternkit\Controller;
 
-use Drupal\Core\Asset\LibraryDiscoveryInterface;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Extension\ThemeHandlerInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Url;
-use Drupal\media_library\MediaLibraryState;
-use Drupal\media_library\MediaLibraryUiBuilder;
-use Drupal\patternkit\Pattern;
+use Drupal\patternkit\Asset\LibraryInterface;
+use Drupal\patternkit\Entity\Pattern;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -30,11 +27,11 @@ class PatternkitController extends ControllerBase {
   protected $patternkitStorage;
 
   /**
-   * The pattern library collector.
+   * The pattern library.
    *
-   * @var \Drupal\patternkit\PatternkitLibraryDiscoveryInterface
+   * @var \Drupal\patternkit\Asset\LibraryInterface
    */
-  protected $libraryDiscovery;
+  protected $library;
 
   /**
    * The theme handler.
@@ -48,17 +45,17 @@ class PatternkitController extends ControllerBase {
    *
    * @param \Drupal\Core\Entity\EntityStorageInterface $patternkit_storage
    *   The Patternkit storage.
-   * @param \Drupal\Core\Asset\LibraryDiscoveryInterface $library_discovery
-   *   The Pattern Library Collector.
+   * @param \Drupal\patternkit\Asset\LibraryInterface $library
+   *   The Pattern Library.
    * @param \Drupal\Core\Extension\ThemeHandlerInterface $theme_handler
    *   The theme handler.
    */
   public function __construct(
     EntityStorageInterface $patternkit_storage,
-    LibraryDiscoveryInterface $library_discovery,
+    LibraryInterface $library,
     ThemeHandlerInterface $theme_handler) {
     $this->patternkitStorage = $patternkit_storage;
-    $this->libraryDiscovery = $library_discovery;
+    $this->library = $library;
     $this->themeHandler = $theme_handler;
   }
 
@@ -73,13 +70,13 @@ class PatternkitController extends ControllerBase {
   public static function create(ContainerInterface $container) {
     /** @var \Drupal\Core\Entity\EntityTypeManagerInterface $entity_manager */
     $entity_manager = $container->get('entity_type.manager');
-    /** @var \Drupal\Core\Asset\LibraryDiscoveryInterface $library_discovery */
-    $library_discovery = $container->get('patternkit.library.discovery');
+    /** @var \Drupal\patternkit\Asset\LibraryInterface $library */
+    $library = $container->get('patternkit.asset.library');
     /** @var \Drupal\Core\Extension\ThemeHandlerInterface $theme_handler */
     $theme_handler = $container->get('theme_handler');
     return new static(
       $entity_manager->getStorage('patternkit_block'),
-      $library_discovery,
+      $library,
       $theme_handler
     );
   }
@@ -93,7 +90,7 @@ class PatternkitController extends ControllerBase {
    */
   public function add(): array {
     try {
-      $types = $this->libraryDiscovery->getAssets();
+      $types = $this->library->getAssets();
     }
     catch (\Exception $exception) {
       $this->getLogger('patternkit')->error('Error loading pattern library assets: ', ['@message' => $exception->getMessage()]);
@@ -108,14 +105,19 @@ class PatternkitController extends ControllerBase {
     }
     $content['types'] = [];
     $query = \Drupal::request()->query->all();
-    /** @var \Drupal\patternkit\Pattern $type */
-    foreach ($types as $type) {
-      $id = $type->getId();
-      $label = $type->getLabel();
-      $content['types'][$id] = [
-        'link' => Link::fromTextAndUrl($label, Url::fromRoute('patternkit.add_form', ['pattern_id' => $id], ['query' => $query])),
+    foreach ($types as $pattern_key => $type) {
+      try {
+        $pattern = Pattern::create($type);
+      }
+      catch (\Exception $e) {
+        continue;
+      }
+      $pattern_id = trim(str_replace('/', '_', $pattern_key), '@');
+      $label = $pattern->label();
+      $content['types'][$pattern_id] = [
+        'link' => Link::fromTextAndUrl($label, Url::fromRoute('patternkit.add_form', ['pattern_id' => $pattern_id], ['query' => $query])),
         'description' => [
-          '#markup' => $type->getDescription(),
+          '#markup' => $pattern->getDescription(),
         ],
         'title' => $label,
         'localized_options' => [
@@ -173,9 +175,9 @@ class PatternkitController extends ControllerBase {
     if (substr_compare($pattern, '/schema', strlen($pattern) - $test_len, $test_len) === 0) {
       return $this->apiPatternSchema(substr($pattern, 0, -$test_len));
     }
-    $asset_id = str_replace('/', '.', $pattern);
+    $asset_id = '@' . str_replace('/', '_', $pattern);
     try {
-      $response = $this->libraryDiscovery->getLibraryAsset($asset_id);
+      $response = $this->library->getLibraryAsset($asset_id);
       if ($response === NULL) {
         throw new \RuntimeException("Unable to locate $pattern.");
       }
@@ -198,7 +200,7 @@ class PatternkitController extends ControllerBase {
   public function apiPatternSchema($pattern): JsonResponse {
     $asset_id = str_replace('/', '.', $pattern);
     try {
-      $pattern_asset = $this->libraryDiscovery->getLibraryAsset($asset_id);
+      $pattern_asset = $this->library->getLibraryAsset($asset_id);
       if ($pattern_asset === NULL) {
         throw new \RuntimeException("Unable to locate $pattern.");
       }
@@ -213,43 +215,34 @@ class PatternkitController extends ControllerBase {
   /**
    * Provides the page title for this controller.
    *
-   * @param \Drupal\patternkit\Pattern $pattern
+   * @param string $pattern_id
    *   The pattern being added.
    *
    * @return string
    *   The page title.
+   *
+   * @throws \Exception
    */
-  public function getAddFormTitle(Pattern $pattern): string {
-    return $this->t('Add %type Patternkit block', ['%type' => $pattern->getLabel()]);
-  }
-
-  /**
-   * Returns a media library display especially for Patternkit.
-   *
-   * @param \Symfony\Component\HttpFoundation\Request $request
-   *
-   * @return array
-   *
-   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
-   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
-   * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
-   */
-  public function mediaLibrary(Request $request): array {
-    $query = $request->query;
-    $ml_state = MediaLibraryState::create(
-      $query->get('media_library_opener_id'),
-      $query->get('media_library_allowed_types', []),
-      $query->get('media_library_selected_type'),
-      $query->get('media_library_remaining'),
-      $query->get('media_library_opener_parameters', [])
-    );
-    if (!\Drupal::hasService('media_library.ui_builder')) {
-      throw new ServiceNotFoundException('media_library.ui_builder');
+  public function getAddFormTitle($pattern_id): string {
+    $asset_id = '@' . str_replace('_', '/', $pattern_id);
+    try {
+      $pattern_asset = $this->library->getLibraryAsset($asset_id);
+      if ($pattern_asset === NULL) {
+        throw new \RuntimeException("Unable to locate $pattern_asset.");
+      }
+      $pattern = Pattern::create($pattern_asset);
     }
-    /** @var MediaLibraryUiBuilder $ml_ui_builder */
-    $ml_ui_builder = \Drupal::service('media_library.ui_builder');
-
-    return $ml_ui_builder->buildUi($ml_state);
+    catch (\Exception $exception) {
+      throw $exception;
+    }
+    return $this->t('Add %type Patternkit block', ['%type' => $pattern->label()]);
   }
 
+  public function patternTitle(Request $request, Pattern $pattern) {
+    return '';
+  }
+
+  public function patternView(Request $request, Pattern $pattern) {
+    return [];
+  }
 }

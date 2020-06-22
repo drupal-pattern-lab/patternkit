@@ -1,0 +1,5 @@
+services:
+  patternkit.commands:
+    class: Drupal\patternkit\Commands\PatternkitCommands
+    tags:
+      - { name: drush.command }

@@ -2,7 +2,6 @@
 
 namespace Drupal\patternkit;
 
-use Drupal\Core\Url;
 use Drupal\patternkit\Form\PatternLibraryJSONForm;
 
 /**
@@ -57,7 +56,7 @@ trait JSONSchemaEditorTrait {
   /**
    * Returns a schema editor Drupal render array.
    *
-   * @param array $schema
+   * @param string $schema
    *   JSON Schema to display.
    * @param \Drupal\patternkit\PatternEditorConfig $config
    *   Editor configuration settings.
@@ -65,8 +64,7 @@ trait JSONSchemaEditorTrait {
    * @return array
    *   Schema editor Drupal render array.
    */
-  public function schemaEditor(array $schema, PatternEditorConfig $config): array {
-    $schema_json = $this->serializer::encode($schema);
+  public function schemaEditor($schema, PatternEditorConfig $config): array {
     $starting_json = $config !== NULL
       ? $this->serializer::encode($config->fields)
       : $config;
@@ -75,13 +73,10 @@ trait JSONSchemaEditorTrait {
     $editor_settings = [
       'hostname' => $config->hostname,
       'icons' => $icons,
-      'schemaJson' => $schema_json,
+      'schemaJson' => $schema,
       'startingJson' => $starting_json,
       'theme' => $theme,
     ];
-
-    // @todo: Add support for multiple file/image URL editors.
-    $editor_settings['imageUrl'] = Url::fromRoute('patternkit.media_library')->toString();
 
     if (isset(PatternLibraryJSONForm::THEMES[$theme])) {
       $theme_info = PatternLibraryJSONForm::THEMES[$theme];
@@ -120,7 +115,7 @@ trait JSONSchemaEditorTrait {
         'drupalSettings' => [
           'patternkitEditor' => $editor_settings,
         ],
-        'library' => ['patternkit/patternkit.jsoneditor', 'media_library/ui'],
+        'library' => ['patternkit/patternkit.jsoneditor'],
       ],
     ];
   }

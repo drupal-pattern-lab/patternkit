@@ -1,13 +1,26 @@
+jsoneditor:
+  version: VERSION
+  js:
+    js/ajv.min.js: {minified: true}
+    js/jsoneditor.js: {minified: true}
+
+jsoneditor.dev:
+  version: VERSION
+  js:
+    js/ajv.js: {}
+    js/nonmin/jsoneditor.js: {}
+    js/nonmin/jsoneditor.js.map: {}
+
 patternkit.jsoneditor:
   version: VERSION
   js:
-    js/jsoneditor.min.js: {minified: true}
     js/patternkit.jsoneditor.js: {}
   dependencies:
     - core/drupal.dialog
     - core/drupal.dialog.ajax
     - core/drupalSettings
     - core/jquery
+    - patternkit/jsoneditor
 
 patternkit.jsoneditor.theme.bootstrap4:
   version: v4.0.0

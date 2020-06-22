@@ -11,6 +11,10 @@
       "options": {
         "grid_columns": 4
       }
+    },
+    "hidden": {
+      "title": "hidden",
+      "type": "string"
     }
   }
 }

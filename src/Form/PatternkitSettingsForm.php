@@ -5,7 +5,7 @@ namespace Drupal\patternkit\Form;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\patternkit\PatternkitLibraryDiscoveryInterface;
+use Drupal\patternkit\Asset\LibraryInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class PatternkitSettingsForm extends ConfigFormBase {
@@ -13,20 +13,20 @@ class PatternkitSettingsForm extends ConfigFormBase {
   /** @var string */
   public const SETTINGS = 'patternkit.settings';
 
-  /** @var \Drupal\patternkit\PatternkitLibraryDiscoveryInterface */
-  protected $libraryDiscovery;
+  /** @var \Drupal\patternkit\Asset\LibraryInterface */
+  protected $library;
 
-  public function __construct(ConfigFactoryInterface $config_factory, PatternkitLibraryDiscoveryInterface $pattern_discovery) {
-    $this->libraryDiscovery = $pattern_discovery;
+  public function __construct(ConfigFactoryInterface $config_factory, LibraryInterface $library) {
+    $this->library = $library;
     parent::__construct($config_factory);
   }
 
   public static function create(ContainerInterface $container) {
     /** @var \Drupal\Core\Config\ConfigFactoryInterface $config_factory */
     $config_factory = $container->get('config.factory');
-    /** @var \Drupal\patternkit\PatternkitLibraryDiscoveryInterface $pattern_discovery */
-    $pattern_discovery = $container->get('patternkit.library.discovery');
-    return new static($config_factory, $pattern_discovery);
+    /** @var \Drupal\patternkit\Asset\LibraryInterface $library */
+    $library = $container->get('patternkit.asset.library');
+    return new static($config_factory, $library);
   }
 
   /**
@@ -35,7 +35,7 @@ class PatternkitSettingsForm extends ConfigFormBase {
   public function buildForm(array $form, FormStateInterface $form_state) :array {
     $config = $this->config(static::SETTINGS);
     try {
-      $libraries = $this->libraryDiscovery->getLibraries();
+      $libraries = $this->library->getLibraries();
     }
     catch (\Exception $exception) {
       $this->getLogger('patternkit')->error('Unable to load Patternkit libraries list: @message', ['@message' => $exception->getMessage()]);
@@ -56,11 +56,14 @@ class PatternkitSettingsForm extends ConfigFormBase {
     ];
     $library_options = $config->get('patternkit_libraries') ?? [];
     foreach ($libraries as $lib_title => $library) {
-      $lib_desc = $library['description'] ?? $lib_title;
-      if (!empty($library['patterns'])) {
+      if (empty($library->getPatternInfo())) {
+        continue;
+      }
+      $lib_desc = $library->description ?? $lib_title;
+      if (!empty($library->patterns)) {
         $lib_desc = t('@title (@count patterns)', [
           '@title' => $lib_title,
-          '@count' => count($library['patterns']),
+          '@count' => count($library->patterns),
         ]);
       }
       $form['patternkit_libraries'][$lib_title]['description'] = [
@@ -70,7 +73,7 @@ class PatternkitSettingsForm extends ConfigFormBase {
           'title' => $lib_desc,
         ],
       ];
-      if (!empty($library['description'])) {
+      if (!empty($library->description)) {
         $form['patternkit_libraries'][$lib_title]['description']['#context']['description'] = $library['description'];
       }
       $form['patternkit_libraries'][$lib_title]['enabled'] = [
@@ -139,9 +142,9 @@ class PatternkitSettingsForm extends ConfigFormBase {
       ->save();
     if ($form_state->getValue('patternkit_cache_enabled')
       && !$config->get('patternkit_cache_enabled')) {
-      $this->libraryDiscovery->clearCachedDefinitions();
+      $this->library->clearCachedDefinitions();
     }
-    $libraries = $this->libraryDiscovery->getLibraries();
+    $libraries = $this->library->getLibraries();
     $count = count($libraries);
     $this->messenger()->addStatus($this->t('Rebuilt Patternkit Library Cache with @count libraries.', ['@count' => $count]));
     parent::submitForm($form, $form_state);

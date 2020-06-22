@@ -2,6 +2,9 @@
 
 namespace Drupal\patternkit\Plugin\PatternLibrary;
 
+use Drupal\patternkit\Annotation\PatternLibrary;
+use Drupal\patternkit\Entity\PatternInterface;
+use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -31,7 +34,7 @@ class PatternLibraryTwig extends PatternLibraryJSON {
   /**
    * Twig pattern library parser service.
    *
-   * @var \Drupal\patternkit\PatternLibraryParser\TwigPatternLibraryParser
+   * @var \Drupal\patternkit\Asset\PatternLibraryParser\TwigPatternLibraryParser
    */
   protected $twigParser;
 
@@ -46,11 +49,15 @@ class PatternLibraryTwig extends PatternLibraryJSON {
     $serializer = $container->get('serialization.json');
     /** @var \Drupal\Core\State\StateInterface $state */
     $state = $container->get('state');
-    /** @var \Drupal\patternkit\PatternLibraryParserInterface $twig_parser */
-    $twig_parser = $container->get('patternkit.library.discovery.parser.twig');
+    /** @var \Drupal\patternkit\Asset\PatternLibraryParserInterface $twig_parser */
+    $twig_parser = $container->get('patternkit.asset.library.parser.twig');
     /** @var \Drupal\Core\Config\ConfigFactoryInterface $config_factory */
     $config_factory = $container->get('config.factory');
     return new static($root, $serializer, $state, $twig_parser, $config_factory, $configuration, $plugin_id, $plugin_definition);
+  }
+
+  public function fetchAssets(PatternInterface $pattern, PatternEditorConfig $config = NULL) {
+    return $this->parser->fetchPatternAssets($pattern, $config);
   }
 
   /**
@@ -65,31 +72,16 @@ class PatternLibraryTwig extends PatternLibraryJSON {
   public function render(array $assets): array {
     $elements = [];
     foreach ($assets as $pattern) {
-      if (empty($pattern->filename)) {
+      $template = $pattern->getTemplate();
+      if (empty($template)) {
         return [];
       }
-      // @todo Allow filename to cache the template contents based on settings.
-      $template = $pattern->filename;
-      // Add the namespace, if provided.
-      if (!empty($pattern->url)) {
-        $template = '@' . $pattern->url . '#/' . $template;
-      }
-      $namespace = '';
-      $file = $template;
-      // If a namespace is provided, break it up.
-      if (strpos($template, '@') === 0) {
-        [$namespace, $file] = explode('#', $template);
-      }
-      $bare       = basename($file);
-      /** @var \Drupal\Core\Template\TwigEnvironment $twig */
-      $twig       = \Drupal::service('twig');
-      try {
-        $template   = $twig->load("$namespace/$pattern->filename");
-        $elements[] = $template->render($pattern->config ?? []);
-      }
-      catch (\Exception $exception) {
-        // @todo Use twig logger and log this exception.
-      }
+      $pattern->config = $pattern->config ?? [];
+      $elements[] = [
+        '#type' => 'inline_template',
+        '#template' => $template,
+        '#context' => $pattern->config,
+      ];
     }
     return $elements;
   }

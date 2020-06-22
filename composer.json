@@ -1,5 +1,5 @@
 {
-    "name": "cybtachyon/patternkit",
+    "name": "drupal-pattern-lab/patternkit",
     "authors": [
         {
             "name": "Derek Reese",
@@ -13,11 +13,26 @@
     "license": "MIT",
     "require": {},
     "config": {},
+    "extra": {
+        "drush": {
+            "services": {
+                "drush.services.yml": "^9"
+            }
+        }
+    },
     "repositories": [],
     "scripts": {
         "post-autoload-dump": [
             "wget -Oq -P js/ --no-check-certificate https://raw.github.com/jdorn/json-editor/master/dist/jsoneditor.min.js",
             "wget -Oq -P js/ --no-check-certificate https://raw.github.com/jdorn/json-editor/master/dist/jsoneditor.js"
+        ],
+        "js:build": [
+            ". ~/.profile && nvm install && nvm use",
+            "npm install && npx gulp"
         ]
+    },
+    "suggest": {
+        "drupal/entity_browser": "Improves display for the patternkit_media_library module.",
+        "drupal/media_entity_browser": "Improves display for the patternkit_media_library module."
     }
 }

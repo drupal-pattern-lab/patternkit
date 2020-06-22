@@ -22,15 +22,15 @@ use Drupal\Core\Field\BaseFieldDefinition;
  *   ),
  *   handlers = {
  *     "storage" = "Drupal\Core\Entity\Sql\SqlContentEntityStorage",
- *     "access" = "Drupal\patternkit\PatternAccessControlHandler",
- *     "list_builder" = "Drupal\patternkit\PatternListBuilder",
- *     "view_builder" = "Drupal\patternkit\PatternViewBuilder",
+ *     "access" = "Drupal\block_content\BlockContentAccessControlHandler",
+ *     "list_builder" = "Drupal\block_content\BlockContentListBuilder",
+ *     "view_builder" = "Drupal\block_content\BlockContentViewBuilder",
  *     "views_data" = "Drupal\patternkit\PatternViewsData",
  *     "form" = {
- *       "add" = "Drupal\patternkit\Form\PatternForm",
- *       "edit" = "Drupal\patternkit\Form\PatternForm",
+ *       "add" = "Drupal\patternkit\Form\PatternkitForm",
+ *       "edit" = "Drupal\patternkit\Form\PatternkitForm",
  *       "delete" = "Drupal\patternkit\Form\PatternDeleteForm",
- *       "default" = "Drupal\patternkit\Form\PatternForm"
+ *       "default" = "Drupal\patternkit\Form\PatternkitForm"
  *     },
  *     "translation" = "Drupal\patternkit\PatternTranslationHandler"
  *   },

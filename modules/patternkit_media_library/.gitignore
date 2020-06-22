@@ -1,0 +1,3 @@
+.cache
+js/globals**.js**
+node_modules

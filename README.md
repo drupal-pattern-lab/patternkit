@@ -3,7 +3,7 @@
 [![Join the Patternkit Community on Slack](https://drupalslack.herokuapp.com/badge.svg)](https://drupalslack.herokuapp.com) [Drupal.org](https://www.drupal.org/project/patternkit)
 
 Drupal module that wraps a PatternLab library of patterns.
- 
+
 This code will parse a pattern library (local or through REST endpoints) to generate a list of blocks that can be drag/dropped into layouts.
 
 If enabled, the configuration screen is simply an iframe wrapper of a simplified version of the PatternLab schema builder.
@@ -39,27 +39,27 @@ patternkit_example.pkexample:
       lib/patternkit/src/atoms: {}
 ```
 
-There are two different plugins currently available, 
+There are two different plugins currently available,
 * PatternkitRESTLibrary
 * PatternkitTwigLibrary (based on PatternkitJSONLibrary)
 
 Use the former for dynamic REST based components, and the latter for locally sourced.
 
-You can create your own plugins if you'd like to add support for other library types. Feel free to [create a pull request](https://github.com/cybtachyon/patternkit/pulls) to have it added to the repo!
+You can create your own plugins if you'd like to add support for other library types. Feel free to [create a pull request](https://github.com/drupal-pattern-lab/patternkit/pulls) to have it added to the repo!
 
 ## Important Variables
 * ```patternkit_cache_enabled``` - Whether or not the metadata and render cache are enabled. (Disable during development)
 * ```patternkit_pl_host``` - The scheme://hostname:port/ of the PatternLab library host.
 * ```patternkit_default_module_ttl``` - How long the rendered pattern should be cached.
 * ```patternkit_show_errors``` - Whether or not to display messages on the site.
-* ```patternkit_log_errors``` - Whether or not to log errors to php error log. 
+* ```patternkit_log_errors``` - Whether or not to log errors to php error log.
 
 ## Definitions
 Most of the thinking and vernacular used in Patternkit is inspired by conversations that have happened around Design Systems. A great reference for this is [Brad Frost's Atomic Design Book](http://atomicdesign.bradfrost.com/).
 * **Category** The design system category for a pattern, e.g. _Atom_, _Molecule_, _Organism_.
-* **Design System** A modular and manageable approach to creating reusable design patterns for building GUI's. See http://atomicdesign.bradfrost.com/chapter-1/ 
+* **Design System** A modular and manageable approach to creating reusable design patterns for building GUI's. See http://atomicdesign.bradfrost.com/chapter-1/
 * **Pattern** A component, widget, or template that can be rendered to an HTML GUI.
- 
+
 
 ## TODOs
 * https://github.com/drupal-pattern-lab/roadmap/issues/8 Solve the problem of mapping Drupal fields to pattern Variables.
