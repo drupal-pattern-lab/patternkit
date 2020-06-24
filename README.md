@@ -1,4 +1,7 @@
 # PatternKit
+
+[![Join the Patternkit Community on Slack](https://drupalslack.herokuapp.com/badge.svg)](https://drupalslack.herokuapp.com) [Drupal.org](https://www.drupal.org/project/patternkit)
+
 Drupal module that wraps a PatternLab library of patterns.
  
 This code will parse a pattern library (local or through REST endpoints) to generate a list of blocks that can be drag/dropped into layouts.
@@ -9,8 +12,16 @@ When pattern configurations are saved, the template is downloaded locally (to mi
 
 Rendered templates may contain drupal tokens, which are then processed in context.
 
+## Get Help / Ask a Question
+See [CONTRIBUTING.md#get-an-answer-to-a-question](CONTRIBUTING.md#get-an-answer-to-a-question)
+
 ## Installation
 Install the patternkit module as usual, and review the important variables below to determine if you would like to change the defaults.
+
+```
+composer require drupal/patternkit
+drush en -y patternkit
+```
 
 The patternkit module by itself only provides the glue for other modules to present components. Define one by adding a 'patterns' section to your libraries.yml.
 
@@ -30,7 +41,7 @@ patternkit_example.pkexample:
 
 There are two different plugins currently available, 
 * PatternkitRESTLibrary
-* PatternkitTwigLibrary
+* PatternkitTwigLibrary (based on PatternkitJSONLibrary)
 
 Use the former for dynamic REST based components, and the latter for locally sourced.
 
@@ -59,14 +70,20 @@ Most of the thinking and vernacular used in Patternkit is inspired by conversati
 More documentation will be added.
 
 ## Dependencies
+* **drupal/block_content (Core Module)** This module will auto-enable when Patternkit is installed.
+
+## Optional Dependencies
 [PatternLab](https://github.com/pattern-lab/starterkit-twig-drupal-minimal)
 * Schema display support requires: https://github.com/pattern-lab/patternlab-php-core/issues/117
 
-# D7 v2.0.0 & D8 Ecosystem
+## D7 v2.0.0 & D8 Ecosystem
 * Exists to solve this issue: https://github.com/drupal-pattern-lab/roadmap/issues/8
 * PatternLAB with Restful Extensions provides library + endpoints (Ported from PatternKit)
 * PatternKit provides Drupal endpoint consumer (renamed from PKPlugins)
 
-# Legacy Ecosystem
+## Legacy Ecosystem
 * PatternKit provides library + RESTful endpoints
 * PKPlugins provides Drupal endpoint consumer
+
+## Contributing
+See [CONTRIBUTING.MD](CONTRIBUTING.md)
