@@ -1,190 +1,34 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 "use strict";
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.DrupalImageEditor = void 0;
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
-/*globals Drupal:false */
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
-/*globals JSONEditor:false */
-
-/*globals jQuery:false */
-
-/**
- * @file DrupalImageEditor class.
- *
- * @external Drupal
- *
- * @external JSONEditor
- *
- * @external jQuery
- */
-var DrupalImageEditor = JSONEditor.AbstractEditor.extend({
-  getNumColumns: function getNumColumns() {
-    return 4;
-  },
-  build: function build() {
-    var _this = this;
-
-    this.title = this.header = this.label = this.theme.getFormInputLabel(this.getTitle(), this.isRequired()); // Editor options.
-    // @todo Replace JSONEditor.defaults with this.defaults.
-
-    this.options = jQuery.extend({}, {
-      'title': 'Browse',
-      'icon': '',
-      'image_url': '/'
-    }, JSONEditor.defaults.options.drupal_image || {}, this.options.drupal_image || {}); // Don't show uploader if this is readonly
-
-    if (!this.schema.readOnly && !this.schema.readonly) {
-      this.input = this.theme.getFormInputField('text');
-      this.button = this.getButton(this.path + '-media', 'upload', Drupal.t('Select/Upload Media')); // @todo: Add support for multiple file/image URL editors.
-
-      var media_library_settings = 'media_library_opener_id=patternkit.opener.jsonlibrary' + '&' + encodeURIComponent('media_library_allowed_types[0]') + '=image' + '&media_library_selected_type=image' + '&media_library_remaining=1' + '&' + encodeURIComponent('media_library_opener_parameters[field_widget_id]') + '=' + this.path;
-      this.input.addEventListener('change', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        _this.setValue(e.target.value);
-      });
-      this.button.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation(); // @see /core/misc/dialog/dialog.ajax.es6.js
-
-        var $dialog = jQuery('#drupal-modal');
-
-        if (!$dialog.length) {
-          // Create the element if needed.
-          $dialog = jQuery("<div id=\"drupal-modal\" class=\"ui-front\"/>").appendTo('body');
-        }
-
-        _this.dialog = Drupal.dialog($dialog.append(jQuery('<span>', {
-          id: 'patternkit_image_dialog_loading'
-        })), {
-          title: Drupal.t('Choose Image'),
-          width: 900,
-          height: 900
-        }).showModal();
-        Drupal.ajax({
-          url: _this.options.image_url + '?' + media_library_settings,
-          base: 'drupal-modal',
-          wrapper: 'patternkit_image_dialog_loading'
-        }).execute();
-      });
-    }
-
-    var description = this.schema.description || '';
-    this.preview = this.theme.getFormInputDescription(description);
-    this.container.appendChild(this.preview);
-    this.control = this.theme.getFormControl(this.label, this.input, this.preview);
-    this.container.appendChild(this.control);
-
-    if (this.button) {
-      this.container.appendChild(this.button);
-    }
-
-    window.requestAnimationFrame(function () {
-      _this.refreshPreview();
-    });
-  },
-  afterInputReady: function afterInputReady() {
-    var _this2 = this;
-
-    if (this.value) {
-      var img = document.createElement('img');
-      img.style.maxWidth = '100%';
-      img.style.maxHeight = '100px';
-
-      img.onload = function (event) {
-        _this2.preview.appendChild(img);
-      };
-
-      img.onerror = function (error) {
-        console.error('upload error', error, _this2);
-      };
-
-      img.src = this.container.querySelector('input').value;
-    }
-
-    this.theme.afterInputReady(this.input);
-  },
-  refreshPreview: function refreshPreview() {
-    if (this.last_preview === this.value) {
-      return;
-    }
-
-    this.last_preview = this.value;
-    this.preview.innerHTML = '';
-
-    if (!this.value) {
-      return;
-    }
-
-    this.afterInputReady();
-  },
-  enable: function enable() {
-    if (!this.always_disabled) {
-      if (this.input) {
-        this.input.disabled = false;
-      }
-
-      this._super();
-    }
-  },
-  disable: function disable(always_disabled) {
-    if (always_disabled) {
-      this.always_disabled = true;
-    }
-
-    if (this.input) {
-      this.input.disabled = true;
-    }
-
-    if (this.button) {
-      this.button.disabled = true;
-    }
-
-    this._super();
-  },
-  setValue: function setValue(val) {
-    if (this.value !== val) {
-      this.value = val;
-      this.input.value = this.value;
-      this.refreshPreview();
-      this.refreshWatchedFieldValues();
-      this.onChange(true);
-    }
-  },
-  destroy: function destroy() {
-    if (this.preview && this.preview.parentNode) {
-      this.preview.parentNode.removeChild(this.preview);
-    }
-
-    if (this.title && this.title.parentNode) {
-      this.title.parentNode.removeChild(this.title);
-    }
-
-    if (this.input && this.input.parentNode) {
-      this.input.parentNode.removeChild(this.input);
-    }
-
-    if (this.input && this.input.parentNode) {
-      this.input.parentNode.removeChild(this.input);
-    }
-
-    this._super();
-  }
-});
-exports.DrupalImageEditor = DrupalImageEditor;
-
-},{}],2:[function(require,module,exports){
-"use strict";
-
-var _DrupalImageEditor = require("./DrupalImageEditor.es6");
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
+/*globals Console:false */
+
+/*globals Drupal:false */
+
+/*globals jQuery:false */
+
+/*globals JSONEditor:false */
+
+/**
+ * @file
+ * Provides Twig Pattern Library Editing Functionality.
+ *
+ * @external Drupal
+ *
+ * @external jQuery
+ *
+ * @external JSONEditor
+ *
+ * @todo .editor-shadow-injection-target .card all: initial
+ */
 (function ($, Drupal, JSONEditor) {
   'use strict';
 
@@ -254,16 +98,8 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         JSONEditor.defaults.options.disable_edit_json = true;
         JSONEditor.defaults.options.disable_collapse = false;
         JSONEditor.defaults.options.collapse = false;
-        JSONEditor.defaults.options.ajax = true;
-        JSONEditor.defaults.options.drupal_image = {
-          image_url: settings.patternkitEditor.imageUrl
-        };
-        JSONEditor.defaults.editors.drupal_image = _DrupalImageEditor.DrupalImageEditor;
-        JSONEditor.defaults.resolvers.unshift(function (schema) {
-          if (schema.type === 'string' && schema.format === 'image') {
-            return 'drupal_image';
-          }
-        }); // Override how references are resolved.
+        JSONEditor.defaults.options.ajax = true; // @todo Loop through all editor plugins and add them at runtime.
+        // Override how references are resolved.
 
         JSONEditor.prototype._loadExternalRefs = function (schema, callback) {
           var _this = this;
@@ -302,7 +138,8 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
                 } catch (e) {
                   window.console.log(e);
                   throw "Failed to parse external ref " + url;
-                }
+                } // @todo Actually validate the schema so we can throw an error.
+
 
                 if (!response || _typeof(response) !== "object") {
                   throw "External ref does not contain a valid schema - " + url;
@@ -338,14 +175,19 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
           schema: data.schema,
           refs: {}
         };
-
-        if (_typeof(data.starting) === 'object' && !$.isEmptyObject(data.starting)) {
-          config.startval = data.starting;
-        }
-
         window.patternkitEditor = new JSONEditor($target[0].shadowRoot.getElementById('editor_holder'), config);
-        JSONEditor.plugins.sceditor.emoticonsEnabled = false;
         window.patternkitEditor.on('ready', function () {
+          // If we provide starting JSON as a value, JSON Editor hides all
+          // non-required fields, which is desired behavior by most users of the
+          // library. For patterns, we want to include any new schema fields in
+          // our values so they are displayed by default, optional or not.
+          // This also allows us to pre-populate based on the schema provided.
+          if (_typeof(data.starting) === 'object' && !$.isEmptyObject(data.starting)) {
+            window.patternkitEditor.setValue(_objectSpread(_objectSpread({}, window.patternkitEditor.getValue()), data.starting));
+          } // Material Design JS doesn't update fields on ready event.
+          // We call it to make up for that gap.
+
+
           if (window.M) {
             window.M.updateTextFields();
           }
@@ -353,7 +195,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         window.patternkitEditor.on('change', saveSchema); // Drupal triggers Ajax submit via input events.
         // This is before allowing other events, so we need to add a pre-hook
         // to trigger the editor update with latest field values.
-        // @TODO Add handling for AJAX errors and re-attach.
+        // @todo Add handling for AJAX errors and re-attach.
 
         var parent_call = Drupal.Ajax.prototype.beforeSubmit;
 
@@ -395,4 +237,4 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
   };
 })(jQuery, Drupal, JSONEditor);
 
-},{"./DrupalImageEditor.es6":1}]},{},[2]);
+},{}]},{},[1]);

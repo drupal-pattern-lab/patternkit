@@ -3,6 +3,7 @@
 namespace Drupal\patternkit\Plugin\PatternLibrary;
 
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Pattern;
 use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternLibraryPluginDefault;
@@ -47,7 +48,7 @@ class PatternLibraryFile extends PatternLibraryPluginDefault implements Containe
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): PatternLibraryPluginInterface {
     $root = $container->get('app.root');
     /** @var \Drupal\patternkit\PatternLibraryParserInterface $file_parser */
-    $file_parser = $container->get('patternkit.library.discovery.parser.file');
+    $file_parser = $container->get('patternkit.asset.library.parser.file');
     /** @var \Drupal\Core\Config\ConfigFactoryInterface $config_factory */
     $config_factory = $container->get('config.factory');
     return new static($root, $file_parser, $config_factory, $configuration, $plugin_id, $plugin_definition);
@@ -56,12 +57,12 @@ class PatternLibraryFile extends PatternLibraryPluginDefault implements Containe
   /**
    * Returns the editor for the generic file plugin.
    *
-   * @param \Drupal\patternkit\Pattern|NULL $pattern
+   * @param \Drupal\patternkit\entity\PatternInterface|NULL $pattern
    * @param \Drupal\patternkit\PatternEditorConfig|NULL $config
    *
    * @return mixed|void
    */
-  public function getEditor(Pattern $pattern = NULL,
+  public function getEditor(PatternInterface $pattern = NULL,
     PatternEditorConfig $config = NULL) {
     // TODO: Implement getEditor() method.
     return '';

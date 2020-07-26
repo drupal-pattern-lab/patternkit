@@ -1,0 +1,4 @@
+services:
+  patternkit.opener.jsonlibrary:
+    class: Drupal\patternkit_media_library\MediaLibraryJSONLibraryOpener
+    arguments: ['@entity_type.manager']

@@ -2,17 +2,25 @@
 
 namespace Drupal\patternkit;
 
-use Drupal\Component\Utility\NestedArray;
 use Drupal\Component\Plugin\PluginBase;
+use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\Core\Extension\Extension;
 use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\patternkit\Asset\PatternLibraryParserInterface;
+use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Form\PatternkitSettingsForm;
 
 /**
  * Provides a default class for PatternLibrary plugins.
+ *
+ * Includes several useful methods for adding functionality to a Patternkit
+ * plugin, such as configuration to use with a settings form.
+ *
+ * @see \Drupal\patternkit\Form\PatternLibraryJSONForm
+ * @see \Drupal\patternkit\Plugin\PatternLibrary\PatternLibraryJSON
  */
 abstract class PatternLibraryPluginDefault extends PluginBase implements PatternLibraryPluginInterface {
   use StringTranslationTrait;
@@ -29,7 +37,7 @@ abstract class PatternLibraryPluginDefault extends PluginBase implements Pattern
   /**
    * Parses library files into a Patternkit Library.
    *
-   * @var \Drupal\patternkit\PatternLibraryParserInterface
+   * @var \Drupal\patternkit\Asset\PatternLibraryParserInterface
    */
   protected $parser;
 
@@ -48,7 +56,7 @@ abstract class PatternLibraryPluginDefault extends PluginBase implements Pattern
    * @param string $root
    *   The application root path.
    *   e.g. '/var/www/docroot'.
-   * @param \Drupal\patternkit\PatternLibraryParserInterface $parser
+   * @param \Drupal\patternkit\Asset\PatternLibraryParserInterface $parser
    *   Pattern library parser service.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   Extension config retrieval.
@@ -86,9 +94,19 @@ abstract class PatternLibraryPluginDefault extends PluginBase implements Pattern
   }
 
   /**
-   * Implements getConfiguration().
+   * @param \Drupal\patternkit\Entity\PatternInterface $pattern
+   * @param \Drupal\patternkit\PatternEditorConfig|null $config
    *
-   * {@inheritDoc}
+   * @return array
+   */
+  public function fetchAssets(PatternInterface $pattern, PatternEditorConfig $config = NULL) {
+    return $this->parser->fetchPatternAssets($pattern, $config);
+  }
+
+  /**
+   * Gets the plugin configuration.
+   *
+   * @return array
    */
   public function getConfiguration() {
     return $this->configuration;
@@ -104,9 +122,9 @@ abstract class PatternLibraryPluginDefault extends PluginBase implements Pattern
   }
 
   /**
-   * Implements defaultConfiguration.
+   * Provides the default plugin configuration.
    *
-   * {@inheritDoc}
+   * @return array
    */
   public function defaultConfiguration() {
     return [];
@@ -128,7 +146,7 @@ abstract class PatternLibraryPluginDefault extends PluginBase implements Pattern
    *
    * @todo Provide full library metadata.
    */
-  public function getMetadata(Extension $extension, array $library, $path): array {
+  public function getMetadata(Extension $extension, PatternLibrary $library, $path): array {
     $path = $this->root . '/' . $path;
     return $this->parser->parsePatternLibraryInfo($library, $path);
   }

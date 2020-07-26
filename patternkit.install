@@ -4,3 +4,21 @@
  * @file
  * Install file for patternkit module.
  */
+
+/**
+ * Implements hook_requirements.
+ */
+function patternkit_requirements($phase) {
+  $requirements = [];
+
+  if (version_compare(\Drupal::VERSION, 8.9, '<')) {
+    $requirements['patternkit_drupal_version'] = [
+      'title' => t('Patternkit Drupal Version'),
+      'value' => 8.9,
+      'description' => t('Running a Drupal version prior to 8.9 can cause issues with schema, caching, and display. Upgrade as soon as possible, or see the README.md for patches you should apply.'),
+      'severity' => REQUIREMENT_WARNING,
+    ];
+  }
+
+  return $requirements;
+}

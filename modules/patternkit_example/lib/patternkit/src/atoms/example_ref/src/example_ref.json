@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "category": "atom",
+  "title": "Example with Reference",
+  "type": "object",
+  "format": "grid",
+  "properties": {
+    "text": {
+      "$ref": "@patternkit/atoms/example_ref/../example/src/example.json#/text"
+    }
+  }
+}

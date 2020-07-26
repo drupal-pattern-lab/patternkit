@@ -1,0 +1,9 @@
+name: Patternkit Media Library Support
+description: Adds Media Library Support to upload fields.
+type: module
+package: Presentation Framework
+core: 8.x
+configure: patternkit.settings
+dependencies:
+  - drupal:media_library
+  - drupal:patternkit

@@ -1,0 +1,9 @@
+patternkit.jsoneditor.media_library:
+  version: VERSION
+  js:
+    js/patternkit.jsoneditor.media_library.js: {}
+  dependencies:
+    - core/drupalSettings
+    - core/jquery
+    - media_library/ui
+    - patternkit/jsoneditor

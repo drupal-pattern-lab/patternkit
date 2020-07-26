@@ -2,13 +2,12 @@
 
 namespace Drupal\patternkit\Plugin\PatternLibrary;
 
-use Drupal\patternkit\Annotation\PatternLibrary;
-use Drupal\Component\Serialization\Json;
+use Drupal\Core\Extension\Extension;
 use Drupal\Core\State\StateInterface;
-use Drupal\patternkit\Pattern;
+use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternEditorConfig;
+use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\PatternLibraryPluginDefault;
-use LogicException;
 
 /**
  * @PatternLibrary(
@@ -32,15 +31,15 @@ class PatternLibraryREST extends PatternLibraryPluginDefault {
    *
    * {@inheritDoc}
    */
-  public function __construct($configuration, $plugin_id, $plugin_definition, StateInterface $state) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
+  public function __construct($root, $parser, $config_factory, $configuration, $plugin_id, $plugin_definition, StateInterface $state) {
+    parent::__construct($root, $parser, $config_factory, $configuration, $plugin_id, $plugin_definition);
     $this->state = $state;
   }
 
   /**
    * {@inheritDoc}
    */
-  public function getEditor(Pattern $pattern = NULL,
+  public function getEditor(PatternInterface $pattern = NULL,
     PatternEditorConfig $config = NULL) {
     // @todo Implement getEditor() method.
   }
@@ -48,7 +47,7 @@ class PatternLibraryREST extends PatternLibraryPluginDefault {
   /**
    * {@inheritDoc}
    */
-  public function getMetadata($extension, $path): array {
+  public function getMetadata(Extension $extension, PatternLibrary $library, $path): array {
     // @todo Implement getMetadata() method.
     return [];
   }
@@ -66,13 +65,13 @@ class PatternLibraryREST extends PatternLibraryPluginDefault {
    */
   public function render(array $assets): array {
     $elements = [];
-    /** @var Pattern $pattern */
+    /** @var PatternInterface $pattern */
     foreach ($assets as $pattern) {
       $config = $pattern->config ?? [];
       if (empty($config['presentation_style']) || empty($config['instance_id'])) {
         return [];
       }
-      $pattern_name = $pattern->name;
+      $pattern_name = $pattern->label();
       if ($config['presentation_style'] === 'webcomponent') {
         $elements[] = "<$pattern_name-pattern></$pattern_name-pattern>";
       }

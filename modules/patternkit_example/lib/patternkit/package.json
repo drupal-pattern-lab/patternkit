@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cybtachyon/patternkit_patterns.git"
+    "url": "git+https://github.com/drupal-pattern-lab/patternkit_patterns.git"
   },
   "keywords": [
     "pattern"
@@ -16,9 +16,9 @@
   "author": "Derek Reese",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/cybtachyon/patternkit_patterns/issues"
+    "url": "https://github.com/drupal-pattern-lab/patternkit_patterns/issues"
   },
-  "homepage": "https://github.com/cybtachyon/patternkit_patterns#readme",
+  "homepage": "https://github.com/drupal-pattern-lab/patternkit_patterns#readme",
   "devDependencies": {
     "gulp-cli": "^2.0.1",
     "node-sass": "^4.7.2",

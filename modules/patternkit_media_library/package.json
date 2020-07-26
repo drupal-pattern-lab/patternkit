@@ -1,0 +1,40 @@
+{
+  "name": "patternkit-media-library",
+  "version": "1.0.0-alpha",
+  "description": "Media Library support for Patternkit.",
+  "main": "js/patternkit.jsoneditor.media_library.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/drupal-pattern-lab/patternkit.git"
+  },
+  "author": "cybtachyon",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/drupal-pattern-lab/drupal-pattern-lab/issues"
+  },
+  "homepage": "https://github.com/drupal-pattern-lab/drupal-pattern-lab#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.8.7",
+    "@babel/preset-env": "^7.8.7",
+    "babelify": "^10.0.0",
+    "browserify": "^16.5.0",
+    "gulp": "^4.0.2",
+    "gulp-concat": "^2.6.1",
+    "gulp-rename": "^2.0.0",
+    "gulp-replace": "^1.0.0",
+    "gulp-sourcemaps": "^2.6.5",
+    "vinyl-buffer": "^1.0.1",
+    "vinyl-source-stream": "^2.0.0"
+  },
+  "scripts": {
+    "build": "gulp",
+    "dev": "gulp",
+    "eslint": "eslint -c ./.eslintrc js/src/**/*.es6.js",
+    "eslint.fix": "eslint -c ./.eslintrc js/src/**/*.es6.js --fix",
+    "postversion": "git push && git push --tags",
+    "serve-test": "http-server --p 9001",
+    "watch": "gulp watch"
+  }
+}

@@ -6,26 +6,18 @@ services:
     class: Drupal\patternkit\PathProcessor\PathProcessorPatterns
     tags:
       - { name: path_processor_inbound, priority: 200 }
-  patternkit.library.discovery:
-    class: Drupal\patternkit\PatternkitLibraryDiscovery
-    arguments: ['@patternkit.library.discovery.collector']
-  patternkit.library.discovery.collector:
-    class: Drupal\patternkit\PatternLibraryCollector
-    arguments: ['@cache.discovery', '@config.factory', '@file_system', '@plugin.manager.library.pattern', '@lock', '@logger.channel.default', '@module_handler', '@app.root', '@theme.manager']
-    tags:
-      - { name: needs_destruction }
-  patternkit.library.discovery.parser.file:
-    class: Drupal\patternkit\PatternLibraryParser\FilePatternLibraryParser
+  patternkit.asset.library:
+    class: Drupal\patternkit\Asset\Library
+    arguments: ['@cache.discovery', '@config.factory', '@plugin.manager.library.pattern', '@lock', '@module_handler', '@app.root', '@theme.manager']
+  patternkit.asset.library.parser.file:
+    class: Drupal\patternkit\Asset\PatternLibraryParser\FilePatternLibraryParser
     arguments: ['@serialization.json', '@app.root', '@module_handler', '@theme.manager']
-  patternkit.library.discovery.parser.json:
-    class: Drupal\patternkit\PatternLibraryParser\JSONPatternLibraryParser
+  patternkit.asset.library.parser.json:
+    class: Drupal\patternkit\Asset\PatternLibraryParser\JSONPatternLibraryParser
     arguments: ['@serialization.json', '@app.root', '@module_handler', '@theme.manager']
-  patternkit.library.discovery.parser.twig:
-    class: Drupal\patternkit\PatternLibraryParser\TwigPatternLibraryParser
+  patternkit.asset.library.parser.twig:
+    class: Drupal\patternkit\Asset\PatternLibraryParser\TwigPatternLibraryParser
     arguments: ['@serialization.json', '@app.root', '@module_handler', '@theme.manager']
-  patternkit.opener.jsonlibrary:
-    class: Drupal\patternkit\MediaLibraryJSONLibraryOpener
-    arguments: ['@entity_type.manager']
   plugin.manager.library.pattern:
     class: Drupal\patternkit\PatternLibraryPluginManager
     arguments: ['@container.namespaces', '@cache.discovery', '@module_handler', '@theme_handler']
@@ -42,6 +34,6 @@ services:
     # We use '.' instead of '@app.root' as the path for non-namespaced template
     # files so that they match the relative paths of templates loaded via the
     # theme registry or via Twig namespaces.
-    arguments: ['.', '@logger.channel.patternkit', '@patternkit.library.discovery.collector']
+    arguments: ['.', '@logger.channel.patternkit', '@patternkit.asset.library']
     tags:
       - { name: twig.loader, priority: 100 }

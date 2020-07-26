@@ -1,0 +1,19 @@
+{
+  "name": "drupal-pattern-lab/patternkit_media_library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Red Hat Inc.",
+      "email": "drupal@redhat.com"
+    }
+  ],
+  "require": {},
+  "config": {},
+  "repositories": [],
+  "scripts": {
+    "js:build": [
+        ". ~/.profile && nvm install && nvm use",
+        "npm install && npx gulp"
+    ]
+  }
+}

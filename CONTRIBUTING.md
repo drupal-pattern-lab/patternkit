@@ -73,8 +73,7 @@ Drupal documents functionality through change records, which you can search at [
 While most Patternkit files are self-explanatory, the main entry points and important classes of Patternkit are written here:
 
  - **[patternkit.services.yml](patternkit.services.yml)** Provides the suite of Patternkit services to Drupal. This is the primary entry point for most of Patternkit's functionality.
- - **[package.json](package.json)** Patternkit relies on third-party libraries to provide functionality for things like the JSON Schema editor. This entry point provides several node.js scripts for maintaining, upgrading, and building those libraries as well as Patternkit's Drupal JS.
- - **[PatternLibraryDiscovery](src/PatternkitLibraryDiscovery.php)**
+ - **[Library](src/Asset/Library.php)** This is the main library-handling class for Patternkit, and provides a plugin system for different types of pattern libraries.
  - **[PatternLibraryLoader](src/Loader/PatternLibraryLoader.php)** This is the loader for Twig that provides namespace functionality and loading for theme patterns.
 
 ## How Can I Contribute?
@@ -82,15 +81,15 @@ While most Patternkit files are self-explanatory, the main entry points and impo
 
 This section guides you through submitting a bug report. Following these guidelines helps maintainers and the community understand your report :pencil:, reproduce the behavior :computer: :computer:, and find related reports :mag_right:.
 
+Bugs are tracked as [Drupal.org issues](https://www.drupal.org/project/issues/patternkit?categories=All).
+
 > **Note:** If you find a **Closed** issue that seems like it is the same thing that you're experiencing, open a new issue and include a link to the original issue in the body of your new one.
 
 #### Before Submitting A Bug Report
 
-* **Perform a [cursory search](https://www.drupal.org/project/issues/patternkit?categories=All)** to see if the problem has already been reported. If it has **and the issue is still open**, add a comment to the existing issue instead of opening a new one.
+* **Perform a cursory search on [Drupal.org](https://www.drupal.org/project/issues/patternkit?categories=All)** to see if the problem has already been reported. If it has **and the issue is still open**, add a comment to the existing issue instead of opening a new one.
 
 #### How Do I Submit A (Good) Bug Report?
-
-Bugs are tracked as [Drupal.org issues](https://www.drupal.org/project/issues/patternkit?categories=All).
 
 Explain the problem and include additional details to help maintainers reproduce the problem:
 
@@ -100,8 +99,8 @@ Explain the problem and include additional details to help maintainers reproduce
 * **Describe the behavior you observed after following the steps** and point out what exactly is the problem with that behavior.
 * **Explain which behavior you expected to see instead and why.**
 * **Include screenshots and animated GIFs** which show you following the described steps and clearly demonstrate the problem. You can use [this tool](https://www.cockos.com/licecap/) to record GIFs on macOS and Windows, and [this tool](https://github.com/colinkeenan/silentcast) or [this tool](https://github.com/GNOME/byzanz) on Linux.
-* **If you're reporting that Patternkit crashed**, include a crash report with a stack trace from the operating system. On macOS, the crash report will be available in `Console.app` under "Diagnostic and usage information" > "User diagnostic reports". Include the crash report in the issue in a <pre><code> block, an attachment, or put it in a [gist](https://gist.github.com/) and provide link to that gist.
-* **If the problem is related to performance or memory**, include a [profile capture](https://blackfire.io/) with your report.
+* **If you're reporting that Patternkit crashed**, include a crash report with a stack trace from PHP.  Include the crash report in the issue in a \<pre\>\<code\> block, an attachment, or put it in a [gist](https://gist.github.com/) and provide a link to that gist.
+* **For performance or memory-related problems**, include a [profile capture](https://blackfire.io/) with your report.
 * **If the problem wasn't triggered by a specific action**, describe what you were doing before the problem happened and share more information using the guidelines below.
 
 Provide more context by answering these questions:
@@ -109,7 +108,7 @@ Provide more context by answering these questions:
 * **Did the problem start happening recently** (e.g. after updating to a new version) or was this always a problem?
 * If the problem started happening recently, **can you reproduce the problem in an older version?** What's the most recent version in which the problem doesn't happen? You can download older versions of Patternkit from [the releases page](https://www.drupal.org/project/patternkit/releases).
 * **Can you reliably reproduce the issue?** If not, provide details about how often the problem happens and under which conditions it normally happens.
-* If the problem is related to working with files (e.g. opening and editing files), **does the problem happen for all files and projects or only some?** Does the problem happen only when working with local or remote files (e.g. on network drives), with files of a specific type (e.g. only JavaScript or Python files), with large files or files with very long lines, or with files in a specific encoding? Is there anything else special about the files you are using?
+* For files-system related files (e.g. opening and editing files), **does the problem happen for all files and projects or only some?** Does the problem happen only when working with local or remote files (e.g. on network drives), with files of a specific type (e.g. only JavaScript or Python files), with large files or files with very long lines, or with files in a specific encoding? Is there anything else special about the files you are using?
 
 Include details about your configuration and environment:
 
@@ -126,7 +125,7 @@ Before creating enhancement suggestions, please check [this list](#before-submit
 #### Before Submitting An Enhancement Suggestion
 
 * **Check if there's already [a module](https://drupal.org/project/modules) which provides that enhancement.**
-* **Perform a [cursory search](https://www.drupal.org/project/issues/patternkit?categories=All)** to see if the enhancement has already been suggested. If it has, add a comment to the existing issue instead of opening a new one.
+* **Perform a cursory search on [Drupal.org](https://www.drupal.org/project/issues/patternkit?categories=All)** to see if the enhancement has already been suggested. If it has, add a comment to the existing issue instead of opening a new one.
 
 #### How Do I Submit A (Good) Enhancement Suggestion?
 
@@ -134,7 +133,7 @@ Enhancement suggestions are tracked as [Drupal.org issues](https://www.drupal.or
 
 * **Use a clear and descriptive title** for the issue to identify the suggestion.
 * **Provide a step-by-step description of the suggested enhancement** in as many details as possible.
-* **Provide specific examples to demonstrate the steps**. Include copy/pasteable snippets which you use in those examples, as <code> blocks.
+* **Provide specific examples to demonstrate the steps**. Include copy/pasteable snippets which you use in those examples, as \<code\> blocks.
 * **Describe the current behavior** and **explain which behavior you expected to see instead** and why.
 * **Include screenshots and animated GIFs** which help you demonstrate the steps or point out the part which the suggestion is related to. You can use [this tool](https://www.cockos.com/licecap/) to record GIFs on macOS and Windows, and [this tool](https://github.com/colinkeenan/silentcast) or [this tool](https://github.com/GNOME/byzanz) on Linux.
 * **Explain why this enhancement would be useful** to most users and isn't something that can or should be implemented as another module.
@@ -153,8 +152,7 @@ Unsure where to begin contributing? You can start by looking through these `begi
 
 Patternkit can be developed locally.
 
-* [Patternkit Pre-Build Local Environment][https://github.com/drupal-pattern-lab/patternkit_env]
-
+* [Patternkit Pre-Built Local Environment](https://github.com/drupal-pattern-lab/patternkit_env)
 ### Pull Requests
 
 The process described here has several goals:
@@ -166,8 +164,8 @@ The process described here has several goals:
 
 Please follow these steps to have your contribution considered by the maintainers:
 
-1. Follow all instructions in [the template](PULL_REQUEST_TEMPLATE.md)
-1. Follow the [styleguides](#styleguides)
+- Follow all instructions in [the template](PULL_REQUEST_TEMPLATE.md)
+- Follow the [styleguides](#styleguides)
 
 While the prerequisites above must be satisfied prior to having your pull request reviewed, the reviewer(s) may ask you to complete additional design work, tests, or other changes before your pull request can be ultimately accepted.
 
@@ -175,7 +173,7 @@ While the prerequisites above must be satisfied prior to having your pull reques
 
 ### Git Commit Messages
 
-[Use the Drupal.org Commit Guidelines](https://www.drupal.org/node/52287) (even if the module maintainer's don't!)
+[Use the Drupal.org Commit Guidelines](https://www.drupal.org/node/52287) (even if the module maintainers don't!)
 
 ### JavaScript Styleguide
 
@@ -183,5 +181,5 @@ While the prerequisites above must be satisfied prior to having your pull reques
 
 ### PHP Styleguide
 
-[Use the Drupal.org PHP Coding Standards](https://www.drupal.org/docs/develop/standards/coding-standards).
-[Run Coder Sniffer](https://www.drupal.org/docs/contributed-modules/code-review-module/installing-coder-sniffer).
+- [Use the Drupal.org PHP Coding Standards](https://www.drupal.org/docs/develop/standards/coding-standards).
+- [Run Coder Sniffer](https://www.drupal.org/docs/contributed-modules/code-review-module/installing-coder-sniffer).

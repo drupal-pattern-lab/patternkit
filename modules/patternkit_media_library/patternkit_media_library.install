@@ -1,0 +1,28 @@
+<?php
+
+/**
+ * @file
+ * Functions run when the module is installed by Drupal.
+ */
+
+use Drupal\Core\Link;
+use Drupal\Core\Url;
+
+/**
+ * Implements hook_requirements.
+ */
+function patternkit_media_library_requirements($phase) {
+  $requirements = [];
+
+  $entity_browser_installed = \Drupal::moduleHandler()->moduleExists('entity_browser');
+  $media_entity_browser_installed = \Drupal::moduleHandler()->moduleExists('media_entity_browser');
+  if (!$entity_browser_installed || !$media_entity_browser_installed) {
+    $requirements['patternkit_media_library_recommended_modules'] = [
+      'title' => t('Patternkit Media Library Recommended Modules'),
+      'description' => t('Patternkit Media Library recommends installing <a href="https://www.drupal.org/project/entity_browser">Entity Browser</a> and <a href="https://www.drupal.org/project/media_entity_browser">Media Entity Browser</a> for the best Media Library Experience.'),
+      'severity' => REQUIREMENT_INFO,
+    ];
+  }
+
+  return $requirements;
+}

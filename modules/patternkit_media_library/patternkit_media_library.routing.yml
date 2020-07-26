@@ -1,0 +1,6 @@
+patternkit.media_library:
+  path: '/patternkit_media_library'
+  defaults:
+    _controller: '\Drupal\patternkit_media_library\Controller\PatternkitMediaLibraryController::mediaLibrary'
+  requirements:
+    _permission: 'administer blocks,view media'
