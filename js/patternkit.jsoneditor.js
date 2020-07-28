@@ -121,7 +121,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
             _this.refs[url] = 'loading';
             waiting++;
             var r = new XMLHttpRequest();
-            var uri = settings.path.baseUrl + url + '/schema';
+            var uri = settings.path.baseUrl + url;
             r.open("GET", uri, true);
 
             r.onreadystatechange = function () {

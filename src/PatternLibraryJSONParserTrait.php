@@ -2,6 +2,7 @@
 
 namespace Drupal\patternkit;
 
+use Drupal\Core\Url;
 use Drupal\patternkit\Entity\PatternInterface;
 
 /**
@@ -39,7 +40,7 @@ trait PatternLibraryJSONParserTrait {
    * @return object
    *   The updated schema properties object.
    *
-   * @todo JSON Schema technically allows the following valid refs:
+   * @example JSON Schema technically allows the following valid refs:
    *   - URI "example.json" "../../example.json" "./example.json"
    *   - URL "https://json-schema.org/person.schema.json"
    *   - JSON Pointer "#/definitions/example" "example.json#/example"
@@ -76,15 +77,23 @@ trait PatternLibraryJSONParserTrait {
       }
       $path = $value;
       if (strpos($value,'@') === 0) {
-        $library_name = strstr($value, '/', TRUE);
-        $pattern_library = $library->getLibraryDefinitions()[trim($library_name, '@')];
-        $path = substr($value, strlen());
+        $library_namespace = strstr($value, '/', TRUE);
+        $path = substr($value, strlen("$library_namespace/"));
       }
+      $ref = '';
+      if (strstr($path, '#/')) {
+        $ref = explode('#/', $path);
+        $path = reset($ref);
+        $ref = !empty($ref[1]) ? '#/' . $ref[1] : '';
+      }
+      $library_name = $pattern->getLibrary();
       if (strstr($path, './')) {
+        $pattern_library = $library->getLibraryDefinitions()[trim($library_name, '@')];
+        $library_path = $pattern_library->getPatternInfo()['data'] ?? $pattern_library->getExtension()->getPath();
         /** @var \Drupal\Core\File\FileSystem $filesystem */
-        $path = realpath($pattern->getPath() . $path);
+        $path = substr(str_replace('\\', '/', realpath($library_path . '/' . $path)), strlen(\Drupal::root() . '/' . $library_path . '/'));
       }
-      $properties[$property] = 'api/patternkit/' . trim($value, '.json');
+      $properties[$property] = Url::fromUserInput('/api/patternkit/' . trim($library_namespace ?? $library_name, '@') . '/' . trim($path, '.json') . '/json')->toString() . $ref;
     }
     return $properties;
   }

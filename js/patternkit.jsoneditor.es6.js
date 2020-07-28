@@ -87,7 +87,7 @@
             this.refs[url] = 'loading';
             waiting++;
             let r = new XMLHttpRequest();
-            let uri = settings.path.baseUrl + url + '/schema';
+            let uri = settings.path.baseUrl + url;
             r.open("GET", uri, true);
             r.onreadystatechange = () => {
               if (r.readyState !== 4) {

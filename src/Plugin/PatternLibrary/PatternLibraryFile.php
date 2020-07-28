@@ -3,8 +3,8 @@
 namespace Drupal\patternkit\Plugin\PatternLibrary;
 
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\patternkit\Annotation\PatternLibrary;
 use Drupal\patternkit\Entity\PatternInterface;
-use Drupal\patternkit\Pattern;
 use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternLibraryPluginDefault;
 use Drupal\patternkit\PatternLibraryPluginInterface;
@@ -36,7 +36,7 @@ class PatternLibraryFile extends PatternLibraryPluginDefault implements Containe
   /**
    * File pattern library parser service.
    *
-   * @var \Drupal\patternkit\PatternLibraryParser\FilePatternLibraryParser
+   * @var \Drupal\patternkit\Asset\PatternLibraryParser\FilePatternLibraryParser
    */
   protected $fileParser;
 
@@ -47,7 +47,7 @@ class PatternLibraryFile extends PatternLibraryPluginDefault implements Containe
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): PatternLibraryPluginInterface {
     $root = $container->get('app.root');
-    /** @var \Drupal\patternkit\PatternLibraryParserInterface $file_parser */
+    /** @var \Drupal\patternkit\Asset\PatternLibraryParserInterface $file_parser */
     $file_parser = $container->get('patternkit.asset.library.parser.file');
     /** @var \Drupal\Core\Config\ConfigFactoryInterface $config_factory */
     $config_factory = $container->get('config.factory');
