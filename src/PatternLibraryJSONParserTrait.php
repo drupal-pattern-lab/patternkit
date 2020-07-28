@@ -66,6 +66,9 @@ trait PatternLibraryJSONParserTrait {
       if ($property !== '$ref') {
         continue;
       }
+      if (strpos($value, '#/') === 0) {
+        continue;
+      }
       /** @var \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface $stream_manager */
       $stream_manager = \Drupal::service('stream_wrapper_manager');
       if ($stream_manager->isValidScheme($stream_manager->getViaUri($value))) {
