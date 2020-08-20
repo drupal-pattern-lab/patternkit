@@ -1,5 +1,6 @@
 {
     "name": "drupal-pattern-lab/patternkit",
+    "description": "Patternkit is a Drupal module that lets you drag and drop your theme templates, patterns, and components into layouts, whether using Layout Builder, Panels, or the default Block Layout editor.",
     "authors": [
         {
             "name": "Derek Reese",
@@ -11,8 +12,19 @@
         }
     ],
     "license": "MIT",
-    "require": {},
-    "config": {},
+    "require": {
+        "php": ">=7.1.3",
+        "symfony/finder": "^3.4 || ^4.0",
+        "symfony/yaml": "^3.4 || ^4.0"
+    },
+    "require-dev": {
+        "drupal/core-recommended": "^8.8"
+    },
+    "config": {
+        "platform": {
+            "php": "7.1.3"
+        }
+    },
     "extra": {
         "drush": {
             "services": {
