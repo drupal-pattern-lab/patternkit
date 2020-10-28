@@ -2,6 +2,7 @@
 
 namespace Drupal\patternkit\Plugin\Block;
 
+use Drupal\Component\Plugin\Context\Context;
 use Drupal\Component\Serialization\SerializationInterface;
 use Drupal\Component\Utility\Xss;
 use Drupal\Core\Ajax\AjaxResponse;
@@ -605,6 +606,8 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $types = [];
     // Layout builder does not provide its context to the plugin constructor.
     // Workaround: we pull Layout Builder's gathered_contexts if present.
+    // The block module layouts provides all gathered_contexts as required,
+    // so we need to set empty context to '' to display them without errors.
     // @todo Remove after https://www.drupal.org/project/drupal/issues/3154986
     $contexts = [];
     $layout_contexts = $form_state->getTemporaryValue('gathered_contexts');
@@ -616,6 +619,9 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     foreach ($this->context as $type => $context) {
       if ($context !== NULL) {
         $types += ["$type" => "$type"];
+      }
+      if (!$context->hasContextValue()) {
+        $this->context[$type] = new Context($context->getContextDefinition(), '');
       }
     }
     foreach ($this->getAvailableTokens(FALSE, $types) as $type => $tokens) {
