@@ -27,7 +27,7 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
   protected $library;
 
   /**
-   * Used to populated all of the types of Patternkit blocks based on libraries.
+   * Used to populate all of the types of Patternkit blocks based on libraries.
    *
    * @param \Drupal\Core\Config\ImmutableConfig $config
    *   Provides patternkit configurable settings.
@@ -145,7 +145,7 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
         continue;
       }
       $this->derivatives[$pattern_id] = [
-        'category' => t('Patternkit:@lib/@category', [
+        'category' => (string) t('Patternkit:@lib/@category', [
           '@lib'      => $lib ?? 'patternkit',
           '@category' => $pattern->getCategory() ?? 'default',
         ]),
