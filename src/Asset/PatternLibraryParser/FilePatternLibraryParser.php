@@ -10,7 +10,7 @@ use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\PatternLibraryJSONParserTrait;
-use Drupal\patternkit\PatternLibraryParserBase;
+use Drupal\patternkit\Asset\PatternLibraryParserBase;
 
 /**
  * Parses a File pattern library collection into usable metadata.
@@ -102,12 +102,12 @@ class FilePatternLibraryParser extends PatternLibraryParserBase {
     }
     $metadata = [];
     // @todo Grab the extension from the plugin.
-    $type = strtok($library['plugin'], '.');
+    $type = strtok($library->toArray()['plugin'], '.');
     if ($type !== 'file') {
       return [];
     }
-    $ext = strtok('.');
-    foreach (self::discoverComponents($path, [$ext]) as $name => $data) {
+    $ext = strtok($type, '.');
+    foreach (self::discoverComponents($path, [$ext[1]]) as $name => $data) {
       if (empty($data[$ext]) || !file_exists($data[$ext])) {
         continue;
       }
@@ -146,7 +146,7 @@ class FilePatternLibraryParser extends PatternLibraryParserBase {
       }
       $pattern->schema['properties'] = static::schemaDereference(
         $pattern->schema['properties'],
-        $metadata
+        $pattern
       );
       $metadata[$pattern_type] = $pattern;
     }
