@@ -21,7 +21,7 @@
   "homepage": "https://github.com/drupal-pattern-lab/patternkit_patterns#readme",
   "devDependencies": {
     "gulp-cli": "^2.0.1",
-    "node-sass": "^4.7.2",
+    "node-sass": "^4.13.1",
     "parcel-bundler": "^1.5.1",
     "sass-lint": "^1.12.1"
   }
