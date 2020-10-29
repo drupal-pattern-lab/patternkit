@@ -62,7 +62,7 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
     $config_factory = $container->get('config.factory');
     $config = $config_factory->get(PatternkitSettingsForm::SETTINGS);
     /** @var \Drupal\Core\Entity\EntityTypeManagerInterface $entity_manager */
-    $entity_manager = $container->get('entity.manager');
+    $entity_manager = $container->get('entity_type.manager');
     /** @var \Drupal\Core\Logger\LoggerChannelInterface $logger */
     $logger = $container->get('logger.channel.patternkit');
     /** @var \Drupal\patternkit\Asset\LibraryInterface $pattern_discovery */
