@@ -5,6 +5,18 @@
  * Install file for patternkit module.
  */
 
+use Drupal\Core\Cache\Cache;
+use Drupal\Core\Entity\ContentEntityType;
+use Drupal\Core\Entity\EntityAccessControlHandler;
+use Drupal\Core\Entity\EntityListBuilder;
+use Drupal\Core\Entity\EntityViewBuilder;
+use Drupal\Core\Entity\Sql\SqlContentEntityStorage;
+use Drupal\Core\Entity\Sql\SqlContentEntityStorageSchema;
+use Drupal\patternkit\Commands\PatternkitCommands;
+use Drupal\patternkit\Entity\Pattern;
+use Drupal\patternkit\Entity\PatternRouteProvider;
+use Drupal\views\EntityViewsData;
+
 /**
  * Implements hook_requirements.
  */
@@ -21,4 +33,104 @@ function patternkit_requirements($phase) {
   }
 
   return $requirements;
+}
+
+/**
+ * Allows upgrading from dev version automatically.
+ */
+function patternkit_update_8001(&$sandbox) {
+  // Installs new entities if necessary.
+  $entity_definition_update_manager = \Drupal::entityDefinitionUpdateManager();
+  if (!$entity_definition_update_manager->getEntityType('patternkit_pattern')) {
+    $pattern_entity_type = new ContentEntityType([
+      'id' => 'patternkit_pattern',
+      'class' => Pattern::class,
+      'label' => t('Pattern'),
+      'label_collection' => t('Pattern Libraries'),
+      'label_plural' => t('Patterns'),
+      'label_singular' => t('Pattern'),
+      'label_count' => [
+        'singular' => t('@count patterns'),
+        'plural' => t('@count custom blocks'),
+      ],
+      'admin_permission' => 'administer blocks',
+      'base_table' => 'pattern',
+      'revision_table' => 'pattern_revision',
+      'entity_keys' => [
+        'id' => 'id',
+        'hash' => 'hash',
+        'assets' => 'assets',
+        'category' => 'category',
+        'label' => 'name',
+        'library' => 'library',
+        'libraryPluginId' => 'libraryPluginId',
+        'path' => 'path',
+        'revision' => 'revision',
+        'schema' => 'schema',
+        'template' => 'template',
+        'uuid' => 'uuid',
+        'version' => 'version',
+      ],
+      'revision_metadata_keys' => [
+        'revision_default' => 'revision_default',
+        'revision_user' => 'revision_user',
+        'revision_created' => 'revision_created',
+        'revision_log_message' => 'revision_log_message',
+      ],
+      'handlers' => [
+        'access' => EntityAccessControlHandler::class,
+        'storage' => SqlContentEntityStorage::class,
+        'storage_schema' => SqlContentEntityStorageSchema::class,
+        'view_builder' => EntityViewBuilder::class,
+        'views_data' => EntityViewsData::class,
+        'route_provider' => [
+          'html' => PatternRouteProvider::class,
+        ],
+        'list_builder' => EntityListBuilder::class,
+      ],
+      'links' => [
+        'canonical' => '/patternkit/{pattern}',
+        'collection' => '/admin/structure/block/patternkit',
+      ],
+      'translatable' => FALSE,
+    ]);
+    $entity_definition_update_manager->installFieldableEntityType($pattern_entity_type, Pattern::baseFieldDefinitions($pattern_entity_type));
+  }
+
+  // Upgrades existing patterns.
+  $command = new PatternkitCommands();
+  $command->setLogger(\Drupal::logger('patternkit'));
+  $command->devUpdate();
+
+  // Clears caches.
+  $user_caches = [
+    'apcu_clear_cache',
+    'wincache_ucache_clear',
+    'xcache_clear_cache',
+    'opcache_reset'
+  ];
+  array_map('call_user_func', array_filter($user_caches, 'is_callable'));
+  foreach (Cache::getBins() as $bin) {
+    $bin->deleteAll();
+  }
+  \Drupal::service('page_cache_kill_switch')->trigger();
+  drupal_flush_all_caches();
+}
+
+/**
+ * Adds proper revision metadata keys to Patternkit.
+ */
+function patternkit_update_8002(&$sandbox) {
+  $entity_definition_update_manager = \Drupal::entityDefinitionUpdateManager();
+  $entity_type = $entity_definition_update_manager->getEntityType('patternkit_pattern');
+  $metadata_keys = $entity_type->get('revision_metadata_keys');
+  $metadata_keys = is_array($metadata_keys) ? $metadata_keys : [];
+  $metadata_keys = [
+      'revision_default' => 'revision_default',
+      'revision_user' => 'revision_user',
+      'revision_created' => 'revision_created',
+      'revision_log_message' => 'revision_log_message',
+    ] + $metadata_keys;
+  $entity_type->set('revision_metadata_keys', $metadata_keys);
+  $entity_definition_update_manager->updateEntityType($entity_type);
 }

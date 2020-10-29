@@ -8,6 +8,8 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\patternkit\Asset\LibraryInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
+use Drupal\patternkit\Commands\PatternkitCommands;
+
 class PatternkitSettingsForm extends ConfigFormBase {
 
   /** @var string */

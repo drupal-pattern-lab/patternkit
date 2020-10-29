@@ -84,7 +84,7 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
    *   A derivative ID in the format 'library.name_path_to_pattern'.
    */
   public static function assetToDerivativeId($asset_id) {
-    return trim(str_replace('/', '_', $asset_id),'@');
+    return trim(str_replace('/', '_', str_replace('_', '__', $asset_id)),'@');
   }
 
   /**
@@ -95,9 +95,12 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
    *
    * @return string
    *   An asset ID in the format '@library.name/path/to/pattern'.
+   *
+   * @todo This fails when a library has an underscore in the name.
+   * Deprecate this function, and rewrite dependent methods.
    */
   public static function derivativeToAssetId($derivative_id) {
-    return '@' . str_replace('_', '/', substr($derivative_id, strlen('patternkit_block:')));
+    return '@' . str_replace('//', '_', str_replace('_', '/', substr($derivative_id, strlen('patternkit_block:'))));
   }
 
   /**
