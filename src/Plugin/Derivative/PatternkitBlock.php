@@ -27,7 +27,7 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
   protected $library;
 
   /**
-   * Used to populated all of the types of Patternkit blocks based on libraries.
+   * Used to populate all of the types of Patternkit blocks based on libraries.
    *
    * @param \Drupal\Core\Config\ImmutableConfig $config
    *   Provides patternkit configurable settings.
@@ -62,7 +62,7 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
     $config_factory = $container->get('config.factory');
     $config = $config_factory->get(PatternkitSettingsForm::SETTINGS);
     /** @var \Drupal\Core\Entity\EntityTypeManagerInterface $entity_manager */
-    $entity_manager = $container->get('entity.manager');
+    $entity_manager = $container->get('entity_type.manager');
     /** @var \Drupal\Core\Logger\LoggerChannelInterface $logger */
     $logger = $container->get('logger.channel.patternkit');
     /** @var \Drupal\patternkit\Asset\LibraryInterface $pattern_discovery */
@@ -84,7 +84,7 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
    *   A derivative ID in the format 'library.name_path_to_pattern'.
    */
   public static function assetToDerivativeId($asset_id) {
-    return trim(str_replace('/', '_', $asset_id),'@');
+    return trim(str_replace('/', '_', str_replace('_', '__', $asset_id)),'@');
   }
 
   /**
@@ -95,9 +95,12 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
    *
    * @return string
    *   An asset ID in the format '@library.name/path/to/pattern'.
+   *
+   * @todo This fails when a library has an underscore in the name.
+   * Deprecate this function, and rewrite dependent methods.
    */
   public static function derivativeToAssetId($derivative_id) {
-    return '@' . str_replace('_', '/', substr($derivative_id, strlen('patternkit_block:')));
+    return '@' . str_replace('//', '_', str_replace('_', '/', substr($derivative_id, strlen('patternkit_block:'))));
   }
 
   /**
@@ -145,7 +148,7 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
         continue;
       }
       $this->derivatives[$pattern_id] = [
-        'category' => t('Patternkit:@lib/@category', [
+        'category' => (string) t('Patternkit:@lib/@category', [
           '@lib'      => $lib ?? 'patternkit',
           '@category' => $pattern->getCategory() ?? 'default',
         ]),

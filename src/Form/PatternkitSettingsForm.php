@@ -8,10 +8,12 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\patternkit\Asset\LibraryInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
+use Drupal\patternkit\Commands\PatternkitCommands;
+
 class PatternkitSettingsForm extends ConfigFormBase {
 
   /** @var string */
-  public const SETTINGS = 'patternkit.settings';
+  const SETTINGS = 'patternkit.settings';
 
   /** @var \Drupal\patternkit\Asset\LibraryInterface */
   protected $library;
@@ -35,7 +37,7 @@ class PatternkitSettingsForm extends ConfigFormBase {
   public function buildForm(array $form, FormStateInterface $form_state) :array {
     $config = $this->config(static::SETTINGS);
     try {
-      $libraries = $this->library->getLibraries();
+      $libraries = $this->library->getLibraryDefinitions();
     }
     catch (\Exception $exception) {
       $this->getLogger('patternkit')->error('Unable to load Patternkit libraries list: @message', ['@message' => $exception->getMessage()]);
@@ -56,7 +58,7 @@ class PatternkitSettingsForm extends ConfigFormBase {
     ];
     $library_options = $config->get('patternkit_libraries') ?? [];
     foreach ($libraries as $lib_title => $library) {
-      if (empty($library->getPatternInfo())) {
+      if (empty($library->patterns)) {
         continue;
       }
       $lib_desc = $library->description ?? $lib_title;
@@ -132,7 +134,7 @@ class PatternkitSettingsForm extends ConfigFormBase {
   /**
    * {@inheritDoc}
    */
-  public function submitForm(array &$form, FormStateInterface $form_state): void {
+  public function submitForm(array &$form, FormStateInterface $form_state) {
     $config = $this->config(static::SETTINGS);
     $config
       ->set('patternkit_libraries', $form_state->getValue('patternkit_libraries'))

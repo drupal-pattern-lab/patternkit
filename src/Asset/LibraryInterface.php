@@ -88,4 +88,15 @@ interface LibraryInterface extends CacheCollectorInterface {
    */
   public function getLibraryByName($extension, $name);
 
+  /**
+   * Returns the specified Patternkit module metadata.
+   *
+   * @return \Drupal\patternkit\PatternLibrary[]
+   *   Array of metadata objects found or object if specific pattern requested.
+   *   Keyed by library name in the format.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\PluginException
+   */
+  public function getLibraryDefinitions(): array;
+
 }

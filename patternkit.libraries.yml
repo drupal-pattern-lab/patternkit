@@ -21,9 +21,18 @@ patternkit.jsoneditor:
     - core/drupalSettings
     - core/jquery
     - patternkit/jsoneditor
+    - patternkit/quill
 
 patternkit.jsoneditor.theme.bootstrap4:
   version: v4.0.0
   css:
     theme:
       css/bootstrap.min.css: {minified: true}
+      css/quill.core.css: { }
+      css/quill.snow.css: { }
+
+quill:
+  version: VERSION
+  js:
+    js/quill.core.js: {}
+    js/quill.js: {}

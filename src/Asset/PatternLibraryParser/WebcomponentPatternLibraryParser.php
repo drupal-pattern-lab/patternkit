@@ -2,7 +2,12 @@
 
 namespace Drupal\patternkit\Asset\PatternLibraryParser;
 
-use Drupal\patternkit\PatternLibraryParserBase;
+use Drupal\Core\File\FileSystem;
+use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
+use Drupal\patternkit\Asset\PatternLibraryParserBase;
+use Drupal\patternkit\Entity\Pattern;
+use Drupal\patternkit\Entity\PatternInterface;
+use Drupal\patternkit\PatternLibrary;
 
 class WebcomponentPatternLibraryParser extends PatternLibraryParserBase {
 
@@ -13,24 +18,20 @@ class WebcomponentPatternLibraryParser extends PatternLibraryParserBase {
    *   Pattern machine name.
    * @param object $config
    *   Configuration object for this instance of the pattern.
-   * @param object $pk_obj
-   *   The patternkit pattern object to extend.
    *
-   * @return object
+   * @return \Drupal\patternkit\Entity\PatternInterface
    *   The patternkit object representing the pattern.
    *
    * @todo Finish implementation.
    */
-  public function fetchAssets($subtype, $config, &$pk_obj) {
-    $patternkit_host = variable_get(
-      'patternkit_pl_host',
-      'http://localhost:9001'
-    );
+  public static function fetchAssets($subtype, $config): PatternInterface {
+    $patternkit_host = 'http://localhost:9001';
 
     //json_decode($config->rawJSON);
 
     $url = $patternkit_host . '/api/render/webcomponent';
-    $result = drupal_http_request(
+    $client = \Drupal::httpClient();
+    $request = $client->get(
       $url,
       array(
         'headers'  => array('Content-Type' => 'application/json'),
@@ -50,40 +51,30 @@ class WebcomponentPatternLibraryParser extends PatternLibraryParserBase {
     );
 
     $dir = "public://patternkit/$subtype/{$config->instance_id}";
-    if (!file_prepare_directory($dir, FILE_CREATE_DIRECTORY)) {
-      drupal_set_message(
+    if (!\Drupal::service('file_system')->prepareDirectory($dir, FileSystem::CREATE_DIRECTORY)) {
+      \Drupal::service('messenger')->addMessage(
         t(
           'Unable to create folder or save metadata/assets for plugin @plugin',
-          array(
-            '@plugin' => $subtype,
-          )
-        ),
-        'error'
-      );
-      watchdog(
-        'patternkit',
+          [ '@plugin' => $subtype ]
+        ));
+      \Drupal::logger('patternkit')->error(
         'Unable to create folder or save metadata/assets for plugin @plugin',
-        array(
-          '@plugin' => $subtype,
-        ),
-        WATCHDOG_ERROR
-      );
+        [ '@plugin' => $subtype ]);
     }
 
     // Fetch the body html artifact.
-    $save_result = file_unmanaged_save_data(
-      $result->data,
+    $save_result = \Drupal::service('file_system')->saveData(
+      $request->getBody()->getContents(),
       "$dir/body.html",
-      FILE_EXISTS_REPLACE
+      FileSystem::EXISTS_REPLACE
     );
 
     // Convert stream wrapper to relative path, if appropriate.
-    $scheme = file_uri_scheme($save_result);
-    if ($scheme && file_stream_wrapper_valid_scheme($scheme)) {
-      $wrapper = file_stream_wrapper_get_instance_by_scheme($scheme);
-      $save_result = $wrapper->getDirectoryPath() . "/" . file_uri_target(
-          $save_result
-        );
+    $scheme = StreamWrapperManagerInterface::getScheme($save_result);
+    if ($scheme && \Drupal::service('stream_wrapper_manager')->isValidScheme($scheme)) {
+      $wrapper = \Drupal::service('stream_wrapper_manager')->getViaScheme($scheme);
+      $save_result = $wrapper->getDirectoryPath() . "/" . \Drupal::service('stream_wrapper_manager')::getTarget(
+        $save_result);
     }
 
     $pk_obj->body = $save_result;
@@ -104,27 +95,24 @@ class WebcomponentPatternLibraryParser extends PatternLibraryParserBase {
     );
 
     if ($save_result == FALSE) {
-      drupal_set_message(
-        t(
-          'Unable to save metadata/assets for plugin @plugin',
-          array(
-            '@plugin' => $subtype,
-          )
-        ),
-        'error'
-      );
-      watchdog(
-        'patternkit',
+      \Drupal::service('messenger')->addMessage(
+        t('Unable to save metadata/assets for plugin @plugin',
+          [ '@plugin' => $subtype ]));
+      \Drupal::logger('patternkit')->error(
         'Unable to save metadata/assets for plugin @plugin',
-        array(
-          '@plugin' => $subtype,
-        ),
-        WATCHDOG_ERROR
-      );
-      // @TODO: do something.
+        [ '@plugin' => $subtype ]);
+      // @todo Handle the failure gracefully.
     }
 
-    return $pk_obj;
+    return Pattern::create((array) $pk_obj);
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public function parsePatternLibraryInfo(PatternLibrary $library, $path): array {
+    // @todo: Implement parsePatternLibraryInfo() method.
+    return [];
   }
 
 }

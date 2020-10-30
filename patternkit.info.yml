@@ -3,6 +3,7 @@ description: Adds Patternkit patterns as blocks.
 type: module
 package: Presentation Framework
 core: 8.x
+core_version_requirement: ^8 || ^9
 configure: patternkit.settings
 dependencies:
   - drupal:block_content

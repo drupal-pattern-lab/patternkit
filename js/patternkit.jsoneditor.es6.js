@@ -14,6 +14,11 @@
  *
  * @todo .editor-shadow-injection-target .card all: initial
  */
+
+import {patternkitEditorQuill} from './patternkit.jsoneditor.quill.es6.js';
+
+patternkitEditorQuill(jQuery, Drupal, JSONEditor);
+
 (function ($, Drupal, JSONEditor) {
   'use strict';
   Drupal.behaviors.patternkitEditor = {

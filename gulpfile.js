@@ -15,6 +15,7 @@ const gulpConfig = {
   ]
 };
 
+// @todo Move to Rollup from Browserify to support modular bundling.
 gulp.task('compile:es6', function () {
   return browserify(gulpConfig.dist + '/' + gulpConfig.main)
     .transform(babelify)

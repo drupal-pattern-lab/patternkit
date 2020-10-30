@@ -26,6 +26,7 @@ use Drupal\Core\Field\BaseFieldDefinition;
  *   ),
  *   admin_permission = "administer blocks",
  *   base_table = "pattern",
+ *   revision_table = "pattern_revision",
  *   entity_keys = {
  *     "id" = "id",
  *     "hash" = "hash",
@@ -40,6 +41,12 @@ use Drupal\Core\Field\BaseFieldDefinition;
  *     "template" = "template",
  *     "uuid" = "uuid",
  *     "version" = "version",
+ *   },
+ *   revision_metadata_keys = {
+ *    "revision_default" = "revision_default",
+ *     "revision_user" = "revision_user",
+ *     "revision_created" = "revision_created",
+ *     "revision_log_message" = "revision_log_message",
  *   },
  *   handlers = {
  *     "access" = "Drupal\Core\Entity\EntityAccessControlHandler",

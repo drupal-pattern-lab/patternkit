@@ -3,6 +3,9 @@
 namespace Drupal\patternkit\Asset;
 
 use Drupal\Core\Asset\LibraryDiscoveryParser;
+use Drupal\Core\File\FileSystem;
+use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternEditorConfig;
@@ -106,26 +109,30 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     $pk_obj = json_decode($result->data);
 
     $dir = "public://patternkit/$subtype/{$config->instance_id}";
-    if (!file_prepare_directory($dir, FILE_CREATE_DIRECTORY)) {
-      // @TODO: Failure handling.
-      _patternkit_show_error(
-        "Unable to create folder ($dir) to contain the pklugins artifacts."
-      );
+    if (!\Drupal::service('file_system')->prepareDirectory($dir, FileSystem::CREATE_DIRECTORY)) {
+      // @todo: Failure handling.
+      \Drupal::service('messenger')->addMessage(
+        t(
+        "Unable to create folder (@dir) to contain the pklugins artifacts.",
+          ['@dir' => $dir]
+      ));
     }
 
     // Fetch the body html artifact.
-    $save_result = file_unmanaged_save_data(
+    $save_result = \Drupal::service('file_system')->saveData(
       $pk_obj->body,
       "$dir/manifest.json",
-      FILE_EXISTS_REPLACE
+      FileSystem::EXISTS_REPLACE
     );
     $pk_obj->body = $save_result;
 
     if ($save_result == FALSE) {
       // @TODO: Failure handling.
-      _patternkit_show_error(
-        "Unable to create static archive of the JSON pklugins artifact for $subtype."
-      );
+      \Drupal::service('messenger')->addMessage(
+        t(
+        "Unable to create static archive of the JSON pklugins artifact for @subtype.",
+          ['@subtype' => $subtype]
+      ));
     }
 
     $weight = 100;
@@ -234,10 +241,12 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     $path = "$dir/" . dirname(trim($asset_url, '.'));
     $filename = basename(trim($asset_url, '.'));
 
-    if (!file_prepare_directory($path, FILE_CREATE_DIRECTORY)) {
-      _patternkit_show_error(
-        "Unable to create folder ($path) to contain the pklugins artifacts."
-      );
+    if (!\Drupal::service('file_system')->prepareDirectory($path, FileSystem::CREATE_DIRECTORY)) {
+      \Drupal::service('messenger')->addMessage(
+        t(
+        "Unable to create folder (@path) to contain the pklugins artifacts.",
+          ['@path' => $path]
+      ));
     }
 
     // Generate the full path to the source asset.
@@ -300,38 +309,29 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     $pk_obj->pattern = $subtype;
 
     $dir = "public://patternkit/$subtype/{$config->instance_id}";
-    if (!file_prepare_directory($dir, FILE_CREATE_DIRECTORY)) {
-      drupal_set_message(
+    if (!\Drupal::service('file_system')->prepareDirectory($dir, FileSystem::CREATE_DIRECTORY)) {
+      \Drupal::service('messenger')->addMessage(
         t(
           'Unable to create folder or save metadata/assets for plugin @plugin',
-          array(
-            '@plugin' => $subtype,
-          )
-        ),
-        'error'
-      );
-      watchdog(
-        'patternkit',
+          [ '@plugin' => $subtype ]
+        ));
+      \Drupal::logger('patternkit')->error(
         'Unable to create folder or save metadata/assets for plugin @plugin',
-        array(
-          '@plugin' => $subtype,
-        ),
-        WATCHDOG_ERROR
-      );
+        [ '@plugin' => $subtype ]);
     }
 
     // Fetch the body html artifact.
-    $save_result = file_unmanaged_save_data(
+    $save_result = \Drupal::service('file_system')->saveData(
       $result->data,
       "$dir/body.html",
-      FILE_EXISTS_REPLACE
+      FileSystem::EXISTS_REPLACE
     );
 
     // Convert stream wrapper to relative path, if appropriate.
-    $scheme = file_uri_scheme($save_result);
-    if ($scheme && file_stream_wrapper_valid_scheme($scheme)) {
-      $wrapper = file_stream_wrapper_get_instance_by_scheme($scheme);
-      $save_result = $wrapper->getDirectoryPath() . "/" . file_uri_target(
+    $scheme = StreamWrapperManagerInterface::getScheme($save_result);
+    if ($scheme && \Drupal::service('stream_wrapper_manager')->isValidScheme($scheme)) {
+      $wrapper = \Drupal::service('stream_wrapper_manager')->getViaScheme($scheme);
+      $save_result = $wrapper->getDirectoryPath() . "/" . \Drupal::service('stream_wrapper_manager')::getTarget(
           $save_result
         );
     }
@@ -339,24 +339,15 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     $pk_obj->body = $save_result;
 
     if ($save_result == FALSE) {
-      drupal_set_message(
+      \Drupal::service('messenger')->addMessage(
         t(
           'Unable to save metadata/assets for plugin @plugin',
-          array(
-            '@plugin' => $subtype,
-          )
-        ),
-        'error'
-      );
-      watchdog(
-        'patternkit',
+          [ '@plugin' => $subtype ]
+        ));
+      \Drupal::logger('patternkit')->error(
         'Unable to save metadata/assets for plugin @plugin',
-        array(
-          '@plugin' => $subtype,
-        ),
-        WATCHDOG_ERROR
-      );
-      // @TODO: do something.
+        [ '@plugin' => $subtype ]);
+      // @todo: Handle this error gracefully.
     }
 
     foreach (array('early', 'deferred') as $stage) {
@@ -424,7 +415,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
       }
     }
 
-    return $pk_obj;
+    return Pattern::create((array) $pk_obj);
   }
 
   /**
