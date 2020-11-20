@@ -5,6 +5,7 @@ namespace Drupal\patternkit\Asset\PatternLibraryParser;
 use Drupal\Component\Serialization\SerializationInterface;
 use Drupal\Core\Asset\Exception\InvalidLibraryFileException;
 use Drupal\Core\Extension\ModuleHandlerInterface;
+use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 use Drupal\Core\Theme\ThemeManagerInterface;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternEditorConfig;
@@ -29,15 +30,18 @@ class FilePatternLibraryParser extends PatternLibraryParserBase {
    *   Allows modules to alter library parsing.
    * @param \Drupal\Core\Theme\ThemeManagerInterface $theme_manager
    *   Allows themes to alter library parsing.
+   * @param \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface $stream_wrapper
+   *   The stream wrapper manager.
    */
   public function __construct(
     SerializationInterface $serializer,
     $root,
     ModuleHandlerInterface $module_handler,
-    ThemeManagerInterface $theme_manager) {
+    ThemeManagerInterface $theme_manager,
+    StreamWrapperManagerInterface $stream_wrapper) {
 
     $this->serializer = $serializer;
-    parent::__construct($root, $module_handler, $theme_manager);
+    parent::__construct($root, $module_handler, $theme_manager, $stream_wrapper);
   }
 
   /**
