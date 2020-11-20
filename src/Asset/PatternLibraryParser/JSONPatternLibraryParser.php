@@ -9,6 +9,7 @@ use Drupal\Core\Theme\ThemeManagerInterface;
 use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\PatternLibraryJSONParserTrait;
 use Drupal\patternkit\Asset\PatternLibraryParserBase;
+use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 
 /**
  * Parses a Twig pattern library collection into usable metadata.
@@ -27,15 +28,18 @@ class JSONPatternLibraryParser extends PatternLibraryParserBase {
    *   Allows modules to alter library parsing.
    * @param \Drupal\Core\Theme\ThemeManagerInterface $theme_manager
    *   Allows themes to alter library parsing.
+   * @param \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface $stream_wrapper
+   *   The stream wrapper manager.
    */
   public function __construct(
     SerializationInterface $serializer,
     $root,
     ModuleHandlerInterface $module_handler,
-    ThemeManagerInterface $theme_manager) {
+    ThemeManagerInterface $theme_manager,
+    StreamWrapperManagerInterface $stream_wrapper) {
 
     $this->serializer = $serializer;
-    parent::__construct($root, $module_handler, $theme_manager);
+    parent::__construct($root, $module_handler, $theme_manager, $stream_wrapper);
   }
 
   /**
