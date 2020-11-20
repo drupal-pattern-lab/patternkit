@@ -122,7 +122,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     $save_result = \Drupal::service('file_system')->saveData(
       $pk_obj->body,
       "$dir/manifest.json",
-      FileSystem::EXISTS_REPLACE
+      FileSystemInterface::EXISTS_REPLACE
     );
     $pk_obj->body = $save_result;
 
@@ -258,10 +258,10 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     // $dest_path = "$dir/" . md5($asset_src->data) . ".$asset_type";.
     $dest_path = $path . $filename;
 
-    $save_result = file_unmanaged_save_data(
+    $save_result = \Drupal::service('file_system')->saveData(
       $asset_src->data,
       $dest_path,
-      FILE_EXISTS_REPLACE
+      FileSystemInterface::EXISTS_REPLACE
     );
 
     if ($save_result == FALSE) {
@@ -270,10 +270,10 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     }
 
     // Convert stream wrapper to relative path, if appropriate.
-    $scheme = file_uri_scheme($save_result);
-    if ($scheme && file_stream_wrapper_valid_scheme($scheme)) {
-      $wrapper = file_stream_wrapper_get_instance_by_scheme($scheme);
-      $save_result = $wrapper->getDirectoryPath() . "/" . file_uri_target(
+    $scheme = StreamWrapperManagerInterface::getScheme($save_result);
+    if ($scheme && \Drupal::service('stream_wrapper_manager')->isValidScheme($scheme)) {
+      $wrapper = \Drupal::service('stream_wrapper_manager')->getViaScheme($scheme);
+      $save_result = $wrapper->getDirectoryPath() . "/" . \Drupal::service('stream_wrapper_manager')::getTarget(
           $save_result
         );
     }
@@ -324,7 +324,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     $save_result = \Drupal::service('file_system')->saveData(
       $result->data,
       "$dir/body.html",
-      FileSystem::EXISTS_REPLACE
+      FileSystemInterface::EXISTS_REPLACE
     );
 
     // Convert stream wrapper to relative path, if appropriate.

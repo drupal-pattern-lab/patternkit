@@ -11,13 +11,13 @@ services:
     arguments: ['@cache.discovery', '@config.factory', '@plugin.manager.library.pattern', '@lock', '@module_handler', '@app.root', '@theme.manager']
   patternkit.asset.library.parser.file:
     class: Drupal\patternkit\Asset\PatternLibraryParser\FilePatternLibraryParser
-    arguments: ['@serialization.json', '@app.root', '@module_handler', '@theme.manager']
+    arguments: ['@serialization.json', '@app.root', '@module_handler', '@theme.manager', '@stream_wrapper_manager']
   patternkit.asset.library.parser.json:
     class: Drupal\patternkit\Asset\PatternLibraryParser\JSONPatternLibraryParser
-    arguments: ['@serialization.json', '@app.root', '@module_handler', '@theme.manager']
+    arguments: ['@serialization.json', '@app.root', '@module_handler', '@theme.manager', '@stream_wrapper_manager']
   patternkit.asset.library.parser.twig:
     class: Drupal\patternkit\Asset\PatternLibraryParser\TwigPatternLibraryParser
-    arguments: ['@serialization.json', '@app.root', '@module_handler', '@theme.manager']
+    arguments: ['@serialization.json', '@app.root', '@module_handler', '@theme.manager', '@stream_wrapper_manager']
   plugin.manager.library.pattern:
     class: Drupal\patternkit\PatternLibraryPluginManager
     arguments: ['@container.namespaces', '@cache.discovery', '@module_handler', '@theme_handler']

@@ -2,7 +2,7 @@
 
 namespace Drupal\patternkit\Asset\PatternLibraryParser;
 
-use Drupal\Core\File\FileSystem;
+use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 use Drupal\patternkit\Asset\PatternLibraryParserBase;
 use Drupal\patternkit\Entity\Pattern;
@@ -51,7 +51,7 @@ class WebcomponentPatternLibraryParser extends PatternLibraryParserBase {
     );
 
     $dir = "public://patternkit/$subtype/{$config->instance_id}";
-    if (!\Drupal::service('file_system')->prepareDirectory($dir, FileSystem::CREATE_DIRECTORY)) {
+    if (!\Drupal::service('file_system')->prepareDirectory($dir, FileSystemInterface::CREATE_DIRECTORY)) {
       \Drupal::service('messenger')->addMessage(
         t(
           'Unable to create folder or save metadata/assets for plugin @plugin',
@@ -66,7 +66,7 @@ class WebcomponentPatternLibraryParser extends PatternLibraryParserBase {
     $save_result = \Drupal::service('file_system')->saveData(
       $request->getBody()->getContents(),
       "$dir/body.html",
-      FileSystem::EXISTS_REPLACE
+      FileSystemInterface::EXISTS_REPLACE
     );
 
     // Convert stream wrapper to relative path, if appropriate.
