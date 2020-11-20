@@ -20,11 +20,24 @@ class PatternkitCommands extends DrushCommands {
    * Update from an old dev version of Patternkit.
    *
    * @command patternkit:devUpdate
+   * @throws \Drupal\Core\Entity\EntityStorageException
+   *   Thrown if the entity storage doesn't exist.
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   *   Thrown if the entity type doesn't exist.
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException|\Drupal\Component\Plugin\Exception\PluginException
+   *   Thrown if the storage handler couldn't be loaded.
    */
   public function devUpdate() {
+    try {
+      \Drupal::service('extension.list.module')
+        ->getExtensionInfo('layout_builder');
+    }
+    catch (\Drupal\Core\Extension\Exception\UnknownExtensionException $exception) {
+      $this->logger()->notice(t('No need to run Patternkit from-dev updates since layout_builder is not enabled.'));
+      return;
+    }
+
     $entity_type_manager = \Drupal::entityTypeManager();
-    /** @var \Drupal\Core\Block\BlockManager $block_manager */
-    $block_manager = \Drupal::service('plugin.manager.block');
     /** @var \Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface $section_storage_manager */
     $section_storage_manager = \Drupal::service('plugin.manager.layout_builder.section_storage');
     $storage_definitions = $section_storage_manager->getDefinitions();
@@ -74,7 +87,6 @@ class PatternkitCommands extends DrushCommands {
         $contexts = $section_storage_manager->loadEmpty($section_storage_type)->deriveContextsFromRoute($key, [], '', []);
         $section_storages[] = $value->data['section_storage'];
         if ($section_storage = $section_storage_manager->load($section_storage_type, $contexts)) {
-          highlight_string("<?php\n\$data =\n" . var_export($section_storage, true) . ";\n?>");
           $section_storages[] = $section_storage;
         }
       }
@@ -84,7 +96,7 @@ class PatternkitCommands extends DrushCommands {
       foreach ($section_storage->getSections() as $section_delta => $section) {
         foreach ($section->getComponents() as $component_delta => $component) {
           $plugin_id = $component->getPluginId();
-          if (strstr($plugin_id, 'patternkit')) {
+          if (strpos($plugin_id, 'patternkit') !== FALSE) {
             $config = $component->get('configuration');
             if (!isset($config['patternkit_block_id'])) {
               continue;
@@ -101,7 +113,7 @@ class PatternkitCommands extends DrushCommands {
             $pattern_cache = $pattern_storage->loadByProperties(['library' => $pattern->getLibrary(), 'path' => $pattern->getPath()]);
             /** @var PatternInterface $pattern_loaded */
             $pattern_loaded = end($pattern_cache);
-            if (!empty($pattern_loaded)) {
+            if ($pattern_loaded !== NULL) {
               if ($pattern_loaded->getHash() !== $pattern->getHash()) {
                 $pattern->setNewRevision();
                 $pattern->isDefaultRevision(TRUE);
@@ -118,6 +130,8 @@ class PatternkitCommands extends DrushCommands {
         }
       }
     }
+    /** @var \Drupal\Core\Block\BlockManager $block_manager */
+    $block_manager = \Drupal::service('plugin.manager.block');
     $block_manager->clearCachedDefinitions();
     $this->logger()->notice(t('Successfully ran Patternkit from-dev updates.'));
   }
