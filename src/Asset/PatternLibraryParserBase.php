@@ -88,25 +88,17 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
    * @todo Finish implementation.
    */
   public static function fetchAssets($subtype, $config): PatternInterface {
-    $patternkit_host = variable_get(
-      'patternkit_pl_host',
-      'http://localhost:9001'
-    );
+    $patternkit_host = \Drupal::config('patternkit.settings')
+      ->get('patternkit_pl_host') ?: 'http://localhost:9001';
 
     $url = $patternkit_host . '/api/render/json';
-    $result = drupal_http_request(
-      $url,
-      array(
-        'headers' => array('Content-Type' => 'application/json'),
-        'data'    => $config->rawJSON,
-        'timeout' => 10,
-        'method'  => 'POST',
-      )
-    );
+    $result = \Drupal::httpClient()->post($url)
+      ->withHeader('Content-Type', 'application/json')
+      ->withBody($config->rawJSON);
 
     // @TODO: Request failure handling.
 
-    $pk_obj = json_decode($result->data);
+    $pk_obj = \Drupal::service('serialization.json')->decode($result->getBody()->getContents());
 
     $dir = "public://patternkit/$subtype/{$config->instance_id}";
     if (!\Drupal::service('file_system')->prepareDirectory($dir, FileSystem::CREATE_DIRECTORY)) {
@@ -126,7 +118,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     );
     $pk_obj->body = $save_result;
 
-    if ($save_result == FALSE) {
+    if ($save_result === FALSE) {
       // @TODO: Failure handling.
       \Drupal::service('messenger')->addMessage(
         t(
@@ -136,7 +128,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     }
 
     $weight = 100;
-    $assets = array();
+    $assets = [];
 
     // Normalize the object for easier processing.
     if (!empty($pk_obj->assets)) {
@@ -149,7 +141,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
       $pk_obj->assets->js->early = $pk_obj->global_assets->js;
       $pk_obj->assets->js->deferred = $pk_obj->global_assets->footer_js;
       $pk_obj->assets->css->list = $pk_obj->global_assets->css;
-      $pk_obj->assets->css->shared = array();
+      $pk_obj->assets->css->shared = [];
     }
 
     if (!empty($pk_obj->assets)) {
@@ -232,10 +224,8 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
    * @todo Finish implementation.
    */
   public static function fetchSingleAsset($dir, $asset_prefix, $asset_url) {
-    $patternkit_host = variable_get(
-      'patternkit_pl_host',
-      'http://localhost:9001'
-    );
+    $patternkit_host = \Drupal::config('patternkit.settings')
+      ->get('patternkit_pl_host') ?: 'http://localhost:9001';
 
     // Leading double slashes eliminated above, leaving only relatives.
     $path = "$dir/" . dirname(trim($asset_url, '.'));
@@ -250,21 +240,22 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     }
 
     // Generate the full path to the source asset.
-    $full_asset_url = $patternkit_host . preg_replace('/^\\.\\//', $asset_prefix . '/', $asset_url);
+    $full_asset_url = $patternkit_host
+      . preg_replace('/^\\.\\//', $asset_prefix . '/', $asset_url);
 
     // What follows is for store/cache model.
-    $asset_src = drupal_http_request($full_asset_url);
+    $asset_src = \Drupal::httpClient()->get($full_asset_url);
     // May consider some way of doing this
     // $dest_path = "$dir/" . md5($asset_src->data) . ".$asset_type";.
     $dest_path = $path . $filename;
 
     $save_result = \Drupal::service('file_system')->saveData(
-      $asset_src->data,
+      $asset_src->getBody()->getContents(),
       $dest_path,
       FileSystemInterface::EXISTS_REPLACE
     );
 
-    if ($save_result == FALSE) {
+    if ($save_result === FALSE) {
       // @TODO: handle failure.
       return FALSE;
     }
@@ -273,9 +264,10 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     $scheme = StreamWrapperManagerInterface::getScheme($save_result);
     if ($scheme && \Drupal::service('stream_wrapper_manager')->isValidScheme($scheme)) {
       $wrapper = \Drupal::service('stream_wrapper_manager')->getViaScheme($scheme);
-      $save_result = $wrapper->getDirectoryPath() . "/" . \Drupal::service('stream_wrapper_manager')::getTarget(
-          $save_result
-        );
+      $save_result = $wrapper->getDirectoryPath()
+        . '/'
+        . \Drupal::service('stream_wrapper_manager')::getTarget(
+      $save_result);
     }
     return $save_result;
   }
@@ -288,21 +280,13 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
    * @todo Finish implementation.
    */
   public function fetchFragmentAssets($subtype, $config, &$pk_obj): PatternInterface {
-    $patternkit_host = variable_get(
-      'patternkit_pl_host',
-      'http://localhost:9001'
-    );
+    $patternkit_host = \Drupal::config('patternkit')->get(
+      'patternkit_pl_host') ?: 'http://localhost:9001';
 
     $url = $patternkit_host . '/api/render/html';
-    $result = drupal_http_request(
-      $url,
-      array(
-        'headers' => array('Content-Type' => 'application/json'),
-        'data'    => $config->rawJSON,
-        // 'timeout' => 10,.
-        'method'  => 'POST',
-      )
-    );
+    $result = \Drupal::httpClient()->post(
+      $url)->withHeader('Content-Type', 'application/json')
+      ->withBody($config->rawJSON);
 
     // @TODO: Request failure handling.
 
@@ -322,7 +306,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
 
     // Fetch the body html artifact.
     $save_result = \Drupal::service('file_system')->saveData(
-      $result->data,
+      $result->getBody()->getContents(),
       "$dir/body.html",
       FileSystemInterface::EXISTS_REPLACE
     );
@@ -338,7 +322,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
 
     $pk_obj->body = $save_result;
 
-    if ($save_result == FALSE) {
+    if ($save_result === FALSE) {
       \Drupal::service('messenger')->addMessage(
         t(
           'Unable to save metadata/assets for plugin @plugin',
@@ -354,10 +338,10 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
       foreach ($pk_obj->assets->js->{$stage} as $asset_fragment) {
         $path = $pk_obj->raw_assets[$asset_fragment];
 
-        if (substr($path, 0, 19) == 'public://patternkit/') {
+        if (substr($path, 0, 19) === 'public://patternkit/') {
           $pk_obj->attachments['js'][$path] = array(
             'type'   => 'file',
-            'scope'  => $stage == 'early' ? 'header' : 'footer',
+            'scope'  => $stage === 'early' ? 'header' : 'footer',
             'group'  => JS_DEFAULT,
             'weight' => 0,
           );
@@ -365,7 +349,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
         else {
           $pk_obj->attachments['js'][$path] = array(
             'type'   => 'external',
-            'scope'  => $stage == 'early' ? 'header' : 'footer',
+            'scope'  => $stage === 'early' ? 'header' : 'footer',
             'group'  => JS_DEFAULT,
             'weight' => 0,
           );
@@ -376,7 +360,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     foreach ($pk_obj->assets->css->list as $asset_fragment) {
       $path = $pk_obj->raw_assets[$asset_fragment];
 
-      if (substr($path, 0, 19) == 'public://patternkit/') {
+      if (substr($path, 0, 19) === 'public://patternkit/') {
         $pk_obj->attachments['css'][$path] = array(
           'type'   => 'file',
           'scope'  => 'header',
@@ -397,7 +381,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     foreach ($pk_obj->assets->css->shared as $asset_fragment) {
       $path = $pk_obj->raw_assets[$asset_fragment->src];
 
-      if (substr($path, 0, 19) == 'public://patternkit/') {
+      if (substr($path, 0, 19) === 'public://patternkit/') {
         $pk_obj->attachments['css'][$path] = array(
           'type'   => 'file',
           'scope'  => 'header',

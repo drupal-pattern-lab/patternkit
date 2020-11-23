@@ -42,7 +42,7 @@ class TwigPatternLibraryParser extends PatternLibraryParserBase {
     StreamWrapperManagerInterface $stream_wrapper) {
 
     $this->serializer = $serializer;
-    parent::__construct($root, $module_handler, $theme_manager, $stream_wrapper);
+    parent::__construct($root, $module_handler, $theme_manager, $stream_wrapper, null);
   }
 
   /**
