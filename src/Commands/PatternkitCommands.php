@@ -9,6 +9,7 @@ use Drupal\Core\Plugin\Context\EntityContext;
 use Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternInterface;
+use Drupal\patternkit\Plugin\Derivative\PatternkitBlock;
 use Drush\Commands\DrushCommands;
 
 /**
@@ -20,29 +21,20 @@ class PatternkitCommands extends DrushCommands {
    * Update from an old dev version of Patternkit.
    *
    * @command patternkit:devUpdate
-   * @throws \Drupal\Core\Entity\EntityStorageException
-   *   Thrown if the entity storage doesn't exist.
-   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
-   *   Thrown if the entity type doesn't exist.
-   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException|\Drupal\Component\Plugin\Exception\PluginException
-   *   Thrown if the storage handler couldn't be loaded.
    */
   public function devUpdate() {
-    try {
-      \Drupal::service('extension.list.module')
-        ->getExtensionInfo('layout_builder');
-    }
-    catch (\Drupal\Core\Extension\Exception\UnknownExtensionException $exception) {
-      $this->logger()->notice(t('No need to run Patternkit from-dev updates since layout_builder is not enabled.'));
-      return;
-    }
+    $entity_count = 0;
+    $block_count = 0;
 
     $entity_type_manager = \Drupal::entityTypeManager();
+    /** @var \Drupal\Core\Block\BlockManager $block_manager */
+    $block_manager = \Drupal::service('plugin.manager.block');
     /** @var \Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface $section_storage_manager */
     $section_storage_manager = \Drupal::service('plugin.manager.layout_builder.section_storage');
     $storage_definitions = $section_storage_manager->getDefinitions();
     /** @var \Drupal\patternkit\Asset\LibraryInterface $library */
     $library =\Drupal::service('patternkit.asset.library');
+    $logger = $this->logger();
 
     $section_storages = [];
     // Gather section storages from all entities and entity type layouts.
@@ -87,6 +79,7 @@ class PatternkitCommands extends DrushCommands {
         $contexts = $section_storage_manager->loadEmpty($section_storage_type)->deriveContextsFromRoute($key, [], '', []);
         $section_storages[] = $value->data['section_storage'];
         if ($section_storage = $section_storage_manager->load($section_storage_type, $contexts)) {
+          highlight_string("<?php\n\$data =\n" . var_export($section_storage, true) . ";\n?>");
           $section_storages[] = $section_storage;
         }
       }
@@ -96,42 +89,67 @@ class PatternkitCommands extends DrushCommands {
       foreach ($section_storage->getSections() as $section_delta => $section) {
         foreach ($section->getComponents() as $component_delta => $component) {
           $plugin_id = $component->getPluginId();
-          if (strpos($plugin_id, 'patternkit') !== FALSE) {
-            $config = $component->get('configuration');
-            if (!isset($config['patternkit_block_id'])) {
-              continue;
-            }
-            $config['id'] = 'patternkit_block:' . str_replace('.', '_', str_replace('_', '__', substr($plugin_id, strlen('patternkit_block:'))));
-            /** @var \Drupal\Core\Entity\ContentEntityStorageInterface $pattern_storage */
-            $pattern_storage = $entity_type_manager->getStorage('patternkit_pattern');
-            $pattern_id = \Drupal\patternkit\Plugin\Derivative\PatternkitBlock::derivativeToAssetId($config['id']);
-            /** @var PatternInterface $pattern */
-            $pattern = Pattern::create($library->getLibraryAsset($pattern_id));
-            if ($pattern === NULL) {
-              continue;
-            }
-            $pattern_cache = $pattern_storage->loadByProperties(['library' => $pattern->getLibrary(), 'path' => $pattern->getPath()]);
-            /** @var PatternInterface $pattern_loaded */
-            $pattern_loaded = end($pattern_cache);
-            if ($pattern_loaded !== NULL) {
-              if ($pattern_loaded->getHash() !== $pattern->getHash()) {
-                $pattern->setNewRevision();
-                $pattern->isDefaultRevision(TRUE);
-              }
-              else {
-                $pattern = $pattern_loaded;
-              }
-            }
-            $pattern->save();
-            $config['pattern'] = $pattern->getRevisionId();
-            $component->setConfiguration($config);
-            $section_storage->save();
+          if (!strstr($plugin_id, 'patternkit')) {
+            continue;
           }
+          $config = $component->get('configuration');
+          if (!isset($config['patternkit_block_id'])) {
+            continue;
+          }
+          $logger->debug(t('Updating block plugin with id @plugin:', ['@plugin' => $plugin_id]));
+          /**
+           * Old plugin ids were in the format:
+           *   'patternkit_block:library.name_path_to_pattern'
+           *
+           * New plugin ids are:
+           *   'patternkit_block:library__name_path_to_pattern'
+           */
+          if (strpos($plugin_id, '.')) {
+            $config['id'] = 'patternkit_block:' . str_replace('.', '_', str_replace('_', '__', substr($plugin_id, strlen('patternkit_block:'))));
+          }
+          /** @var \Drupal\Core\Entity\ContentEntityStorageInterface $pattern_storage */
+          $pattern_storage = $entity_type_manager->getStorage('patternkit_pattern');
+          $pattern_id = '@' . str_replace('//', '_', str_replace('_', '/', substr($config['id'], strlen('patternkit_block:'))));
+          $pattern_asset = $library->getLibraryAsset($pattern_id);
+          if ($pattern_asset === NULL) {
+            $logger->debug(t('Could not find pattern with ID @id.', ['@id' => $pattern_id]));
+            continue;
+          }
+          try {
+            /** @var PatternInterface $pattern */
+            $pattern = Pattern::create($pattern_asset);
+          }
+          catch (\Exception $exception) {
+            $logger->debug(t('Could not create pattern with ID @id.', ['@id' => $pattern_id]));
+            continue;
+          }
+          if ($pattern === NULL) {
+            $logger->debug(t('Could not finish creating pattern with ID @id.', ['@id' => $pattern_id]));
+            continue;
+          }
+          $pattern_cache = $pattern_storage->loadByProperties(['library' => $pattern->getLibrary(), 'path' => $pattern->getPath()]);
+          /** @var PatternInterface $pattern_loaded */
+          $pattern_loaded = end($pattern_cache);
+          if (!empty($pattern_loaded)) {
+            if ($pattern_loaded->getHash() !== $pattern->getHash()) {
+              $pattern->setNewRevision();
+              $pattern->isDefaultRevision(TRUE);
+            }
+            else {
+              $pattern = $pattern_loaded;
+            }
+          }
+          $pattern->save();
+          $config['pattern'] = $pattern->getRevisionId();
+          $component->setConfiguration($config);
+          $block_count++;
         }
       }
+      $section_storage->save();
+      $entity_count++;
     }
-    /** @var \Drupal\Core\Block\BlockManager $block_manager */
-    $block_manager = \Drupal::service('plugin.manager.block');
+    $this->logger()->info(t('Updated @entities entity layouts with @blocks Patternkit blocks.',
+      ['@entities' => $entity_count, '@blocks' => $block_count]));
     $block_manager->clearCachedDefinitions();
     $this->logger()->notice(t('Successfully ran Patternkit from-dev updates.'));
   }
