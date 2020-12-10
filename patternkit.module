@@ -5,8 +5,41 @@
  * Patternkit parses pattern libraries and ingests them into Drupal Blocks.
  */
 
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Url;
+
 // Default TTL is 30 * 24 * 60 * 60, 30 minutes.
 const PATTERNKIT_DEFAULT_TTL = 2592000;
+
+/**
+ * Implements hook_help().
+ */
+function patternkit_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.patternkit':
+      $patternkit_example = \Drupal::moduleHandler()->moduleExists('patternkit_example') ? Url::fromRoute('help.page', ['name' => 'patternkit_example'])->toString() : '#';
+      $patternkit_media_library = \Drupal::moduleHandler()->moduleExists('patternkit_media_library') ? Url::fromRoute('help.page', ['name' => 'patternkit_media_library'])->toString() : '#';
+      $output = <<<HTML
+<h3>About</h3>
+<p>The Patternkit module loads your templates, patterns, and components into Drupal as blocks where you can then add them to your pages and layouts. You can configure them with a JSON file with an identical filename in the same directory as the Twig template.</p>\
+<p>This allows Layout Builder, Page Manager, Drupal blocks layout, or anything that uses blocks, to function as a custom page-builder app.</p>
+<p>Site builders can add Drupal tokens to Pattern blocks instead of trying to pick through Drupal variables in a template. These are displayed from assigned Context such as node, user, and language.</p>
+
+<h3>Uses</h3>
+<dl>
+  <dt>Loading a library of patterns to use with Layout Builder</dt>
+  <dd>Users with the <em>Administer blocks</em> permission can add Patternkit blocks to entity layouts.</dd>
+  <dt>Loading a directory of patterns to use with the Block Layout</dt>
+  <dd>Users with the <em>Administer blocks</em> permission can add Patternkit blocks to the site block layout.</dd>
+</dl>
+HTML;
+
+      return t($output, [':patternkit_example' => $patternkit_example, ':patternkit_media_library' => $patternkit_media_library]);
+
+    default:
+      return NULL;
+  }
+}
 
 /**
  * Implements hook_theme().
