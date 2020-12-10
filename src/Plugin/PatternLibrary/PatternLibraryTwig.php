@@ -2,6 +2,7 @@
 
 namespace Drupal\patternkit\Plugin\PatternLibrary;
 
+use Drupal\Component\Utility\Html;
 use Drupal\patternkit\Annotation\PatternLibrary;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternEditorConfig;
@@ -70,18 +71,42 @@ class PatternLibraryTwig extends PatternLibraryJSON {
    * @todo Return render arrays for Twig only.
    */
   public function render(array $assets): array {
+    if ($this->twig === NULL) {
+      $this->twig = \Drupal::service('twig');
+    }
     $elements = [];
+    /** @var \Drupal\patternkit\Entity\Pattern $pattern */
     foreach ($assets as $pattern) {
       $template = $pattern->getTemplate();
       if (empty($template)) {
         return [];
       }
       $pattern->config = $pattern->config ?? [];
-      $elements[] = [
+      $output = [
         '#type' => 'inline_template',
         '#template' => $template,
         '#context' => $pattern->config,
       ];
+      if ($this->twig->isDebug()) {
+        $hash = $pattern->getHash();
+        $asset_id = $pattern->getAssetId();
+        $path = trim($pattern->getAssets()['twig'] ?: t('Could not resolve file path.'), DRUPAL_ROOT);
+        try {
+          $version_value = $pattern->get('version')->getValue();
+          $version = array_pop($version_value)['value'];
+        }
+        catch (\Exception $exception) {
+          $version = t('No version information available.');
+        }
+        $output['#template'] = "\n\n<!-- THEME DEBUG -->"
+          . "\n<!-- PATTERNKIT VERSION: " . Html::escape($version) . ' -->'
+          . "\n<!-- PATTERNKIT HASH: " . Html::escape($hash) . ' -->'
+          . "\n<!-- PATTERNKIT PATH: " . Html::escape($asset_id) . ' -->'
+          . "\n<!-- BEGIN OUTPUT FROM '" . Html::escape($path) . "' -->\n\n"
+          . $output['#template']
+          .= "\n<!-- END OUTPUT FROM '" . Html::escape($path) . "' -->\n\n";
+      }
+      $elements[] = $output;
     }
     return $elements;
   }

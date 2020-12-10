@@ -1,0 +1,52 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - patternkit
+id: patternkit_block
+label: 'Patternkit Layout Builder Add Block page'
+module: patternkit
+routes:
+  -
+    route_name: layout_builder.add_block
+tips:
+  patternkit-context-node:
+    id: patternkit-context-node
+    plugin: text
+    label: 'Add route context from the node'
+    body: 'Set this to allow the block to use tokens from the node context.'
+    weight: 1
+    attributes:
+      data-class: form-item-settings-context-mapping-node
+  patternkit-context-user:
+    id: patternkit-context-user
+    plugin: text
+    label: 'Add route context from the user'
+    body: 'Set this to allow the block to use tokens from the user context.'
+    weight: 2
+    attributes:
+      data-class: form-item-settings-context-mapping-user
+  patternkit-reusable:
+    id: patternkit-reusable
+    plugin: text
+    label: 'Make the block reusable'
+    body: 'This allows you to make the block reusable, where it will show up in block listings and can be used on other layouts and block placements on the site.'
+    weight: 3
+    attributes:
+      data-class: form-item-settings-reusable
+  patternkit-presentation:
+    id: patternkit-presentation
+    plugin: text
+    label: 'Presentation settings'
+    body: 'Additional Patternkit plugins can add support for other presentation styles, such as web components, JSON, or JavaScript modules.'
+    weight: 4
+    attributes:
+      data-class: form-item-settings-presentation-style
+  patternkit-tokens:
+    id: patternkit-tokens
+    plugin: text
+    label: 'Token replacements'
+    body: 'Use these tokens provided by context to insert those values into the pattern.'
+    weight: 5
+    attributes:
+      data-id: edit-settings-global-tokens
