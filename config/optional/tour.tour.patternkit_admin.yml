@@ -1,0 +1,44 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - patternkit
+id: patternkit_admin
+label: 'Patternkit admin settings page'
+module: patternkit
+routes:
+  -
+    route_name: patternkit.settings
+tips:
+  patternkit-libraries:
+    id: patternkit-libraries
+    plugin: text
+    label: 'Manage Patternkit library usage and visibility'
+    body: 'Disabled libraries will not be usable for twig or blocks. Invisible libraries will not appear in lists.'
+    weight: 1
+    attributes:
+      data-id: edit-patternkit-libraries
+  patternkit-library-cache:
+    id: patternkit-library-cache
+    plugin: text
+    label: 'Set library cache usage'
+    body: 'Controlled primarily by the Drupal discovery cache, this cache can be cleared with drush cr --cache-clear=discovery.'
+    weight: 2
+    attributes:
+      data-id: edit-patternkit-cache-enabled
+  patternkit-disk-cache:
+    id: patternkit-disk-cache
+    plugin: text
+    label: 'Set disk cache usage'
+    body: 'Useful for REST libraries, the disk cache controls if a request is made for new patterns on each page load.'
+    weight: 3
+    attributes:
+      data-id: edit-patternkit-render-cache
+  patternkit-ttl:
+    id: patternkit-ttl
+    plugin: text
+    label: 'Set Time-To-Live settings'
+    body: 'Limit the amount of time the Patternkit Disk cache will save REST API requested patterns before requesting a new one from the REST server.'
+    weight: 4
+    attributes:
+      data-id: edit-patternkit-default-module-ttl
