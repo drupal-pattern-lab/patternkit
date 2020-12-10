@@ -6,10 +6,8 @@ use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Plugin\Context\Context;
 use Drupal\Core\Plugin\Context\ContextDefinition;
 use Drupal\Core\Plugin\Context\EntityContext;
-use Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternInterface;
-use Drupal\patternkit\Plugin\Derivative\PatternkitBlock;
 use Drush\Commands\DrushCommands;
 
 /**
@@ -23,6 +21,11 @@ class PatternkitCommands extends DrushCommands {
    * @command patternkit:devUpdate
    */
   public function devUpdate() {
+    if (!\Drupal::moduleHandler()->moduleExists('layout_builder')) {
+      $this->logger()->notice(t('Patternkit from-dev updates only apply to Layout Builder, which is not enabled. Skipping Patternkit from-dev updates.'));
+      return;
+    }
+
     $entity_count = 0;
     $block_count = 0;
 
@@ -43,7 +46,7 @@ class PatternkitCommands extends DrushCommands {
     $displays = $display_storage->loadMultiple();
     /** @var \Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay $display */
     foreach ($displays as $display) {
-      if (!$display instanceof LayoutBuilderEntityViewDisplay) {
+      if (!$display instanceof \Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay) {
         continue;
       }
       if (!$display->isLayoutBuilderEnabled()) {
