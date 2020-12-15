@@ -28,11 +28,9 @@ patternkit.jsoneditor.theme.bootstrap4:
   css:
     theme:
       css/bootstrap.min.css: {minified: true}
-      css/quill.core.css: { }
       css/quill.snow.css: { }
 
 quill:
   version: VERSION
   js:
-    js/quill.core.js: {}
     js/quill.js: {}
