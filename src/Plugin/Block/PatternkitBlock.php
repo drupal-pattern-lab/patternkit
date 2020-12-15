@@ -617,9 +617,10 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     }
     $this->context = $contexts + $this->context;
     foreach ($this->context as $type => $context) {
-      if ($context !== NULL) {
-        $types += ["$type" => "$type"];
+      if ($context === NULL) {
+        continue;
       }
+      $types += ["$type" => "$type"];
       if (!$context->hasContextValue()) {
         $this->context[$type] = new Context($context->getContextDefinition(), '');
       }
