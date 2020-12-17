@@ -580,6 +580,10 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $types += ['site' => 'site'];
     $available = array_intersect_key($info['tokens'], $types);
 
+    // @todo Remove when #2759967 is resolved.
+    // @see https://www.drupal.org/project/token/issues/2759967
+    unset($available['node']['layout_builder__layout']);
+
     // Construct the token string for each token.
     if ($prepared) {
       $prepared = [];
