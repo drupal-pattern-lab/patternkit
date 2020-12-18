@@ -33,4 +33,9 @@ patternkit.jsoneditor.theme.bootstrap4:
 quill:
   version: VERSION
   js:
+    js/quill.min.js: {minified: true}
+
+quill.dev:
+  version: VERSION
+  js:
     js/quill.js: {}
