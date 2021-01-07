@@ -160,26 +160,26 @@ class PatternkitController extends ControllerBase {
    *
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request object.
-   * @param string $pattern
+   * @param string $pattern_id
    *   The name of the pattern to use for retrieving the schema.
    *
    * @return \Symfony\Component\HttpFoundation\Response
    *   The schema response.
    */
-  public function apiPattern(Request $request, $pattern = NULL): Response {
-    $pattern = $request->query->get('pattern') ?? $pattern;
+  public function apiPattern(Request $request, $pattern_id = NULL): Response {
+    $pattern = $request->query->get('pattern') ?? $pattern_id;
+    $pattern = urldecode($pattern);
     if (!$pattern) {
       return new Response();
     }
-    $test_len = strlen('/schema');
-    if (substr_compare($pattern, '/schema', strlen($pattern) - $test_len, $test_len) === 0) {
-      return $this->apiPatternSchema(substr($pattern, 0, -$test_len));
+    if ($request->query->get('asset') === 'schema') {
+      return $this->apiPatternSchema($pattern);
     }
-    $asset_id = '@' . str_replace('/', '_', $pattern);
+    $asset_id = '@' . $pattern;
     try {
       $response = $this->library->getLibraryAsset($asset_id);
       if ($response === NULL) {
-        throw new \RuntimeException("Unable to locate $pattern.");
+        throw new \RuntimeException("Unable to locate $asset_id.");
       }
     }
     catch (\Exception $exception) {
@@ -191,23 +191,27 @@ class PatternkitController extends ControllerBase {
   /**
    * Returns the JSON-encoded Patternkit schema for the provided pattern.
    *
-   * @param string $pattern
+   * @param string $pattern_id
    *   The name of the pattern to use for retrieving the schema.
    *
    * @return \Symfony\Component\HttpFoundation\JsonResponse
    *   The schema response.
    */
-  public function apiPatternSchema($pattern): JsonResponse {
-    $asset_id = str_replace('/', '.', $pattern);
+  public function apiPatternSchema($pattern_id): JsonResponse {
+    $asset_id = '@' . urldecode($pattern_id);
     try {
       $pattern_asset = $this->library->getLibraryAsset($asset_id);
       if ($pattern_asset === NULL) {
-        throw new \RuntimeException("Unable to locate $pattern.");
+        throw new \RuntimeException("Unable to locate $asset_id schema.");
       }
-      $response = $pattern_asset->schema ?? [];
+      $pattern = Pattern::create($pattern_asset);
+      $response = json_decode($pattern->getSchema()) ?? [];
     }
     catch (\Exception $exception) {
-      $response = ['error' => $exception->getMessage()];
+      $response = [
+        'error' => $exception->getMessage(),
+        'patterns' => implode(', ', array_keys($this->library->getAssets()))
+      ];
     }
     return new JsonResponse($response);
   }
@@ -228,7 +232,7 @@ class PatternkitController extends ControllerBase {
     try {
       $pattern_asset = $this->library->getLibraryAsset($asset_id);
       if ($pattern_asset === NULL) {
-        throw new \RuntimeException("Unable to locate $pattern_asset.");
+        throw new \RuntimeException("Unable to locate $pattern_id.");
       }
       $pattern = Pattern::create($pattern_asset);
     }
