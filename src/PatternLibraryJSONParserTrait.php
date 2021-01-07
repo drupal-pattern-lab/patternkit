@@ -40,6 +40,8 @@ trait PatternLibraryJSONParserTrait {
    * @return object
    *   The updated schema properties object.
    *
+   * @throws \Drupal\Component\Plugin\Exception\PluginException
+   *
    * @example JSON Schema technically allows the following valid refs:
    *   - URI "example.json" "../../example.json" "./example.json"
    *   - URL "https://json-schema.org/person.schema.json"
@@ -93,7 +95,7 @@ trait PatternLibraryJSONParserTrait {
         /** @var \Drupal\Core\File\FileSystem $filesystem */
         $path = substr(str_replace('\\', '/', realpath($library_path . '/' . $path)), strlen(\Drupal::root() . '/' . $library_path . '/'));
       }
-      $properties[$property] = Url::fromUserInput('/api/patternkit/' . trim($library_namespace ?? $library_name, '@') . '/' . trim($path, '.json') . '/json')->toString() . $ref;
+      $properties[$property] = Url::fromUserInput('/api/patternkit/' . trim($library_namespace ?? $library_name, '@') . '/' . trim($path, '.json'))->toString() . '&asset=schema' . $ref;
     }
     return $properties;
   }
