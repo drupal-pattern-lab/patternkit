@@ -95,7 +95,13 @@ trait PatternLibraryJSONParserTrait {
         /** @var \Drupal\Core\File\FileSystem $filesystem */
         $path = substr(str_replace('\\', '/', realpath($library_path . '/' . $path)), strlen(\Drupal::root() . '/' . $library_path . '/'));
       }
-      $properties[$property] = Url::fromUserInput('/api/patternkit/' . trim($library_namespace ?? $library_name, '@') . '/' . trim($path, '.json'))->toString() . '&asset=schema' . $ref;
+      $properties[$property] = Url::fromUserInput(
+        '/api/patternkit/'
+        . trim($library_namespace ?? $library_name, '@')
+        . '/'
+        . str_replace($path, '', '.json'))->toString()
+        . '&asset=schema'
+        . $ref;
     }
     return $properties;
   }
