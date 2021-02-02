@@ -82,7 +82,6 @@ class PatternkitCommands extends DrushCommands {
         $contexts = $section_storage_manager->loadEmpty($section_storage_type)->deriveContextsFromRoute($key, [], '', []);
         $section_storages[] = $value->data['section_storage'];
         if ($section_storage = $section_storage_manager->load($section_storage_type, $contexts)) {
-          highlight_string("<?php\n\$data =\n" . var_export($section_storage, true) . ";\n?>");
           $section_storages[] = $section_storage;
         }
       }
