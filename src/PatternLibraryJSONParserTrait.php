@@ -53,6 +53,8 @@ trait PatternLibraryJSONParserTrait {
    *   - "./../../../test.json"
    */
   public static function schemaDereference($properties, PatternInterface $pattern) {
+    $ext = '.json';
+    $ext_len = strlen($ext);
     /** @var \Drupal\patternkit\Asset\Library $library */
     $library = \Drupal::service('patternkit.asset.library');
     foreach ($properties as $property => $value) {
@@ -90,17 +92,22 @@ trait PatternLibraryJSONParserTrait {
       }
       $library_name = $pattern->getLibrary();
       if (strstr($path, './')) {
-        $pattern_library = $library->getLibraryDefinitions()[trim($library_name, '@')];
+        $pattern_library = $library->getLibraryDefinitions()[ltrim($library_name, '@')];
         $library_path = $pattern_library->getPatternInfo()['data'] ?? $pattern_library->getExtension()->getPath();
         /** @var \Drupal\Core\File\FileSystem $filesystem */
         $path = substr(str_replace('\\', '/', realpath($library_path . '/' . $path)), strlen(\Drupal::root() . '/' . $library_path . '/'));
       }
-      $properties[$property] = Url::fromUserInput(
-        '/api/patternkit/'
-        . trim($library_namespace ?? $library_name, '@')
+      $path_no_ext = strripos($path, $ext) === strlen($path) - $ext_len  ? substr($path, 0, - $ext_len) : $path;
+      $path_encoded = [];
+      foreach (explode('/', $path_no_ext) as $path_parts) {
+        $path_encoded[] = urlencode($path_parts);
+      }
+      $path_encoded = implode('/', $path_encoded);
+      $properties[$property] = '/api/patternkit/'
+        . urlencode(ltrim($library_namespace ?? $library_name, '@'))
         . '/'
-        . str_replace($path, '', '.json'))->toString()
-        . '&asset=schema'
+        . $path_encoded
+        . '?asset=schema'
         . $ref;
     }
     return $properties;
