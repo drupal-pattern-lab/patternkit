@@ -273,6 +273,11 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     }
     $form_state->set('pattern', $pattern);
 
+    // Adds in missing descriptions for the Drupal Core context fields.
+    if (isset($form['context_mapping'])) {
+      $form['context_mapping_description']['#markup'] = $this->t('Add context tokens to your pattern by selecting a source for the context token mapping.');
+    }
+
     unset($form['schema_desc'], $form['schema_update']);
     if ($form_state->get('schema_updated')) {
       $form['schema_desc'] = [
@@ -308,6 +313,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       '#type' => 'checkbox',
       '#title' => $this->t('Reusable'),
       '#default_value' => $configuration['reusable'] ?? FALSE,
+      '#description' => t('Set to make the pattern selectable in the block library and usable on other layouts.'),
     ];
 
     // @TODO: Re-enable the other formats like JSON and webcomponent.
@@ -346,6 +352,8 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       ],
       '#default_value' => $block_data ?? '',
     ];
+
+    $form['configuration_description']['#markup'] = t('Provide context for your pattern. You can use tokens and Twig in your values.');
 
     /** @var \Drupal\patternkit\PatternLibraryPluginInterface $library */
     $library = $this->patternLibraryPluginManager->createInstance($pattern->getLibraryPluginId());
