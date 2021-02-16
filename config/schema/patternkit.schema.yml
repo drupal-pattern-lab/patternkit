@@ -1,0 +1,45 @@
+patternkit.settings:
+  type: config_object
+  label: 'Patternkit Module Settings'
+  mapping:
+    patternkit_cache_enabled:
+      type: boolean
+      label: 'Boolean that sets if the Patternkit cache is used or not.'
+    patternkit_json_editor_css:
+      type: string
+      label: 'Comma-separated string of stylesheet files to load with the JSON Editor.'
+    patternkit_json_editor_icons:
+      type: string
+      label: 'String selecting the icon set to be used for the JSON Editor.'
+    patternkit_json_editor_js:
+      type: string
+      label: 'Comma-separated string of Javascript files to load with the JSON Editor.'
+    patternkit_json_editor_theme:
+      type: string
+      label: 'String selecting the theme to be used for the JSON Editor.'
+    patternkit_libraries:
+      type: mapping
+      label: 'A list of settings for each Patternkit library.'
+      mapping:
+        enabled:
+          type: boolean
+          label: 'Library Enabled'
+        visible:
+          type: boolean
+          label: 'Library visible in lists'
+
+block.settings.patternkit_block:*:
+  type: block_settings
+  mapping:
+    pattern:
+      type: integer
+      label: 'Revision ID of the pattern in use on the block.'
+    patternkit_block_id:
+      type: integer
+      label: 'ID of the Patternkit Block content entity.'
+    presentation_style:
+      type: string
+      label: 'Presentation style for the patternkit block when rendered.'
+    version:
+      type: string
+      label: 'Version of the pattern or containing library.'
