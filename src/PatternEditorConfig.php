@@ -64,7 +64,7 @@ class PatternEditorConfig {
   /**
    * Optional pattern to use for configuring the editor.
    *
-   * @var \Drupal\patternkit\Pattern
+   * @var \Drupal\patternkit\Entity\Pattern
    */
   public $pkdata;
 
