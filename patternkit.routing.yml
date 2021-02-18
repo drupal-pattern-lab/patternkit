@@ -27,6 +27,7 @@ patternkit.api:
   path: '/api/patternkit'
   defaults:
     _controller: '\Drupal\patternkit\Controller\PatternkitController::apiPattern'
+    _disable_route_normalizer: 'TRUE'
   requirements:
     _access: 'TRUE'
 patternkit.settings:
