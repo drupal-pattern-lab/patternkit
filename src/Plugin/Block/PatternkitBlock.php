@@ -399,7 +399,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $pattern_storage = $this->entityTypeManager->getStorage('patternkit_pattern');
     $pattern_id = \Drupal\patternkit\Plugin\Derivative\PatternkitBlock::derivativeToAssetId($this->getDerivativeId());
     /** @var PatternInterface $pattern */
-    $pattern = $form_state->get('pattern') ?? $this->library->getLibraryAsset($pattern_id);
+    $pattern = $form_state->get('pattern') ?? Pattern::create($this->library->getLibraryAsset($pattern_id));
     $pattern_cache = $pattern_storage->loadByProperties(['library' => $pattern->getLibrary(), 'path' => $pattern->getPath()]);
     /** @var PatternInterface $pattern_loaded */
     $pattern_loaded = end($pattern_cache);
@@ -426,6 +426,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       'presentation_style' => $form_state->getValue('presentation_style'),
       'version' => $form_state->getValue('version'),
     ];
+    // @todo Move all of this to the setConfiguration function.
     $this->setConfiguration($updated_config + $configuration);
 
     // Block cache is not updated unless we specifically ask to clear it.
