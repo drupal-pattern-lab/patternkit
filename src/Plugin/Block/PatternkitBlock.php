@@ -17,6 +17,7 @@ use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Plugin\Context\ContextHandlerInterface;
 use Drupal\Core\Plugin\Context\ContextRepositoryInterface;
 use Drupal\Core\Render\BubbleableMetadata;
+use Drupal\Core\Template\TwigEnvironment;
 use Drupal\Core\Utility\Token;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\entity\PatternInterface;
@@ -95,6 +96,13 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
   protected $token;
 
   /**
+   * Renders strings using the Twig template engine.
+   *
+   * @var \Drupal\Core\Template\TwigEnvironment
+   */
+  protected $twig;
+
+  /**
    * Returns a new PatternkitBlock instance.
    *
    * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
@@ -131,6 +139,8 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $serializer = $container->get('serialization.json');
     /** @var \Drupal\Core\Utility\Token $token */
     $token = $container->get('token');
+    /** @var \Drupal\Core\Template\TwigEnvironment $twig */
+    $twig = $container->get('twig');
     return new static(
       $block_plugin_manager,
       $configuration,
@@ -142,7 +152,8 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       $plugin_id,
       $plugin_definition,
       $serializer,
-      $token);
+      $token,
+      $twig);
   }
 
   /**
@@ -172,6 +183,8 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    *   Serialization service.
    * @param \Drupal\Core\Utility\Token $token
    *   Token service.
+   * @param \Drupal\Core\Template\TwigEnvironment $twig
+   *   The Twig rendering environment wrapper.
    */
   public function __construct(
     BlockManagerInterface $block_manager,
@@ -181,10 +194,11 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     EntityTypeManagerInterface $entity_type_manager,
     LibraryInterface $library,
     PatternLibraryPluginManager $pattern_plugin_manager,
-    $plugin_id,
+    string $plugin_id,
     array $plugin_definition,
     SerializationInterface $serializer,
-    Token $token) {
+    Token $token,
+    TwigEnvironment $twig) {
 
     $this->blockManager = $block_manager;
     $this->contextHandler = $context_handler;
@@ -194,6 +208,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $this->patternLibraryPluginManager = $pattern_plugin_manager;
     $this->serializer = $serializer;
     $this->token = $token;
+    $this->twig = $twig;
 
     // Assigns contexts based on the convention that token base names are identical
     // to context name root keys.
@@ -258,6 +273,11 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     }
     $form_state->set('pattern', $pattern);
 
+    // Adds in missing descriptions for the Drupal Core context fields.
+    if (isset($form['context_mapping'])) {
+      $form['context_mapping_description']['#markup'] = $this->t('Add context tokens to your pattern by selecting a source for the context token mapping.');
+    }
+
     unset($form['schema_desc'], $form['schema_update']);
     if ($form_state->get('schema_updated')) {
       $form['schema_desc'] = [
@@ -293,6 +313,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       '#type' => 'checkbox',
       '#title' => $this->t('Reusable'),
       '#default_value' => $configuration['reusable'] ?? FALSE,
+      '#description' => t('Set to make the pattern selectable in the block library and usable on other layouts.'),
     ];
 
     // @TODO: Re-enable the other formats like JSON and webcomponent.
@@ -331,6 +352,8 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       ],
       '#default_value' => $block_data ?? '',
     ];
+
+    $form['configuration_description']['#markup'] = t('Provide context for your pattern. You can use tokens and Twig in your values.');
 
     /** @var \Drupal\patternkit\PatternLibraryPluginInterface $library */
     $library = $this->patternLibraryPluginManager->createInstance($pattern->getLibraryPluginId());
@@ -514,12 +537,24 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $config = $this->serializer::decode(reset($data)['value']);
     $bubbleable_metadata = new BubbleableMetadata();
     array_walk_recursive($config, function (&$value, $key) use($context, $bubbleable_metadata) {
-      $value = $this->token->replace(
-        $value,
-        $context,
-        [],
-        $bubbleable_metadata
-      );
+      $token_groups = $this->token->scan($value);
+      $template = $value;
+      $template_context = [];
+      foreach ($token_groups as $group => $tokens) {
+        $tokenized = $this->token->generate(
+          $group,
+          $tokens,
+          $context,
+          [],
+          $bubbleable_metadata
+        );
+        foreach ($tokens as $token) {
+          $placeholder = preg_replace("/[^a-z]/", '', $token);
+          $template_context[$placeholder] = $tokenized[$token];
+          $template = str_replace($token, $placeholder, $template);
+        }
+      }
+      $value = $this->twig->renderInline($template, $template_context);
     });
     $pattern->config = $config;
 
