@@ -200,6 +200,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
               };
               window.patternkitEditor.destroy();
               delete window.patternkitEditor;
+              $target.removeOnce('patternkit-editor');
             }
           }
 
@@ -207,13 +208,15 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         };
 
         $('[data-drupal-selector="edit-actions-submit"]').parent('form').once().each(function () {
+          var _this2 = this;
+
           $(this).on('submit', function (e) {
-            e.preventDefault();
             window.patternkitEditor.disable();
             saveSchema();
             window.patternkitEditor.destroy();
             delete window.patternkitEditor;
-            $(this).off('submit');
+            $target.removeOnce('patternkit-editor');
+            $(_this2).off('submit');
           });
         });
       });
