@@ -200,6 +200,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
               };
               window.patternkitEditor.destroy();
               delete window.patternkitEditor;
+              $target.once.remove('patternkit-editor');
             }
           }
 
@@ -213,6 +214,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
             saveSchema();
             window.patternkitEditor.destroy();
             delete window.patternkitEditor;
+            $target.once.remove('patternkit-editor');
             $(this).off('submit');
           });
         });

@@ -176,6 +176,7 @@ patternkitEditorQuill(jQuery, Drupal, JSONEditor);
               };
               window.patternkitEditor.destroy();
               delete window.patternkitEditor;
+              $target.once.remove('patternkit-editor');
             }
           }
           parent_call.call(this, formValues, elementSettings, options);
@@ -187,6 +188,7 @@ patternkitEditorQuill(jQuery, Drupal, JSONEditor);
             saveSchema();
             window.patternkitEditor.destroy();
             delete window.patternkitEditor;
+            $target.once.remove('patternkit-editor');
             $(this).off('submit');
           });
         });
