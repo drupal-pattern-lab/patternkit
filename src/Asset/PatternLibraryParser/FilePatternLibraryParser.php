@@ -106,6 +106,9 @@ class FilePatternLibraryParser extends PatternLibraryParserBase {
     }
     $metadata = [];
     // @todo Grab the extension from the plugin.
+    if (!isset($library->toArray()['plugin'])) {
+      return [];
+    }
     $type = strtok($library->toArray()['plugin'], '.');
     if ($type !== 'file') {
       return [];
