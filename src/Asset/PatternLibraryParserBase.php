@@ -199,11 +199,11 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     // @todo Add support for twig lib attachments such as JS and images.
     $assets = $pattern->getAssets();
     foreach ($assets as $asset => $data) {
-      if (!empty($data)) {
+      if (empty($data)) {
         continue;
       }
-      if (file_exists($asset)) {
-        $assets[$assets] = file_get_contents($asset);
+      if (file_exists($data)) {
+        $assets[$asset] = file_get_contents($data);
       }
       // $this->fetchSingleAsset();
     }

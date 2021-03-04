@@ -29,7 +29,7 @@ use Drupal\Core\Field\BaseFieldDefinition;
  *     "form" = {
  *       "add" = "Drupal\patternkit\Form\PatternkitForm",
  *       "edit" = "Drupal\patternkit\Form\PatternkitForm",
- *       "delete" = "Drupal\patternkit\Form\PatternDeleteForm",
+ *       "delete" = "Drupal\block_content\Form\BlockContentDeleteForm",
  *       "default" = "Drupal\patternkit\Form\PatternkitForm"
  *     },
  *     "translation" = "Drupal\patternkit\PatternTranslationHandler"

@@ -48,7 +48,7 @@ class PatternkitTest extends BrowserTestBase {
     $patternkit_block->save();
     /** @var \Drupal\Core\Entity\ContentEntityStorageInterface $pattern_storage */
     $pattern_storage = \Drupal::entityTypeManager()->getStorage('patternkit_pattern');
-    $pattern_id = PatternkitBlock::derivativeToAssetId('patternkit_block:patternkit_atoms_example_src_example');
+    $pattern_id = PatternkitBlock::derivativeToAssetId('patternkit_atoms_example_src_example');
     /** @var PatternInterface $pattern */
     $pattern = Pattern::create(\Drupal::service('patternkit.asset.library')->getLibraryAsset($pattern_id));
     $pattern_cache = $pattern_storage->loadByProperties(['library' => $pattern->getLibrary(), 'path' => $pattern->getPath()]);

@@ -25,7 +25,6 @@ class PatternkitForm extends ContentEntityForm {
    */
   public function form(array $form, FormStateInterface $form_state) {
     $block = $this->entity;
-    $block_type = $this->getBundleEntity();
 
     $form = parent::form($form, $form_state);
 
@@ -50,8 +49,7 @@ class PatternkitForm extends ContentEntityForm {
     $block->save();
     $context = ['@type' => $block->bundle(), '%info' => $block->label()];
     $logger = $this->logger('patternkit');
-    $block_type = $this->getBundleEntity();
-    $t_args = ['@type' => $block_type->label(), '%info' => $block->label()];
+    $t_args = ['@type' => $block->bundle(), '%info' => $block->label()];
 
     if ($insert) {
       $logger->notice('@type: added %info.', $context);

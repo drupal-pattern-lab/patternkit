@@ -289,7 +289,8 @@ class Pattern extends ContentEntityBase implements PatternInterface {
       // Allow plugin fall-backs of type 'base_plugin.override_plugin'.
       $plugin_id = strstr($plugin_id, '.', TRUE);
       if (empty($plugin_id)) {
-        throw new PluginNotFoundException($plugin_id);
+        throw new PluginNotFoundException($plugin_id,
+          "Unable to fetch assets for pattern " . $this->getPath());
       }
       $plugin = $plugin_manager->createInstance($plugin_id);
     }

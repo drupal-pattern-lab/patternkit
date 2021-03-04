@@ -44,6 +44,9 @@ use Symfony\Component\Serializer\Serializer;
 class Library extends CacheCollector implements LibraryInterface, ContainerInjectionInterface {
 
   /** @var string */
+  const DEFAULT_LIBRARY_PLUGIN_ID = 'twig';
+
+  /** @var string */
   const PERSISTENT_CACHE_ID = 'patternkit.library.cache';
 
   /** @var \Drupal\Core\Config\ImmutableConfig */
@@ -405,7 +408,12 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
       $cached_metadata = $cache->data;
     }
     else {
-      $cached_metadata = $this->getLibraryMetadata();
+      try {
+        $cached_metadata = $this->getLibraryMetadata();
+      }
+      catch (\RuntimeException $exception) {
+        throw new PluginException($exception->getMessage());
+      }
       // Cache the data so that we don't have to build it again.
       // (if cache enabled, otherwise just a slow, redundant memcache set).
       if ($cache_enabled) {
@@ -543,14 +551,21 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
    */
   protected function getLibraryMetadata(): array {
     $metadata = [];
+    $plugin_default = self::DEFAULT_LIBRARY_PLUGIN_ID;
+    $plugin_list = implode(', ', array_keys($this->libraryPluginManager->getSortedDefinitions()));
     foreach ($this->getLibraries() as $library_name => $library) {
       $pattern_libraries = $library->patterns ?? [];
       if (!empty($pattern_libraries)) {
-        $metadata[$library_name] = $library;
         $library->patterns = [];
       }
       foreach ($pattern_libraries as $info) {
-        $info['plugin'] = $info['plugin'] ?? 'twig';
+        if (empty($info['plugin'])) {
+          \Drupal::logger('patternkit')->notice(
+            "No 'plugin' key set for the '$library_name' pattern library, defaulting to '$plugin_default'."
+            . " Recommend setting the key to one of the available plugins: $plugin_list."
+          );
+          $info['plugin'] = $plugin_default;
+        }
         $library->setPatternInfo($info);
         /** @var \Drupal\patternkit\PatternLibraryPluginInterface $plugin */
         try {
@@ -559,15 +574,30 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
         catch (PluginException $exception) {
           // Allow plugin fall-backs of type 'base_plugin.override_plugin'.
           $plugin_id = strstr($info['plugin'], '.', TRUE);
+          if (empty($plugin_id)) {
+            throw new InvalidLibraryFileException("Error loading pattern libraries via $plugin_id: " . $exception->getMessage());
+          }
           try {
             $plugin = $this->libraryPluginManager->createInstance($plugin_id);
           }
           catch (PluginException $exception) {
-            throw new InvalidLibraryFileException('Error loading pattern libraries via @plugin_id: ' . $exception->getMessage());
+            throw new InvalidLibraryFileException("Error loading pattern libraries via $plugin_id: " . $exception->getMessage());
           }
         }
+        $path = $info['data'] ?? '';
+        if (empty($path)) {
+          \Drupal::logger('patternkit')->info(
+            "No path set for $library_name under the patterns key. Data: " . print_r($info, TRUE)
+          );
+          continue;
+        }
         /** @var \Drupal\patternkit\Entity\Pattern $pattern */
-        $library->patterns = $plugin->getMetadata($library->getExtension(), $library, $info['data'] ?? []);
+        $library->patterns = array_merge($library->patterns, $plugin->getMetadata($library->getExtension(), $library, $path));
+        if (empty($library->patterns)) {
+          \Drupal::logger('patternkit')->info(
+            "No patterns found in $library_name library for path $path."
+          );
+        }
       }
       $metadata[$library_name] = $library;
     }

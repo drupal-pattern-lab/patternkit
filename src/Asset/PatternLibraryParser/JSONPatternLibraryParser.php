@@ -50,28 +50,33 @@ class JSONPatternLibraryParser extends PatternLibraryParserBase {
       throw new InvalidLibraryFileException("Path $path does not exist.");
     }
     $metadata = [];
+    $info = $library->getPatternInfo();
     foreach (self::discoverComponents($path, ['json']) as $name => $data) {
       if (empty($data['json']) || !file_exists($data['json'])) {
         continue;
       }
-      $category = $library['category'] ?? 'default';
+      $category = $info['category'] ?? 'default';
       $library_defaults = [
-        '$schema'    => 'http =>//json-schema.org/draft-04/schema#',
-        'category'   => $category,
-        'title'      => $name,
-        'type'       => 'object',
-        'format'     => 'grid',
-        'license'    => $library['license'] ?? [],
-        'name'       => $name,
+        '$schema' => 'http://json-schema.org/schema#',
+        'assets' => ['schema' => $data['json']],
+        'category' => $category,
+        'title' => $name,
+        'type' => 'object',
+        'format' => 'grid',
+        'library' => $library->id(),
+        'libraryPluginId' => $info['plugin'],
+        'license' => $library->license ?? [],
+        'name' => $name,
         'properties' => (object) [],
-        'required'   => [],
-        'version'    => $library['version'] ?? '',
+        'required' => [],
+        'version' => $library->version ?? '',
       ];
       if (!empty($data['json']) && $file_contents = file_get_contents($data['json'])) {
         $pattern = $this->createPattern($name, (array) $this->serializer::decode($file_contents) + $library_defaults);
         $pattern_path = trim(substr($data['json'], strlen($path), -strlen('.json')), '/\\');
-        $category_guess = $library['category'] ?? strstr($pattern_path, DIRECTORY_SEPARATOR, TRUE);
-        $pattern->category = $pattern->category ?? $category_guess;
+        $category_guess = $library->category ?? strstr($pattern_path, DIRECTORY_SEPARATOR, TRUE);
+        $pattern->category = $pattern->get('category')
+            ->getValue() ?? $category_guess;
       }
       else {
         // Create the pattern from defaults.
@@ -83,21 +88,20 @@ class JSONPatternLibraryParser extends PatternLibraryParserBase {
       // @todo Set $pattern->url to the actual URL of the pattern.
       // @todo Add default of library version fallback to extension version.
       $pattern->version = $pattern->version ?? 'VERSION';
-      $metadata['@' . $library['name'] . '/' . $pattern->path] = $pattern;
+      $metadata['@' . $library->id() . '/' . $pattern->getPath()] = $pattern;
     }
 
     foreach ($metadata as $pattern_type => $pattern) {
       // Replace any $ref links with relative paths.
-      $schema = $pattern->getSchema();
-      if (!isset($schema['properties'])) {
-        continue;
+      $schema = json_decode($pattern->getSchema(), TRUE);
+      if (isset($schema['properties'])) {
+        $schema['properties'] = static::schemaDereference(
+          $schema['properties'],
+          $pattern
+        );
       }
-      $schema['properties'] = static::schemaDereference(
-        $schema['properties'],
-        $pattern
-      );
       $pattern->setSchema($schema);
-      $metadata[$pattern_type] = $pattern;
+      $metadata[$pattern_type] = $pattern->toArray();
     }
     return $metadata;
   }

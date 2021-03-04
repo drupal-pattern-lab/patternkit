@@ -99,7 +99,7 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
    * @todo Deprecate this function, and rewrite dependent methods.
    */
   public static function derivativeToAssetId($derivative_id) {
-    return '@' . str_replace('//', '_', str_replace('_', '/', substr($derivative_id, strlen('patternkit_block:'))));
+    return '@' . str_replace('//', '_', str_replace('_', '/', $derivative_id));
   }
 
   /**
