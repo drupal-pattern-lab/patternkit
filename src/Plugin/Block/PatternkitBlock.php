@@ -262,7 +262,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       if (!$pattern && isset($configuration['pattern'])) {
         $pattern = \Drupal::entityTypeManager()->getStorage('patternkit_pattern')->loadRevision($configuration['pattern']);
       }
-      elseif (!$pattern) {
+      if (!$pattern) {
         $pattern = is_array($plugin['pattern']) ? Pattern::create($plugin['pattern']) : $plugin['pattern'];
       }
       $pattern_id = $pattern->getAssetId();
@@ -272,6 +272,15 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       return ['#markup' => $this->t('Unable to edit a Patternkit block when the pattern fails to load.')];
     }
     $form_state->set('pattern', $pattern);
+
+    /** @var \Drupal\Core\Entity\ContentEntityStorageInterface $block_storage */
+    $block_storage = $this->entityTypeManager->getStorage('patternkit_block');
+    /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
+    if (isset($configuration['patternkit_block_id'])
+      && (int) $configuration['patternkit_block_id'] > 0
+      && $patternkit_block = $block_storage->load($configuration['patternkit_block_id'])) {
+      $configuration['reusable'] = $patternkit_block->isReusable();
+    }
 
     // Adds in missing descriptions for the Drupal Core context fields.
     if (isset($form['context_mapping'])) {
@@ -420,7 +429,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
 
     /** @var \Drupal\Core\Entity\ContentEntityStorageInterface $pattern_storage */
     $pattern_storage = $this->entityTypeManager->getStorage('patternkit_pattern');
-    $pattern_id = \Drupal\patternkit\Plugin\Derivative\PatternkitBlock::derivativeToAssetId($this->getDerivativeId());
+    $pattern_id = \Drupal\patternkit\Plugin\Derivative\PatternkitBlock::derivativeToAssetId(substr($this->getDerivativeId(), strlen('patternkit_block:')));
     /** @var PatternInterface $pattern */
     $pattern = $form_state->get('pattern') ?? Pattern::create($this->library->getLibraryAsset($pattern_id));
     $pattern_cache = $pattern_storage->loadByProperties(['library' => $pattern->getLibrary(), 'path' => $pattern->getPath()]);
@@ -551,6 +560,14 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
         foreach ($tokens as $token) {
           $placeholder = preg_replace("/[^a-z]/", '', $token);
           $template_context[$placeholder] = $tokenized[$token];
+          // If the user is not using Twig templating,
+          // wrap with a Twig write so we can process it.
+          $token_pos = strpos($template, $token);
+          $template_use_twig = strpos($template, '{{') < $token_pos
+            && strpos($template, '}}', $token_pos + strlen($token)) !== FALSE;
+          if (!$template_use_twig) {
+            $placeholder = '{{' . $placeholder . '}}';
+          }
           $template = str_replace($token, $placeholder, $template);
         }
       }

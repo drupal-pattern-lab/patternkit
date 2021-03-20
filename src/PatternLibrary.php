@@ -44,6 +44,9 @@ class PatternLibrary {
   /** @var array */
   public $css = [];
 
+  /** @var bool|null */
+  public $header = NULL;
+
   /** @var string */
   public $license;
 
@@ -99,19 +102,21 @@ class PatternLibrary {
     if (isset($remote) && !isset($license)) {
       throw new LibraryDefinitionMissingLicenseException(sprintf("Missing license information in library definition for definition '%s' extension '%s': it has a remote, but no license.", $id, $extension));
     }
-
     // Assign Drupal's license to libraries that don't have license info.
-    if (!isset($library['license'])) {
-      $library['license'] = [
+    if (!isset($license)) {
+      $license = [
         'name' => 'GNU-GPL-2.0-or-later',
         'url' => 'https://www.drupal.org/licensing/faq',
         'gpl-compatible' => TRUE,
       ];
     }
+    $this->remote = $remote;
+    $this->license = $license;
 
     if (($header !== NULL) && !is_bool($header)) {
       throw new \LogicException(sprintf("The 'header' key in the library definition '%s' in extension '%s' is invalid: it must be a boolean.", $id, $extension));
     }
+    $this->header = $header;
   }
 
   /**
@@ -166,8 +171,9 @@ class PatternLibrary {
 
   /**
    * @param $info
-   * An array of pattern info:
-   *  -
+   * An array of pattern info for the current set of patterns being processed:
+   *  - string plugin
+   *  - string category
    *
    * @todo Validate and provide helpful feedback for Pattern Library Info.
    */

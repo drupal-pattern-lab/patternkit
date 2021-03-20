@@ -29,7 +29,7 @@ use Drupal\Core\Field\BaseFieldDefinition;
  *     "form" = {
  *       "add" = "Drupal\patternkit\Form\PatternkitForm",
  *       "edit" = "Drupal\patternkit\Form\PatternkitForm",
- *       "delete" = "Drupal\patternkit\Form\PatternDeleteForm",
+ *       "delete" = "Drupal\block_content\Form\BlockContentDeleteForm",
  *       "default" = "Drupal\patternkit\Form\PatternkitForm"
  *     },
  *     "translation" = "Drupal\patternkit\PatternTranslationHandler"
@@ -41,9 +41,9 @@ use Drupal\Core\Field\BaseFieldDefinition;
  *   revision_data_table = "patternkit_field_revision",
  *   show_revision_ui = TRUE,
  *   links = {
- *     "canonical" = "/block/{pattern}",
- *     "delete-form" = "/block/{pattern}/delete",
- *     "edit-form" = "/block/{pattern}",
+ *     "canonical" = "/block/{patternkit_block}",
+ *     "delete-form" = "/block/{patternkit_block}/delete",
+ *     "edit-form" = "/block/{patternkit_block}",
  *     "collection" = "/admin/structure/block/patternkit",
  *     "create" = "/block",
  *   },
@@ -55,6 +55,7 @@ use Drupal\Core\Field\BaseFieldDefinition;
  *     "langcode" = "langcode",
  *     "uuid" = "uuid",
  *     "published" = "status",
+ *     "pattern" = "pattern_id",
  *     "data" = "data",
  *   },
  *   revision_metadata_keys = {
@@ -69,6 +70,9 @@ use Drupal\Core\Field\BaseFieldDefinition;
  * are always rendered as blocks, and blocks already have their own render
  * caching.
  * See https://www.drupal.org/node/2284917#comment-9132521 for more information.
+ *
+ * @todo 2.0 Rename to PatternkitInstance, since this entity could have other
+ * potential uses other than blocks, such as panes or views stubs.
  */
 class PatternkitBlock extends BlockContent {
 
@@ -109,6 +113,10 @@ class PatternkitBlock extends BlockContent {
       ->setTranslatable(TRUE)
       ->setRevisionable(TRUE);
 
+    $fields['pattern_id'] = BaseFieldDefinition::create('string')
+      ->setLabel(t('Patternkit Pattern Derivative ID'))
+      ->setDescription(t('The machine name of the Patternkit pattern.'));
+
     $fields['data'] = BaseFieldDefinition::create('serialized_data')
       ->setLabel(t('Data'))
       ->setDescription(t('The patternkit block configuration data and content.'))
@@ -123,6 +131,29 @@ class PatternkitBlock extends BlockContent {
       ->setDefaultValue(TRUE);
 
     return $fields;
+  }
+
+  /**
+   * Sets the block pattern.
+   *
+   * @param string $pattern
+   *   The Patternkit pattern derivative id.
+   *
+   * @return $this
+   */
+  public function setPattern($pattern) {
+    $this->set('pattern_id', $pattern);
+    return $this;
+  }
+
+  /**
+   * Returns the block Patternkit pattern derivative id.
+   *
+   * @return string|NULL
+   *   The Patternkit pattern derivative id.
+   */
+  public function getPattern() {
+    return $this->get('pattern_id')->getString();
   }
 
 }

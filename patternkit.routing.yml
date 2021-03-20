@@ -5,6 +5,38 @@ entity.patternkit_block.collection:
     _entity_list: 'patternkit_block'
   requirements:
     _permission: 'administer blocks'
+
+entity.patternkit_block.canonical:
+  path: '/patternkit_block/{patternkit_block}'
+  defaults:
+    _entity_form: 'patternkit_block.edit'
+  options:
+    _admin_route: TRUE
+  requirements:
+    _permission: 'administer blocks'
+    patternkit_block: \d+
+
+entity.patternkit_block.edit_form:
+  path: '/patternkit_block/{patternkit_block}'
+  defaults:
+    _entity_form: 'patternkit_block.edit'
+  options:
+    _admin_route: TRUE
+  requirements:
+    _permission: 'administer blocks'
+    patternkit_block: \d+
+
+entity.patternkit_block.delete_form:
+  path: '/patternkit_block/{patternkit_block}/delete'
+  defaults:
+    _entity_form: 'patternkit_block.delete'
+    _title: 'Delete'
+  options:
+    _admin_route: TRUE
+  requirements:
+    _permission: 'administer blocks'
+    patternkit_block: \d+
+
 patternkit.add_form:
   path: '/patternkit_block/add/{pattern_id}'
   defaults:
@@ -14,6 +46,7 @@ patternkit.add_form:
     _admin_route: TRUE
   requirements:
     _permission: 'administer blocks'
+
 patternkit.add_page:
   path: '/patternkit_block/add'
   defaults:
@@ -23,6 +56,7 @@ patternkit.add_page:
     _admin_route: TRUE
   requirements:
     _permission: 'administer blocks'
+
 patternkit.api:
   path: '/api/patternkit'
   defaults:
@@ -30,6 +64,7 @@ patternkit.api:
     _disable_route_normalizer: 'TRUE'
   requirements:
     _access: 'TRUE'
+
 patternkit.settings:
   path: '/admin/config/user-interface/patternkit'
   defaults:
@@ -40,6 +75,7 @@ patternkit.settings:
     _admin_route: TRUE
   requirements:
     _permission: 'access administration pages'
+
 patternkit.settings.json_settings:
   path: '/admin/config/user-interface/patternkit/json'
   defaults:

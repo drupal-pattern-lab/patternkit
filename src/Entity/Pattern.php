@@ -60,7 +60,7 @@ use Drupal\Core\Field\BaseFieldDefinition;
  *     "list_builder" = "Drupal\Core\Entity\EntityListBuilder",
  *   },
  *   links = {
- *     "canonical" = "/patternkit/{pattern}",
+ *     "canonical" = "/patternkit/{patternkit_pattern}",
  *     "collection" = "/admin/structure/block/patternkit",
  *   },
  *   translatable = FALSE
@@ -195,20 +195,16 @@ class Pattern extends ContentEntityBase implements PatternInterface {
     $schema = $this->getEntityKey('schema');
     if (!isset($schema)) {
       $this->fetchAssets();
-      $schema = $this->getAssets()['schema'] ?? [];
-      $this->setSchema($schema);
     }
-    return $schema;
+    return $this->getEntityKey('schema');
   }
 
   public function getTemplate() {
     $template = $this->getEntityKey('template');
     if (!isset($template)) {
       $this->fetchAssets();
-      $template = $this->getAssets()['template'] ?? [];
-      $this->setTemplate($template);
     }
-    return $template;
+    return $this->getEntityKey('template');
   }
 
   public function getVersion() {
@@ -289,13 +285,14 @@ class Pattern extends ContentEntityBase implements PatternInterface {
       // Allow plugin fall-backs of type 'base_plugin.override_plugin'.
       $plugin_id = strstr($plugin_id, '.', TRUE);
       if (empty($plugin_id)) {
-        throw new PluginNotFoundException($plugin_id);
+        throw new PluginNotFoundException($plugin_id,
+          "Unable to fetch assets for pattern " . $this->getPath());
       }
       $plugin = $plugin_manager->createInstance($plugin_id);
     }
-    $this->setAssets($plugin->fetchAssets($this));
-    $assets = $this->getAssets();
-    $this->setTemplate($assets['template']);
-    $this->setSchema($assets['schema']);
+    $assets = $plugin->fetchAssets($this);
+    $this->setTemplate($assets['template'] ?? '');
+    $this->setSchema($assets['schema'] ?? '');
+    return $assets;
   }
 }
