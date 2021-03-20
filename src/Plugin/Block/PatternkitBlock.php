@@ -560,6 +560,14 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
         foreach ($tokens as $token) {
           $placeholder = preg_replace("/[^a-z]/", '', $token);
           $template_context[$placeholder] = $tokenized[$token];
+          // If the user is not using Twig templating,
+          // wrap with a Twig write so we can process it.
+          $token_pos = strpos($template, $token);
+          $template_use_twig = strpos($template, '{{') < $token_pos
+            && strpos($template, '}}', $token_pos + strlen($token)) !== FALSE;
+          if (!$template_use_twig) {
+            $placeholder = '{{' . $placeholder . '}}';
+          }
           $template = str_replace($token, $placeholder, $template);
         }
       }
