@@ -262,7 +262,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       if (!$pattern && isset($configuration['pattern'])) {
         $pattern = \Drupal::entityTypeManager()->getStorage('patternkit_pattern')->loadRevision($configuration['pattern']);
       }
-      elseif (!$pattern) {
+      if (!$pattern) {
         $pattern = is_array($plugin['pattern']) ? Pattern::create($plugin['pattern']) : $plugin['pattern'];
       }
       $pattern_id = $pattern->getAssetId();

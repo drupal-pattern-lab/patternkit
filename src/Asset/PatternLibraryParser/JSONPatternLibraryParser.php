@@ -88,21 +88,20 @@ class JSONPatternLibraryParser extends PatternLibraryParserBase {
       // @todo Set $pattern->url to the actual URL of the pattern.
       // @todo Add default of library version fallback to extension version.
       $pattern->version = $pattern->version ?? 'VERSION';
-      $metadata['@' . $library['name'] . '/' . $pattern->path] = $pattern;
+      $metadata['@' . $library->id() . '/' . $pattern->getPath()] = $pattern;
     }
 
     foreach ($metadata as $pattern_type => $pattern) {
       // Replace any $ref links with relative paths.
-      $schema = $pattern->getSchema();
-      if (!isset($schema['properties'])) {
-        continue;
+      $schema = json_decode($pattern->getSchema(), TRUE);
+      if (isset($schema['properties'])) {
+        $schema['properties'] = static::schemaDereference(
+          $schema['properties'],
+          $pattern
+        );
       }
-      $schema['properties'] = static::schemaDereference(
-        $schema['properties'],
-        $pattern
-      );
       $pattern->setSchema($schema);
-      $metadata[$pattern_type] = $pattern;
+      $metadata[$pattern_type] = $pattern->toArray();
     }
     return $metadata;
   }
