@@ -25,12 +25,11 @@ class PatternkitForm extends ContentEntityForm {
    */
   public function form(array $form, FormStateInterface $form_state) {
     $block = $this->entity;
-    $block_type = $this->getBundleEntity();
 
     $form = parent::form($form, $form_state);
 
     if ($this->operation == 'edit') {
-      $form['#title'] = $this->t('Edit custom block %label', ['%label' => $block->label()]);
+      $form['#title'] = $this->t('Edit Patternkit block %label', ['%label' => $block->label()]);
     }
     // Override the default CSS class name, since the user-defined custom block
     // type name in 'TYPE-block-form' potentially clashes with third-party class
@@ -47,11 +46,11 @@ class PatternkitForm extends ContentEntityForm {
     $block = $this->entity;
 
     $insert = $block->isNew();
+    $block->setReusable();
     $block->save();
     $context = ['@type' => $block->bundle(), '%info' => $block->label()];
     $logger = $this->logger('patternkit');
-    $block_type = $this->getBundleEntity();
-    $t_args = ['@type' => $block_type->label(), '%info' => $block->label()];
+    $t_args = ['@type' => $block->bundle(), '%info' => $block->label()];
 
     if ($insert) {
       $logger->notice('@type: added %info.', $context);
@@ -69,10 +68,13 @@ class PatternkitForm extends ContentEntityForm {
         if (!$theme = $block->getTheme()) {
           $theme = $this->config('system.theme')->get('default');
         }
+        if (!$pattern = $block->getPattern()) {
+          $block->setPattern($form_state->getValue('pattern'));
+        }
         $form_state->setRedirect(
           'block.admin_add',
           [
-            'plugin_id' => 'patternkit:' . $block->uuid(),
+            'plugin_id' => 'patternkit_block:' . $block->uuid(),
             'theme' => $theme,
           ]
         );
