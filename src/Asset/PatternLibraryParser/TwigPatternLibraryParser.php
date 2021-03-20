@@ -72,8 +72,8 @@ class TwigPatternLibraryParser extends PatternLibraryParserBase {
                                      PatternEditorConfig $config = NULL): array {
     // @todo Add support for twig lib attachments such as JS and images.
     $assets = parent::fetchPatternAssets($pattern, $config);
-    $assets['template'] = file_get_contents($assets['twig']);
-    $assets['schema'] = file_get_contents($assets['json']);
+    $assets['template'] = $assets['twig'];
+    $assets['schema'] = $assets['json'];
     // Replace any $ref links with relative paths.
     $schema = $this->serializer::decode($assets['schema']);
     if (!isset($schema['properties'])) {
@@ -142,6 +142,7 @@ class TwigPatternLibraryParser extends PatternLibraryParserBase {
       throw new InvalidLibraryFileException("Path $path does not exist.");
     }
     $metadata = [];
+    $info = $library->getPatternInfo();
     foreach (self::discoverComponents($path, ['json', 'twig']) as $name => $data) {
       if (empty($data['twig']) || !file_exists($data['twig'])) {
         continue;
