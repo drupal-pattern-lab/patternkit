@@ -150,7 +150,7 @@ class TwigPatternLibraryParser extends PatternLibraryParserBase {
       // If the component has a JSON file, create the pattern from it.
       $defaults = [
         'assets'          => ['twig' => $data['twig']],
-        'category'        => $library->category ?? 'default',
+        'category'        => $info['category'] ?? 'default',
         'library'         => $library->id(),
         'libraryPluginId' => 'twig',
         'name'            => $name,
@@ -158,7 +158,7 @@ class TwigPatternLibraryParser extends PatternLibraryParserBase {
         'version'         => $library->version ?? 'VERSION',
       ];
       if (!empty($data['json']) && $file_contents = file_get_contents($data['json'])) {
-        $category_guess = $library->category ?? strstr($pattern_path, DIRECTORY_SEPARATOR, TRUE);
+        $category_guess = $info['category'] ?? strstr($pattern_path, DIRECTORY_SEPARATOR, TRUE);
         $defaults['category'] = $category_guess ?? $defaults['category'];
         $defaults['assets']['json'] = $data['json'];
         $pattern = $this->createPattern($name, (array) $this->serializer::decode($file_contents) + $defaults);
