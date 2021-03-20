@@ -12,6 +12,7 @@ use Drupal\Core\Entity\EntityListBuilder;
 use Drupal\Core\Entity\EntityViewBuilder;
 use Drupal\Core\Entity\Sql\SqlContentEntityStorage;
 use Drupal\Core\Entity\Sql\SqlContentEntityStorageSchema;
+use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\patternkit\Commands\PatternkitCommands;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternRouteProvider;
@@ -89,8 +90,8 @@ function patternkit_update_8001(&$sandbox) {
         'list_builder' => EntityListBuilder::class,
       ],
       'links' => [
-        'canonical' => '/patternkit/{pattern}',
-        'collection' => '/admin/structure/block/patternkit',
+        'canonical' => '/patternkit/{patternkit_pattern}',
+        'collection' => '/patternkit',
       ],
       'translatable' => FALSE,
     ]);
@@ -133,4 +134,23 @@ function patternkit_update_8002(&$sandbox) {
     ] + $metadata_keys;
   $entity_type->set('revision_metadata_keys', $metadata_keys);
   $entity_definition_update_manager->updateEntityType($entity_type);
+}
+
+/**
+ * Adds reverse lookup pattern id field for Patternkit reusable blocks.
+ */
+function patternkit_update_8003(&$sandbox) {
+  $entity_definition_update_manager = \Drupal::entityDefinitionUpdateManager();
+  $entity_type = $entity_definition_update_manager->getEntityType('patternkit_block');
+
+  $entity_keys = $entity_type->get('entity_keys');
+  $entity_keys['pattern'] = 'pattern_id';
+  $entity_type->set('entity_keys', $entity_keys);
+
+  $pattern_id_field_definition = BaseFieldDefinition::create('string')
+    ->setLabel(t('Patternkit Pattern Derivative ID'))
+    ->setDescription(t('The machine name of the Patternkit pattern.'));
+  $field_definitions = $entity_definition_update_manager
+    ->installFieldStorageDefinition('pattern_id',
+  'patternkit_block', 'patternkit', $pattern_id_field_definition);
 }

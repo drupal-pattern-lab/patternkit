@@ -60,7 +60,7 @@ use Drupal\Core\Field\BaseFieldDefinition;
  *     "list_builder" = "Drupal\Core\Entity\EntityListBuilder",
  *   },
  *   links = {
- *     "canonical" = "/patternkit/{pattern}",
+ *     "canonical" = "/patternkit/{patternkit_pattern}",
  *     "collection" = "/admin/structure/block/patternkit",
  *   },
  *   translatable = FALSE

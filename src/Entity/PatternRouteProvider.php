@@ -17,14 +17,14 @@ class PatternRouteProvider implements EntityRouteProviderInterface {
    */
   public function getRoutes(EntityTypeInterface $entity_type) {
     $route_collection = new RouteCollection();
-    $route = (new Route('/patternkit/{pattern}'))
+    $route = (new Route('/patternkit/{patternkit_pattern}'))
       ->addDefaults([
         '_controller' => '\Drupal\patternkit\Controller\PatternkitController::patternView',
         '_title_callback' => '\Drupal\patternkit\Controller\PatternkitController::patternTitle',
       ])
-      ->setRequirement('pattern', '\d+')
-      ->setRequirement('_entity_access', 'pattern.view');
-    $route_collection->add('entity.pattern.canonical', $route);
+      ->setRequirement('patternkit_pattern', '\d+')
+      ->setRequirement('_entity_access', 'patternkit_pattern.view');
+    $route_collection->add('entity.patternkit_pattern.canonical', $route);
 
     return $route_collection;
   }

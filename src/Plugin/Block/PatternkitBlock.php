@@ -273,6 +273,15 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     }
     $form_state->set('pattern', $pattern);
 
+    /** @var \Drupal\Core\Entity\ContentEntityStorageInterface $block_storage */
+    $block_storage = $this->entityTypeManager->getStorage('patternkit_block');
+    /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
+    if (isset($configuration['patternkit_block_id'])
+      && (int) $configuration['patternkit_block_id'] > 0
+      && $patternkit_block = $block_storage->load($configuration['patternkit_block_id'])) {
+      $configuration['reusable'] = $patternkit_block->isReusable();
+    }
+
     // Adds in missing descriptions for the Drupal Core context fields.
     if (isset($form['context_mapping'])) {
       $form['context_mapping_description']['#markup'] = $this->t('Add context tokens to your pattern by selecting a source for the context token mapping.');
@@ -420,7 +429,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
 
     /** @var \Drupal\Core\Entity\ContentEntityStorageInterface $pattern_storage */
     $pattern_storage = $this->entityTypeManager->getStorage('patternkit_pattern');
-    $pattern_id = \Drupal\patternkit\Plugin\Derivative\PatternkitBlock::derivativeToAssetId($this->getDerivativeId());
+    $pattern_id = \Drupal\patternkit\Plugin\Derivative\PatternkitBlock::derivativeToAssetId(substr($this->getDerivativeId(), strlen('patternkit_block:')));
     /** @var PatternInterface $pattern */
     $pattern = $form_state->get('pattern') ?? Pattern::create($this->library->getLibraryAsset($pattern_id));
     $pattern_cache = $pattern_storage->loadByProperties(['library' => $pattern->getLibrary(), 'path' => $pattern->getPath()]);

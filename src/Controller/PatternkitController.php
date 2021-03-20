@@ -9,6 +9,7 @@ use Drupal\Core\Link;
 use Drupal\Core\Url;
 use Drupal\patternkit\Asset\LibraryInterface;
 use Drupal\patternkit\Entity\Pattern;
+use Drupal\patternkit\Plugin\Derivative\PatternkitBlock;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -112,7 +113,7 @@ class PatternkitController extends ControllerBase {
       catch (\Exception $e) {
         continue;
       }
-      $pattern_id = trim(str_replace('/', '_', $pattern_key), '@');
+      $pattern_id = PatternkitBlock::assetToDerivativeId($pattern->getAssetId());
       $label = $pattern->label();
       $content['types'][$pattern_id] = [
         'link' => Link::fromTextAndUrl($label, Url::fromRoute('patternkit.add_form', ['pattern_id' => $pattern_id], ['query' => $query])),
@@ -142,9 +143,8 @@ class PatternkitController extends ControllerBase {
    */
   public function addForm($pattern_id, Request $request): array {
     /** @var \Drupal\patternkit\Entity\PatternkitBlock $block */
-    $block = $this->patternkitStorage->create([
-      'type' => $pattern_id,
-    ]);
+    $block = $this->patternkitStorage->create([]);
+    $block->setPattern($pattern_id);
     if (($theme = $request->query->get('theme'))
       && array_key_exists($theme, $this->themeHandler->listInfo())) {
       // We have navigated to this page from the block library and will keep
@@ -152,7 +152,7 @@ class PatternkitController extends ControllerBase {
       // for the newly created block in the given theme.
       $block->setTheme($theme);
     }
-    return $this->entityFormBuilder()->getForm($block);
+    return $this->entityFormBuilder()->getForm($block, 'default', ['pattern' => $pattern_id]);
   }
 
   /**
@@ -228,11 +228,11 @@ class PatternkitController extends ControllerBase {
    * @throws \Exception
    */
   public function getAddFormTitle($pattern_id): string {
-    $asset_id = '@' . str_replace('_', '/', $pattern_id);
+    $asset_id = PatternkitBlock::derivativeToAssetId(urldecode($pattern_id));
     try {
       $pattern_asset = $this->library->getLibraryAsset($asset_id);
       if ($pattern_asset === NULL) {
-        throw new \RuntimeException("Unable to locate $pattern_id.");
+        throw new \RuntimeException("Unable to locate $asset_id.");
       }
       $pattern = Pattern::create($pattern_asset);
     }

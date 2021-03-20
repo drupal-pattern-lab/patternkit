@@ -99,7 +99,7 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
    * @todo Deprecate this function, and rewrite dependent methods.
    */
   public static function derivativeToAssetId($derivative_id) {
-    return '@' . str_replace('//', '_', str_replace('_', '/', substr($derivative_id, strlen('patternkit_block:'))));
+    return '@' . str_replace('//', '_', str_replace('_', '/', $derivative_id));
   }
 
   /**
@@ -161,6 +161,8 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
     foreach ($patternkit_blocks as $patternkit_block) {
       $pkb_uuid = $patternkit_block->uuid();
       $this->derivatives[$pkb_uuid] = $base_definition;
+      $block_pattern_id = $patternkit_block->getPattern() ?? '';
+      $this->derivatives[$pkb_uuid]['pattern'] = $this->derivatives[$block_pattern_id]['pattern'] ?? Pattern::create([]);
       $this->derivatives[$pkb_uuid]['admin_label'] = $patternkit_block->label();
       $this->derivatives[$pkb_uuid]['config_dependencies']['content'] = [
         $patternkit_block->getConfigDependencyName(),
