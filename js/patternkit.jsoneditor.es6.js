@@ -176,17 +176,18 @@ patternkitEditorQuill(jQuery, Drupal, JSONEditor);
               };
               window.patternkitEditor.destroy();
               delete window.patternkitEditor;
+              $target.removeOnce('patternkit-editor');
             }
           }
           parent_call.call(this, formValues, elementSettings, options);
         };
         $('[data-drupal-selector="edit-actions-submit"]').parent('form').once().each(function () {
-          $(this).on('submit', function (e) {
-            e.preventDefault();
+          $(this).on('submit', (e) => {
             window.patternkitEditor.disable();
             saveSchema();
             window.patternkitEditor.destroy();
             delete window.patternkitEditor;
+            $target.removeOnce('patternkit-editor');
             $(this).off('submit');
           });
         });
