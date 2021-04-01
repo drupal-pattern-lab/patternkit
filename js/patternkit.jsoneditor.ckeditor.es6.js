@@ -114,15 +114,18 @@ export function patternkitEditorCKEditor($, Drupal, JSONEditor) {
   'use strict';
   Drupal.behaviors.patternkitEditorCKEditor = {
     attach: function (context, settings) {
-      if (!window.JSONEditor || !settings.patternkitEditor.patternkitCKEditorConfig) {
+      if (!window.JSONEditor) {
         return;
       }
       JSONEditor.defaults.options.drupal_ckeditor = {
-        ckeditor_config: settings.patternkitEditor.patternkitCKEditorConfig
+        ckeditor_config: settings.patternkitEditor.patternkitCKEditorConfig || {}
       };
       JSONEditor.defaults.editors.drupal_ckeditor = DrupalCKEditor;
       JSONEditor.defaults.resolvers.unshift(function (schema) {
-        if (schema.type === 'string' && schema.format === 'xhtml' && schema.options.wysiwyg) {
+        if (schema.type === 'string'
+          && schema.format === 'html'
+          && schema.options.wysiwyg
+          && settings.patternkitEditor.theme === 'html') {
           return 'drupal_ckeditor';
         }
       });

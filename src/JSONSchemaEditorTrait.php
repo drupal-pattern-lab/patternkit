@@ -138,14 +138,17 @@ trait JSONSchemaEditorTrait {
       '#tag'      => 'div',
       '#value'    => '',
       '#attributes' => [
-        'id' => 'editor-shadow-injection-target',
+        'id' => 'patternkit-editor-target',
         'style' => ['all: initial; background: white; display: inline-block; width: 100%;']
       ],
       '#attached' => [
         'drupalSettings' => [
           'patternkitEditor' => $editor_settings,
         ],
-        'library' => ['patternkit/patternkit.jsoneditor'],
+        'library' => [
+          'patternkit/patternkit.jsoneditor',
+          'ckeditor/drupal.ckeditor',
+        ],
       ],
     ];
   }
