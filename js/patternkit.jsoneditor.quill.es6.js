@@ -124,7 +124,7 @@ export function patternkitEditorQuill($, Drupal, JSONEditor) {
       };
       JSONEditor.defaults.editors.drupal_quill = DrupalQuill;
       JSONEditor.defaults.resolvers.unshift(function (schema) {
-        if (schema.type === 'string' && schema.format === 'xhtml' && schema.options.wysiwyg) {
+        if (schema.type === 'string' && schema.format === 'html' && schema.options.wysiwyg) {
           return 'drupal_quill';
         }
       });

@@ -7,3 +7,4 @@ core_version_requirement: ^8 || ^9
 configure: patternkit.settings
 dependencies:
   - drupal:block_content
+  - drupal:ckeditor
