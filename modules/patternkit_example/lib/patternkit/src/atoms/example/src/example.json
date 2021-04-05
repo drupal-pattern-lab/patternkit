@@ -12,6 +12,14 @@
         "grid_columns": 4
       }
     },
+    "formatted_text": {
+      "title": "Formatted Text",
+      "type": "string",
+      "format": "html",
+      "options": {
+        "wysiwyg": true
+      }
+    },
     "hidden": {
       "title": "hidden",
       "type": "string"

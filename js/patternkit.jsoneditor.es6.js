@@ -12,12 +12,14 @@
  *
  * @external JSONEditor
  *
- * @todo .editor-shadow-injection-target .card all: initial
+ * @todo .patternkit-editor-target .card all: initial
  */
 
 import {patternkitEditorQuill} from './patternkit.jsoneditor.quill.es6.js';
+import {patternkitEditorCKEditor} from './patternkit.jsoneditor.ckeditor.es6';
 
 patternkitEditorQuill(jQuery, Drupal, JSONEditor);
+patternkitEditorCKEditor(jQuery, Drupal, JSONEditor);
 
 (function ($, Drupal, JSONEditor) {
   'use strict';
@@ -36,9 +38,9 @@ patternkitEditorQuill(jQuery, Drupal, JSONEditor);
           window.M.updateTextFields();
         }
       };
-      let $target = $('#editor-shadow-injection-target', context);
+      let $target = $('#patternkit-editor-target', context);
       $target.once('patternkit-editor').each(function () {
-        let shadow = this.attachShadow({mode: 'open'});
+
         let theme_js = settings.patternkitEditor.themeJS;
         if (typeof theme_js === 'string') {
           theme_js = [theme_js];
@@ -51,6 +53,11 @@ patternkitEditorQuill(jQuery, Drupal, JSONEditor);
         }
         let editor_dom = '';
         if (settings.patternkitEditor.themeStylesheet) {
+          let theme_element = document.createElement('link');
+          theme_element.rel = "stylesheet";
+          theme_element.id = "icon_stylesheet";
+          theme_element.href = settings.patternkitEditor.themeStylesheet;
+          document.getElementsByTagName('head')[0].appendChild(theme_element);
           editor_dom = '<link rel="stylesheet" id="theme_stylesheet" href="' + settings.patternkitEditor.themeStylesheet + '">';
         }
         // @todo Re-eval with this shadow dom webfont bug:
@@ -64,7 +71,20 @@ patternkitEditorQuill(jQuery, Drupal, JSONEditor);
           editor_dom += '<link rel="stylesheet" id="icon_stylesheet" href="' + settings.patternkitEditor.iconStylesheet + '">';
         }
         editor_dom += '<div id="editor_holder"></div>';
-        shadow.innerHTML += editor_dom;
+
+        let editor_root = document;
+        // We need to use a Shadow Dom to use themes, which has its own complications
+        // with other JS libraries trying to access editor components, for example WYSIWYG.
+        if (settings.patternkitEditor.theme !== 'html') {
+          let shadow = this.attachShadow({mode: 'open'});
+          shadow.innerHTML += editor_dom;
+          editor_root = $target[0].shadowRoot;
+        }
+        else {
+          $target.html(editor_dom);
+        }
+        console.log(settings.patternkitEditor);
+
         let data = {
           schema: JSON.parse(settings.patternkitEditor.schemaJson),
           starting: JSON.parse(settings.patternkitEditor.startingJson)
@@ -138,7 +158,7 @@ patternkitEditorQuill(jQuery, Drupal, JSONEditor);
           schema: data.schema,
           refs: {}
         };
-        window.patternkitEditor = new JSONEditor($target[0].shadowRoot.getElementById('editor_holder'), config);
+        window.patternkitEditor = new JSONEditor(editor_root.getElementById('editor_holder'), config);
         window.patternkitEditor.on('ready', function () {
           // If we provide starting JSON as a value, JSON Editor hides all
           // non-required fields, which is desired behavior by most users of the

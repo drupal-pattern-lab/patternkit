@@ -78,6 +78,12 @@ class PatternLibraryJSONForm extends ConfigFormBase {
     'fontawesome5' => 'https://use.fontawesome.com/releases/v5.6.1/css/all.css',
   ];
 
+  public const EDITORS = [
+    'ckeditor' => 'ckeditor',
+    'prosemirror' => 'prosemirror',
+    'quill' => 'quill'
+  ];
+
   /**
    * Implements buildForm().
    *
@@ -131,6 +137,20 @@ class PatternLibraryJSONForm extends ConfigFormBase {
    */
   public function getFormId() :string {
     return 'patternkit_json_editor_config';
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function submitForm(array &$form, FormStateInterface $form_state) {
+    $form_values = $form_state->getValues();
+    $config = $this->config(self::SETTINGS);
+    $config->set('patternkit_json_editor_theme', $form_values['patternkit_json_editor_theme']);
+    $config->set('patternkit_json_editor_icons', $form_values['patternkit_json_editor_icons']);
+    $config->set('patternkit_json_editor_css', $form_values['patternkit_json_editor_css']);
+    $config->set('patternkit_json_editor_js', $form_values['patternkit_json_editor_js']);
+    $config->save();
+    parent::submitForm($form, $form_state);
   }
 
 }
