@@ -37,6 +37,9 @@ block.settings.patternkit_block:*:
     patternkit_block_id:
       type: integer
       label: 'ID of the Patternkit Block content entity.'
+    patternkit_block_rid:
+      type: integer
+      label: 'Revision ID of the Patternkit Block content entity.'
     presentation_style:
       type: string
       label: 'Presentation style for the patternkit block when rendered.'

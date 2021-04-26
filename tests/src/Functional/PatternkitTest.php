@@ -68,7 +68,8 @@ class PatternkitTest extends BrowserTestBase {
     $this->drupalPlaceBlock('patternkit_block:patternkit_atoms_example_src_example', [
       'region' => 'content',
       'pattern' => $pattern->getRevisionId(),
-      'patternkit_block_id' => $patternkit_block->id()
+      'patternkit_block_id' => $patternkit_block->id(),
+      'patternkit_block_rid' => $patternkit_block->getRevisionId(),
     ]);
 
     $assert = $this->assertSession();

@@ -277,9 +277,25 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $block_storage = $this->entityTypeManager->getStorage('patternkit_block');
     /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
     if (isset($configuration['patternkit_block_id'])
-      && (int) $configuration['patternkit_block_id'] > 0
-      && $patternkit_block = $block_storage->load($configuration['patternkit_block_id'])) {
+      && (int) $configuration['patternkit_block_id'] > 0) {
+      if (isset($configuration['patternkit_block_rid'])
+        && (int) $configuration['patternkit_block_rid'] > 0) {
+        $patternkit_block = $block_storage->loadRevision($configuration['patternkit_block_rid']);
+      }
+      else {
+        $patternkit_block = $block_storage->load($configuration['patternkit_block_id']);
+        $configuration['patternkit_block_rid'] = $patternkit_block->getLoadedRevisionId();
+      }
       $configuration['reusable'] = $patternkit_block->isReusable();
+    }
+
+    if (!empty($configuration['reusable']) && $configuration['reusable']) {
+      $form['messages'] = [
+        '#theme' => 'status_messages',
+        '#message_list' => [
+          'warning' => [$this->t('This block is reusable! Any changes made will be applied globally.')],
+        ],
+      ];
     }
 
     // Adds in missing descriptions for the Drupal Core context fields.
@@ -322,7 +338,8 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       '#type' => 'checkbox',
       '#title' => $this->t('Reusable'),
       '#default_value' => $configuration['reusable'] ?? FALSE,
-      '#description' => t('Set to make the pattern selectable in the block library and usable on other layouts.'),
+      '#description' => t('Set to make the pattern selectable in the block library and usable on other layouts. This option is irreversible.'),
+      '#disabled' => $configuration['reusable'] ?? FALSE,
     ];
 
     // @TODO: Re-enable the other formats like JSON and webcomponent.
@@ -345,8 +362,15 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
 
     $editor_config = NULL;
     if (!empty($configuration['patternkit_block_id'])) {
-      /** @var \Drupal\patternkit\Entity\PatternkitBlock $block_entity */
-      $block_entity = $this->entityTypeManager->getStorage('patternkit_block')->load($configuration['patternkit_block_id']);
+      $block_storage = $this->entityTypeManager->getStorage('patternkit_block');
+      if (!empty($configuration['patternkit_block_rid'])) {
+        /** @var \Drupal\patternkit\Entity\PatternkitBlock $block_entity */
+        $block_entity = $block_storage->loadRevision($configuration['patternkit_block_rid']);
+      }
+      else {
+        /** @var \Drupal\patternkit\Entity\PatternkitBlock $block_entity */
+        $block_entity = $block_storage->load($configuration['patternkit_block_id']);
+      }
       $block_data_field = $block_entity->get('data')->getValue();
       $block_data = reset($block_data_field)['value'] ?? '';
       $configuration['fields'] = $this->serializer::decode($block_data);
@@ -415,7 +439,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     if (isset($configuration['patternkit_block_id'])
       && (int) $configuration['patternkit_block_id'] > 0
       && $patternkit_block = $block_storage->load($configuration['patternkit_block_id'])) {
-      $patternkit_block->setPublished($values['published']);
+      $patternkit_block->setPublished();
       foreach (array_keys($patternkit_block->getFields()) as $key) {
         if (isset($values[$key])) {
           $patternkit_block->set($key, $values[$key]);
@@ -425,6 +449,8 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     else {
       $patternkit_block = $block_storage->create($values);
     }
+    $patternkit_block->setNewRevision();
+    $patternkit_block->isDefaultRevision(TRUE);
     $patternkit_block->save();
 
     /** @var \Drupal\Core\Entity\ContentEntityStorageInterface $pattern_storage */
@@ -455,6 +481,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       'label_display' => FALSE,
       'pattern' => $pattern->getRevisionId(),
       'patternkit_block_id' => $patternkit_block->id(),
+      'patternkit_block_rid' => $patternkit_block->getRevisionId(),
       'presentation_style' => $form_state->getValue('presentation_style'),
       'version' => $form_state->getValue('version'),
     ];
@@ -499,8 +526,17 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $pattern_id = $this->getDerivativeId();
     $configuration = $this->getConfiguration();
     $context = $this->getContextValues();
-    /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
-    $patternkit_block = $block_storage->load($configuration['patternkit_block_id']);
+    // @todo Remove support for loading by block id.
+    // There is no need to store it if we're only using revisions.
+    if (empty($configuration['patternkit_block_rid'])) {
+      /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block_latest */
+      $patternkit_block = $block_storage->load($configuration['patternkit_block_id'] ?? '');
+      $configuration['patternkit_block_rid'] = $patternkit_block->getLoadedRevisionId();
+    }
+    else {
+      /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
+      $patternkit_block = $block_storage->loadRevision($configuration['patternkit_block_rid'] ?? '');
+    }
     $base_dependencies = [];
 
     // If an instance configuration provides a UUID, use it. If not, we should
@@ -542,38 +578,41 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     }
 
     // Pull the dependencies and configuration.
-    $data = $patternkit_block->get('data')->getValue();
-    $config = $this->serializer::decode(reset($data)['value']);
-    $bubbleable_metadata = new BubbleableMetadata();
-    array_walk_recursive($config, function (&$value, $key) use($context, $bubbleable_metadata) {
-      $token_groups = $this->token->scan($value);
-      $template = $value;
-      $template_context = [];
-      foreach ($token_groups as $group => $tokens) {
-        $tokenized = $this->token->generate(
-          $group,
-          $tokens,
-          $context,
-          [],
-          $bubbleable_metadata
-        );
-        foreach ($tokens as $token) {
-          $placeholder = preg_replace("/[^a-z]/", '', $token);
-          $template_context[$placeholder] = $tokenized[$token];
-          // If the user is not using Twig templating,
-          // wrap with a Twig write so we can process it.
-          $token_pos = strpos($template, $token);
-          $template_use_twig = strpos($template, '{{') < $token_pos
-            && strpos($template, '}}', $token_pos + strlen($token)) !== FALSE;
-          if (!$template_use_twig) {
-            $placeholder = '{{' . $placeholder . '}}';
+    $pattern->config = [];
+    if ($patternkit_block) {
+      $data = $patternkit_block->get('data')->getValue();
+      $config = $this->serializer::decode(reset($data)['value']);
+      $bubbleable_metadata = new BubbleableMetadata();
+      array_walk_recursive($config, function (&$value, $key) use ($context, $bubbleable_metadata) {
+        $token_groups = $this->token->scan($value);
+        $template = $value;
+        $template_context = [];
+        foreach ($token_groups as $group => $tokens) {
+          $tokenized = $this->token->generate(
+            $group,
+            $tokens,
+            $context,
+            [],
+            $bubbleable_metadata
+          );
+          foreach ($tokens as $token) {
+            $placeholder = preg_replace("/[^a-z]/", '', $token);
+            $template_context[$placeholder] = $tokenized[$token];
+            // If the user is not using Twig templating,
+            // wrap with a Twig write so we can process it.
+            $token_pos = strpos($template, $token);
+            $template_use_twig = strpos($template, '{{') < $token_pos
+              && strpos($template, '}}', $token_pos + strlen($token)) !== FALSE;
+            if (!$template_use_twig) {
+              $placeholder = '{{' . $placeholder . '}}';
+            }
+            $template = str_replace($token, $placeholder, $template);
           }
-          $template = str_replace($token, $placeholder, $template);
         }
-      }
-      $value = $this->twig->renderInline($template, $template_context);
-    });
-    $pattern->config = $config;
+        $value = $this->twig->renderInline($template, $template_context);
+      });
+      $pattern->config = $config;
+    }
 
     // @todo Revisit twig default hard-coding.
     $pattern_plugin = $pattern->getLibraryPluginId();
