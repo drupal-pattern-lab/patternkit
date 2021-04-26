@@ -188,7 +188,7 @@ function patternkitEditorCKEditor($, Drupal, JSONEditor) {
       };
       JSONEditor.defaults.editors.drupal_ckeditor = DrupalCKEditor;
       JSONEditor.defaults.resolvers.unshift(function (schema) {
-        if (schema.type === 'string' && schema.format === 'html' && schema.options.wysiwyg && settings.patternkitEditor.theme === 'html') {
+        if (schema.type === 'string' && schema.format === 'html' && schema.options && schema.options.wysiwyg && settings.patternkitEditor.theme === 'html') {
           return 'drupal_ckeditor';
         }
       });
@@ -641,7 +641,7 @@ function patternkitEditorQuill($, Drupal, JSONEditor) {
       };
       JSONEditor.defaults.editors.drupal_quill = DrupalQuill;
       JSONEditor.defaults.resolvers.unshift(function (schema) {
-        if (schema.type === 'string' && schema.format === 'html' && schema.options.wysiwyg && settings.patternkitEditor.theme !== 'html') {
+        if (schema.type === 'string' && schema.format === 'html' && schema.options && schema.options.wysiwyg && settings.patternkitEditor.theme !== 'html') {
           return 'drupal_quill';
         }
       });

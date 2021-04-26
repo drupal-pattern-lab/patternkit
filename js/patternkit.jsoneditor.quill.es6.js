@@ -126,6 +126,7 @@ export function patternkitEditorQuill($, Drupal, JSONEditor) {
       JSONEditor.defaults.resolvers.unshift(function (schema) {
         if (schema.type === 'string'
           && schema.format === 'html'
+          && schema.options
           && schema.options.wysiwyg
           && settings.patternkitEditor.theme !== 'html') {
           return 'drupal_quill';

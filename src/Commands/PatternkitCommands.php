@@ -32,9 +32,12 @@ class PatternkitCommands extends DrushCommands {
     $entity_type_manager = \Drupal::entityTypeManager();
     /** @var \Drupal\Core\Block\BlockManager $block_manager */
     $block_manager = \Drupal::service('plugin.manager.block');
+    $block_storage = $entity_type_manager->getStorage('patternkit_block');
     /** @var \Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface $section_storage_manager */
     $section_storage_manager = \Drupal::service('plugin.manager.layout_builder.section_storage');
     $storage_definitions = $section_storage_manager->getDefinitions();
+    /** @var \Drupal\layout_builder\LayoutTempstoreRepositoryInterface $tempstore_repository */
+    $tempstore_repository = \Drupal::service('layout_builder.tempstore_repository');
     /** @var \Drupal\patternkit\Asset\LibraryInterface $library */
     $library =\Drupal::service('patternkit.asset.library');
     $logger = $this->logger();
@@ -143,16 +146,24 @@ class PatternkitCommands extends DrushCommands {
           }
           $pattern->save();
           $config['pattern'] = $pattern->getRevisionId();
-          $component->setConfiguration($config);
+          /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
+          $patternkit_block = $block_storage->load($config['patternkit_block_id']);
+          $config['patternkit_block_rid'] = $patternkit_block->getRevisionId();
+          $section_storage
+            ->getSection($section_delta)
+            ->getComponent($component->getUuid())
+            ->setConfiguration($config);
           $block_count++;
         }
       }
       $section_storage->save();
+      $tempstore_repository->set($section_storage);
       $entity_count++;
     }
     $this->logger()->info(t('Updated @entities entity layouts with @blocks Patternkit blocks.',
       ['@entities' => $entity_count, '@blocks' => $block_count]));
     $block_manager->clearCachedDefinitions();
+    $entity_type_manager->clearCachedDefinitions();
     $this->logger()->notice(t('Successfully ran Patternkit from-dev updates.'));
   }
 
