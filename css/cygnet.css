@@ -1,0 +1,192 @@
+[data-theme=cygnet] {
+    font-family: 'RedHatText', Helvetica, Arial, sans-serif;
+    font-weight: 300;
+    color: #151515;
+    margin-top: 32px;
+}
+
+[data-theme=cygnet] a {
+    color: #0066cc;
+}
+
+[data-theme=cygnet] h3 {
+    margin: 0 0 8px 0;
+    font-weight: 300;
+    font-size: 32px;
+}
+
+[data-theme=cygnet] h3 > label {
+    position: relative;
+    top: 4px;
+    margin-right: 16px;
+}
+
+[data-theme=cygnet] p {
+    margin-top: 0;
+}
+
+/* Set pattern title largest font-size */
+
+[data-theme=cygnet] [data-schemapath=root] > h3 {
+    font-size: 36px;
+}
+
+[data-theme=cygnet] .je-form-input-label {
+    display: block;
+    font-family: 'RedHatDisplay', Helvetica, Arial, sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    padding-bottom: 4px;
+}
+
+[data-theme=cygnet] p.je-form-input-label {
+    font-weight: 300;
+}
+
+[data-theme=cygnet] .je-indented-panel {
+    margin-bottom: 16px;
+}
+
+[data-theme=cygnet] input[type=text],
+[data-theme=cygnet] input[type=url],
+[data-theme=cygnet] select,
+[data-theme=cygnet] textarea {
+    border: 1px solid #d2d2d2;
+    border-bottom: 1px solid #6a6e73;
+    margin-left: 0 !important;
+    margin-bottom: 4px !important;
+    padding: 4px 8px !important;
+    background-color: #fff !important;
+    font-size: 16px;
+}
+
+[data-theme=cygnet] select {
+    font-style: normal !important;
+    font-size: 16px !important;
+}
+
+[data-theme=cygnet] input[type=text],
+[data-theme=cygnet] input[type=url] {
+    width: 80%;
+}
+
+[data-theme=cygnet] .je-indented-panel {
+    border: 1px solid #d2d2d2 !important;
+    background-color: #f0f0f0;
+    border-radius: 2px;
+}
+
+[data-theme=cygnet] .je-indented-panel .je-indented-panel {
+    background-color: #ffffff;
+    padding: 16px 0 16px 16px !important;
+    margin-left: 0 !important;
+    border-right: 0 !important;
+}
+
+[data-theme=cygnet] .je-indented-panel .je-indented-panel h3 {
+    font-size: 20px;
+}
+
+/* REMOVE BORDERS AND PADDING FROM NESTED ARRAYS */
+
+[data-theme=cygnet] .je-indented-panel [data-schematype=array] > .je-indented-panel {
+    position: relative;
+    border: 0 !important;
+    padding: 0 !important;
+    margin-bottom: 0;
+}
+
+/* SET ARRAY LABELS TO BE STICKY */
+[data-theme=cygnet] > [data-schematype="object"] > .je-indented-panel [data-schematype="object"] > .je-indented-panel [data-schematype="array"] > .je-indented-panel [data-schematype=array] > h3 {
+    position: sticky;
+    box-sizing: border-box;
+    width: 100%;
+    top: 0;
+    background-color: #f0f0f0;
+    z-index: 40;
+    margin-bottom: 0;
+    padding: 0 0 8px 8px;
+}
+
+[data-theme=cygnet] > [data-schematype="object"] > .je-indented-panel [data-schematype="object"] > .je-indented-panel [data-schematype="array"] > .je-indented-panel [data-schematype=array] > .je-indented-panel h3 {
+    position: static;
+    width: auto;
+    background-color: transparent;
+    padding: 0;
+    margin-bottom: 8px;
+}
+
+/* FLEXBOX CONTAINER QUERY HACK */
+
+[data-theme=cygnet] .row {
+    display: flex;
+    flex-wrap: wrap;
+    --multiplier: calc(30rem - 100%);
+}
+
+[data-theme=cygnet] .row > div {
+    min-width: 48%;
+    max-width: 100%;
+    flex-grow: 1;
+    flex-basis: calc(var(--multiplier) * 999);
+    margin-bottom: 8px;
+}
+
+[data-theme=cygnet] .row > * > span {
+    margin-left: 0 !important;
+}
+
+[data-theme=cygnet] .row > .col-md-3 {
+    min-width: 23%;
+}
+
+[data-theme=cygnet] .row > .col-md-4 {
+    min-width: 31%;
+}
+
+/* BUTTON STYLES */
+
+[data-theme=cygnet] button {
+    cursor: pointer;
+    background-color: #fff;
+    border: 1px solid #06c;
+    border-radius: 2px;
+    font-family: 'RedHatDisplay', Helvetica, Arial, sans-serif;
+    color: #06c;
+    font-size: 12px;
+}
+
+[data-theme=cygnet] button[title=Collapse]::before {
+    content: "-";
+    font-weight: 700;
+}
+
+[data-theme=cygnet] button[title=Expand]::before {
+    content: "+";
+    font-weight: 700;
+}
+
+[data-theme=cygnet] button[title=Collapse] > span,
+[data-theme=cygnet] button[title=Expand] > span {
+    display: none;
+}
+
+[data-theme=cygnet] > div > .je-indented-panel {
+    background-color: #fff !important;
+    border: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+[data-theme=cygnet] [data-schematype="object"] > .je-indented-panel {
+    background-color: #f0f0f0;
+}
+
+[data-theme=cygnet] [data-schematype="object"] [data-schematype="object"] .je-indented-panel .je-indented-panel {
+    background-color: #fff;
+    border-right: 1px solid #d2d2d2 !important;
+}
+
+[data-theme=cygnet] [data-schematype="object"] [data-schematype="object"] p {
+    font-size: 14px;
+}

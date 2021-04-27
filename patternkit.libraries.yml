@@ -39,3 +39,9 @@ quill.dev:
   version: VERSION
   js:
     js/quill.js: {}
+
+cygnet:
+  version: VERSION
+  css:
+    theme:
+      css/cygnet.css: {}
