@@ -43,6 +43,9 @@ class PatternLibraryJSONForm extends ConfigFormBase {
     'bootstrap4' => [
       'css' => 'library://patternkit/patternkit.jsoneditor.theme.bootstrap4/css',
     ],
+    'cygnet' => [
+      'css' => 'library://patternkit/cygnet/css',
+    ],
     'foundation3' => [
       'css' => 'https://cdnjs.cloudflare.com/ajax/libs/foundation/3.2.5/stylesheets/foundation.css',
     ],
