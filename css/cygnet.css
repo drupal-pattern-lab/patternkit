@@ -10,9 +10,9 @@
 }
 
 [data-theme=cygnet] h3 {
-    margin: 0 0 8px 0;
+    margin: 0 0 16px 0;
     font-weight: 300;
-    font-size: 32px;
+    font-size: 28px;
 }
 
 [data-theme=cygnet] h3 > label {
@@ -25,7 +25,7 @@
     margin-top: 0;
 }
 
-/* Set pattern title largest font-size */
+/* SET PATTERN TITLE TO LARGEST FONT-SIZE */
 
 [data-theme=cygnet] [data-schemapath=root] > h3 {
     font-size: 36px;
@@ -72,15 +72,33 @@
 
 [data-theme=cygnet] .je-indented-panel {
     border: 1px solid #d2d2d2 !important;
+    border-radius: 2px;
+}
+
+/* BACKGROUND COLOR ON TOP-LEVEL OBJECTS */
+
+[data-theme=cygnet] > [data-schematype=object] > .je-indented-panel > div > div .row > [data-schematype=object] > .je-indented-panel {
+    border: 1px solid #d2d2d2 !important;
     background-color: #f0f0f0;
     border-radius: 2px;
+}
+
+/* REMOVE BORDER-RIGHT FROM OBJECTS EMBEDDED IN TOP-LEVEL OBJECTS */
+
+[data-theme=cygnet] > [data-schematype=object] > .je-indented-panel > div > div .row > [data-schematype=object] > .je-indented-panel .je-indented-panel {
+    border-right: 0 !important;
+}
+
+/* REMOVE BORDER FROM OBJECTS EMBEDDED IN TOP-LEVEL OBJECTS */
+
+[data-theme=cygnet] > [data-schematype=object] > .je-indented-panel > div > div .row > [data-schematype=object] > .je-indented-panel > div > div > .row > [data-schematype=object] > .je-indented-panel {
+    border: 0 !important;
 }
 
 [data-theme=cygnet] .je-indented-panel .je-indented-panel {
     background-color: #ffffff;
     padding: 16px 0 16px 16px !important;
     margin-left: 0 !important;
-    border-right: 0 !important;
 }
 
 [data-theme=cygnet] .je-indented-panel .je-indented-panel h3 {
@@ -97,6 +115,7 @@
 }
 
 /* SET ARRAY LABELS TO BE STICKY */
+
 [data-theme=cygnet] > [data-schematype="object"] > .je-indented-panel [data-schematype="object"] > .je-indented-panel [data-schematype="array"] > .je-indented-panel [data-schematype=array] > h3 {
     position: sticky;
     box-sizing: border-box;
@@ -106,14 +125,24 @@
     z-index: 40;
     margin-bottom: 0;
     padding: 0 0 8px 8px;
+    border-top: 1px solid #d2d2d2;
+    border-left: 1px solid #d2d2d2;
+    border-bottom: 1px solid #d2d2d2;
 }
+
+[data-theme=cygnet] > [data-schematype="object"] > .je-indented-panel [data-schematype="object"] > .je-indented-panel [data-schematype="array"] > .je-indented-panel [data-schematype=array] > h3 + .je-indented-panel {
+    border-top: 0;
+}
+
+/* RESET ARRAY LABELS BENEATH STICKY LABELS */
 
 [data-theme=cygnet] > [data-schematype="object"] > .je-indented-panel [data-schematype="object"] > .je-indented-panel [data-schematype="array"] > .je-indented-panel [data-schematype=array] > .je-indented-panel h3 {
     position: static;
     width: auto;
     background-color: transparent;
     padding: 0;
-    margin-bottom: 8px;
+    margin-bottom: 16px;
+    border: 0;
 }
 
 /* FLEXBOX CONTAINER QUERY HACK */
@@ -171,15 +200,26 @@
     display: none;
 }
 
+[data-theme=cygnet] .json-editor-btn-add,
+[data-theme=cygnet] .json-editor-btn-subtract,
+[data-theme=cygnet] .json-editor-btn-delete,
+[data-theme=cygnet] .json-editor-btn-moveup,
+[data-theme=cygnet] .json-editor-btn-movedown{
+    margin-left: 16px;
+    margin-bottom: 16px;
+}
+
+/* REGION LEVEL PANELS SHOULD HAVE GRAY BACKGROUND */
+
+[data-theme=cygnet] [data-schematype="object"] > .je-indented-panel {
+    background-color: #f0f0f0;
+}
+
 [data-theme=cygnet] > div > .je-indented-panel {
     background-color: #fff !important;
     border: 0 !important;
     padding: 0 !important;
     margin: 0 !important;
-}
-
-[data-theme=cygnet] [data-schematype="object"] > .je-indented-panel {
-    background-color: #f0f0f0;
 }
 
 [data-theme=cygnet] [data-schematype="object"] [data-schematype="object"] .je-indented-panel .je-indented-panel {
@@ -189,4 +229,12 @@
 
 [data-theme=cygnet] [data-schematype="object"] [data-schematype="object"] p {
     font-size: 14px;
+}
+
+[data-theme=cygnet] [data-schematype="object"] [data-schematype="object"] p:last-child {
+    margin-bottom: 0;
+}
+
+[data-theme=cygnet] .je-indented-panel > div:empty {
+    margin-bottom: 8px;
 }
