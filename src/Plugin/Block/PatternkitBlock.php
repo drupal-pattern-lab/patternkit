@@ -425,6 +425,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
   public function blockSubmit($form, FormStateInterface $form_state) {
     $configuration = $this->getConfiguration();
     $pattern_id = \Drupal\patternkit\Plugin\Derivative\PatternkitBlock::derivativeToAssetId($this->getDerivativeId());
+
     /** @var \Drupal\Core\Entity\ContentEntityStorageInterface $block_storage */
     $block_storage = $this->entityTypeManager->getStorage('patternkit_block');
     $values = [
