@@ -426,6 +426,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    */
   public function blockSubmit($form, FormStateInterface $form_state) {
     $configuration = $this->getConfiguration();
+    $pattern_id = \Drupal\patternkit\Plugin\Derivative\PatternkitBlock::derivativeToAssetId($this->getDerivativeId());
 
     /** @var \Drupal\Core\Entity\ContentEntityStorageInterface $block_storage */
     $block_storage = $this->entityTypeManager->getStorage('patternkit_block');
@@ -434,6 +435,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       'info' => $form_state->getValue('label'),
       'reusable' => $form_state->getValue('reusable'),
       'published' => TRUE,
+      'pattern_id' => $pattern_id
     ];
     /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
     if (isset($configuration['patternkit_block_id'])
@@ -455,7 +457,6 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
 
     /** @var \Drupal\Core\Entity\ContentEntityStorageInterface $pattern_storage */
     $pattern_storage = $this->entityTypeManager->getStorage('patternkit_pattern');
-    $pattern_id = \Drupal\patternkit\Plugin\Derivative\PatternkitBlock::derivativeToAssetId(substr($this->getDerivativeId(), strlen('patternkit_block:')));
     /** @var PatternInterface $pattern */
     $pattern = $form_state->get('pattern') ?? Pattern::create($this->library->getLibraryAsset($pattern_id));
     $pattern_cache = $pattern_storage->loadByProperties(['library' => $pattern->getLibrary(), 'path' => $pattern->getPath()]);
