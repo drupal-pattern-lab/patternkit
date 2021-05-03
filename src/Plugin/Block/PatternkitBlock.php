@@ -7,8 +7,6 @@ use Drupal\Component\Serialization\SerializationInterface;
 use Drupal\Component\Utility\Xss;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\ReplaceCommand;
-use Drupal\Core\Annotation\Translation;
-use Drupal\Core\Block\Annotation\Block;
 use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Block\BlockManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -610,7 +608,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
             $template = str_replace($token, $placeholder, $template);
           }
         }
-        $value = $this->twig->renderInline($template, $template_context);
+        $value = (string) $this->twig->renderInline($template, $template_context);
       });
       $pattern->config = $config;
     }
