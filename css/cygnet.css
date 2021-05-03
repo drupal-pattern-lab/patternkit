@@ -12,7 +12,7 @@
 [data-theme=cygnet] h3 {
     margin: 0 0 16px 0;
     font-weight: 300;
-    font-size: 28px;
+    font-size: 18px;
 }
 
 [data-theme=cygnet] h3 > label {
@@ -23,12 +23,13 @@
 
 [data-theme=cygnet] p {
     margin-top: 0;
+    margin-left: 20px;
 }
 
-/* SET PATTERN TITLE TO LARGEST FONT-SIZE */
+/* Set pattern title largest font-size */
 
 [data-theme=cygnet] [data-schemapath=root] > h3 {
-    font-size: 36px;
+    font-size: 28px;
 }
 
 [data-theme=cygnet] .je-form-input-label {
@@ -51,12 +52,15 @@
 [data-theme=cygnet] input[type=url],
 [data-theme=cygnet] select,
 [data-theme=cygnet] textarea {
+    width: 100% !important;
+    box-sizing: border-box;
     border: 1px solid #d2d2d2;
     border-bottom: 1px solid #6a6e73;
     margin-left: 0 !important;
     margin-bottom: 4px !important;
     padding: 4px 8px !important;
     background-color: #fff !important;
+    font-family: 'RedHatText', Helvetica, Arial, sans-serif;
     font-size: 16px;
 }
 
@@ -71,22 +75,44 @@
 }
 
 [data-theme=cygnet] .je-indented-panel {
-    border: 1px solid #d2d2d2 !important;
+    /* border: 1px solid #d2d2d2 !important; */
+    border-left: 0 !important;
     border-radius: 2px;
 }
 
-/* BACKGROUND COLOR ON TOP-LEVEL OBJECTS */
+/* GRAY BACKGROUND COLOR ON TOP-LEVEL OBJECTS */
 
-[data-theme=cygnet] > [data-schematype=object] > .je-indented-panel > div > div .row > [data-schematype=object] > .je-indented-panel {
+[data-theme=cygnet] > [data-schemapath=root] > .je-indented-panel > div > div > .row > [data-schematype=object] > .je-indented-panel,
+[data-theme=cygnet] > [data-schemapath=root] > .je-indented-panel > div > div > .row > [data-schematype=array] > .je-indented-panel {
     border: 1px solid #d2d2d2 !important;
     background-color: #f0f0f0;
     border-radius: 2px;
+    margin-left: 20px !important;
 }
 
-/* REMOVE BORDER-RIGHT FROM OBJECTS EMBEDDED IN TOP-LEVEL OBJECTS */
+[data-theme=cygnet] > [data-schemapath=root] > .je-indented-panel > div > div > .row > [data-schematype=array] > .je-indented-panel > div > .je-indented-panel {
+    background-color: transparent;
+}
 
-[data-theme=cygnet] > [data-schematype=object] > .je-indented-panel > div > div .row > [data-schematype=object] > .je-indented-panel .je-indented-panel {
-    border-right: 0 !important;
+[data-theme=cygnet] > [data-schematype=object] > .je-indented-panel > div > div > .row > [data-schematype=object],
+[data-theme=cygnet] > [data-schematype=object] > .je-indented-panel > div > div > .row > [data-schematype=array] {
+    margin-left: 20px;
+}
+
+/* SET INDENTS ON TOP LEVEL STRING FIELDS */
+
+[data-theme=cygnet] > [data-schemapath=root] > .je-indented-panel > div > div > .row > [data-schematype=string] {
+    margin-left: 36px;
+}
+
+
+/* WHITE BACKGROUND COLOR ON SECOND-LEVEL OBJECTS */
+
+[data-theme=cygnet] > [data-schematype=object] > .je-indented-panel > div > div > .row > [data-schematype=object] > .je-indented-panel > [data-schematype=object] > .je-indented-panel > div > div > .row > div > .je-indented-panel {
+    border: 1px solid #d2d2d2 !important;
+    background-color: #ffffff;
+    border-radius: 2px;
+    margin-left: 20px !important;
 }
 
 /* REMOVE BORDER FROM OBJECTS EMBEDDED IN TOP-LEVEL OBJECTS */
@@ -97,7 +123,7 @@
 
 [data-theme=cygnet] .je-indented-panel .je-indented-panel {
     background-color: #ffffff;
-    padding: 16px 0 16px 16px !important;
+    padding: 16px 16px 0 16px !important;
     margin-left: 0 !important;
 }
 
@@ -109,9 +135,36 @@
 
 [data-theme=cygnet] .je-indented-panel [data-schematype=array] > .je-indented-panel {
     position: relative;
-    border: 0 !important;
     padding: 0 !important;
     margin-bottom: 0;
+}
+
+/* OBJECTS WITHIN ARRAYS SHOULD HAVE A BORDER */
+
+[data-theme=cygnet] [data-schematype=array] > .je-indented-panel {
+    border: 1px solid #d2d2d2 !important;
+}
+
+/* OBJECTS NESTED IN A NESTED ARRAY SHOULD NOT HAVE A BORDER */
+
+[data-theme=cygnet] [data-schematype=array] > .je-indented-panel [data-schematype=array] > .je-indented-panel {
+    border: 0 !important;
+}
+
+/* REMOVE MARGIN FROM CHILD EDITOR */
+
+[data-theme=cygnet] .je-child-editor-holder > .je-indented-panel {
+    margin-bottom: 0;
+    padding-bottom: 0 !important;
+    padding-top: 0 !important;
+}
+
+[data-theme=cygnet] .je-child-editor-holder > p {
+    margin-left: 36px;
+}
+
+[data-theme=cygnet] .je-child-editor-holder > .je-indented-panel > div > div > .row > [data-schematype=object] > .je-indented-panel {
+    padding: 0 !important;
 }
 
 /* SET ARRAY LABELS TO BE STICKY */
@@ -119,22 +172,34 @@
 [data-theme=cygnet] > [data-schematype="object"] > .je-indented-panel [data-schematype="object"] > .je-indented-panel [data-schematype="array"] > .je-indented-panel [data-schematype=array] > h3 {
     position: sticky;
     box-sizing: border-box;
-    width: 100%;
+    width: 100% !important;
     top: 0;
     background-color: #f0f0f0;
     z-index: 40;
     margin-bottom: 0;
     padding: 0 0 8px 8px;
-    border-top: 1px solid #d2d2d2;
-    border-left: 1px solid #d2d2d2;
-    border-bottom: 1px solid #d2d2d2;
+    border: 1px solid #d2d2d2;
+}
+
+[data-theme=cygnet] > [data-schematype="object"] > .je-indented-panel [data-schematype="object"] > .je-indented-panel [data-schematype="array"] > .je-indented-panel [data-schematype=array] > h3 + p {
+    margin-top: 16px;
+    margin-left: 28px;
+}
+
+[data-theme=cygnet] > [data-schematype="object"] > .je-indented-panel [data-schematype="object"] > .je-indented-panel [data-schematype="array"] > .je-indented-panel [data-schematype=array] > .je-indented-panel {
+    margin-left: 28px;
+}
+
+[data-theme=cygnet] [data-schematype="array"] .je-indented-panel {
+    padding-top: 0;
+    padding-bottom: 0;
 }
 
 [data-theme=cygnet] > [data-schematype="object"] > .je-indented-panel [data-schematype="object"] > .je-indented-panel [data-schematype="array"] > .je-indented-panel [data-schematype=array] > h3 + .je-indented-panel {
     border-top: 0;
 }
 
-/* RESET ARRAY LABELS BENEATH STICKY LABELS */
+/* UNSET STICKY LABELS FOR ARRAY WITHIN ARRAY */
 
 [data-theme=cygnet] > [data-schematype="object"] > .je-indented-panel [data-schematype="object"] > .je-indented-panel [data-schematype="array"] > .je-indented-panel [data-schematype=array] > .je-indented-panel h3 {
     position: static;
@@ -145,12 +210,27 @@
     border: 0;
 }
 
+/* BORDER AROUND FIELDS INSIDE A NESTED ARRAY */
+
+[data-theme=cygnet] > [data-schematype="object"] > .je-indented-panel [data-schematype="object"] > .je-indented-panel [data-schematype="array"] > .je-indented-panel [data-schematype=array] > .je-indented-panel > div > .je-indented-panel > div > .je-child-editor-holder > .je-indented-panel {
+    padding: 16px !important;
+    border: 1px solid #d2d2d2 !important;
+    margin-bottom: 16px;
+    margin-left: 36px !important;
+}
+
+[data-theme=cygnet] > [data-schematype="object"] > .je-indented-panel [data-schematype="object"] > .je-indented-panel [data-schematype="array"] > .je-indented-panel [data-schematype=array] > .je-indented-panel > div > .je-indented-panel > div > .je-child-editor-holder > .je-indented-panel > div > div > .row {
+    margin-left: 0;
+}
+
 /* FLEXBOX CONTAINER QUERY HACK */
 
 [data-theme=cygnet] .row {
     display: flex;
     flex-wrap: wrap;
     --multiplier: calc(30rem - 100%);
+    gap: 10px;
+    margin-left: 20px;
 }
 
 [data-theme=cygnet] .row > div {
@@ -177,22 +257,46 @@
 
 [data-theme=cygnet] button {
     cursor: pointer;
-    background-color: #fff;
-    border: 1px solid #06c;
-    border-radius: 2px;
     font-family: 'RedHatDisplay', Helvetica, Arial, sans-serif;
-    color: #06c;
-    font-size: 12px;
+    color: #0066cc;
+    border: 1px solid #0066cc;
+    background-color: #ffffff;
+    font-size: 14px;
+    padding: 8px 16px;
 }
 
+[data-theme=cygnet] button[title=Collapse],
+[data-theme=cygnet] button[title=Expand] {
+    border: 0;
+    background-color: transparent;
+    padding: 8px 0;
+}
+
+/* ACCORDION ARROWS */
+
 [data-theme=cygnet] button[title=Collapse]::before {
-    content: "-";
-    font-weight: 700;
+    content: " ";
+    display: inline-block;
+    position: relative;
+    top: 3px;
+    width: 7px;
+    height: 7px;
+    border: solid #151515;
+    border-width: 0 1.75px 1.75px 0;
+    transform: rotate(-135deg);
+    -webkit-transform: rotate(-135deg);
 }
 
 [data-theme=cygnet] button[title=Expand]::before {
-    content: "+";
-    font-weight: 700;
+    content: " ";
+    display: inline-block;
+    position: relative;
+    width: 7px;
+    height: 7px;
+    border: solid #151515;
+    border-width: 0 1.75px 1.75px 0;
+    transform: rotate(45deg);
+    -webkit-transform: rotate(45deg);
 }
 
 [data-theme=cygnet] button[title=Collapse] > span,
@@ -204,27 +308,57 @@
 [data-theme=cygnet] .json-editor-btn-subtract,
 [data-theme=cygnet] .json-editor-btn-delete,
 [data-theme=cygnet] .json-editor-btn-moveup,
-[data-theme=cygnet] .json-editor-btn-movedown{
+[data-theme=cygnet] .json-editor-btn-movedown {
+    border-radius: 2px;
+    border: 1px solid #06c;
+    background-color: #0066cc;
+    color: #ffffff;
     margin-left: 16px;
     margin-bottom: 16px;
 }
 
-/* REGION LEVEL PANELS SHOULD HAVE GRAY BACKGROUND */
+/* PATTERN HEADER */
 
-[data-theme=cygnet] [data-schematype="object"] > .je-indented-panel {
-    background-color: #f0f0f0;
+[data-theme=cygnet] [data-schemapath=root] > span > .json-editor-btntype-properties {
+    background-color: #ffffff;
+    border: 1px solid #06c;
 }
 
+[data-theme=cygnet] [data-schemapath=root] > p {
+    margin-left: 20px;
+}
+
+[data-theme=cygnet] [data-schemapath=root] .form-control > p {
+    margin-left: 0;
+}
+
+/* TOP LEVEL PROPERTIES BUTTONS SHOULD FLOAT RIGHT */
+
+[data-theme=cygnet] [data-schemapath=root] > .je-indented-panel > div > div > .row > [data-schematype=object] > span > .json-editor-btntype-properties {
+    background-color: #ffffff;
+    border: 1px solid #06c;
+    border-radius: 2px;
+    float: right;
+}
+
+[data-theme=cygnet] [data-schemapath=root] > .je-indented-panel > div > div > .row > [data-schematype=object] > .je-indented-panel .json-editor-btntype-properties {
+    padding: 0;
+    border: 0;
+    background-color: transparent;
+}
+
+/* REGION LEVEL PANELS SHOULD HAVE GRAY BACKGROUND */
+
 [data-theme=cygnet] > div > .je-indented-panel {
-    background-color: #fff !important;
+    background-color: #ffffff !important;
     border: 0 !important;
     padding: 0 !important;
     margin: 0 !important;
 }
 
 [data-theme=cygnet] [data-schematype="object"] [data-schematype="object"] .je-indented-panel .je-indented-panel {
-    background-color: #fff;
-    border-right: 1px solid #d2d2d2 !important;
+    background-color: #ffffff;
+    /* border-right: 1px solid #d2d2d2 !important; */
 }
 
 [data-theme=cygnet] [data-schematype="object"] [data-schematype="object"] p {
@@ -236,5 +370,33 @@
 }
 
 [data-theme=cygnet] .je-indented-panel > div:empty {
-    margin-bottom: 8px;
+    margin-bottom: 16px;
+}
+
+/* VERTICAL TABS */
+
+[data-theme=cygnet] [data-schemapath^="root.header.aside"] > div {
+    margin-left: 20px;
+}
+
+[data-theme=cygnet] [data-schemapath^="root.header.aside"] > div > .content {
+    margin-left: 150px !important;
+}
+
+[data-theme=cygnet] .je-indented-panel[data-schemapath^="root.header.aside"] {
+    border: 1px solid #d2d2d2 !important;
+}
+
+[data-theme=cygnet] .je-indented-panel[data-schemapath^="root.header.aside"] > .je-indented-panel > div > div > .row {
+    margin-left: 0;
+}
+
+[data-theme=cygnet] .tabs > div {
+    border: 0 !important;
+    border-top: 1px solid #0066cc !important;
+    color: #0066cc;
+    border-radius: 0 !important;
+}
+[data-theme=cygnet] .tabs > div:last-child {
+    border-bottom: 1px solid #0066cc !important;
 }
