@@ -7,8 +7,6 @@ use Drupal\Component\Serialization\SerializationInterface;
 use Drupal\Component\Utility\Xss;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\ReplaceCommand;
-use Drupal\Core\Annotation\Translation;
-use Drupal\Core\Block\Annotation\Block;
 use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Block\BlockManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -427,7 +425,6 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
   public function blockSubmit($form, FormStateInterface $form_state) {
     $configuration = $this->getConfiguration();
     $pattern_id = \Drupal\patternkit\Plugin\Derivative\PatternkitBlock::derivativeToAssetId($this->getDerivativeId());
-
     /** @var \Drupal\Core\Entity\ContentEntityStorageInterface $block_storage */
     $block_storage = $this->entityTypeManager->getStorage('patternkit_block');
     $values = [
@@ -610,7 +607,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
             $template = str_replace($token, $placeholder, $template);
           }
         }
-        $value = $this->twig->renderInline($template, $template_context);
+        $value = (string) $this->twig->renderInline($template, $template_context);
       });
       $pattern->config = $config;
     }
