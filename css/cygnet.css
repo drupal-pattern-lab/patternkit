@@ -135,7 +135,6 @@
 
 [data-theme=cygnet] .je-indented-panel [data-schematype=array] > .je-indented-panel {
     position: relative;
-    padding: 0 !important;
     margin-bottom: 0;
 }
 
