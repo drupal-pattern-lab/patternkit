@@ -287,6 +287,10 @@ var cygnetTheme = /*#__PURE__*/function (_JSONEditor$AbstractT) {
         title = text;
       }
 
+      if (text == "Object Properties") {
+        text = "Properties";
+      }
+
       return _get(_getPrototypeOf(cygnetTheme.prototype), "setButtonText", this).call(this, button, text, icon, title);
     }
   }, {
