@@ -199,9 +199,175 @@ function patternkitEditorCKEditor($, Drupal, JSONEditor) {
 },{}],2:[function(require,module,exports){
 "use strict";
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.patternkitEditorCygnet = patternkitEditorCygnet;
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _get(target, property, receiver) { if (typeof Reflect !== "undefined" && Reflect.get) { _get = Reflect.get; } else { _get = function _get(target, property, receiver) { var base = _superPropBase(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(receiver); } return desc.value; }; } return _get(target, property, receiver || target); }
+
+function _superPropBase(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = _getPrototypeOf(object); if (object === null) break; } return object; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+var cygnetTheme = /*#__PURE__*/function (_JSONEditor$AbstractT) {
+  _inherits(cygnetTheme, _JSONEditor$AbstractT);
+
+  var _super = _createSuper(cygnetTheme);
+
+  function cygnetTheme() {
+    _classCallCheck(this, cygnetTheme);
+
+    return _super.apply(this, arguments);
+  }
+
+  _createClass(cygnetTheme, [{
+    key: "getFormInputLabel",
+    value: function getFormInputLabel(text, req) {
+      var el = _get(_getPrototypeOf(cygnetTheme.prototype), "getFormInputLabel", this).call(this, text, req);
+
+      el.classList.add('je-form-input-label');
+      return el;
+    }
+  }, {
+    key: "getFormInputDescription",
+    value: function getFormInputDescription(text) {
+      var el = _get(_getPrototypeOf(cygnetTheme.prototype), "getFormInputDescription", this).call(this, text);
+
+      el.classList.add('je-form-input-label');
+      return el;
+    }
+  }, {
+    key: "getIndentedPanel",
+    value: function getIndentedPanel() {
+      var el = _get(_getPrototypeOf(cygnetTheme.prototype), "getIndentedPanel", this).call(this);
+
+      el.classList.add('je-indented-panel');
+      return el;
+    }
+  }, {
+    key: "getTopIndentedPanel",
+    value: function getTopIndentedPanel() {
+      return this.getIndentedPanel();
+    }
+  }, {
+    key: "getChildEditorHolder",
+    value: function getChildEditorHolder() {
+      var el = _get(_getPrototypeOf(cygnetTheme.prototype), "getChildEditorHolder", this).call(this);
+
+      el.classList.add('je-child-editor-holder');
+      return el;
+    } // If no title, use the text as title so that we have can use the 
+    // title attr as a CSS selector to style the collapse/expand state.
+
+  }, {
+    key: "setButtonText",
+    value: function setButtonText(button, text, icon, title) {
+      if (!title && text) {
+        title = text;
+      }
+
+      if (text == "Object Properties") {
+        text = "Properties";
+      }
+
+      return _get(_getPrototypeOf(cygnetTheme.prototype), "setButtonText", this).call(this, button, text, icon, title);
+    }
+  }, {
+    key: "getHeaderButtonHolder",
+    value: function getHeaderButtonHolder() {
+      var el = this.getButtonHolder();
+      el.classList.add('je-header-button-holder');
+      return el;
+    }
+  }, {
+    key: "getTable",
+    value: function getTable() {
+      var el = _get(_getPrototypeOf(cygnetTheme.prototype), "getTable", this).call(this);
+
+      el.classList.add('je-table');
+      return el;
+    }
+  }, {
+    key: "setGridColumnSize",
+    value: function setGridColumnSize(el, size) {
+      el.className = 'col-md-' + size;
+    }
+  }, {
+    key: "addInputError",
+    value: function addInputError(input, text) {
+      var group = this.closest(input, '.form-control') || input.controlgroup;
+
+      if (!input.errmsg) {
+        input.errmsg = document.createElement('div');
+        input.errmsg.setAttribute('class', 'errmsg');
+        input.errmsg.style = input.errmsg.style || {};
+        input.errmsg.style.color = 'red';
+        group.appendChild(input.errmsg);
+      } else {
+        input.errmsg.style.display = 'block';
+      }
+
+      input.errmsg.innerHTML = '';
+      input.errmsg.appendChild(document.createTextNode(text));
+    }
+  }, {
+    key: "removeInputError",
+    value: function removeInputError(input) {
+      if (input.style) {
+        input.style.borderColor = '';
+      }
+
+      if (input.errmsg) input.errmsg.style.display = 'none';
+    }
+  }]);
+
+  return cygnetTheme;
+}(JSONEditor.AbstractTheme);
+
+function patternkitEditorCygnet($, Drupal, JSONEditor) {
+  'use strict';
+
+  Drupal.behaviors.patternkitEditorCygnet = {
+    attach: function attach(context, settings) {
+      if (!window.JSONEditor) {
+        return;
+      }
+
+      cygnetTheme.rules = {};
+      JSONEditor.defaults.themes.cygnet = cygnetTheme;
+    }
+  };
+}
+
+},{}],3:[function(require,module,exports){
+"use strict";
+
 var _patternkitJsoneditorQuillEs = require("./patternkit.jsoneditor.quill.es6.js");
 
 var _patternkitJsoneditorCkeditor = require("./patternkit.jsoneditor.ckeditor.es6");
+
+var _patternkitJsoneditorCygnetEs = require("./patternkit.jsoneditor.cygnet.es6.js");
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
@@ -213,6 +379,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
 (0, _patternkitJsoneditorQuillEs.patternkitEditorQuill)(jQuery, Drupal, JSONEditor);
 (0, _patternkitJsoneditorCkeditor.patternkitEditorCKEditor)(jQuery, Drupal, JSONEditor);
+(0, _patternkitJsoneditorCygnetEs.patternkitEditorCygnet)(jQuery, Drupal, JSONEditor);
 
 (function ($, Drupal, JSONEditor) {
   'use strict';
@@ -440,7 +607,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
   };
 })(jQuery, Drupal, JSONEditor);
 
-},{"./patternkit.jsoneditor.ckeditor.es6":1,"./patternkit.jsoneditor.quill.es6.js":3}],3:[function(require,module,exports){
+},{"./patternkit.jsoneditor.ckeditor.es6":1,"./patternkit.jsoneditor.cygnet.es6.js":2,"./patternkit.jsoneditor.quill.es6.js":4}],4:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -649,4 +816,4 @@ function patternkitEditorQuill($, Drupal, JSONEditor) {
   };
 }
 
-},{}]},{},[2]);
+},{}]},{},[3]);
