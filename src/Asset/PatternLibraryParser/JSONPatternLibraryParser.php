@@ -55,16 +55,16 @@ class JSONPatternLibraryParser extends PatternLibraryParserBase {
       if (empty($data['json']) || !file_exists($data['json'])) {
         continue;
       }
-      $category = $info['category'] ?? 'default';
+      $category = $info[$path]['category'] ?? 'default';
       $library_defaults = [
-        '$schema' => 'http://json-schema.org/schema#',
+        '$schema' => 'https://json-schema.org/schema#',
         'assets' => ['schema' => $data['json']],
         'category' => $category,
         'title' => $name,
         'type' => 'object',
         'format' => 'grid',
         'library' => $library->id(),
-        'libraryPluginId' => $info['plugin'],
+        'libraryPluginId' => $info[$path]['plugin'],
         'license' => $library->license ?? [],
         'name' => $name,
         'properties' => (object) [],

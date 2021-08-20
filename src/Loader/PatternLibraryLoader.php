@@ -4,11 +4,12 @@ namespace Drupal\patternkit\Loader;
 
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\patternkit\Asset\LibraryInterface;
+use Twig\Loader\FilesystemLoader;
 
 /**
  * Functionality for parsing Twig pattern libraries.
  */
-class PatternLibraryLoader extends \Twig_Loader_Filesystem implements \Twig_LoaderInterface {
+class PatternLibraryLoader extends FilesystemLoader {
 
   /**
    * Overrides to add paths from pattern libraries.
@@ -31,12 +32,13 @@ class PatternLibraryLoader extends \Twig_Loader_Filesystem implements \Twig_Load
     catch (\Exception $exception) {
       $logger->error('Error loading pattern libraries: @message', ['@message' => $exception->getMessage()]);
     }
-    foreach ($libraries as $namespace => $library) {
-      if (!isset($library->getPatternInfo()['data'])) {
-        continue;
+    foreach ($libraries as $namespace => $pattern_library) {
+      foreach ($pattern_library->getPatternInfo() as $info) {
+        if (!isset($info['data'])) {
+          continue;
+        }
+        $this->addPath($info['data'], $namespace);
       }
-      $path = $library->getPatternInfo()['data'];
-      $this->addPath($path, $namespace);
     }
   }
 

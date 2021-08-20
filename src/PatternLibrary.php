@@ -144,6 +144,10 @@ class PatternLibrary {
   }
 
   /**
+   * Returns an array of Pattern Library metadata, keyed by paths.
+   *
+   * This metadata is typically ingested from YAML files.
+   *
    * @return array
    *   Pattern info array, in the following format:
    *   - string data The pattern path.
@@ -170,6 +174,8 @@ class PatternLibrary {
   }
 
   /**
+   * Sets info for the pattern library, keyed by path.
+   *
    * @param $info
    * An array of pattern info for the current set of patterns being processed:
    *  - string plugin

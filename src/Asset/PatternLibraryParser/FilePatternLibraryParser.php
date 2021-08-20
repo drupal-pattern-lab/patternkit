@@ -63,6 +63,7 @@ class FilePatternLibraryParser extends PatternLibraryParserBase {
    * and defines the following elements:
    * - patterns: A list of pattern libraries and subtypes to include. Each
    *   subtype is keyed by the subtype path.
+   *
    * @code
    *   patterns:
    *     path/atoms: {type: File, category: atoms}
@@ -98,7 +99,7 @@ class FilePatternLibraryParser extends PatternLibraryParserBase {
    *   An array of parsed library data.
    *
    * @throws \Drupal\Core\Asset\Exception\InvalidLibraryFileException
-   *   Thrown when a parser exception was thrown.
+   * @throws \Drupal\Component\Plugin\Exception\PluginException
    */
   public function parsePatternLibraryInfo(PatternLibrary $library, $path): array {
     if (!file_exists($path)) {
