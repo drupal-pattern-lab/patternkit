@@ -85,17 +85,27 @@ trait PatternLibraryJSONParserTrait {
         $path = substr($value, strlen("$library_namespace/"));
       }
       $ref = '';
-      if (strstr($path, '#/')) {
+      if (strpos($path, '#/') !== FALSE) {
         $ref = explode('#/', $path);
         $path = reset($ref);
         $ref = !empty($ref[1]) ? '#/' . $ref[1] : '';
       }
       $library_name = $pattern->getLibrary();
-      if (strstr($path, './')) {
+      // Since schema paths can be relative, we loop through each possible
+      // pattern library path to locate the schema, with overrides allowed.
+      if (strpos($path, './') !== FALSE) {
         $pattern_library = $library->getLibraryDefinitions()[ltrim($library_name, '@')];
-        $library_path = $pattern_library->getPatternInfo()['data'] ?? $pattern_library->getExtension()->getPath();
-        /** @var \Drupal\Core\File\FileSystem $filesystem */
-        $path = substr(str_replace('\\', '/', realpath($library_path . '/' . $path)), strlen(\Drupal::root() . '/' . $library_path . '/'));
+        $library_path = $pattern_library->getExtension()
+          ->getPath();
+        $realpath = $path;
+        foreach ($pattern_library->getPatternInfo() as $info) {
+          if (!isset($info['data'])) {
+            continue;
+          }
+          $library_path = $info['data'] ?? $library_path;
+          $realpath = realpath($library_path . '/' . $path) ?? $realpath;
+        }
+        $path = substr(str_replace('\\', '/', $realpath), strlen(\Drupal::root() . '/' . $library_path . '/'));
       }
       $path_no_ext = strripos($path, $ext) === strlen($path) - $ext_len  ? substr($path, 0, - $ext_len) : $path;
       $path_encoded = [];
