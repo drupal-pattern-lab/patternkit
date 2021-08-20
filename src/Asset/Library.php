@@ -558,7 +558,15 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
       if (!empty($pattern_libraries)) {
         $library->patterns = [];
       }
-      foreach ($pattern_libraries as $info) {
+      $lib_info = $library->getPatternInfo();
+      foreach ($pattern_libraries as $index => $info) {
+        $path = $info['data'] ?? '';
+        if (empty($path)) {
+          \Drupal::logger('patternkit')->info(
+            "No path set for $library_name under the patterns key. Data: " . print_r($info, TRUE)
+          );
+          continue;
+        }
         if (empty($info['plugin'])) {
           \Drupal::logger('patternkit')->notice(
             "No 'plugin' key set for the '$library_name' pattern library, defaulting to '$plugin_default'."
@@ -566,7 +574,8 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
           );
           $info['plugin'] = $plugin_default;
         }
-        $library->setPatternInfo($info);
+        $lib_info[$path] = $info;
+        $library->setPatternInfo($lib_info);
         /** @var \Drupal\patternkit\PatternLibraryPluginInterface $plugin */
         try {
           $plugin = $this->libraryPluginManager->createInstance($info['plugin']);
@@ -583,13 +592,6 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
           catch (PluginException $exception) {
             throw new InvalidLibraryFileException("Error loading pattern libraries via $plugin_id: " . $exception->getMessage());
           }
-        }
-        $path = $info['data'] ?? '';
-        if (empty($path)) {
-          \Drupal::logger('patternkit')->info(
-            "No path set for $library_name under the patterns key. Data: " . print_r($info, TRUE)
-          );
-          continue;
         }
         /** @var \Drupal\patternkit\Entity\Pattern $pattern */
         $library->patterns = array_merge($library->patterns, $plugin->getMetadata($library->getExtension(), $library, $path));
