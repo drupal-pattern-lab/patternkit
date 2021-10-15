@@ -77,7 +77,7 @@
          let editor_root = document;
          // We need to use a Shadow Dom to use themes, which has its own complications
          // with other JS libraries trying to access editor components, for example WYSIWYG.
-         if (settings.patternkitEditor.theme !== 'html') {
+         if (settings.patternkitEditor.wysiwygEditorName !== 'ckeditor') {
            let shadow = this.attachShadow({mode: 'open'});
            shadow.innerHTML += editor_dom;
            editor_root = $target[0].shadowRoot;

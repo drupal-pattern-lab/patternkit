@@ -45,6 +45,7 @@ class PatternLibraryJSONForm extends ConfigFormBase {
     ],
     'cygnet' => [
       'css' => 'library://patternkit/cygnet/css',
+      'css_no_shadow_dom' => 'library://patternkit/cygnet_no_shadow_dom/css',
     ],
     'foundation3' => [
       'css' => 'https://cdnjs.cloudflare.com/ajax/libs/foundation/3.2.5/stylesheets/foundation.css',
@@ -125,6 +126,13 @@ class PatternLibraryJSONForm extends ConfigFormBase {
       '#default_value' => $config->get('patternkit_json_editor_js'),
     );
 
+    $form['patternkit_json_editor_wysiwyg'] = array(
+      '#type' => 'select',
+      '#title' => t('WYSIWYG editor'),
+      '#options' => static::EDITORS,
+      '#default_value' => $config->get('patternkit_json_editor_wysiwyg') ?: 'quill',
+    );
+
     return parent::buildForm($form, $form_state);
   }
 
@@ -152,6 +160,7 @@ class PatternLibraryJSONForm extends ConfigFormBase {
     $config->set('patternkit_json_editor_icons', $form_values['patternkit_json_editor_icons']);
     $config->set('patternkit_json_editor_css', $form_values['patternkit_json_editor_css']);
     $config->set('patternkit_json_editor_js', $form_values['patternkit_json_editor_js']);
+    $config->set('patternkit_json_editor_wysiwyg', $form_values['patternkit_json_editor_wysiwyg']);
     $config->save();
     parent::submitForm($form, $form_state);
   }

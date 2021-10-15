@@ -45,3 +45,10 @@ cygnet:
   css:
     theme:
       css/cygnet.css: {}
+
+cygnet_no_shadow_dom:
+  version: VERSION
+  css:
+    theme:
+      css/cygnet/cygnet--prefixed-for-drupal.css: {}
+      css/cygnet/cygnet--overrides.css: {}
