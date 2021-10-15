@@ -128,7 +128,7 @@ export function patternkitEditorQuill($, Drupal, JSONEditor) {
           && schema.format === 'html'
           && schema.options
           && schema.options.wysiwyg
-          && settings.patternkitEditor.theme !== 'html') {
+          && settings.patternkitEditor.wysiwygEditorName == 'quill') {
           return 'drupal_quill';
         }
       });

@@ -188,7 +188,7 @@ function patternkitEditorCKEditor($, Drupal, JSONEditor) {
       };
       JSONEditor.defaults.editors.drupal_ckeditor = DrupalCKEditor;
       JSONEditor.defaults.resolvers.unshift(function (schema) {
-        if (schema.type === 'string' && schema.format === 'html' && schema.options && schema.options.wysiwyg && settings.patternkitEditor.theme === 'html') {
+        if (schema.type === 'string' && schema.format === 'html' && schema.options && schema.options.wysiwyg && settings.patternkitEditor.wysiwygEditorName === 'ckeditor') {
           return 'drupal_ckeditor';
         }
       });
@@ -444,7 +444,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         var editor_root = document; // We need to use a Shadow Dom to use themes, which has its own complications
         // with other JS libraries trying to access editor components, for example WYSIWYG.
 
-        if (settings.patternkitEditor.theme !== 'html') {
+        if (settings.patternkitEditor.wysiwygEditorName !== 'ckeditor') {
           var shadow = this.attachShadow({
             mode: 'open'
           });
@@ -808,7 +808,7 @@ function patternkitEditorQuill($, Drupal, JSONEditor) {
       };
       JSONEditor.defaults.editors.drupal_quill = DrupalQuill;
       JSONEditor.defaults.resolvers.unshift(function (schema) {
-        if (schema.type === 'string' && schema.format === 'html' && schema.options && schema.options.wysiwyg && settings.patternkitEditor.theme !== 'html') {
+        if (schema.type === 'string' && schema.format === 'html' && schema.options && schema.options.wysiwyg && settings.patternkitEditor.wysiwygEditorName == 'quill') {
           return 'drupal_quill';
         }
       });

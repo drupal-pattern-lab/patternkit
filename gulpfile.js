@@ -3,6 +3,8 @@ const babelify = require('babelify');
 const browserify = require("browserify");
 const buffer = require('vinyl-buffer');
 const source = require('vinyl-source-stream');
+const prefixCss = require('gulp-prefix-css');
+const rename = require('gulp-rename');
 
 const gulpConfig = {
   src: './js/**es6.js',
@@ -27,6 +29,13 @@ gulp.task('compile:es6', function () {
 
 gulp.task('copy:lib', function() {
   return gulp.src(gulpConfig.lib).pipe(gulp.dest(gulpConfig.dist));
+});
+
+gulp.task('prefix-css:cygnet-theme', function(){
+  return gulp.src('./css/cygnet/cygnet.css')
+    .pipe(prefixCss('#drupal-off-canvas'))
+    .pipe(rename('cygnet--prefixed-for-drupal.css'))
+    .pipe(gulp.dest('./css/cygnet'));
 });
 
 gulp.task('watch', function() {

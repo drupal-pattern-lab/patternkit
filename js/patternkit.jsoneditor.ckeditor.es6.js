@@ -126,7 +126,7 @@ export function patternkitEditorCKEditor($, Drupal, JSONEditor) {
           && schema.format === 'html'
           && schema.options
           && schema.options.wysiwyg
-          && settings.patternkitEditor.theme === 'html') {
+          && settings.patternkitEditor.wysiwygEditorName === 'ckeditor') {
           return 'drupal_ckeditor';
         }
       });
