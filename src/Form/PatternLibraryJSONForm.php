@@ -83,9 +83,18 @@ class PatternLibraryJSONForm extends ConfigFormBase {
   ];
 
   public const EDITORS = [
-    'ckeditor' => 'ckeditor',
-    'prosemirror' => 'prosemirror',
-    'quill' => 'quill'
+    'ckeditor' => [
+      'label' => 'CKEditor',
+      'use_shadow_dom' => FALSE,
+    ],
+    'prosemirror' => [
+      'label' => 'ProseMirror',
+      'use_shadow_dom' => TRUE,
+    ],
+    'quill' => [
+      'label' => 'Quill',
+      'use_shadow_dom' => TRUE,
+    ],
   ];
 
   /**
@@ -129,7 +138,10 @@ class PatternLibraryJSONForm extends ConfigFormBase {
     $form['patternkit_json_editor_wysiwyg'] = array(
       '#type' => 'select',
       '#title' => t('WYSIWYG editor'),
-      '#options' => static::EDITORS,
+      '#options' => array_combine(
+        array_keys(static::EDITORS),
+        array_column(static::EDITORS, 'label')
+      ),
       '#default_value' => $config->get('patternkit_json_editor_wysiwyg') ?: 'quill',
     );
 

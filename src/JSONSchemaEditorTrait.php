@@ -80,10 +80,11 @@ trait JSONSchemaEditorTrait {
       'theme' => $theme,
       'wysiwygEditorName' => $this->config->get('patternkit_json_editor_wysiwyg') ?: 'quill',
     ];
+    $editor_settings['useShadowDom'] = PatternLibraryJSONForm::EDITORS[ $editor_settings['wysiwygEditorName'] ]['use_shadow_dom'];
 
     if (isset(PatternLibraryJSONForm::THEMES[$theme])) {
       $theme_info = PatternLibraryJSONForm::THEMES[$theme];
-      if ($editor_settings['wysiwygEditorName'] == 'ckeditor' && !empty($theme_info['css_no_shadow_dom'])) {
+      if (!$editor_settings['useShadowDom'] && !empty($theme_info['css_no_shadow_dom'])) {
         $editor_settings['themeStylesheet'] = $this->getLibraryAssetUrlFromUri($theme_info['css_no_shadow_dom']);
       }
       elseif (!empty($theme_info['css'])) {
