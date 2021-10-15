@@ -276,7 +276,7 @@ var cygnetTheme = /*#__PURE__*/function (_JSONEditor$AbstractT) {
 
       el.classList.add('je-child-editor-holder');
       return el;
-    } // If no title, use the text as title so that we have can use the 
+    } // If no title, use the text as title so that we have can use the
     // title attr as a CSS selector to style the collapse/expand state.
 
   }, {
