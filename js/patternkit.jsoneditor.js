@@ -443,7 +443,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         var editor_root = document; // We need to use a Shadow Dom to use themes, which has its own complications
         // with other JS libraries trying to access editor components, for example WYSIWYG.
 
-        if (settings.patternkitEditor.wysiwygEditorName !== 'ckeditor') {
+        if (settings.patternkitEditor.useShadowDom) {
           var shadow = this.attachShadow({
             mode: 'open'
           });
