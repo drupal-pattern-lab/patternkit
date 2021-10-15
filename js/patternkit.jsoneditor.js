@@ -187,7 +187,7 @@ function patternkitEditorCKEditor($, Drupal, JSONEditor) {
       };
       JSONEditor.defaults.editors.drupal_ckeditor = DrupalCKEditor;
       JSONEditor.defaults.resolvers.unshift(function (schema) {
-        if (schema.type === 'string' && schema.format === 'html' && schema.options && schema.options.wysiwyg && ['html', 'cygnet'].includes(settings.patternkitEditor.theme)) {
+        if (schema.type === 'string' && schema.format === 'html' && schema.options && schema.options.wysiwyg && settings.patternkitEditor.wysiwygEditorName === 'ckeditor') {
           return 'drupal_ckeditor';
         }
       });
@@ -422,7 +422,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         if (settings.patternkitEditor.themeStylesheet) {
           var theme_element = document.createElement('link');
           theme_element.rel = "stylesheet";
-          theme_element.id = "icon_stylesheet";
+          theme_element.id = "theme_stylesheet";
           theme_element.href = settings.patternkitEditor.themeStylesheet;
           document.getElementsByTagName('head')[0].appendChild(theme_element);
           editor_dom = '<link rel="stylesheet" id="theme_stylesheet" href="' + settings.patternkitEditor.themeStylesheet + '">';
@@ -443,7 +443,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         var editor_root = document; // We need to use a Shadow Dom to use themes, which has its own complications
         // with other JS libraries trying to access editor components, for example WYSIWYG.
 
-        if (settings.patternkitEditor.theme !== 'html') {
+        if (settings.patternkitEditor.wysiwygEditorName !== 'ckeditor') {
           var shadow = this.attachShadow({
             mode: 'open'
           });
@@ -453,6 +453,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
           $target.html(editor_dom);
         }
 
+        console.log(settings.patternkitEditor);
         var data = {
           schema: JSON.parse(settings.patternkitEditor.schemaJson),
           starting: JSON.parse(settings.patternkitEditor.startingJson)
@@ -805,7 +806,7 @@ function patternkitEditorQuill($, Drupal, JSONEditor) {
       };
       JSONEditor.defaults.editors.drupal_quill = DrupalQuill;
       JSONEditor.defaults.resolvers.unshift(function (schema) {
-        if (schema.type === 'string' && schema.format === 'html' && schema.options && schema.options.wysiwyg && !['html', 'cygnet'].includes(settings.patternkitEditor.theme)) {
+        if (schema.type === 'string' && schema.format === 'html' && schema.options && schema.options.wysiwyg && settings.patternkitEditor.wysiwygEditorName == 'quill') {
           return 'drupal_quill';
         }
       });

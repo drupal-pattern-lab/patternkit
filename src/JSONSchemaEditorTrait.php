@@ -78,16 +78,25 @@ trait JSONSchemaEditorTrait {
       'schemaJson' => $schema,
       'startingJson' => $starting_json,
       'theme' => $theme,
+      'wysiwygEditorName' => $this->config->get('patternkit_json_editor_wysiwyg') ?: 'quill',
     ];
 
     if (isset(PatternLibraryJSONForm::THEMES[$theme])) {
       $theme_info = PatternLibraryJSONForm::THEMES[$theme];
-      $editor_settings['themeStylesheet'] = !empty($theme_info['css']) ? $this->getLibraryAssetUrlFromUri($theme_info['css']) : '';
+      if ($editor_settings['wysiwygEditorName'] == 'ckeditor' && !empty($theme_info['css_no_shadow_dom'])) {
+        $editor_settings['themeStylesheet'] = $this->getLibraryAssetUrlFromUri($theme_info['css_no_shadow_dom']);
+      }
+      elseif (!empty($theme_info['css'])) {
+        $editor_settings['themeStylesheet'] = $this->getLibraryAssetUrlFromUri($theme_info['css']);
+      }
+      else {
+        $editor_settings['themeStylesheet'] = '';
+      }
       if (!empty($theme_info['js'])) {
         $editor_settings['themeJS'][] = $this->getLibraryAssetUrlFromUri($theme_info['js']);
       }
     }
-    if (isset(PatternLibraryJSONForm::ICONS[$icons])) {
+    if (!empty(PatternLibraryJSONForm::ICONS[$icons])) {
       $editor_settings['iconStylesheet'] = $this->getLibraryAssetUrlFromUri(PatternLibraryJSONForm::ICONS[$icons]);
     }
     $editor_css_override = $this->config->get('patternkit_json_editor_css');
