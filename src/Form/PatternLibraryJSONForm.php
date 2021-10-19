@@ -164,7 +164,7 @@ class PatternLibraryJSONForm extends ConfigFormBase {
         $ckeditor_toolbar_options[$editor->id()] = $editor->label();
       }
     }
-    sort($ckeditor_toolbar_options, SORT_NATURAL);
+    asort($ckeditor_toolbar_options, SORT_NATURAL);
 
     $form['patternkit_json_editor_ckeditor_toolbar'] = [
       '#type' => 'select',
