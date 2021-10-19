@@ -115,6 +115,13 @@ trait JSONSchemaEditorTrait {
       }
     }
 
+    if ($this->config->get('patternkit_json_editor_wysiwyg') == 'ckeditor') {
+      $selected_toolbar = $this->config->get('patternkit_json_editor_ckeditor_toolbar');
+    }
+    if (empty($selected_toolbar)) {
+      $selected_toolbar = 'full_html';
+    }
+
     // Configure a basic CKEditor.
     // @todo Allow this to be configured in Patternkit settings.
     // Right now this breaks if the full_html format is not available.
@@ -123,7 +130,7 @@ trait JSONSchemaEditorTrait {
     }, []);
     /** @var \Drupal\Editor\Entity\Editor $ckeditor_config */
     $ckeditor_config = Editor::create([
-      'format' => 'full_html',
+      'format' => $selected_toolbar,
       'editor' => 'ckeditor',
       'settings' => [
         'toolbar' => [
@@ -141,6 +148,9 @@ trait JSONSchemaEditorTrait {
     ]);
     $ckeditor = CKEditor::create(\Drupal::getContainer(), [], 'ckeditor', ['provider' => 'patternkit']);
     $editor_settings['patternkitCKEditorConfig'] = $ckeditor->getJSSettings($ckeditor_config);
+    // Pushes the selected toolbar to drupalSettings, so that client-side so
+    // that DrupalCKEditor.afterInputReady
+    $editor_settings['patternkitCKEditorConfig']['selected_toolbar'] = $selected_toolbar;
 
     // @todo Move to own JS file & Drupal Settings config var.
     return [

@@ -4,11 +4,18 @@ namespace Drupal\patternkit\Form;
 
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Entity\EntityTypeManager;
 
 /**
  * Settings form for configuring the JSON Library Plugin.
  */
 class PatternLibraryJSONForm extends ConfigFormBase {
+
+  /**
+   * @var EntityTypeManager
+   */
+  protected EntityTypeManager $entityStorage;
 
   /**
    * Settings identifier.
@@ -90,6 +97,15 @@ class PatternLibraryJSONForm extends ConfigFormBase {
   ];
 
   /**
+   * {@inheritDoc}
+   */
+  public static function create(ContainerInterface $container) {
+    $instance = parent::create($container);
+    $instance->entityStorage = $container->get('entity_type.manager');
+    return $instance;
+  }
+
+  /**
    * Implements buildForm().
    *
    * {@inheritDoc}
@@ -144,6 +160,26 @@ class PatternLibraryJSONForm extends ConfigFormBase {
       '#default_value' => $config->get('patternkit_json_editor_wysiwyg') ?: '',
     );
 
+    $ckeditor_toolbar_options = [];
+    foreach ($this->entityStorage->getStorage('editor')->loadMultiple() as $editor) {
+      if ($editor->getEditor() == 'ckeditor') {
+        $ckeditor_toolbar_options[$editor->id()] = $editor->label();
+      }
+    }
+    sort($ckeditor_toolbar_options, SORT_NATURAL);
+
+    $form['patternkit_json_editor_ckeditor_toolbar'] = [
+      '#type' => 'select',
+      '#title' => t('CKEditor toolbar'),
+      '#options' => $ckeditor_toolbar_options,
+      '#default_value' => $config->get('patternkit_json_editor_ckeditor_toolbar') ?: '',
+      '#states' => [
+        'visible' => [
+          ':input[name="patternkit_json_editor_wysiwyg"]' => ['value' => 'ckeditor'],
+        ],
+      ],
+    ];
+
     return parent::buildForm($form, $form_state);
   }
 
@@ -173,6 +209,7 @@ class PatternLibraryJSONForm extends ConfigFormBase {
     $config->set('patternkit_json_editor_js', $form_values['patternkit_json_editor_js']);
     $config->set('patternkit_json_editor_use_shadow_dom', (bool) $form_values['patternkit_json_editor_use_shadow_dom']);
     $config->set('patternkit_json_editor_wysiwyg', $form_values['patternkit_json_editor_wysiwyg']);
+    $config->set('patternkit_json_editor_ckeditor_toolbar', $form_values['patternkit_json_editor_ckeditor_toolbar']);
     $config->save();
     parent::submitForm($form, $form_state);
   }

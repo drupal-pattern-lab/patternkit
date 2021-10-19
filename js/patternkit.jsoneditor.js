@@ -77,7 +77,10 @@ var DrupalCKEditor = /*#__PURE__*/function (_JSONEditor$defaults$) {
       if (window.CKEDITOR) {
         // Editor options.
         // @todo Replace JSONEditor.defaults with this.defaults.
-        this.options = jQuery.extend({}, JSONEditor.defaults.options.drupal_ckeditor || {}, this.options.drupal_ckeditor || {}); // @see Drupal.editors.ckeditor._loadExternalPlugins
+        this.options = jQuery.extend({}, JSONEditor.defaults.options.drupal_ckeditor || {}, this.options.drupal_ckeditor || {});
+        this.options.ckeditor_config.drupal = {
+          format: this.options.ckeditor_config.selected_toolbar
+        }; // @see Drupal.editors.ckeditor._loadExternalPlugins
 
         var externalPlugins = this.options.ckeditor_config.drupalExternalPlugins;
 
