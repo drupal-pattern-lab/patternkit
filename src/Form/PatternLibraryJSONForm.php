@@ -83,18 +83,10 @@ class PatternLibraryJSONForm extends ConfigFormBase {
   ];
 
   public const EDITORS = [
-    'ckeditor' => [
-      'label' => 'CKEditor',
-      'use_shadow_dom' => FALSE,
-    ],
-    'prosemirror' => [
-      'label' => 'ProseMirror',
-      'use_shadow_dom' => TRUE,
-    ],
-    'quill' => [
-      'label' => 'Quill',
-      'use_shadow_dom' => TRUE,
-    ],
+    'ckeditor' => 'CKEditor',
+    // Removed prosemirror because our code does not include the corresponding JS.
+    // 'prosemirror' => 'ProseMirror',
+    'quill' => 'Quill',
   ];
 
   /**
@@ -131,18 +123,23 @@ class PatternLibraryJSONForm extends ConfigFormBase {
     $form['patternkit_json_editor_js'] = array(
       '#type' => 'textfield',
       '#title' => t('Add to the editor theme JS'),
-      '#description' => t('Entter a comma-separated list of additional JS to include.'),
+      '#description' => t('Enter a comma-separated list of additional JS to include.'),
       '#default_value' => $config->get('patternkit_json_editor_js'),
+    );
+
+    $form['patternkit_json_editor_use_shadow_dom'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Use the Shadow DOM'),
+      '#description' => t('Select whether to use the Shadow DOM for the JSON Editor form. Most themes do not work outside the Shadow DOM, but most WYSIWYG editors do not work <em>inside</em> the Shadow DOM.'),
+      '#default_value' => $config->get('patternkit_json_editor_use_shadow_dom') ?? TRUE,
     );
 
     $form['patternkit_json_editor_wysiwyg'] = array(
       '#type' => 'select',
       '#title' => t('WYSIWYG editor'),
-      '#options' => array_combine(
-        array_keys(static::EDITORS),
-        array_column(static::EDITORS, 'label')
-      ),
-      '#default_value' => $config->get('patternkit_json_editor_wysiwyg') ?: 'quill',
+      '#options' => static::EDITORS,
+      '#empty_value' => '',
+      '#default_value' => $config->get('patternkit_json_editor_wysiwyg') ?: '',
     );
 
     return parent::buildForm($form, $form_state);
@@ -172,6 +169,7 @@ class PatternLibraryJSONForm extends ConfigFormBase {
     $config->set('patternkit_json_editor_icons', $form_values['patternkit_json_editor_icons']);
     $config->set('patternkit_json_editor_css', $form_values['patternkit_json_editor_css']);
     $config->set('patternkit_json_editor_js', $form_values['patternkit_json_editor_js']);
+    $config->set('patternkit_json_editor_use_shadow_dom', (bool) $form_values['patternkit_json_editor_use_shadow_dom']);
     $config->set('patternkit_json_editor_wysiwyg', $form_values['patternkit_json_editor_wysiwyg']);
     $config->save();
     parent::submitForm($form, $form_state);
