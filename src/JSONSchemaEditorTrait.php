@@ -78,9 +78,9 @@ trait JSONSchemaEditorTrait {
       'schemaJson' => $schema,
       'startingJson' => $starting_json,
       'theme' => $theme,
-      'wysiwygEditorName' => $this->config->get('patternkit_json_editor_wysiwyg') ?: 'quill',
+      'wysiwygEditorName' => $this->config->get('patternkit_json_editor_wysiwyg') ?? '',
+      'useShadowDom' => $this->config->get('patternkit_json_editor_use_shadow_dom') ?? TRUE,
     ];
-    $editor_settings['useShadowDom'] = PatternLibraryJSONForm::EDITORS[ $editor_settings['wysiwygEditorName'] ]['use_shadow_dom'];
 
     if (isset(PatternLibraryJSONForm::THEMES[$theme])) {
       $theme_info = PatternLibraryJSONForm::THEMES[$theme];

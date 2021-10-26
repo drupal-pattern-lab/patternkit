@@ -22,6 +22,7 @@
  patternkitEditorQuill(jQuery, Drupal, JSONEditor);
  patternkitEditorCKEditor(jQuery, Drupal, JSONEditor);
  patternkitEditorCygnet(jQuery, Drupal, JSONEditor);
+ // TODO Why is patternkitEditorProseMirror not included here?
 
  (function ($, Drupal, JSONEditor) {
    'use strict';
