@@ -94,7 +94,10 @@ class JSONPatternLibraryParser extends PatternLibraryParserBase {
     foreach ($metadata as $pattern_type => $pattern) {
       // Replace any $ref links with relative paths.
       $schema = json_decode($pattern->getSchema(), TRUE);
-      $schema = static::schemaDereference($schema, $pattern);
+      $schema = static::schemaDereference(
+        $schema,
+        $pattern
+      );
       $pattern->setSchema($schema);
       $metadata[$pattern_type] = $pattern->toArray();
     }

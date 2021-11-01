@@ -44,9 +44,8 @@ class DrupalCKEditor extends JSONEditor.defaults.editors.string {
 
       this.input.style.display = 'none';
 
-      this.ckeditor_instance = window.CKEDITOR.replace(this.ckeditor_container, this.options.ckeditor_config);
-      console.log(this.ckeditor_instance);
       this.input.parentNode.insertBefore(this.ckeditor_container, this.input);
+      this.ckeditor_instance = window.CKEDITOR.replace(this.ckeditor_container, this.options.ckeditor_config);
       this.ckeditor_instance.setData(this.getValue());
       if (this.schema.readOnly || this.schema.readonly || this.schema.template) {
         this.ckeditor_instance.setReadOnly(true);
@@ -126,7 +125,7 @@ export function patternkitEditorCKEditor($, Drupal, JSONEditor) {
           && schema.format === 'html'
           && schema.options
           && schema.options.wysiwyg
-          && settings.patternkitEditor.theme === 'html') {
+          && ['html', 'cygnet'].includes(settings.patternkitEditor.theme)) {
           return 'drupal_ckeditor';
         }
       });

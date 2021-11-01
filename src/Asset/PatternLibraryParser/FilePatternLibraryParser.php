@@ -148,7 +148,11 @@ class FilePatternLibraryParser extends PatternLibraryParserBase {
     }
 
     foreach ($metadata as $pattern_type => $pattern) {
-      $pattern->schema = static::schemaDereference($pattern->schema, $pattern);
+      // Replace any $ref links with relative paths.
+      $pattern->schema = static::schemaDereference(
+        $pattern->schema,
+        $pattern
+      );
       $metadata[$pattern_type] = $pattern;
     }
     return $metadata;
