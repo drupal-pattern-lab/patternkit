@@ -76,7 +76,10 @@ class TwigPatternLibraryParser extends PatternLibraryParserBase {
     $assets['schema'] = $assets['json'];
     // Replace any $ref links with relative paths.
     $schema = $this->serializer::decode($assets['schema']);
-    $schema = static::schemaDereference($schema, $pattern);
+    $schema = static::schemaDereference(
+      $schema,
+      $pattern
+    );
     $assets['schema'] = $this->serializer::encode($schema);
     return $assets;
   }
