@@ -92,9 +92,8 @@ var DrupalCKEditor = /*#__PURE__*/function (_JSONEditor$defaults$) {
         this.ckeditor_container.style.width = '100%';
         this.ckeditor_container.style.position = 'relative';
         this.input.style.display = 'none';
-        this.ckeditor_instance = window.CKEDITOR.replace(this.ckeditor_container, this.options.ckeditor_config);
-        console.log(this.ckeditor_instance);
         this.input.parentNode.insertBefore(this.ckeditor_container, this.input);
+        this.ckeditor_instance = window.CKEDITOR.replace(this.ckeditor_container, this.options.ckeditor_config);
         this.ckeditor_instance.setData(this.getValue());
 
         if (this.schema.readOnly || this.schema.readonly || this.schema.template) {
@@ -188,7 +187,7 @@ function patternkitEditorCKEditor($, Drupal, JSONEditor) {
       };
       JSONEditor.defaults.editors.drupal_ckeditor = DrupalCKEditor;
       JSONEditor.defaults.resolvers.unshift(function (schema) {
-        if (schema.type === 'string' && schema.format === 'html' && schema.options && schema.options.wysiwyg && settings.patternkitEditor.theme === 'html') {
+        if (schema.type === 'string' && schema.format === 'html' && schema.options && schema.options.wysiwyg && ['html', 'cygnet'].includes(settings.patternkitEditor.theme)) {
           return 'drupal_ckeditor';
         }
       });
@@ -454,7 +453,6 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
           $target.html(editor_dom);
         }
 
-        console.log(settings.patternkitEditor);
         var data = {
           schema: JSON.parse(settings.patternkitEditor.schemaJson),
           starting: JSON.parse(settings.patternkitEditor.startingJson)
@@ -704,7 +702,6 @@ var DrupalQuill = /*#__PURE__*/function (_JSONEditor$defaults$) {
         placeholder: '',
         theme: 'snow'
       };
-      console.log(this.options.quill_config);
       this.quill_container = document.createElement('div');
       this.quill_container.style.width = '100%';
       this.quill_container.style.position = 'relative';
@@ -808,7 +805,7 @@ function patternkitEditorQuill($, Drupal, JSONEditor) {
       };
       JSONEditor.defaults.editors.drupal_quill = DrupalQuill;
       JSONEditor.defaults.resolvers.unshift(function (schema) {
-        if (schema.type === 'string' && schema.format === 'html' && schema.options && schema.options.wysiwyg && settings.patternkitEditor.theme !== 'html') {
+        if (schema.type === 'string' && schema.format === 'html' && schema.options && schema.options.wysiwyg && !['html', 'cygnet'].includes(settings.patternkitEditor.theme)) {
           return 'drupal_quill';
         }
       });

@@ -18,11 +18,11 @@
  import {patternkitEditorQuill} from './patternkit.jsoneditor.quill.es6.js';
  import {patternkitEditorCKEditor} from './patternkit.jsoneditor.ckeditor.es6';
  import {patternkitEditorCygnet} from './patternkit.jsoneditor.cygnet.es6.js';
- 
+
  patternkitEditorQuill(jQuery, Drupal, JSONEditor);
  patternkitEditorCKEditor(jQuery, Drupal, JSONEditor);
  patternkitEditorCygnet(jQuery, Drupal, JSONEditor);
- 
+
  (function ($, Drupal, JSONEditor) {
    'use strict';
    Drupal.behaviors.patternkitEditor = {
@@ -42,7 +42,7 @@
        };
        let $target = $('#patternkit-editor-target', context);
        $target.once('patternkit-editor').each(function () {
- 
+
          let theme_js = settings.patternkitEditor.themeJS;
          if (typeof theme_js === 'string') {
            theme_js = [theme_js];
@@ -57,7 +57,7 @@
          if (settings.patternkitEditor.themeStylesheet) {
            let theme_element = document.createElement('link');
            theme_element.rel = "stylesheet";
-           theme_element.id = "icon_stylesheet";
+           theme_element.id = "theme_stylesheet";
            theme_element.href = settings.patternkitEditor.themeStylesheet;
            document.getElementsByTagName('head')[0].appendChild(theme_element);
            editor_dom = '<link rel="stylesheet" id="theme_stylesheet" href="' + settings.patternkitEditor.themeStylesheet + '">';
@@ -73,7 +73,7 @@
            editor_dom += '<link rel="stylesheet" id="icon_stylesheet" href="' + settings.patternkitEditor.iconStylesheet + '">';
          }
          editor_dom += '<div id="editor_holder"></div>';
- 
+
          let editor_root = document;
          // We need to use a Shadow Dom to use themes, which has its own complications
          // with other JS libraries trying to access editor components, for example WYSIWYG.
@@ -85,8 +85,7 @@
          else {
            $target.html(editor_dom);
          }
-         console.log(settings.patternkitEditor);
- 
+
          let data = {
            schema: JSON.parse(settings.patternkitEditor.schemaJson),
            starting: JSON.parse(settings.patternkitEditor.startingJson)
@@ -99,7 +98,7 @@
          JSONEditor.defaults.options.collapse = false;
          JSONEditor.defaults.options.ajax = true;
          // @todo Loop through all editor plugins and add them at runtime.
- 
+
          // Override how references are resolved.
          JSONEditor.prototype._loadExternalRefs = function (schema, callback) {
            let refs = this._getExternalRefs(schema);
@@ -217,4 +216,3 @@
      }
    };
  })(jQuery, Drupal, JSONEditor);
- 
