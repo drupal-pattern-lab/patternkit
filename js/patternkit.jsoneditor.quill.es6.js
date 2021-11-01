@@ -39,7 +39,6 @@ class DrupalQuill extends JSONEditor.defaults.editors.string {
       placeholder: '',
       theme: 'snow'
     };
-    console.log(this.options.quill_config);
 
     this.quill_container = document.createElement('div');
     this.quill_container.style.width = '100%';
@@ -128,7 +127,7 @@ export function patternkitEditorQuill($, Drupal, JSONEditor) {
           && schema.format === 'html'
           && schema.options
           && schema.options.wysiwyg
-          && settings.patternkitEditor.theme !== 'html') {
+          && ! ['html', 'cygnet'].includes(settings.patternkitEditor.theme)) {
           return 'drupal_quill';
         }
       });
