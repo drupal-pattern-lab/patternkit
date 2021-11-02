@@ -657,10 +657,17 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
   }
 
   /**
+   * Returns an array of available token replacements.
+   *
    * @param bool $prepared
+   *   Whether to return the raw token info for each token or an array of
+   *   prepared tokens for each type. E.g. "[view:name]".
    * @param array $types
+   *   An array of additional token types to return, defaults to 'site' and
+   *   'view'.
    *
    * @return array|bool
+   *   An array of available token replacement info or tokens, grouped by type.
    *
    * @see \Drupal\views\Plugin\views\PluginBase
    */
@@ -676,17 +683,40 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
 
     // Construct the token string for each token.
     if ($prepared) {
-      $prepared = [];
+      $prepared_tokens = [];
       foreach ($available as $type => $tokens) {
         foreach (array_keys($tokens) as $token) {
-          $prepared[$type][] = "[$type:$token]";
+          $prepared_tokens[$type][] = "[$type:$token]";
         }
       }
-
-      return $prepared;
+      return $prepared_tokens;
     }
 
     return $available;
+  }
+
+  /**
+   * {@inheritdoc}
+   *
+   * @return array
+   *   - string id => $this->getPluginId(),
+   *   - string label => '',
+   *   - string provider => $this->pluginDefinition['provider'],
+   *   - int label_display => BlockPluginInterface::BLOCK_LABEL_VISIBLE,
+   *   - int patternkit_block_id => non-zero id,
+   *   - int patternkit_block_rid => non-zero rid,
+   *   - string instance_uuid => universally unique id string,
+   *   - boolean reusable => TRUE if the patternkit block is reusable,
+   *   - Pattern pattern => Pattern cached with the block,
+   *   - string presentation_style => PatternLibrary plugin-based config string,
+   *   - string version => library version used when caching the pattern,
+   *   - array context => an array of Context objects provided to the block,
+   *   - array fields => the form data configured via the pattern schema,
+   *
+   * @see this->baseConfigurationDefaults()
+   */
+  public function getConfiguration() {
+    return parent::getConfiguration();
   }
 
   /**
