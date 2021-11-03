@@ -1,6 +1,9 @@
 patternkit_cache_enabled: true
 patternkit_json_editor_css: ""
-patternkit_json_editor_icons: fontawesome5
+patternkit_json_editor_icons: ""
 patternkit_json_editor_js: ""
-patternkit_json_editor_theme: bootstrap4
+patternkit_json_editor_theme: cygnet
 patternkit_libraries: []
+patternkit_json_editor_use_shadow_dom: false
+patternkit_json_editor_wysiwyg: "ckeditor"
+patternkit_json_editor_ckeditor_toolbar: "full_html"
