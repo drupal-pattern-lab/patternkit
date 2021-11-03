@@ -77,7 +77,10 @@ var DrupalCKEditor = /*#__PURE__*/function (_JSONEditor$defaults$) {
       if (window.CKEDITOR) {
         // Editor options.
         // @todo Replace JSONEditor.defaults with this.defaults.
-        this.options = jQuery.extend({}, JSONEditor.defaults.options.drupal_ckeditor || {}, this.options.drupal_ckeditor || {}); // @see Drupal.editors.ckeditor._loadExternalPlugins
+        this.options = jQuery.extend({}, JSONEditor.defaults.options.drupal_ckeditor || {}, this.options.drupal_ckeditor || {});
+        this.options.ckeditor_config.drupal = {
+          format: this.options.ckeditor_config.selected_toolbar
+        }; // @see Drupal.editors.ckeditor._loadExternalPlugins
 
         var externalPlugins = this.options.ckeditor_config.drupalExternalPlugins;
 
@@ -187,7 +190,7 @@ function patternkitEditorCKEditor($, Drupal, JSONEditor) {
       };
       JSONEditor.defaults.editors.drupal_ckeditor = DrupalCKEditor;
       JSONEditor.defaults.resolvers.unshift(function (schema) {
-        if (schema.type === 'string' && schema.format === 'html' && schema.options && schema.options.wysiwyg && ['html', 'cygnet'].includes(settings.patternkitEditor.theme)) {
+        if (schema.type === 'string' && schema.format === 'html' && schema.options && schema.options.wysiwyg && settings.patternkitEditor.wysiwygEditorName === 'ckeditor') {
           return 'drupal_ckeditor';
         }
       });
@@ -422,7 +425,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         if (settings.patternkitEditor.themeStylesheet) {
           var theme_element = document.createElement('link');
           theme_element.rel = "stylesheet";
-          theme_element.id = "icon_stylesheet";
+          theme_element.id = "theme_stylesheet";
           theme_element.href = settings.patternkitEditor.themeStylesheet;
           document.getElementsByTagName('head')[0].appendChild(theme_element);
           editor_dom = '<link rel="stylesheet" id="theme_stylesheet" href="' + settings.patternkitEditor.themeStylesheet + '">';
@@ -443,7 +446,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         var editor_root = document; // We need to use a Shadow Dom to use themes, which has its own complications
         // with other JS libraries trying to access editor components, for example WYSIWYG.
 
-        if (settings.patternkitEditor.theme !== 'html') {
+        if (settings.patternkitEditor.useShadowDom) {
           var shadow = this.attachShadow({
             mode: 'open'
           });
@@ -805,7 +808,7 @@ function patternkitEditorQuill($, Drupal, JSONEditor) {
       };
       JSONEditor.defaults.editors.drupal_quill = DrupalQuill;
       JSONEditor.defaults.resolvers.unshift(function (schema) {
-        if (schema.type === 'string' && schema.format === 'html' && schema.options && schema.options.wysiwyg && !['html', 'cygnet'].includes(settings.patternkitEditor.theme)) {
+        if (schema.type === 'string' && schema.format === 'html' && schema.options && schema.options.wysiwyg && settings.patternkitEditor.wysiwygEditorName == 'quill') {
           return 'drupal_quill';
         }
       });

@@ -1,0 +1,13 @@
+#drupal-off-canvas [data-theme=cygnet] label {
+    color: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+}
+
+#drupal-off-canvas [data-theme=cygnet] label {
+    font-family: 'RedHatText', Helvetica, Arial, sans-serif;
+}
+#drupal-off-canvas [data-theme=cygnet] button {
+    font-family: 'RedHatText', Helvetica, Arial, sans-serif;
+}

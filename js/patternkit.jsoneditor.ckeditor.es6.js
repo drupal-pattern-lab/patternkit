@@ -25,6 +25,13 @@ class DrupalCKEditor extends JSONEditor.defaults.editors.string {
       // Editor options.
       // @todo Replace JSONEditor.defaults with this.defaults.
       this.options = jQuery.extend({}, JSONEditor.defaults.options.drupal_ckeditor || {}, this.options.drupal_ckeditor || {});
+
+      // Copies logic from Drupal.editors.ckeditor.attach(), so that certain
+      // buttons (e.g., DrupalLink) work.
+      this.options.ckeditor_config.drupal = {
+        format: this.options.ckeditor_config.selected_toolbar,
+      };
+
       // @see Drupal.editors.ckeditor._loadExternalPlugins
       const externalPlugins = this.options.ckeditor_config.drupalExternalPlugins;
       if (externalPlugins) {
@@ -125,7 +132,7 @@ export function patternkitEditorCKEditor($, Drupal, JSONEditor) {
           && schema.format === 'html'
           && schema.options
           && schema.options.wysiwyg
-          && ['html', 'cygnet'].includes(settings.patternkitEditor.theme)) {
+          && settings.patternkitEditor.wysiwygEditorName === 'ckeditor') {
           return 'drupal_ckeditor';
         }
       });

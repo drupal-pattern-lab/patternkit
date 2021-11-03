@@ -78,16 +78,26 @@ trait JSONSchemaEditorTrait {
       'schemaJson' => $schema,
       'startingJson' => $starting_json,
       'theme' => $theme,
+      'wysiwygEditorName' => $this->config->get('patternkit_json_editor_wysiwyg') ?? '',
+      'useShadowDom' => $this->config->get('patternkit_json_editor_use_shadow_dom') ?? TRUE,
     ];
 
     if (isset(PatternLibraryJSONForm::THEMES[$theme])) {
       $theme_info = PatternLibraryJSONForm::THEMES[$theme];
-      $editor_settings['themeStylesheet'] = !empty($theme_info['css']) ? $this->getLibraryAssetUrlFromUri($theme_info['css']) : '';
+      if (!$editor_settings['useShadowDom'] && !empty($theme_info['css_no_shadow_dom'])) {
+        $editor_settings['themeStylesheet'] = $this->getLibraryAssetUrlFromUri($theme_info['css_no_shadow_dom']);
+      }
+      elseif (!empty($theme_info['css'])) {
+        $editor_settings['themeStylesheet'] = $this->getLibraryAssetUrlFromUri($theme_info['css']);
+      }
+      else {
+        $editor_settings['themeStylesheet'] = '';
+      }
       if (!empty($theme_info['js'])) {
         $editor_settings['themeJS'][] = $this->getLibraryAssetUrlFromUri($theme_info['js']);
       }
     }
-    if (isset(PatternLibraryJSONForm::ICONS[$icons])) {
+    if (!empty(PatternLibraryJSONForm::ICONS[$icons])) {
       $editor_settings['iconStylesheet'] = $this->getLibraryAssetUrlFromUri(PatternLibraryJSONForm::ICONS[$icons]);
     }
     $editor_css_override = $this->config->get('patternkit_json_editor_css');
@@ -105,6 +115,13 @@ trait JSONSchemaEditorTrait {
       }
     }
 
+    if ($this->config->get('patternkit_json_editor_wysiwyg') == 'ckeditor') {
+      $selected_toolbar = $this->config->get('patternkit_json_editor_ckeditor_toolbar');
+    }
+    if (empty($selected_toolbar)) {
+      $selected_toolbar = 'full_html';
+    }
+
     // Configure a basic CKEditor.
     // @todo Allow this to be configured in Patternkit settings.
     // Right now this breaks if the full_html format is not available.
@@ -113,7 +130,7 @@ trait JSONSchemaEditorTrait {
     }, []);
     /** @var \Drupal\Editor\Entity\Editor $ckeditor_config */
     $ckeditor_config = Editor::create([
-      'format' => 'full_html',
+      'format' => $selected_toolbar,
       'editor' => 'ckeditor',
       'settings' => [
         'toolbar' => [
@@ -131,6 +148,9 @@ trait JSONSchemaEditorTrait {
     ]);
     $ckeditor = CKEditor::create(\Drupal::getContainer(), [], 'ckeditor', ['provider' => 'patternkit']);
     $editor_settings['patternkitCKEditorConfig'] = $ckeditor->getJSSettings($ckeditor_config);
+    // Pushes the selected toolbar to drupalSettings, so that client-side so
+    // that DrupalCKEditor.afterInputReady
+    $editor_settings['patternkitCKEditorConfig']['selected_toolbar'] = $selected_toolbar;
 
     // @todo Move to own JS file & Drupal Settings config var.
     return [
