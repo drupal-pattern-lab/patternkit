@@ -1,0 +1,458 @@
+#drupal-off-canvas [data-theme=cygnet] {
+    font-family: 'RedHatText', Helvetica, Arial, sans-serif;
+    font-weight: 300;
+    color: #151515;
+    margin-top: 32px;
+}
+
+#drupal-off-canvas [data-theme=cygnet] a {
+    color: #0066cc;
+}
+
+#drupal-off-canvas [data-theme=cygnet] h3 {
+    margin: 0 0 16px 0;
+    font-weight: 300;
+    font-size: 18px;
+}
+
+#drupal-off-canvas [data-theme=cygnet] h3 > label {
+    position: relative;
+    top: 4px;
+    margin-right: 16px;
+}
+
+#drupal-off-canvas [data-theme=cygnet] p {
+    margin-top: 0;
+    margin-left: 20px;
+}
+
+/* Set pattern title largest font-size */
+
+#drupal-off-canvas [data-theme=cygnet] [data-schemapath=root] > h3 {
+    font-size: 28px;
+}
+
+#drupal-off-canvas [data-theme=cygnet] .je-form-input-label {
+    display: block;
+    font-family: 'RedHatDisplay', Helvetica, Arial, sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    padding-bottom: 4px;
+}
+
+#drupal-off-canvas [data-theme=cygnet] p.je-form-input-label {
+    font-weight: 300;
+}
+
+#drupal-off-canvas [data-theme=cygnet] .je-indented-panel {
+    margin-bottom: 16px;
+}
+
+#drupal-off-canvas [data-theme=cygnet] input[type=text],
+#drupal-off-canvas [data-theme=cygnet] input[type=url],
+#drupal-off-canvas [data-theme=cygnet] select,
+#drupal-off-canvas [data-theme=cygnet] textarea {
+    width: 100% !important;
+    box-sizing: border-box;
+    border: 1px solid #d2d2d2;
+    border-bottom: 1px solid #6a6e73;
+    margin-left: 0 !important;
+    margin-bottom: 4px !important;
+    padding: 4px 8px !important;
+    background-color: #fff !important;
+    font-family: 'RedHatText', Helvetica, Arial, sans-serif;
+    font-size: 16px;
+}
+
+#drupal-off-canvas [data-theme=cygnet] select {
+    font-style: normal !important;
+    font-size: 16px !important;
+}
+
+#drupal-off-canvas [data-theme=cygnet] input[type=text],
+#drupal-off-canvas [data-theme=cygnet] input[type=url] {
+    width: 80%;
+}
+
+#drupal-off-canvas [data-theme=cygnet] .je-indented-panel {
+    /* border: 1px solid #d2d2d2 !important; */
+    border-left: 0 !important;
+    border-radius: 3px;
+}
+
+/* GRAY BACKGROUND COLOR ON TOP-LEVEL OBJECTS */
+
+#drupal-off-canvas [data-theme=cygnet] > [data-schemapath=root] > .je-indented-panel > div > div > .row > [data-schematype=object] > .je-indented-panel,
+#drupal-off-canvas [data-theme=cygnet] > [data-schemapath=root] > .je-indented-panel > div > div > .row > [data-schematype=array] > .je-indented-panel {
+    border: 1px solid #d2d2d2 !important;
+    background-color: #f0f0f0;
+    border-radius: 3px;
+    margin-left: 20px !important;
+}
+
+#drupal-off-canvas [data-theme=cygnet] > [data-schemapath=root] > .je-indented-panel > div > div > .row > [data-schematype=array] > .je-indented-panel > div > .je-indented-panel {
+    background-color: transparent;
+}
+
+#drupal-off-canvas [data-theme=cygnet] > [data-schematype=object] > .je-indented-panel > div > div > .row > [data-schematype=object],
+#drupal-off-canvas [data-theme=cygnet] > [data-schematype=object] > .je-indented-panel > div > div > .row > [data-schematype=array] {
+    margin-left: 20px;
+}
+
+/* SET INDENTS ON TOP LEVEL STRING FIELDS */
+
+#drupal-off-canvas [data-theme=cygnet] > [data-schemapath=root] > .je-indented-panel > div > div > .row > [data-schematype=string] {
+    margin-left: 36px;
+}
+
+
+/* WHITE BACKGROUND COLOR ON SECOND-LEVEL OBJECTS */
+
+#drupal-off-canvas [data-theme=cygnet] > [data-schematype=object] > .je-indented-panel > div > div > .row > [data-schematype=object] > .je-indented-panel > [data-schematype=object] > .je-indented-panel > div > div > .row > div > .je-indented-panel {
+    border: 1px solid #d2d2d2 !important;
+    background-color: #ffffff;
+    border-radius: 3px;
+    margin-left: 20px !important;
+}
+
+/* REMOVE BORDER FROM OBJECTS EMBEDDED IN TOP-LEVEL OBJECTS */
+
+#drupal-off-canvas [data-theme=cygnet] > [data-schematype=object] > .je-indented-panel > div > div .row > [data-schematype=object] > .je-indented-panel > div > div > .row > [data-schematype=object] > .je-indented-panel {
+    border: 0 !important;
+}
+
+#drupal-off-canvas [data-theme=cygnet] .je-indented-panel .je-indented-panel {
+    background-color: #ffffff;
+    padding: 16px 16px 0 16px !important;
+    margin-left: 0 !important;
+}
+
+#drupal-off-canvas [data-theme=cygnet] .je-indented-panel .je-indented-panel h3 {
+    font-size: 20px;
+}
+
+/* REMOVE BORDERS AND PADDING FROM NESTED ARRAYS */
+
+#drupal-off-canvas [data-theme=cygnet] .je-indented-panel [data-schematype=array] > .je-indented-panel {
+    position: relative;
+    margin-bottom: 0;
+}
+
+/* OBJECTS WITHIN ARRAYS SHOULD HAVE A BORDER */
+
+#drupal-off-canvas [data-theme=cygnet] [data-schematype=array] > .je-indented-panel {
+    border: 1px solid #d2d2d2 !important;
+}
+
+/* OBJECTS NESTED IN A NESTED ARRAY SHOULD NOT HAVE A BORDER */
+
+#drupal-off-canvas [data-theme=cygnet] [data-schematype=array] > .je-indented-panel [data-schematype=array] > .je-indented-panel {
+    border: 0 !important;
+}
+
+/* REMOVE MARGIN FROM CHILD EDITOR */
+
+#drupal-off-canvas [data-theme=cygnet] .je-child-editor-holder > .je-indented-panel {
+    margin-bottom: 0;
+    padding-bottom: 0 !important;
+    padding-top: 0 !important;
+}
+
+#drupal-off-canvas [data-theme=cygnet] .je-child-editor-holder > p {
+    margin-left: 36px;
+}
+
+#drupal-off-canvas [data-theme=cygnet] .je-child-editor-holder > .je-indented-panel > div > div > .row > [data-schematype=object] > .je-indented-panel {
+    padding: 0 !important;
+}
+
+/* SET ARRAY LABELS TO BE STICKY */
+
+#drupal-off-canvas [data-theme=cygnet] > [data-schematype="object"] > .je-indented-panel [data-schematype="object"] > .je-indented-panel [data-schematype="array"] > .je-indented-panel [data-schematype=array] > h3 {
+    position: sticky;
+    box-sizing: border-box;
+    width: 100% !important;
+    top: 0;
+    background-color: #f0f0f0;
+    z-index: 40;
+    margin-bottom: 0;
+    padding: 0 0 8px 8px;
+    border: 1px solid #d2d2d2;
+}
+
+#drupal-off-canvas [data-theme=cygnet] > [data-schematype="object"] > .je-indented-panel [data-schematype="object"] > .je-indented-panel [data-schematype="array"] > .je-indented-panel [data-schematype=array] > h3 + p {
+    margin-top: 16px;
+    margin-left: 28px;
+}
+
+#drupal-off-canvas [data-theme=cygnet] > [data-schematype="object"] > .je-indented-panel [data-schematype="object"] > .je-indented-panel [data-schematype="array"] > .je-indented-panel [data-schematype=array] > .je-indented-panel {
+    margin-left: 28px;
+}
+
+#drupal-off-canvas [data-theme=cygnet] [data-schematype="array"] .je-indented-panel {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+#drupal-off-canvas [data-theme=cygnet] > [data-schematype="object"] > .je-indented-panel [data-schematype="object"] > .je-indented-panel [data-schematype="array"] > .je-indented-panel [data-schematype=array] > h3 + .je-indented-panel {
+    border-top: 0;
+}
+
+/* UNSET STICKY LABELS FOR ARRAY WITHIN ARRAY */
+
+#drupal-off-canvas [data-theme=cygnet] > [data-schematype="object"] > .je-indented-panel [data-schematype="object"] > .je-indented-panel [data-schematype="array"] > .je-indented-panel [data-schematype=array] > .je-indented-panel h3 {
+    position: static;
+    width: auto;
+    background-color: transparent;
+    padding: 0;
+    margin-bottom: 16px;
+    border: 0;
+}
+
+/* BORDER AROUND FIELDS INSIDE A NESTED ARRAY */
+
+#drupal-off-canvas [data-theme=cygnet] > [data-schematype="object"] > .je-indented-panel [data-schematype="object"] > .je-indented-panel [data-schematype="array"] > .je-indented-panel [data-schematype=array] > .je-indented-panel > div > .je-indented-panel > div > .je-child-editor-holder > .je-indented-panel {
+    padding: 16px !important;
+    border: 1px solid #d2d2d2 !important;
+    margin-bottom: 16px;
+    margin-left: 36px !important;
+}
+
+#drupal-off-canvas [data-theme=cygnet] > [data-schematype="object"] > .je-indented-panel [data-schematype="object"] > .je-indented-panel [data-schematype="array"] > .je-indented-panel [data-schematype=array] > .je-indented-panel > div > .je-indented-panel > div > .je-child-editor-holder > .je-indented-panel > div > div > .row {
+    margin-left: 0;
+}
+
+/* FLEXBOX CONTAINER QUERY HACK */
+
+#drupal-off-canvas [data-theme=cygnet] .row {
+    display: flex;
+    flex-wrap: wrap;
+    --multiplier: calc(30rem - 100%);
+    gap: 10px;
+    margin-left: 20px;
+}
+
+#drupal-off-canvas [data-theme=cygnet] .row > div {
+    min-width: 48%;
+    max-width: 100%;
+    flex-grow: 1;
+    flex-basis: calc(var(--multiplier) * 999);
+    margin-bottom: 8px;
+}
+
+#drupal-off-canvas [data-theme=cygnet] .row > * > span {
+    margin-left: 0 !important;
+}
+
+#drupal-off-canvas [data-theme=cygnet] .row > .col-md-3 {
+    min-width: 23%;
+}
+
+#drupal-off-canvas [data-theme=cygnet] .row > .col-md-4 {
+    min-width: 31%;
+}
+
+/* BUTTON STYLES */
+
+#drupal-off-canvas [data-theme=cygnet] button {
+    cursor: pointer;
+    font-family: 'RedHatDisplay', Helvetica, Arial, sans-serif;
+    color: #0066cc;
+    border: 1px solid #0066cc;
+    border-radius: 3px;
+    background-color: #ffffff;
+    font-size: 14px;
+    padding: 6px 16px;
+}
+
+#drupal-off-canvas [data-theme=cygnet] button:hover {
+    background-color: #0066cc;
+    color: #ffffff;
+} 
+
+#drupal-off-canvas [data-theme=cygnet] button[title=Collapse],
+#drupal-off-canvas [data-theme=cygnet] button[title=Expand] {
+    border: 0;
+    border-radius: 3px;
+    background-color: transparent;
+    padding: 8px 0;
+}
+
+#drupal-off-canvas .je-header-button-holder {
+    padding: 16px 0 0 16px;
+}
+
+#drupal-off-canvas [data-theme=cygnet] .json-editor-btn-add {
+    border: 1px solid #0066cc;
+    background-color: #0066cc;
+    color: #ffffff;
+    margin-bottom: 16px;
+}
+
+#drupal-off-canvas [data-theme=cygnet] .json-editor-btn-subtract,
+#drupal-off-canvas [data-theme=cygnet] .json-editor-btn-delete {
+    border: 1px solid #ee0000;
+    color: #ee0000;
+    margin-left: 16px;
+    margin-bottom: 16px;
+}
+
+#drupal-off-canvas [data-theme=cygnet] .json-editor-btn-subtract:hover,
+#drupal-off-canvas [data-theme=cygnet] .json-editor-btn-delete:hover {
+    background-color: #ee0000;
+    color: #ffffff;
+}
+
+#drupal-off-canvas [data-theme=cygnet] .json-editor-btn-moveup,
+#drupal-off-canvas [data-theme=cygnet] .json-editor-btn-movedown {
+    margin-left: 16px;
+    margin-bottom: 16px;
+}
+
+#drupal-off-canvas [data-theme=cygnet] .json-editor-btntype-properties:hover {
+    color: #0066cc;
+    text-decoration: underline;
+}
+
+#drupal-off-canvas [data-theme=cygnet] [data-schemapath=root] > span > .json-editor-btntype-properties {
+    background-color: #ffffff;
+    border: 1px solid #0066cc;
+}
+
+#drupal-off-canvas [data-theme=cygnet] [data-schemapath=root] > span > .json-editor-btntype-properties: hover {
+    color: #ffffff;
+    background-color: #0066cc;
+}
+
+/* ACCORDION ARROWS */
+
+#drupal-off-canvas [data-theme=cygnet] button[title=Collapse]::before {
+    content: " ";
+    display: inline-block;
+    position: relative;
+    top: 3px;
+    width: 7px;
+    height: 7px;
+    border: solid #151515;
+    border-width: 0 1.75px 1.75px 0;
+    transform: rotate(-135deg);
+    -webkit-transform: rotate(-135deg);
+}
+
+#drupal-off-canvas [data-theme=cygnet] button[title=Expand]::before {
+    content: " ";
+    display: inline-block;
+    position: relative;
+    width: 7px;
+    height: 7px;
+    border: solid #151515;
+    border-width: 0 1.75px 1.75px 0;
+    transform: rotate(45deg);
+    -webkit-transform: rotate(45deg);
+}
+
+#drupal-off-canvas [data-theme=cygnet] button[title=Collapse] > span,
+#drupal-off-canvas [data-theme=cygnet] button[title=Expand] > span {
+    display: none;
+}
+
+/* PATTERN HEADER */
+
+#drupal-off-canvas [data-theme=cygnet] [data-schemapath=root] > p {
+    margin-left: 20px;
+}
+
+#drupal-off-canvas [data-theme=cygnet] [data-schemapath=root] .form-control > p {
+    margin-left: 0;
+}
+
+/* TOP LEVEL PROPERTIES BUTTONS SHOULD FLOAT RIGHT */
+
+#drupal-off-canvas [data-theme=cygnet] [data-schemapath=root] > .je-indented-panel > div > div > .row > [data-schematype=object] > span > .json-editor-btntype-properties {
+    background-color: #ffffff;
+    border: 1px solid #06c;
+    border-radius: 3px;
+    float: right;
+}
+
+#drupal-off-canvas [data-theme=cygnet] [data-schemapath=root] > .je-indented-panel > div > div > .row > [data-schematype=object] > .je-indented-panel .json-editor-btntype-properties {
+    padding: 0;
+    border: 0;
+    background-color: transparent;
+}
+
+/* REGION LEVEL PANELS SHOULD HAVE GRAY BACKGROUND */
+
+#drupal-off-canvas [data-theme=cygnet] > div > .je-indented-panel {
+    background-color: #ffffff !important;
+    border: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+#drupal-off-canvas [data-theme=cygnet] [data-schematype="object"] [data-schematype="object"] .je-indented-panel .je-indented-panel {
+    background-color: #ffffff;
+    /* border-right: 1px solid #d2d2d2 !important; */
+}
+
+#drupal-off-canvas [data-theme=cygnet] [data-schematype="object"] [data-schematype="object"] p {
+    font-size: 14px;
+}
+
+#drupal-off-canvas [data-theme=cygnet] [data-schematype="object"] [data-schematype="object"] p:last-child {
+    margin-bottom: 0;
+}
+
+#drupal-off-canvas [data-theme=cygnet] .je-indented-panel > div:empty {
+    margin-bottom: 16px;
+}
+
+/* VERTICAL TABS */
+
+#drupal-off-canvas [data-theme=cygnet] [data-schemapath^="root.header.aside"] > div {
+    margin-left: 20px;
+}
+
+#drupal-off-canvas [data-theme=cygnet] [data-schemapath^="root.header.aside"][class^="col-md"] > div,
+#drupal-off-canvas [data-theme=cygnet] [data-schemapath^="root.header.aside"] .form-control {
+    margin-left: 0;
+}
+
+#drupal-off-canvas [data-theme=cygnet] [data-schemapath^="root.header.aside"] > div > .content {
+    margin-left: 165px !important;
+}
+
+#drupal-off-canvas [data-theme=cygnet] .je-indented-panel[data-schemapath^="root.header.aside"] {
+    border: 1px solid #d2d2d2 !important;
+}
+
+#drupal-off-canvas [data-theme=cygnet] .je-indented-panel[data-schemapath^="root.header.aside"] > .je-indented-panel > div > div > .row {
+    margin-left: 0;
+}
+
+#drupal-off-canvas [data-theme=cygnet] [data-schemapath^="root.header.aside"] > .je-indented-panel > span:not(.je-header-button-holder) > button:first-child,
+#drupal-off-canvas [data-theme=cygnet] [data-schemapath^="root.body.content"] > .je-indented-panel > span:not(.je-header-button-holder) > button:first-child {
+    margin-left: 16px;
+}
+
+#drupal-off-canvas [data-theme=cygnet] .tabs {
+    margin-top: 20px;
+}
+
+#drupal-off-canvas [data-theme=cygnet] .tabs > div {
+    width: 165px;
+    border: 0 !important;
+    border-top: 1px solid #d2d2d2 !important;
+    color: #0066cc;
+    border-radius: 0 !important;
+    font-size: 18px;
+}
+
+#drupal-off-canvas [data-theme=cygnet] .tabs > div:hover {
+    text-decoration: underline;
+    opacity: 1 !important;
+}
+
+#drupal-off-canvas [data-theme=cygnet] .tabs > div:last-child {
+    border-bottom: 1px solid #d2d2d2 !important;
+}
