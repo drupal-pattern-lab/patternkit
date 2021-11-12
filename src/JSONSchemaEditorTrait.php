@@ -3,6 +3,7 @@
 namespace Drupal\patternkit;
 
 use Drupal\ckeditor\Plugin\Editor\CKEditor;
+use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\editor\Entity\Editor;
 use Drupal\patternkit\Form\PatternLibraryJSONForm;
 
@@ -122,38 +123,20 @@ trait JSONSchemaEditorTrait {
       $selected_toolbar = 'full_html';
     }
 
-    // Configure a basic CKEditor.
-    // @todo Allow this to be configured in Patternkit settings.
-    // Right now this breaks if the full_html format is not available.
-    $all_buttons = array_reduce(\Drupal::service('plugin.manager.ckeditor.plugin')->getButtons(), function ($result, $item) {
-      return array_merge($result, array_keys($item));
-    }, []);
-    /** @var \Drupal\Editor\Entity\Editor $ckeditor_config */
-    $ckeditor_config = Editor::create([
-      'format' => $selected_toolbar,
-      'editor' => 'ckeditor',
-      'settings' => [
-        'toolbar' => [
-          'rows' => [
-            0 => [
-              0 => [
-                'name' => 'All existing buttons',
-                'items' => $all_buttons,
-              ],
-            ],
-          ],
-        ],
-        'plugins' => [],
-      ],
-    ]);
-    $ckeditor = CKEditor::create(\Drupal::getContainer(), [], 'ckeditor', ['provider' => 'patternkit']);
-    $editor_settings['patternkitCKEditorConfig'] = $ckeditor->getJSSettings($ckeditor_config);
+    // The following code builds a CKEditor toolbar. Code stolen from
+    // \Drupal\editor\Element::preRenderTextFormat.
+
+    $ckeditor_instance = CKEditor::create(\Drupal::getContainer(), [], 'ckeditor', ['provider' => 'patternkit']);
+    /** @var \Drupal\editor\Entity\Editor $ckeditor_config */
+    $ckeditor_entity = Editor::load($selected_toolbar);
+
+    $editor_settings['patternkitCKEditorConfig'] = $ckeditor_instance->getJSSettings($ckeditor_entity);
     // Pushes the selected toolbar to drupalSettings, so that client-side so
     // that DrupalCKEditor.afterInputReady
     $editor_settings['patternkitCKEditorConfig']['selected_toolbar'] = $selected_toolbar;
 
     // @todo Move to own JS file & Drupal Settings config var.
-    return [
+    $element = [
       '#type'     => 'html_tag',
       '#tag'      => 'div',
       '#value'    => '',
@@ -168,9 +151,17 @@ trait JSONSchemaEditorTrait {
         'library' => [
           'patternkit/patternkit.jsoneditor',
           'ckeditor/drupal.ckeditor',
+          'editor/drupal.editor',
         ],
       ],
     ];
+
+    // Attaches attachments for selected editor.
+    /** @var \Drupal\editor\Plugin\EditorManager $editor_plugin_manager */
+    $editor_plugin_manager = \Drupal::service('plugin.manager.editor');
+    $element['#attached'] = BubbleableMetadata::mergeAttachments($element['#attached'], $editor_plugin_manager->getAttachments([$selected_toolbar]));
+
+    return $element;
   }
 
 }
