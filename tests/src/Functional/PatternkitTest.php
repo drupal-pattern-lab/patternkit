@@ -3,7 +3,6 @@
 namespace Drupal\Tests\patternkit\Functional;
 
 use Drupal\patternkit\Entity\Pattern;
-use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Plugin\Derivative\PatternkitBlock;
 use Drupal\Tests\BrowserTestBase;
 
@@ -23,8 +22,16 @@ class PatternkitTest extends BrowserTestBase {
    *
    * @var array
    */
-  static protected $modules = ['patternkit', 'patternkit_example', 'layout_builder'];
+  static protected $modules = [
+    'patternkit',
+    'patternkit_example',
+    'layout_builder',
+  ];
 
+  /**
+   * @var string
+   *   Default Drupal theme for running tests.
+   */
   protected $defaultTheme = 'stable';
 
   /**
@@ -49,10 +56,13 @@ class PatternkitTest extends BrowserTestBase {
     /** @var \Drupal\Core\Entity\ContentEntityStorageInterface $pattern_storage */
     $pattern_storage = \Drupal::entityTypeManager()->getStorage('patternkit_pattern');
     $pattern_id = PatternkitBlock::derivativeToAssetId('patternkit_atoms_example_src_example');
-    /** @var PatternInterface $pattern */
+    /** @var \Drupal\patternkit\Entity\PatternInterface $pattern */
     $pattern = Pattern::create(\Drupal::service('patternkit.asset.library')->getLibraryAsset($pattern_id));
-    $pattern_cache = $pattern_storage->loadByProperties(['library' => $pattern->getLibrary(), 'path' => $pattern->getPath()]);
-    /** @var PatternInterface $pattern_loaded */
+    $pattern_cache = $pattern_storage->loadByProperties([
+      'library' => $pattern->getLibrary(),
+      'path' => $pattern->getPath(),
+    ]);
+    /** @var \Drupal\patternkit\Entity\PatternInterface $pattern_loaded */
     $pattern_loaded = end($pattern_cache);
     if (!empty($pattern_loaded)) {
       if ($pattern_loaded->getHash() !== $pattern->getHash()) {

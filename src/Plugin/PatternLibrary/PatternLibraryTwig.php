@@ -3,7 +3,7 @@
 namespace Drupal\patternkit\Plugin\PatternLibrary;
 
 use Drupal\Component\Utility\Html;
-use Drupal\patternkit\Annotation\PatternLibrary;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternLibraryPluginInterface;
@@ -17,6 +17,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * )
  */
 class PatternLibraryTwig extends PatternLibraryJSON {
+
+  use StringTranslationTrait;
 
   /**
    * Twig environment service.
@@ -57,6 +59,9 @@ class PatternLibraryTwig extends PatternLibraryJSON {
     return new static($root, $serializer, $state, $twig_parser, $config_factory, $configuration, $plugin_id, $plugin_definition);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   public function fetchAssets(PatternInterface $pattern, PatternEditorConfig $config = NULL) {
     return $this->parser->fetchPatternAssets($pattern, $config);
   }
@@ -64,7 +69,7 @@ class PatternLibraryTwig extends PatternLibraryJSON {
   /**
    * Overrides the JSON Library render method.
    *
-   * {@inheritdoc}
+   * {@inheritDoc}
    *
    * @throws \Throwable
    *
@@ -90,13 +95,13 @@ class PatternLibraryTwig extends PatternLibraryJSON {
       if ($this->twig->isDebug()) {
         $hash = $pattern->getHash();
         $asset_id = $pattern->getAssetId();
-        $path = trim($pattern->getAssets()['twig'] ?: t('Could not resolve file path.'), DRUPAL_ROOT);
+        $path = trim($pattern->getAssets()['twig'] ?: $this->t('Could not resolve file path.'), DRUPAL_ROOT);
         try {
           $version_value = $pattern->get('version')->getValue();
           $version = array_pop($version_value)['value'];
         }
         catch (\Exception $exception) {
-          $version = t('No version information available.');
+          $version = $this->t('No version information available.');
         }
         $output['#template'] = "\n\n<!-- THEME DEBUG -->"
           . "\n<!-- PATTERNKIT VERSION: " . Html::escape($version) . ' -->'

@@ -2,7 +2,6 @@
 
 namespace Drupal\patternkit;
 
-use Drupal\Core\Url;
 use Drupal\patternkit\Entity\PatternInterface;
 
 /**
@@ -21,8 +20,10 @@ trait PatternLibraryJSONParserTrait {
    * Fetches a JSON Schema from a file URI.
    *
    * @param string $file_uri
+   *   URI of the JSON file to decode.
    *
    * @return mixed
+   *   Truthy mixed data if the contents are successfully decoded.
    */
   public function fetchJsonSchemaAsset($file_uri) {
     return $this->serializer::decode(file_get_contents($file_uri));
@@ -33,7 +34,6 @@ trait PatternLibraryJSONParserTrait {
    *
    * @param object $properties
    *   The properties to parse.
-   *
    * @param \Drupal\patternkit\Entity\PatternInterface $pattern
    *   Pattern for retrieving schema data and pathing.
    *
@@ -80,7 +80,7 @@ trait PatternLibraryJSONParserTrait {
         continue;
       }
       $path = $value;
-      if (strpos($value,'@') === 0) {
+      if (strpos($value, '@') === 0) {
         $library_namespace = strstr($value, '/', TRUE);
         $path = substr($value, strlen("$library_namespace/"));
       }
@@ -107,7 +107,7 @@ trait PatternLibraryJSONParserTrait {
         }
         $path = substr(str_replace('\\', '/', $realpath), strlen(\Drupal::root() . '/' . $library_path . '/'));
       }
-      $path_no_ext = strripos($path, $ext) === strlen($path) - $ext_len  ? substr($path, 0, - $ext_len) : $path;
+      $path_no_ext = strripos($path, $ext) === strlen($path) - $ext_len ? substr($path, 0, -$ext_len) : $path;
       $path_encoded = [];
       foreach (explode('/', $path_no_ext) as $path_parts) {
         $path_encoded[] = urlencode($path_parts);

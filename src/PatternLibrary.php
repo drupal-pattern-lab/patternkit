@@ -3,10 +3,9 @@
 namespace Drupal\patternkit;
 
 use Drupal\Core\Asset\Exception\LibraryDefinitionMissingLicenseException;
-use Drupal\Core\Extension\Extension;
 
 /**
- * Class PatternLibrary.
+ * Wraps and provides defaults for an array of Patterns.
  *
  * @todo Remove hardcoded js, css, patterns properties.
  * These only exist to keep compatibility with current Drupal core.
@@ -17,46 +16,102 @@ use Drupal\Core\Extension\Extension;
  */
 class PatternLibrary {
 
-  /** @var string */
+  /**
+   * The machine name for the library.
+   *
+   * @var string
+   */
   protected $id;
 
-  /** @var string */
+  /**
+   * The id of the extension providing the library definition.
+   *
+   * @var string
+   */
   protected $extension;
 
-  /** @var string */
+  /**
+   * The type of extension providing the library definition.
+   *
+   * @var string
+   */
   protected $extensionType;
 
-  /** @var string|array|bool */
+  /**
+   * Truthy if there are overrides present in the library definition info.
+   *
+   * @var string|array|bool
+   */
   protected $override;
 
-  /** @var array */
+  /**
+   * Container for metadata about the library patterns.
+   *
+   * @var array
+   */
   protected $patternInfo = [];
 
-  /** @var array */
+  /**
+   * A list of dependencies for the library.
+   *
+   * @var array
+   */
   public $dependencies = [];
 
-  /** @var string */
+  /**
+   * Human-readable info about the library from the definition.
+   *
+   * @var string
+   */
   public $description = '';
 
-  /** @var array */
+  /**
+   * An array of JS assets provided by the library definition.
+   *
+   * @var array
+   */
   public $js = [];
 
-  /** @var array */
+  /**
+   * An array of CSS assets provided by the library definition.
+   *
+   * @var array
+   */
   public $css = [];
 
-  /** @var bool|null */
+  /**
+   * TRUE if the library is to be used in page headers and loaded first.
+   *
+   * @var bool|null
+   */
   public $header = NULL;
 
-  /** @var string */
+  /**
+   * A link or text of the library license.
+   *
+   * @var string
+   */
   public $license;
 
-  /** @var array */
+  /**
+   * An array of Pattern assets provided by the library definition.
+   *
+   * @var array
+   */
   public $patterns = [];
 
-  /** @var bool */
+  /**
+   * TRUE if the library is loaded via remote URL.
+   *
+   * @var bool
+   */
   public $remote;
 
-  /** @var false|string */
+  /**
+   * Library version provided by the definition.
+   *
+   * @var false|string
+   */
   public $version;
 
   /**
@@ -68,10 +123,14 @@ class PatternLibrary {
    *   The type of extension that owns the library.
    * @param string $extension
    *   The name of the extension that owns the library. May be 'core'.
-   * @param null $version
-   * @param null $license
-   * @param null $remote
-   * @param null $header
+   * @param string|null $version
+   *   Library version provided by the definition.
+   * @param mixed $license
+   *   A link or text of the library license.
+   * @param bool|null $remote
+   *   TRUE if the library is loaded via remote URL.
+   * @param bool|null $header
+   *   TRUE if the library is to be used in page headers and loaded first.
    */
   public function __construct(
     $id,
@@ -132,7 +191,7 @@ class PatternLibrary {
   /**
    * Returns the Extension that owns the library.
    *
-   * @return Extension
+   * @return \Drupal\Core\Extension\Extension
    *   The extension name.
    *
    * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
@@ -146,7 +205,7 @@ class PatternLibrary {
   /**
    * Returns an array of Pattern Library metadata, keyed by paths.
    *
-   * This metadata is typically ingested from YAML files.
+   *   This metadata is typically ingested from YAML files.
    *
    * @return array
    *   Pattern info array, in the following format:
@@ -161,12 +220,13 @@ class PatternLibrary {
    *
    * Usually used by a theme to selectively replace JS or CSS.
    *
-   * @param string|array|FALSE $override
+   * @param string|array|false $override
    *   A string overrides the entire library.
    *   An array overrides a single asset.
    *   FALSE requests no overrides, but may be ignored by other modules.
    *
    * @return \Drupal\patternkit\PatternLibrary
+   *   The updated PatternLibrary with overrides present.
    */
   public function setOverride($override): PatternLibrary {
     $this->override = $override;
@@ -176,14 +236,14 @@ class PatternLibrary {
   /**
    * Sets info for the pattern library, keyed by path.
    *
-   * @param $info
-   * An array of pattern info for the current set of patterns being processed:
-   *  - string plugin
-   *  - string category
+   * @param array $info
+   *   - string plugin
+   *   - string category
+   *   An array of pattern info for the current set of patterns being processed.
    *
    * @todo Validate and provide helpful feedback for Pattern Library Info.
    */
-  public function setPatternInfo($info) {
+  public function setPatternInfo(array $info) {
     $this->patternInfo = $info;
   }
 

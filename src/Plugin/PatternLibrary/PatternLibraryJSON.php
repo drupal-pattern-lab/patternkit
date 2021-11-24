@@ -6,7 +6,6 @@ use Drupal\Component\Serialization\SerializationInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\State\StateInterface;
-use Drupal\patternkit\Annotation\PatternLibrary;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\JSONSchemaEditorTrait;
 use Drupal\patternkit\PatternEditorConfig;

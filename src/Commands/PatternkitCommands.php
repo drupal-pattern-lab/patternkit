@@ -7,9 +7,9 @@ use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Plugin\Context\Context;
 use Drupal\Core\Plugin\Context\ContextDefinition;
 use Drupal\Core\Plugin\Context\EntityContext;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay;
 use Drupal\patternkit\Entity\Pattern;
-use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Plugin\Derivative\PatternkitBlock;
 use Drush\Commands\DrushCommands;
 
@@ -17,18 +17,19 @@ use Drush\Commands\DrushCommands;
  * Commands for working with the dev branch of Patternkit.
  */
 class PatternkitCommands extends DrushCommands {
+  use StringTranslationTrait;
 
   /**
    * Block storage manager.
    *
-   * @var $blockStorage
+   * @var \Drupal\Core\Entity\EntityStorageInterface
    */
   protected $blockStorage;
 
   /**
    * Asset Library manager.
    *
-   * @var \Drupal\patternkit\Asset\LibraryInterface $library
+   * @var \Drupal\patternkit\Asset\LibraryInterface
    */
   protected $library;
 
@@ -40,14 +41,14 @@ class PatternkitCommands extends DrushCommands {
   protected $patternStorage;
 
   /**
-   *
+   * Constructs the Patternkit Drush Commands functionality.
    */
   public function __construct() {
     parent::__construct();
     $entity_type_manager = \Drupal::entityTypeManager();
     $this->blockStorage = $entity_type_manager->getStorage('patternkit_block');
     $this->patternStorage = $entity_type_manager->getStorage('patternkit_pattern');
-    $this->library =\Drupal::service('patternkit.asset.library');
+    $this->library = \Drupal::service('patternkit.asset.library');
   }
 
   /**
@@ -62,7 +63,7 @@ class PatternkitCommands extends DrushCommands {
   public function devUpdate() {
     $logger = $this->logger();
     if (!\Drupal::moduleHandler()->moduleExists('layout_builder')) {
-      $logger->notice(t('Patternkit from-dev updates only apply to Layout Builder, which is not enabled. Skipping Patternkit from-dev updates.'));
+      $logger->notice($this->t('Patternkit from-dev updates only apply to Layout Builder, which is not enabled. Skipping Patternkit from-dev updates.'));
       return;
     }
 
@@ -88,7 +89,7 @@ class PatternkitCommands extends DrushCommands {
     $displays = $display_storage->loadMultiple();
     /** @var \Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay $display */
     foreach ($displays as $display) {
-      if (!$display instanceof \Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay) {
+      if (!$display instanceof LayoutBuilderEntityViewDisplay) {
         continue;
       }
       if (!$display->isLayoutBuilderEnabled()) {
@@ -140,7 +141,7 @@ class PatternkitCommands extends DrushCommands {
           if (!isset($config['patternkit_block_id'])) {
             continue;
           }
-          $logger->debug(t('Updating block plugin with id @plugin:', ['@plugin' => $plugin_id]));
+          $logger->debug($this->t('Updating block plugin with id @plugin:', ['@plugin' => $plugin_id]));
           /**
            * Old plugin ids were in the format:
            *   'patternkit_block:library.name_path_to_pattern'
@@ -154,23 +155,26 @@ class PatternkitCommands extends DrushCommands {
           $pattern_id = '@' . str_replace('//', '_', str_replace('_', '/', substr($config['id'], strlen('patternkit_block:'))));
           $pattern_asset = $library->getLibraryAsset($pattern_id);
           if ($pattern_asset === NULL) {
-            $logger->debug(t('Could not find pattern with ID @id.', ['@id' => $pattern_id]));
+            $logger->debug($this->t('Could not find pattern with ID @id.', ['@id' => $pattern_id]));
             continue;
           }
           try {
-            /** @var PatternInterface $pattern */
+            /** @var \Drupal\Patternkit\entity\PatternInterface $pattern */
             $pattern = Pattern::create($pattern_asset);
           }
           catch (\Exception $exception) {
-            $logger->debug(t('Could not create pattern with ID @id.', ['@id' => $pattern_id]));
+            $logger->debug($this->t('Could not create pattern with ID @id.', ['@id' => $pattern_id]));
             continue;
           }
           if ($pattern === NULL) {
-            $logger->debug(t('Could not finish creating pattern with ID @id.', ['@id' => $pattern_id]));
+            $logger->debug($this->t('Could not finish creating pattern with ID @id.', ['@id' => $pattern_id]));
             continue;
           }
-          $pattern_cache = $pattern_storage->loadByProperties(['library' => $pattern->getLibrary(), 'path' => $pattern->getPath()]);
-          /** @var PatternInterface $pattern_loaded */
+          $pattern_cache = $pattern_storage->loadByProperties([
+            'library' => $pattern->getLibrary(),
+            'path' => $pattern->getPath(),
+          ]);
+          /** @var \Drupal\Patternkit\entity\PatternInterface $pattern_loaded */
           $pattern_loaded = end($pattern_cache);
           if ($pattern_loaded !== NULL) {
             if ($pattern_loaded->getHash() !== $pattern->getHash()) {
@@ -197,11 +201,11 @@ class PatternkitCommands extends DrushCommands {
       $tempstore_repository->set($section_storage);
       $entity_count++;
     }
-    $logger->info(t('Updated @entities entity layouts with @blocks Patternkit blocks.',
+    $logger->info($this->t('Updated @entities entity layouts with @blocks Patternkit blocks.',
       ['@entities' => $entity_count, '@blocks' => $block_count]));
     $block_manager->clearCachedDefinitions();
     $entity_type_manager->clearCachedDefinitions();
-    $logger->notice(t('Successfully ran Patternkit from-dev updates.'));
+    $logger->notice($this->t('Successfully ran Patternkit from-dev updates.'));
   }
 
   /**
@@ -212,7 +216,9 @@ class PatternkitCommands extends DrushCommands {
    *
    * @param string $library_name
    *   The id of the pattern library to update from *.libraries.yml.
+   *
    * @return array|bool
+   *   Drush expected command result.
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginException
@@ -224,9 +230,9 @@ class PatternkitCommands extends DrushCommands {
     if (empty($library_name)) {
       throw new \InvalidArgumentException('Library name argument is empty or falsey.');
     }
-    $lb_enabled = false;
+    $lb_enabled = FALSE;
     if (\Drupal::moduleHandler()->moduleExists('layout_builder')) {
-      $lb_enabled = true;
+      $lb_enabled = TRUE;
     }
 
     $entity_count = 0;
@@ -321,11 +327,11 @@ class PatternkitCommands extends DrushCommands {
       $block_count++;
     }
 
-    $logger->info(t('Parsed @entities entity layouts with @blocks Patternkit blocks.',
+    $logger->info($this->t('Parsed @entities entity layouts with @blocks Patternkit blocks.',
       ['@entities' => $entity_count, '@blocks' => $block_count]));
     $block_manager->clearCachedDefinitions();
     $entity_type_manager->clearCachedDefinitions();
-    $logger->notice(t('Completed running Patternkit library updates for @library.',
+    $logger->notice($this->t('Completed running Patternkit library updates for @library.',
       ['@library' => $library_name]));
     return true;
   }
@@ -344,7 +350,7 @@ class PatternkitCommands extends DrushCommands {
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    * @throws \Drupal\Core\Entity\EntityStorageException
    */
-  private function updateBlockComponentPluginPattern($component, $library_name = NULL) {
+  private function updateBlockComponentPluginPattern(BlockInterface $component, $library_name = NULL) {
     $logger = $this->logger();
     $block_storage = $this->blockStorage;
     $pattern_storage = $this->patternStorage;
@@ -356,12 +362,12 @@ class PatternkitCommands extends DrushCommands {
     }
     $configuration = $component->get('configuration');
     if (!isset($configuration['patternkit_block_id'])
-      && !((int)$configuration['patternkit_block_id'] > 0)) {
+      && !((int) $configuration['patternkit_block_id'] > 0)) {
       return FALSE;
     }
     /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
     if (isset($configuration['patternkit_block_rid'])
-      && (int)$configuration['patternkit_block_rid'] > 0) {
+      && (int) $configuration['patternkit_block_rid'] > 0) {
       $patternkit_block = $block_storage->loadRevision($configuration['patternkit_block_rid']);
       if ($patternkit_block === NULL) {
         return FALSE;
@@ -373,7 +379,7 @@ class PatternkitCommands extends DrushCommands {
       }
       $configuration['patternkit_block_rid'] = $patternkit_block->getLoadedRevisionId();
     }
-    $logger->debug(t('Updating block plugin with id @plugin:',
+    $logger->debug($this->t('Updating block plugin with id @plugin:',
       ['@plugin' => $plugin_id]));
     try {
       $plugin = $component->getPlugin();
@@ -385,14 +391,14 @@ class PatternkitCommands extends DrushCommands {
         $pattern = $library->getLibraryAsset($pattern_id);
       }
     } catch (\Exception $exception) {
-      $logger->error(t('Unable to load the pattern @pattern. Check the logs for more info.', ['@pattern' => $pattern_id ?? $plugin->getPluginId()]));
+      $logger->error($this->t('Unable to load the pattern @pattern. Check the logs for more info.', ['@pattern' => $pattern_id ?? $plugin->getPluginId()]));
       return FALSE;
     }
     if ($library_name && $pattern->getLibrary() !== $library_name) {
       return FALSE;
     }
     if (!$asset = $library->getLibraryAsset($pattern_id)) {
-      $logger->error(t("Failed to get library asset for @pattern.", ['@pattern' => $pattern_id]));
+      $logger->error($this->t("Failed to get library asset for @pattern.", ['@pattern' => $pattern_id]));
       return FALSE;
     }
     $base_pattern = Pattern::create($asset);
