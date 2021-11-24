@@ -5,11 +5,8 @@
  * Functions run when the module is installed by Drupal.
  */
 
-use Drupal\Core\Link;
-use Drupal\Core\Url;
-
 /**
- * Implements hook_requirements.
+ * Implements hook_requirements().
  */
 function patternkit_media_library_requirements($phase) {
   $requirements = [];

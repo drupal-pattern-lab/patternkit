@@ -1166,10 +1166,12 @@
       }
     },
     "@json-editor/json-editor": {
-      "version": "2.3.0",
-      "resolved": "https://registry.npmjs.org/@json-editor/json-editor/-/json-editor-2.3.0.tgz",
-      "integrity": "sha512-z+192e48xT74ZAvmd2VbEK11cal/EVRQ5y5C55y3IK9CTpiNIFSPaOe0u8Is1mt1vFOBVpkaCKP6GEdW82yKew==",
-      "dev": true
+      "version": "git://github.com/cybtachyon/json-editor.git#615de2daefd86873532a13e2b84fc1f00907a293",
+      "from": "git://github.com/cybtachyon/json-editor.git#cybtachyon/988--json-pointers",
+      "dev": true,
+      "requires": {
+        "core-js": "^3.12.1"
+      }
     },
     "@nicolo-ribaudo/chokidar-2": {
       "version": "2.1.8",
@@ -2265,6 +2267,12 @@
         "each-props": "^1.3.0",
         "is-plain-object": "^2.0.1"
       }
+    },
+    "core-js": {
+      "version": "3.19.1",
+      "resolved": "https://registry.npmjs.org/core-js/-/core-js-3.19.1.tgz",
+      "integrity": "sha512-Tnc7E9iKd/b/ff7GFbhwPVzJzPztGrChB8X8GLqoYGdEOG8IpLnK1xPyo3ZoO3HsK6TodJS58VGPOxA+hLHQMg==",
+      "dev": true
     },
     "core-js-compat": {
       "version": "3.6.5",

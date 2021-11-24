@@ -3,7 +3,6 @@
 namespace Drupal\patternkit\Plugin\PatternLibrary;
 
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Drupal\patternkit\Annotation\PatternLibrary;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternLibraryPluginDefault;
@@ -57,14 +56,15 @@ class PatternLibraryFile extends PatternLibraryPluginDefault implements Containe
   /**
    * Returns the editor for the generic file plugin.
    *
-   * @param \Drupal\patternkit\entity\PatternInterface|NULL $pattern
-   * @param \Drupal\patternkit\PatternEditorConfig|NULL $config
+   * @param \Drupal\patternkit\entity\PatternInterface|null $pattern
+   * @param \Drupal\patternkit\PatternEditorConfig|null $config
    *
    * @return mixed|void
+   *   An editor render array or nothing if not present.
    */
   public function getEditor(PatternInterface $pattern = NULL,
     PatternEditorConfig $config = NULL) {
-    // TODO: Implement getEditor() method.
+    // @todo Implement getEditor() method.
     return '';
   }
 
