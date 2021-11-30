@@ -4,6 +4,550 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports["default"] = _default;
+
+/**
+ * Duplicates json-editor trigger utility.
+ *
+ * Cannot figure out how to import it without errors.
+ * The function is defined in @json-editor/json-editor/src/utilities.
+ *
+ * @param el
+ * @param event
+ */
+var trigger = function trigger(el, event) {
+  var e = document.createEvent('HTMLEvents');
+  e.initEvent(event, true, true);
+  el.dispatchEvent(e);
+};
+/**
+ * Overrides json-editor arrpy addControls() method.
+ *
+ * Overrides JSONEditor's addControls() method for arrays. The only change is to
+ * trigger toggle of section if user clicks on the label/title, not just on
+ * the expand/collapse button. Makes hiding/showing sections much easier.
+ */
+
+
+function _default() {
+  var _this = this;
+
+  this.collapsed = false;
+  this.toggle_button = this.getButton('', 'collapse', this.translate('button_collapse'));
+  this.toggle_button.classList.add('json-editor-btntype-toggle');
+  this.toggle_button.style.margin = '0 10px 0 0';
+  this.title.insertBefore(this.toggle_button, this.title.childNodes[0]);
+  var rowHolderDisplay = this.row_holder.style.display;
+  var controlsDisplay = this.controls.style.display; // <!-- Start PatternKit overrides. -->
+  // Replaces the click handler on the button (element `this.collapse_control`),
+  // so that the section is toggled if you click either on the button or its label
+  // (i.e., if you clicked anywhere on the title).
+
+  this.title.classList.add('patternkit-jsoneditor-clickable');
+  this.title.addEventListener('click', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (_this.collapsed) {
+      _this.collapsed = false;
+      if (_this.panel) _this.panel.style.display = '';
+      _this.row_holder.style.display = rowHolderDisplay;
+      if (_this.tabs_holder) _this.tabs_holder.style.display = '';
+      _this.controls.style.display = controlsDisplay;
+
+      _this.setButtonText(_this.toggle_button, '', 'collapse', _this.translate('button_collapse'));
+    } else {
+      _this.collapsed = true;
+      _this.row_holder.style.display = 'none';
+      if (_this.tabs_holder) _this.tabs_holder.style.display = 'none';
+      _this.controls.style.display = 'none';
+      if (_this.panel) _this.panel.style.display = 'none';
+
+      _this.setButtonText(_this.toggle_button, '', 'expand', _this.translate('button_expand'));
+    }
+  }); // <!-- End PatternKit overrides. -->
+
+  /* If it should start collapsed */
+
+  if (this.options.collapsed) {
+    trigger(this.toggle_button, 'click');
+  }
+  /* Collapse button disabled */
+
+
+  if (this.schema.options && typeof this.schema.options.disable_collapse !== 'undefined') {
+    if (this.schema.options.disable_collapse) this.toggle_button.style.display = 'none';
+  } else if (this.jsoneditor.options.disable_collapse) {
+    this.toggle_button.style.display = 'none';
+  }
+  /* Add "new row" and "delete last" buttons below editor */
+
+
+  this.add_row_button = this.getButton(this.getItemTitle(), 'add', this.translate('button_add_row_title', [this.getItemTitle()]));
+  this.add_row_button.classList.add('json-editor-btntype-add');
+  this.add_row_button.addEventListener('click', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var i = _this.rows.length;
+    var editor;
+
+    if (_this.row_cache[i]) {
+      editor = _this.rows[i] = _this.row_cache[i];
+
+      _this.rows[i].setValue(_this.rows[i].getDefault(), true);
+
+      _this.rows[i].container.style.display = '';
+      if (_this.rows[i].tab) _this.rows[i].tab.style.display = '';
+
+      _this.rows[i].register();
+    } else {
+      editor = _this.addRow();
+    }
+
+    _this.active_tab = _this.rows[i].tab;
+
+    _this.refreshTabs();
+
+    _this.refreshValue();
+
+    _this.onChange(true);
+
+    _this.jsoneditor.trigger('addRow', editor);
+  });
+  this.controls.appendChild(this.add_row_button);
+  this.delete_last_row_button = this.getButton(this.translate('button_delete_last', [this.getItemTitle()]), 'subtract', this.translate('button_delete_last_title', [this.getItemTitle()]));
+  this.delete_last_row_button.classList.add('json-editor-btntype-deletelast');
+  this.delete_last_row_button.addEventListener('click', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!_this.askConfirmation()) {
+      return false;
+    }
+
+    var rows = _this.getValue();
+
+    var newActiveTab = null;
+    var editor = rows.pop();
+
+    _this.setValue(rows);
+
+    if (_this.rows[_this.rows.length - 1]) {
+      newActiveTab = _this.rows[_this.rows.length - 1].tab;
+    }
+
+    if (newActiveTab) {
+      _this.active_tab = newActiveTab;
+
+      _this.refreshTabs();
+    }
+
+    _this.onChange(true);
+
+    _this.jsoneditor.trigger('deleteRow', editor);
+  });
+  this.controls.appendChild(this.delete_last_row_button);
+  this.remove_all_rows_button = this.getButton(this.translate('button_delete_all'), 'delete', this.translate('button_delete_all_title'));
+  this.remove_all_rows_button.classList.add('json-editor-btntype-deleteall');
+  this.remove_all_rows_button.addEventListener('click', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!_this.askConfirmation()) {
+      return false;
+    }
+
+    _this.empty(true);
+
+    _this.setValue([]);
+
+    _this.onChange(true);
+
+    _this.jsoneditor.trigger('deleteAllRows');
+  });
+  this.controls.appendChild(this.remove_all_rows_button);
+
+  if (this.tabs) {
+    this.add_row_button.style.width = '100%';
+    this.add_row_button.style.textAlign = 'left';
+    this.add_row_button.style.marginBottom = '3px';
+    this.delete_last_row_button.style.width = '100%';
+    this.delete_last_row_button.style.textAlign = 'left';
+    this.delete_last_row_button.style.marginBottom = '3px';
+    this.remove_all_rows_button.style.width = '100%';
+    this.remove_all_rows_button.style.textAlign = 'left';
+    this.remove_all_rows_button.style.marginBottom = '3px';
+  }
+}
+
+},{}],2:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports["default"] = _default;
+
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _iterableToArrayLimit(arr, i) { if (typeof Symbol === "undefined" || !(Symbol.iterator in Object(arr))) return; var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+/**
+ * Duplicates json-editor trigger utility.
+ *
+ * Cannot figure out how to import it without errors.
+ * The function is defined in @json-editor/json-editor/src/utilities.
+ *
+ * @param el
+ * @param event
+ */
+var trigger = function trigger(el, event) {
+  var e = document.createEvent('HTMLEvents');
+  e.initEvent(event, true, true);
+  el.dispatchEvent(e);
+};
+/**
+ * Overrides json-editor object build() method.
+ *
+ * Overrides JSONEditor's build() method for objects. The only change is to
+ * trigger toggle of section if user clicks on the label/title, not just on
+ * the expand/collapse button. Makes hiding/showing sections much easier.
+ */
+
+
+function _default() {
+  var _this = this;
+
+  var isCategoriesFormat = this.format === 'categories';
+  this.rows = [];
+  this.active_tab = null;
+  /* If the object should be rendered as a table row */
+
+  if (this.options.table_row) {
+    this.editor_holder = this.container;
+    Object.entries(this.editors).forEach(function (_ref) {
+      var _ref2 = _slicedToArray(_ref, 2),
+          key = _ref2[0],
+          editor = _ref2[1];
+
+      var holder = _this.theme.getTableCell();
+
+      _this.editor_holder.appendChild(holder);
+
+      editor.setContainer(holder);
+      editor.build();
+      editor.postBuild();
+      editor.setOptInCheckbox(editor.header);
+
+      if (_this.editors[key].options.hidden) {
+        holder.style.display = 'none';
+      }
+
+      if (_this.editors[key].options.input_width) {
+        holder.style.width = _this.editors[key].options.input_width;
+      }
+    });
+    /* If the object should be rendered as a table */
+  } else if (this.options.table) {
+    /* TODO: table display format */
+    throw new Error('Not supported yet');
+    /* If the object should be rendered as a div */
+  } else {
+    this.header = '';
+
+    if (!this.options.compact) {
+      this.header = document.createElement('label');
+      this.header.textContent = this.getTitle();
+    }
+
+    this.title = this.theme.getHeader(this.header);
+    this.controls = this.theme.getButtonHolder();
+    this.controls.style.margin = '0 0 0 10px';
+    this.container.appendChild(this.title);
+    this.container.appendChild(this.controls);
+    this.container.style.position = 'relative';
+    /* Edit JSON modal */
+
+    this.editjson_holder = this.theme.getModal();
+    this.editjson_textarea = this.theme.getTextareaInput();
+    this.editjson_textarea.style.height = '170px';
+    this.editjson_textarea.style.width = '300px';
+    this.editjson_textarea.style.display = 'block';
+    this.editjson_save = this.getButton('Save', 'save', 'Save');
+    this.editjson_save.classList.add('json-editor-btntype-save');
+    this.editjson_save.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      _this.saveJSON();
+    });
+    this.editjson_copy = this.getButton('Copy', 'copy', 'Copy');
+    this.editjson_copy.classList.add('json-editor-btntype-copy');
+    this.editjson_copy.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      _this.copyJSON();
+    });
+    this.editjson_cancel = this.getButton('Cancel', 'cancel', 'Cancel');
+    this.editjson_cancel.classList.add('json-editor-btntype-cancel');
+    this.editjson_cancel.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      _this.hideEditJSON();
+    });
+    this.editjson_holder.appendChild(this.editjson_textarea);
+    this.editjson_holder.appendChild(this.editjson_save);
+    this.editjson_holder.appendChild(this.editjson_copy);
+    this.editjson_holder.appendChild(this.editjson_cancel);
+    /* Manage Properties modal */
+
+    this.addproperty_holder = this.theme.getModal();
+    this.addproperty_list = document.createElement('div');
+    this.addproperty_list.style.width = '295px';
+    this.addproperty_list.style.maxHeight = '160px';
+    this.addproperty_list.style.padding = '5px 0';
+    this.addproperty_list.style.overflowY = 'auto';
+    this.addproperty_list.style.overflowX = 'hidden';
+    this.addproperty_list.style.paddingLeft = '5px';
+    this.addproperty_list.setAttribute('class', 'property-selector');
+    this.addproperty_add = this.getButton('add', 'add', 'add');
+    this.addproperty_add.classList.add('json-editor-btntype-add');
+    this.addproperty_input = this.theme.getFormInputField('text');
+    this.addproperty_input.setAttribute('placeholder', 'Property name...');
+    this.addproperty_input.style.width = '220px';
+    this.addproperty_input.style.marginBottom = '0';
+    this.addproperty_input.style.display = 'inline-block';
+    this.addproperty_add.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (_this.addproperty_input.value) {
+        if (_this.editors[_this.addproperty_input.value]) {
+          window.alert('there is already a property with that name');
+          return;
+        }
+
+        _this.addObjectProperty(_this.addproperty_input.value);
+
+        if (_this.editors[_this.addproperty_input.value]) {
+          _this.editors[_this.addproperty_input.value].disable();
+        }
+
+        _this.onChange(true);
+      }
+    });
+    this.addproperty_input.addEventListener('input', function (e) {
+      e.target.previousSibling.childNodes.forEach(function (value) {
+        if (value.innerText.includes(e.target.value)) {
+          value.style.display = '';
+        } else {
+          value.style.display = 'none';
+        }
+      });
+    });
+    this.addproperty_holder.appendChild(this.addproperty_list);
+    this.addproperty_holder.appendChild(this.addproperty_input);
+    this.addproperty_holder.appendChild(this.addproperty_add);
+    var spacer = document.createElement('div');
+    spacer.style.clear = 'both';
+    this.addproperty_holder.appendChild(spacer);
+    /* Close properties modal if clicked outside modal */
+
+    document.addEventListener('click', this.onOutsideModalClick);
+    /* Description */
+
+    if (this.schema.description) {
+      this.description = this.theme.getDescription(this.schema.description);
+      this.container.appendChild(this.description);
+    }
+    /* Validation error placeholder area */
+
+
+    this.error_holder = document.createElement('div');
+    this.container.appendChild(this.error_holder);
+    /* Container for child editor area */
+
+    this.editor_holder = this.theme.getIndentedPanel();
+    this.container.appendChild(this.editor_holder);
+    /* Container for rows of child editors */
+
+    this.row_container = this.theme.getGridContainer();
+
+    if (isCategoriesFormat) {
+      this.tabs_holder = this.theme.getTopTabHolder(this.getValidId(this.schema.title));
+      this.tabPanesContainer = this.theme.getTopTabContentHolder(this.tabs_holder);
+      this.editor_holder.appendChild(this.tabs_holder);
+    } else {
+      this.tabs_holder = this.theme.getTabHolder(this.getValidId(this.schema.title));
+      this.tabPanesContainer = this.theme.getTabContentHolder(this.tabs_holder);
+      this.editor_holder.appendChild(this.row_container);
+    }
+
+    Object.values(this.editors).forEach(function (editor) {
+      var aPane = _this.theme.getTabContent();
+
+      var holder = _this.theme.getGridColumn();
+
+      var isObjOrArray = !!(editor.schema && (editor.schema.type === 'object' || editor.schema.type === 'array'));
+      aPane.isObjOrArray = isObjOrArray;
+
+      if (isCategoriesFormat) {
+        if (isObjOrArray) {
+          var singleRowContainer = _this.theme.getGridContainer();
+
+          singleRowContainer.appendChild(holder);
+          aPane.appendChild(singleRowContainer);
+
+          _this.tabPanesContainer.appendChild(aPane);
+
+          _this.row_container = singleRowContainer;
+        } else {
+          if (typeof _this.row_container_basic === 'undefined') {
+            _this.row_container_basic = _this.theme.getGridContainer();
+            aPane.appendChild(_this.row_container_basic);
+
+            if (_this.tabPanesContainer.childElementCount === 0) {
+              _this.tabPanesContainer.appendChild(aPane);
+            } else {
+              _this.tabPanesContainer.insertBefore(aPane, _this.tabPanesContainer.childNodes[1]);
+            }
+          }
+
+          _this.row_container_basic.appendChild(holder);
+        }
+
+        _this.addRow(editor, _this.tabs_holder, aPane);
+
+        aPane.id = _this.getValidId(editor.schema.title);
+        /* editor.schema.path//tab_text.textContent */
+      } else {
+        _this.row_container.appendChild(holder);
+      }
+
+      editor.setContainer(holder);
+      editor.build();
+      editor.postBuild();
+      editor.setOptInCheckbox(editor.header);
+    });
+
+    if (this.rows[0]) {
+      trigger(this.rows[0].tab, 'click');
+    }
+    /* Show/Hide button */
+
+
+    this.collapsed = false;
+    this.collapse_control = this.getButton('', 'collapse', this.translate('button_collapse'));
+    this.collapse_control.style.margin = '0 10px 0 0';
+    this.collapse_control.classList.add('json-editor-btntype-toggle');
+    this.title.insertBefore(this.collapse_control, this.title.childNodes[0]); // <!-- Start PatternKit overrides. -->
+    // Replaces the click handler on the button (element `this.collapse_control`),
+    // so that the section is toggled if you click either on the button or its label
+    // (i.e., if you clicked anywhere on the title).
+
+    this.title.classList.add('patternkit-jsoneditor-clickable');
+    this.title.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (_this.collapsed) {
+        _this.editor_holder.style.display = '';
+        _this.collapsed = false;
+
+        _this.setButtonText(_this.collapse_control, '', 'collapse', _this.translate('button_collapse'));
+      } else {
+        _this.editor_holder.style.display = 'none';
+        _this.collapsed = true;
+
+        _this.setButtonText(_this.collapse_control, '', 'expand', _this.translate('button_expand'));
+      }
+    }); // <!-- End PatternKit overrides. -->
+
+    /* If it should start collapsed */
+
+    if (this.options.collapsed) {
+      trigger(this.collapse_control, 'click');
+    }
+    /* Collapse button disabled */
+
+
+    if (this.schema.options && typeof this.schema.options.disable_collapse !== 'undefined') {
+      if (this.schema.options.disable_collapse) this.collapse_control.style.display = 'none';
+    } else if (this.jsoneditor.options.disable_collapse) {
+      this.collapse_control.style.display = 'none';
+    }
+    /* Edit JSON Button */
+
+
+    this.editjson_control = this.getButton('JSON', 'edit', 'Edit JSON');
+    this.editjson_control.classList.add('json-editor-btntype-editjson');
+    this.editjson_control.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      _this.toggleEditJSON();
+    });
+    this.controls.appendChild(this.editjson_control);
+    this.controls.insertBefore(this.editjson_holder, this.controls.childNodes[0]);
+    /* Edit JSON Buttton disabled */
+
+    if (this.schema.options && typeof this.schema.options.disable_edit_json !== 'undefined') {
+      if (this.schema.options.disable_edit_json) this.editjson_control.style.display = 'none';
+    } else if (this.jsoneditor.options.disable_edit_json) {
+      this.editjson_control.style.display = 'none';
+    }
+    /* Object Properties Button */
+
+
+    this.addproperty_button = this.getButton('Properties', 'edit_properties', this.translate('button_object_properties'));
+    this.addproperty_button.classList.add('json-editor-btntype-properties');
+    this.addproperty_button.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      _this.toggleAddProperty();
+    });
+    this.controls.appendChild(this.addproperty_button);
+    this.controls.insertBefore(this.addproperty_holder, this.controls.childNodes[1]);
+    this.refreshAddProperties();
+    /* non required properties start deactivated */
+
+    this.deactivateNonRequiredProperties();
+  }
+  /* Fix table cell ordering */
+
+
+  if (this.options.table_row) {
+    this.editor_holder = this.container;
+    this.property_order.forEach(function (key) {
+      _this.editor_holder.appendChild(_this.editors[key].container);
+    });
+    /* Layout object editors in grid if needed */
+  } else {
+    /* Initial layout */
+    this.layoutEditors();
+    /* Do it again now that we know the approximate heights of elements */
+
+    this.layoutEditors();
+  }
+}
+
+},{}],3:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 exports.patternkitEditorCKEditor = patternkitEditorCKEditor;
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -77,7 +621,9 @@ var DrupalCKEditor = /*#__PURE__*/function (_JSONEditor$defaults$) {
       if (window.CKEDITOR) {
         // Editor options.
         // @todo Replace JSONEditor.defaults with this.defaults.
-        this.options = jQuery.extend({}, JSONEditor.defaults.options.drupal_ckeditor || {}, this.options.drupal_ckeditor || {});
+        this.options = jQuery.extend({}, JSONEditor.defaults.options.drupal_ckeditor || {}, this.options.drupal_ckeditor || {}); // Copies logic from Drupal.editors.ckeditor.attach(), so that certain
+        // buttons (e.g., DrupalLink) work.
+
         this.options.ckeditor_config.drupal = {
           format: this.options.ckeditor_config.selected_toolbar
         }; // @see Drupal.editors.ckeditor._loadExternalPlugins
@@ -198,7 +744,7 @@ function patternkitEditorCKEditor($, Drupal, JSONEditor) {
   };
 }
 
-},{}],2:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -362,7 +908,7 @@ function patternkitEditorCygnet($, Drupal, JSONEditor) {
   };
 }
 
-},{}],3:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 "use strict";
 
 var _patternkitJsoneditorQuillEs = require("./patternkit.jsoneditor.quill.es6.js");
@@ -370,6 +916,12 @@ var _patternkitJsoneditorQuillEs = require("./patternkit.jsoneditor.quill.es6.js
 var _patternkitJsoneditorCkeditor = require("./patternkit.jsoneditor.ckeditor.es6");
 
 var _patternkitJsoneditorCygnetEs = require("./patternkit.jsoneditor.cygnet.es6.js");
+
+var _BuildOverride = _interopRequireDefault(require("./json-editor-overrides/src/editors/object/BuildOverride"));
+
+var _AddControlsOverride = _interopRequireDefault(require("./json-editor-overrides/src/editors/array/AddControlsOverride"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
@@ -381,7 +933,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
 (0, _patternkitJsoneditorQuillEs.patternkitEditorQuill)(jQuery, Drupal, JSONEditor);
 (0, _patternkitJsoneditorCkeditor.patternkitEditorCKEditor)(jQuery, Drupal, JSONEditor);
-(0, _patternkitJsoneditorCygnetEs.patternkitEditorCygnet)(jQuery, Drupal, JSONEditor);
+(0, _patternkitJsoneditorCygnetEs.patternkitEditorCygnet)(jQuery, Drupal, JSONEditor); // TODO Why is patternkitEditorProseMirror not included here?
 
 (function ($, Drupal, JSONEditor) {
   'use strict';
@@ -605,10 +1157,13 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         });
       });
     }
-  };
+  }; // JSON Editor overrides:
+
+  JSONEditor.defaults.editors.object.prototype.build = _BuildOverride["default"];
+  JSONEditor.defaults.editors.array.prototype.addControls = _AddControlsOverride["default"];
 })(jQuery, Drupal, JSONEditor);
 
-},{"./patternkit.jsoneditor.ckeditor.es6":1,"./patternkit.jsoneditor.cygnet.es6.js":2,"./patternkit.jsoneditor.quill.es6.js":4}],4:[function(require,module,exports){
+},{"./json-editor-overrides/src/editors/array/AddControlsOverride":1,"./json-editor-overrides/src/editors/object/BuildOverride":2,"./patternkit.jsoneditor.ckeditor.es6":3,"./patternkit.jsoneditor.cygnet.es6.js":4,"./patternkit.jsoneditor.quill.es6.js":6}],6:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -816,4 +1371,4 @@ function patternkitEditorQuill($, Drupal, JSONEditor) {
   };
 }
 
-},{}]},{},[3]);
+},{}]},{},[5]);

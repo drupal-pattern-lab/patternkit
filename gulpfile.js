@@ -42,4 +42,4 @@ gulp.task('watch', function() {
   return gulp.watch(gulpConfig.src, 'compile:es6');
 });
 
-gulp.task('default', gulp.parallel(['compile:es6', 'copy:lib']));
+gulp.task('default', gulp.parallel(['compile:es6', 'copy:lib', 'prefix-css:cygnet-theme']));

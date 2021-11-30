@@ -268,14 +268,14 @@
 #drupal-off-canvas [data-theme=cygnet] button:hover {
     background-color: #0066cc;
     color: #ffffff;
-} 
+}
 
 #drupal-off-canvas [data-theme=cygnet] button[title=Collapse],
 #drupal-off-canvas [data-theme=cygnet] button[title=Expand] {
     border: 0;
     border-radius: 3px;
     background-color: transparent;
-    padding: 8px 0;
+    padding: 5px 10px;
 }
 
 #drupal-off-canvas .je-header-button-holder {
@@ -328,6 +328,7 @@
 
 #drupal-off-canvas [data-theme=cygnet] button[title=Collapse]::before {
     content: " ";
+    cursor: pointer;
     display: inline-block;
     position: relative;
     top: 3px;
@@ -335,20 +336,21 @@
     height: 7px;
     border: solid #151515;
     border-width: 0 1.75px 1.75px 0;
-    transform: rotate(-135deg);
-    -webkit-transform: rotate(-135deg);
+    transform: rotate(45deg);
+    -webkit-transform: rotate(45deg);
 }
 
 #drupal-off-canvas [data-theme=cygnet] button[title=Expand]::before {
     content: " ";
+    cursor: pointer;
     display: inline-block;
     position: relative;
     width: 7px;
     height: 7px;
     border: solid #151515;
     border-width: 0 1.75px 1.75px 0;
-    transform: rotate(45deg);
-    -webkit-transform: rotate(45deg);
+    transform: rotate(315deg);
+    -webkit-transform: rotate(315deg);
 }
 
 #drupal-off-canvas [data-theme=cygnet] button[title=Collapse] > span,
@@ -455,4 +457,11 @@
 
 #drupal-off-canvas [data-theme=cygnet] .tabs > div:last-child {
     border-bottom: 1px solid #d2d2d2 !important;
+}
+
+#drupal-off-canvas [data-theme=cygnet] .patternkit-jsoneditor-clickable {
+  cursor: pointer;
+}
+#drupal-off-canvas [data-theme=cygnet] .patternkit-jsoneditor-clickable label {
+  cursor: inherit;
 }

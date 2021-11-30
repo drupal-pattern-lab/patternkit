@@ -15,9 +15,11 @@
  * @todo .patternkit-editor-target .card all: initial
  */
 
- import {patternkitEditorQuill} from './patternkit.jsoneditor.quill.es6.js';
- import {patternkitEditorCKEditor} from './patternkit.jsoneditor.ckeditor.es6';
- import {patternkitEditorCygnet} from './patternkit.jsoneditor.cygnet.es6.js';
+import {patternkitEditorQuill} from './patternkit.jsoneditor.quill.es6.js';
+import {patternkitEditorCKEditor} from './patternkit.jsoneditor.ckeditor.es6';
+import {patternkitEditorCygnet} from './patternkit.jsoneditor.cygnet.es6.js';
+import BuildOverride from "./json-editor-overrides/src/editors/object/BuildOverride";
+import AddControlsOverride from "./json-editor-overrides/src/editors/array/AddControlsOverride";
 
  patternkitEditorQuill(jQuery, Drupal, JSONEditor);
  patternkitEditorCKEditor(jQuery, Drupal, JSONEditor);
@@ -216,4 +218,9 @@
        });
      }
    };
+
+   // JSON Editor overrides:
+   JSONEditor.defaults.editors.object.prototype.build = BuildOverride;
+   JSONEditor.defaults.editors.array.prototype.addControls = AddControlsOverride;
+
  })(jQuery, Drupal, JSONEditor);
