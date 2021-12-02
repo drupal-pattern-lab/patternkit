@@ -5,7 +5,6 @@ namespace Drupal\patternkit\Form;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\Core\Entity\EntityTypeManager;
 
 /**
  * Settings form for configuring the JSON Library Plugin.
@@ -13,9 +12,9 @@ use Drupal\Core\Entity\EntityTypeManager;
 class PatternLibraryJSONForm extends ConfigFormBase {
 
   /**
-   * @var EntityTypeManager
+   * @var \Drupal\Core\Entity\EntityTypeManager
    */
-  protected EntityTypeManager $entityStorage;
+  protected $entityStorage;
 
   /**
    * Settings identifier.
@@ -91,8 +90,7 @@ class PatternLibraryJSONForm extends ConfigFormBase {
 
   public const EDITORS = [
     'ckeditor' => 'CKEditor',
-    // Removed prosemirror because our code does not include the corresponding JS.
-    // 'prosemirror' => 'ProseMirror',
+    'prosemirror' => 'ProseMirror',
     'quill' => 'Quill',
   ];
 
@@ -160,7 +158,7 @@ class PatternLibraryJSONForm extends ConfigFormBase {
 
     $ckeditor_toolbar_options = [];
     foreach ($this->entityStorage->getStorage('editor')->loadMultiple() as $editor) {
-      if ($editor->getEditor() == 'ckeditor') {
+      if ($editor->getEditor() === 'ckeditor') {
         $ckeditor_toolbar_options[$editor->id()] = $editor->label();
       }
     }

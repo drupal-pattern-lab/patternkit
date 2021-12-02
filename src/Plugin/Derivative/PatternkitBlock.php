@@ -91,7 +91,7 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
    * Translate the derivative ID to a pattern library asset ID.
    *
    * @param string $derivative_id
-   *   A derivative ID in the format 'library__name_path_to_pattern'.
+   *   A derivative ID in the format 'patternkit_block:library__name_path_to_pattern'.
    *
    * @return string
    *   An asset ID in the format '@library_name/path/to/pattern'.
