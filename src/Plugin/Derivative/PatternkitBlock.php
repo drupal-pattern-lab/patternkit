@@ -149,7 +149,7 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
       $this->derivatives[$pattern_id] = [
         'category' => (string) t('Patternkit:@lib/@category', [
           '@lib'      => $lib ?? 'patternkit',
-          '@category' => $pattern->getCategory() ?? 'default',
+          '@category' => $pattern->getCategory() ?? t('default'),
         ]),
         'admin_label' => t('[Patternkit] @pattern', ['@pattern' => $pattern->label()]),
         'pattern' => $pattern,

@@ -164,7 +164,7 @@ class Pattern extends ContentEntityBase implements PatternInterface {
   }
 
   public function getCategory() {
-    return $this->getEntityKey('category');
+    return $this->getEntityKey('category') ?? t('default');
   }
 
   public function getDescription() {

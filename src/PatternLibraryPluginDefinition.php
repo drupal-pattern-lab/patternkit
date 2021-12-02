@@ -153,7 +153,7 @@ class PatternLibraryPluginDefinition extends PluginDefinition implements Derivab
    *   The human-readable category of the definition.
    */
   public function getCategory() {
-    return $this->category;
+    return $this->category ?? t('default');
   }
 
   /**
@@ -165,7 +165,7 @@ class PatternLibraryPluginDefinition extends PluginDefinition implements Derivab
    * @return $this
    */
   public function setCategory($category) {
-    $this->category = $category;
+    $this->category = $category ?? t('default');
     return $this;
   }
 
