@@ -18,7 +18,7 @@
     "@babel/cli": "^7.12.1",
     "@babel/core": "^7.10.3",
     "@babel/preset-env": "^7.10.3",
-    "@json-editor/json-editor": "^2.3.0",
+    "@json-editor/json-editor": "git://github.com/cybtachyon/json-editor.git#cybtachyon%2F988--json-pointers",
     "ajv": "^6.12.2",
     "babelify": "^10.0.0",
     "browserify": "^16.5.1",

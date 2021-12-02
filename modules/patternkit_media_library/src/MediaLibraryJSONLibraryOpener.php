@@ -6,7 +6,6 @@ use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Session\AccountInterface;
-use Drupal\media\Entity\Media;
 use Drupal\media_library\MediaLibraryOpenerInterface;
 use Drupal\media_library\MediaLibraryState;
 use Drupal\patternkit\AJAX\PatternkitEditorUpdateCommand;
@@ -56,7 +55,7 @@ class MediaLibraryJSONLibraryOpener implements MediaLibraryOpenerInterface {
       return $response;
     }
     try {
-      /** @var Media $media */
+      /** @var \Drupal\media\Entity\Media $media */
       $media = $this->entityTypeManager->getStorage('media')->load($mid);
       $fid = $media->getSource()->getSourceFieldValue($media);
       $file = $this->entityTypeManager->getStorage('file')->load($fid);

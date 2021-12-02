@@ -18,7 +18,6 @@ use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Template\TwigEnvironment;
 use Drupal\Core\Utility\Token;
 use Drupal\patternkit\Entity\Pattern;
-use Drupal\patternkit\entity\PatternInterface;
 use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\Asset\LibraryInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
@@ -109,7 +108,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    *   Configuration array.
    * @param string $plugin_id
    *   Plugin id.
-   * @param array $plugin_definition
+   * @param mixed $plugin_definition
    *   Plugin definition.
    *
    * @return \Drupal\patternkit\Plugin\Block\PatternkitBlock
@@ -208,8 +207,8 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $this->token = $token;
     $this->twig = $twig;
 
-    // Assigns contexts based on the convention that token base names are identical
-    // to context name root keys.
+    // Assigns contexts based on the convention that token base names are
+    // identical to context name root keys.
     // @todo Find a more robust way to map these via token info.
     // @todo Handle multiple contexts from the same context root key.
     // @see \Drupal\layout_builder\Form\ConfigureBlockFormBase::doBuildForm
@@ -217,7 +216,8 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     foreach ($this->contextRepository->getAvailableContexts() as $name => $context) {
       $id = trim(substr($name, 0, strpos($name, '.')), '@');
       if (array_key_exists($id, $tokens)) {
-        $plugin_definition['context_definitions'][$id] = $context->getContextDefinition()
+        $plugin_definition['context_definitions'][$id] = $context
+          ->getContextDefinition()
           ->setRequired(FALSE);
         $configuration['context'][$id] = $context->getContextValue();
       }
@@ -227,10 +227,15 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
   }
 
   /**
-   * @param array $form
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   * AJAX response to replace a pattern in a PatternkitBlock form.
    *
-   * @return AjaxResponse
+   * @param array $form
+   *   PatternkitBlock form Drupal render array.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The relevant Drupal FormState for the form render array.
+   *
+   * @return \Drupal\Core\Ajax\AjaxResponse
+   *   An AJAX response to update the current pattern based on the form.
    */
   public function ajaxUpdatePattern(array &$form, FormStateInterface $form_state): AjaxResponse {
     $response = new AjaxResponse();
@@ -313,10 +318,10 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       $base_pattern = Pattern::create($this->library->getLibraryAsset($pattern_id));
       if ($base_pattern->getHash() !== $pattern->getHash()) {
         $form['schema_desc'] = [
-          '#markup' => $this->t('Update pattern schema and template from @old_version to @version:',
-            [ '@old_version' => $pattern->getVersion(),
-              '@version' => $base_pattern->getVersion()]
-            ),
+          '#markup' => $this->t('Update pattern schema and template from @old_version to @version:', [
+            '@old_version' => $pattern->getVersion(),
+            '@version' => $base_pattern->getVersion(),
+          ]),
         ];
         $form['schema_update'] = [
           '#ajax' => ['callback' => [ $this, 'ajaxUpdatePattern']],
@@ -329,23 +334,23 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     catch (\Exception $exception) {
       /** @var \Drupal\Core\Logger\LoggerChannelInterface $logger */
       $logger = \Drupal::service('logger.channel.patternkit');
-      $logger->info($this->t('Unable to show update UI for pattern in filesystem: ') . $pattern_id);
+      $logger->info($this->t('Unable to show update UI for pattern in filesystem: @id', ['@id' => $pattern_id]));
     }
 
     $form['reusable'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Reusable'),
       '#default_value' => $configuration['reusable'] ?? FALSE,
-      '#description' => t('Set to make the pattern selectable in the block library and usable on other layouts. This option is irreversible.'),
+      '#description' => $this->t('Set to make the pattern selectable in the block library and usable on other layouts. This option is irreversible.'),
       '#disabled' => $configuration['reusable'] ?? FALSE,
     ];
 
-    // @TODO: Re-enable the other formats like JSON and webcomponent.
+    // @todo Re-enable the other formats like JSON and webcomponent.
     $form['presentation_style'] = [
       '#type'          => 'select',
-      '#title'         => 'Presentation style',
+      '#title'         => $this->t('Presentation style'),
       '#options'       => [
-        'html'         => 'HTML inline',
+        'html'         => $this->t('HTML inline'),
       ],
       '#default_value' => $configuration['presentation_style'],
     ];
@@ -384,16 +389,16 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       '#default_value' => $block_data ?? '',
     ];
 
-    $form['configuration_description']['#markup'] = t('Provide context for your pattern. You can use tokens and Twig in your values.');
+    $form['configuration_description']['#markup'] = $this->t('Provide context for your pattern. You can use tokens and Twig in your values.');
 
     /** @var \Drupal\patternkit\PatternLibraryPluginInterface $library */
     $library = $this->patternLibraryPluginManager->createInstance($pattern->getLibraryPluginId());
     $editor = $library->getEditor($pattern, $editor_config);
     if (!is_array($editor)) {
-      $editor = array(
+      $editor = [
         '#type' => 'inline_template',
         '#template' => $editor,
-      );
+      ];
     }
     $form['configuration'] = $editor;
 
@@ -431,9 +436,9 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $values = [
       'data' => $form_state->getValue('instance_config'),
       'info' => $form_state->getValue('label'),
-      'reusable' => $form_state->getValue('reusable'),
+      'pattern_id' => $pattern_id,
       'published' => TRUE,
-      'pattern_id' => $pattern_id
+      'reusable' => $form_state->getValue('reusable'),
     ];
     /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
     if (isset($configuration['patternkit_block_id'])
@@ -455,12 +460,15 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
 
     /** @var \Drupal\Core\Entity\ContentEntityStorageInterface $pattern_storage */
     $pattern_storage = $this->entityTypeManager->getStorage('patternkit_pattern');
-    /** @var PatternInterface $pattern */
+    /** @var \Drupal\patternkit\entity\PatternInterface $pattern */
     $pattern = $form_state->get('pattern') ?? Pattern::create($this->library->getLibraryAsset($pattern_id));
-    $pattern_cache = $pattern_storage->loadByProperties(['library' => $pattern->getLibrary(), 'path' => $pattern->getPath()]);
-    /** @var PatternInterface $pattern_loaded */
-    $pattern_loaded = end($pattern_cache);
-    if (!empty($pattern_loaded)) {
+    $pattern_cache = $pattern_storage->loadByProperties([
+      'library' => $pattern->getLibrary(),
+      'path' => $pattern->getPath(),
+    ]);
+    /** @var \Drupal\patternkit\entity\PatternInterface|null $pattern_loaded */
+    $pattern_loaded = $pattern_cache ? end($pattern_cache) : NULL;
+    if ($pattern_loaded !== NULL) {
       if ($pattern_loaded->getHash() !== $pattern->getHash()) {
         $pattern->setNewRevision();
         $pattern->isDefaultRevision(TRUE);
@@ -494,8 +502,12 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
   }
 
   /**
+   * Validates the block form submission.
+   *
    * @param array $form
+   *   Drupal PatternkitBlock form render array.
    * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   Relevant Drupal Form state.
    */
   public function blockValidate($form, FormStateInterface $form_state) {
     if ($submit = $form_state->getTriggeringElement() ?? FALSE) {
@@ -563,16 +575,16 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     // module to appear only once in this array.
     if (!isset($is_processed[$pattern_id])) {
       // Add to bootstrap list.
-      $base_dependencies['js'][] = array(
-        'patternkit' => array(
-          'active' => array(
-            $pattern_id => array(
+      $base_dependencies['js'][] = [
+        'patternkit' => [
+          'active' => [
+            $pattern_id => [
               $instance_id,
-            ),
-          ),
-        ),
+            ],
+          ],
+        ],
         'type' => 'setting',
-      );
+      ];
       $is_processed[$pattern_id] = 1;
     }
 
@@ -778,4 +790,5 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       ],
     ];
   }
+
 }

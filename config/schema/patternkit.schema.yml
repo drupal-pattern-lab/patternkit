@@ -27,6 +27,15 @@ patternkit.settings:
         visible:
           type: boolean
           label: 'Library visible in lists'
+    patternkit_json_editor_use_shadow_dom:
+      type: boolean
+      label: 'Boolean that determines whether to use the Shadow DOM for the JSON Editor.'
+    patternkit_json_editor_wysiwyg:
+      type: string
+      label: 'String selecting the WYSIWYG tool to use in the JSON Editor.'
+    patternkit_json_editor_ckeditor_toolbar:
+      type: string
+      label: 'String selecting the CKEditor text format to use for CKEditor inside the JSON Editor.'
 
 block.settings.patternkit_block:*:
   type: block_settings

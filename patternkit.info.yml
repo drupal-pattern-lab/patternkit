@@ -8,3 +8,4 @@ configure: patternkit.settings
 dependencies:
   - drupal:block_content
   - drupal:ckeditor
+php: 7.3

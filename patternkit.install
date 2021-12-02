@@ -19,7 +19,7 @@ use Drupal\patternkit\Entity\PatternRouteProvider;
 use Drupal\views\EntityViewsData;
 
 /**
- * Implements hook_requirements.
+ * Implements hook_requirements().
  */
 function patternkit_requirements($phase) {
   $requirements = [];
@@ -38,6 +38,8 @@ function patternkit_requirements($phase) {
 
 /**
  * Allows upgrading from dev version automatically.
+ *
+ * @throws \Drupal\Core\Entity\Exception\EntityTypeIdLengthException
  */
 function patternkit_update_8001(&$sandbox) {
   // Installs new entities if necessary.
@@ -108,7 +110,7 @@ function patternkit_update_8001(&$sandbox) {
     'apcu_clear_cache',
     'wincache_ucache_clear',
     'xcache_clear_cache',
-    'opcache_reset'
+    'opcache_reset',
   ];
   array_map('call_user_func', array_filter($user_caches, 'is_callable'));
   foreach (Cache::getBins() as $bin) {
@@ -127,11 +129,11 @@ function patternkit_update_8002(&$sandbox) {
   $metadata_keys = $entity_type->get('revision_metadata_keys');
   $metadata_keys = is_array($metadata_keys) ? $metadata_keys : [];
   $metadata_keys = [
-      'revision_default' => 'revision_default',
-      'revision_user' => 'revision_user',
-      'revision_created' => 'revision_created',
-      'revision_log_message' => 'revision_log_message',
-    ] + $metadata_keys;
+    'revision_default' => 'revision_default',
+    'revision_user' => 'revision_user',
+    'revision_created' => 'revision_created',
+    'revision_log_message' => 'revision_log_message',
+  ] + $metadata_keys;
   $entity_type->set('revision_metadata_keys', $metadata_keys);
   $entity_definition_update_manager->updateEntityType($entity_type);
 }
@@ -150,7 +152,7 @@ function patternkit_update_8003(&$sandbox) {
   $pattern_id_field_definition = BaseFieldDefinition::create('string')
     ->setLabel(t('Patternkit Pattern Derivative ID'))
     ->setDescription(t('The machine name of the Patternkit pattern.'));
-  $field_definitions = $entity_definition_update_manager
+  $entity_definition_update_manager
     ->installFieldStorageDefinition('pattern_id',
   'patternkit_block', 'patternkit', $pattern_id_field_definition);
 }

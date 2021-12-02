@@ -8,7 +8,7 @@
 use Drupal\Core\Url;
 
 /**
- * Implements hook_form_FORM_ID_alter.
+ * Implements hook_form_FORM_ID_alter().
  */
 function patternkit_media_library_form_layout_builder_configure_block_alter(&$form, $form_state) {
   if (!empty($form['settings']['configuration']['#attached']['drupalSettings']['patternkitEditor'])) {

@@ -115,7 +115,11 @@ export function patternkitEditorProseMirror($, Drupal, JSONEditor) {
       };
       JSONEditor.defaults.editors.drupal_prosemirror = DrupalProseMirror;
       JSONEditor.defaults.resolvers.unshift(function (schema) {
-        if (schema.type === 'string' && schema.format === 'html' && schema.options.wysiwyg) {
+        if (schema.type === 'string'
+          && schema.format === 'html'
+          && schema.options
+          && schema.options.wysiwyg
+          && settings.patternkitEditor.wysiwygEditorName === 'prosemirror') {
           return 'drupal_prosemirror';
         }
       });

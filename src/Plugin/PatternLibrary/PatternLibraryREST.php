@@ -13,6 +13,8 @@ use Drupal\patternkit\PatternLibraryPluginDefault;
  * @PatternLibrary(
  *   id = "rest",
  * )
+ *
+ * A Pattern library based on querying a configured REST API.
  */
 class PatternLibraryREST extends PatternLibraryPluginDefault {
 
@@ -26,12 +28,23 @@ class PatternLibraryREST extends PatternLibraryPluginDefault {
   /**
    * Constructs a PatternRESTCollectionRenderer.
    *
+   * @param string $root
+   *   The application root path.
+   *   e.g. '/var/www/docroot'.
+   * @param \Drupal\patternkit\Asset\PatternLibraryParserInterface $parser
+   *   Pattern library parser service.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   Extension config retrieval.
+   * @param array $configuration
+   *   Plugin config.
+   * @param string $plugin_id
+   *   Plugin ID.
+   * @param mixed $plugin_definition
+   *   Plugin Definition.
    * @param \Drupal\Core\State\StateInterface $state
    *   The state key/value store.
-   *
-   * {@inheritDoc}
    */
-  public function __construct($root, $parser, $config_factory, $configuration, $plugin_id, $plugin_definition, StateInterface $state) {
+  public function __construct($root, $parser, $config_factory, array $configuration, $plugin_id, $plugin_definition, StateInterface $state) {
     parent::__construct($root, $parser, $config_factory, $configuration, $plugin_id, $plugin_definition);
     $this->state = $state;
   }
@@ -53,7 +66,7 @@ class PatternLibraryREST extends PatternLibraryPluginDefault {
   }
 
   /**
-   * {@inheritdoc}
+   * {@inheritDoc}
    *
    * This class evaluates the aggregation enabled/disabled condition on a group
    * by group basis by testing whether an aggregate file has been made for the
