@@ -1157,10 +1157,15 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         });
       });
     }
-  }; // JSON Editor overrides:
+  }; // Overrides specific methods of schema-specific editors. The only use case
+  // so far is to trigger toggling of items by clicking on the button's title
+  // instead of just the small button itself.
 
   JSONEditor.defaults.editors.object.prototype.build = _BuildOverride["default"];
-  JSONEditor.defaults.editors.array.prototype.addControls = _AddControlsOverride["default"];
+  JSONEditor.defaults.editors.array.prototype.addControls = _AddControlsOverride["default"]; // Uses Handlebars template engine so that we can use logic in
+  // `headerTemplate` property in schemas.
+
+  JSONEditor.defaults.options.template = 'handlebars';
 })(jQuery, Drupal, JSONEditor);
 
 },{"./json-editor-overrides/src/editors/array/AddControlsOverride":1,"./json-editor-overrides/src/editors/object/BuildOverride":2,"./patternkit.jsoneditor.ckeditor.es6":3,"./patternkit.jsoneditor.cygnet.es6.js":4,"./patternkit.jsoneditor.quill.es6.js":6}],6:[function(require,module,exports){

@@ -1,13 +1,18 @@
 jsoneditor:
   version: VERSION
   js:
+    # TODO Compile Handlebars with gulp.
+    https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js: {type: external}
     js/ajv.min.js: {minified: true}
     js/jsoneditor.js: {minified: true}
 
 jsoneditor.dev:
   version: VERSION
   js:
-    js/ajv.js: {}
+    # TODO Compile Handlebars with gulp.
+    https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.js: {type: external}
+    js/ajv.min.js: {}
+    js/ajv.min.js.map: {}
     js/nonmin/jsoneditor.js: {}
     js/nonmin/jsoneditor.js.map: {}
 

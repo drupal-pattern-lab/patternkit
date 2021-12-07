@@ -219,8 +219,14 @@ import AddControlsOverride from "./json-editor-overrides/src/editors/array/AddCo
      }
    };
 
-   // JSON Editor overrides:
+   // Overrides specific methods of schema-specific editors. The only use case
+   // so far is to trigger toggling of items by clicking on the button's title
+   // instead of just the small button itself.
    JSONEditor.defaults.editors.object.prototype.build = BuildOverride;
    JSONEditor.defaults.editors.array.prototype.addControls = AddControlsOverride;
+
+   // Uses Handlebars template engine so that we can use logic in
+   // `headerTemplate` property in schemas.
+   JSONEditor.defaults.options.template = 'handlebars';
 
  })(jQuery, Drupal, JSONEditor);
