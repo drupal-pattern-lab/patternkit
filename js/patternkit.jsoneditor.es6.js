@@ -100,6 +100,7 @@ import AddControlsOverride from "./json-editor-overrides/src/editors/array/AddCo
          JSONEditor.defaults.options.disable_collapse = false;
          JSONEditor.defaults.options.collapse = false;
          JSONEditor.defaults.options.ajax = true;
+         JSONEditor.defaults.options.disable_properties = settings.patternkitEditor.disablePropertiesButtons;
          // @todo Loop through all editor plugins and add them at runtime.
 
          // Override how references are resolved.

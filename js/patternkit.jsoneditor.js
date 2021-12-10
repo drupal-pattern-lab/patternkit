@@ -1019,7 +1019,8 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         JSONEditor.defaults.options.disable_edit_json = true;
         JSONEditor.defaults.options.disable_collapse = false;
         JSONEditor.defaults.options.collapse = false;
-        JSONEditor.defaults.options.ajax = true; // @todo Loop through all editor plugins and add them at runtime.
+        JSONEditor.defaults.options.ajax = true;
+        JSONEditor.defaults.options.disable_properties = settings.patternkitEditor.disablePropertiesButtons; // @todo Loop through all editor plugins and add them at runtime.
         // Override how references are resolved.
 
         JSONEditor.prototype._loadExternalRefs = function (schema, callback) {
