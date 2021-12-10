@@ -279,7 +279,7 @@
 }
 
 #drupal-off-canvas .je-header-button-holder {
-    padding: 16px 0 0 16px;
+    padding: 8px 0 0 0;
 }
 
 #drupal-off-canvas [data-theme=cygnet] .json-editor-btn-add {

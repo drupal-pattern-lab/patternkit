@@ -26,8 +26,8 @@ class cygnetTheme extends JSONEditor.AbstractTheme {
     el.classList.add('je-child-editor-holder')
     return el
   }
-  
-  // If no title, use the text as title so that we have can use the 
+
+  // If no title, use the text as title so that we have can use the
   // title attr as a CSS selector to style the collapse/expand state.
   setButtonText (button, text, icon, title) {
     if (!title && text) {
@@ -37,13 +37,14 @@ class cygnetTheme extends JSONEditor.AbstractTheme {
     if (text == "Object Properties") {
       text = "Properties";
     }
-    
+
     return super.setButtonText(button, text, icon, title);
   }
 
   getHeaderButtonHolder () {
     const el = this.getButtonHolder()
     el.classList.add('je-header-button-holder')
+    el.style.display = 'block';
     return el
   }
 
