@@ -1157,6 +1157,19 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
             $(_this2).off('submit');
           });
         });
+      }); // If user closes the Layout Builder dialog without saving, this cleans
+      // up Patternkit (and, in turn) CKEditor instance.  Code stolen from
+      // `Drupal.behaviors.offCanvasEvents`.
+
+      $(window).once('patternkit-jsoneditor-off-canvas').on('dialog:beforeclose', function (event, dialog, $element) {
+        // The editor may have already been destroyed if its form was
+        // submitted. The following code only destroys the editor if the modal
+        // gets closed without submitting the form.
+        if (window.patternkitEditor) {
+          window.patternkitEditor.disable();
+          window.patternkitEditor.destroy();
+          delete window.patternkitEditor;
+        }
       });
     }
   }; // Overrides specific methods of schema-specific editors. The only use case
