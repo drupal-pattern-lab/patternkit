@@ -18,13 +18,20 @@
 import {patternkitEditorQuill} from './patternkit.jsoneditor.quill.es6.js';
 import {patternkitEditorCKEditor} from './patternkit.jsoneditor.ckeditor.es6';
 import {patternkitEditorCygnet} from './patternkit.jsoneditor.cygnet.es6.js';
-import BuildOverride from "./json-editor-overrides/src/editors/object/BuildOverride";
-import AddControlsOverride from "./json-editor-overrides/src/editors/array/AddControlsOverride";
+import {patternkitEditorObject} from './patternkit.jsoneditor.editor.object.es6';
+import {patternkitEditorArray} from './patternkit.jsoneditor.editor.array.es6';
 
- patternkitEditorQuill(jQuery, Drupal, JSONEditor);
- patternkitEditorCKEditor(jQuery, Drupal, JSONEditor);
- patternkitEditorCygnet(jQuery, Drupal, JSONEditor);
- // TODO Why is patternkitEditorProseMirror not included here?
+// Instantiates wysiwyg plugins.
+// TODO Why is patternkitEditorProseMirror not included here?
+patternkitEditorQuill(jQuery, Drupal, JSONEditor);
+patternkitEditorCKEditor(jQuery, Drupal, JSONEditor);
+patternkitEditorCygnet(jQuery, Drupal, JSONEditor);
+
+// Overrides the object and array json-editor editors, to customize certain
+// methods.  The only use case so far is to trigger toggling of items by
+// clicking on the button's title instead of just the small button itself.
+patternkitEditorObject(jQuery, Drupal, JSONEditor);
+patternkitEditorArray(jQuery, Drupal, JSONEditor);
 
  (function ($, Drupal, JSONEditor) {
    'use strict';
@@ -233,12 +240,6 @@ import AddControlsOverride from "./json-editor-overrides/src/editors/array/AddCo
        });
      }
    };
-
-   // Overrides specific methods of schema-specific editors. The only use case
-   // so far is to trigger toggling of items by clicking on the button's title
-   // instead of just the small button itself.
-   JSONEditor.defaults.editors.object.prototype.build = BuildOverride;
-   JSONEditor.defaults.editors.array.prototype.addControls = AddControlsOverride;
 
    // Uses Handlebars template engine so that we can use logic in
    // `headerTemplate` property in schemas.
