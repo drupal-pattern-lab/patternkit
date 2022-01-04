@@ -44,7 +44,7 @@ cygnet:
   version: VERSION
   css:
     theme:
-      css/cygnet.css: {}
+      css/cygnet/cygnet.css: {}
 
 cygnet_no_shadow_dom:
   version: VERSION
