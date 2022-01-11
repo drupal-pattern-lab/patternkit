@@ -1,19 +1,20 @@
 class cygnetTheme extends JSONEditor.AbstractTheme {
   getFormInputLabel (text, req) {
     const el = super.getFormInputLabel(text, req)
-    el.classList.add('je-form-input-label')
+    el.classList.add('je-cygnet-form-input-label')
     return el
   }
 
   getFormInputDescription (text) {
     const el = super.getFormInputDescription(text)
-    el.classList.add('je-form-input-label')
+    el.classList.add('je-cygnet-form-input-label')
     return el
   }
 
   getIndentedPanel () {
     const el = super.getIndentedPanel()
-    el.classList.add('je-indented-panel')
+    el.classList.add('je-cygnet-indented-panel')
+    el.style = el.style || {};
     return el
   }
 
@@ -23,7 +24,7 @@ class cygnetTheme extends JSONEditor.AbstractTheme {
 
   getChildEditorHolder () {
     const el = super.getChildEditorHolder()
-    el.classList.add('je-child-editor-holder')
+    el.classList.add('je-cygnet-child-editor-holder')
     return el
   }
 
@@ -43,7 +44,7 @@ class cygnetTheme extends JSONEditor.AbstractTheme {
 
   getHeaderButtonHolder () {
     const el = this.getButtonHolder()
-    el.classList.add('je-header-button-holder')
+    el.classList.add('je-cygnet-header-button-holder')
     el.style.display = 'block';
     return el
   }
@@ -81,6 +82,38 @@ class cygnetTheme extends JSONEditor.AbstractTheme {
     }
     if (input.errmsg) input.errmsg.style.display = 'none'
   }
+
+  getTab (span, tabId) {
+    const el = document.createElement('div')
+    el.appendChild(span)
+    el.id = tabId
+    el.style = el.style || {}
+    el.classList.add('je-cygnet-tab');
+    return el
+  }
+
+  markTabActive (row) {
+    row.tab.classList.remove('je-cygnet-tab--inactive');
+    row.tab.classList.add('je-cygnet-tab--active');
+
+    if (typeof row.rowPane !== 'undefined') {
+      row.rowPane.style.display = ''
+    } else {
+      row.container.style.display = ''
+    }
+  }
+
+  markTabInactive (row) {
+    row.tab.classList.remove('je-cygnet-tab--active');
+    row.tab.classList.add('je-cygnet-tab--inactive');
+
+    if (typeof row.rowPane !== 'undefined') {
+      row.rowPane.style.display = 'none'
+    } else {
+      row.container.style.display = 'none'
+    }
+  }
+
 }
 
 export function patternkitEditorCygnet($, Drupal, JSONEditor) {
