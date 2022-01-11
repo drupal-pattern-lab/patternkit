@@ -11,3 +11,18 @@
 #drupal-off-canvas [data-theme=cygnet] button {
     font-family: 'RedHatText', Helvetica, Arial, sans-serif;
 }
+
+/* These styles are inserted as a constructed stylesheet by jsoneditor.js,
+   so we have to replicate them here so that they work outside the shadow DOM.
+   @TODO Are there more styles like this?
+ */
+/*
+#drupal-off-canvas [data-theme=cygnet] .je-object__title {display:inline-block}
+#drupal-off-canvas [data-theme=cygnet] .je-object__controls {margin:0 0 0 10px}
+#drupal-off-canvas [data-theme=cygnet] .je-object__container {position:relative}
+#drupal-off-canvas [data-theme=cygnet] .je-object__property-checkbox {margin:0;height:auto}
+#drupal-off-canvas [data-theme=cygnet] .property-selector {width:295px;max-height:160px;padding:5px 0;overflow-y:auto;overflow-x:hidden;padding-left:5px}
+#drupal-off-canvas [data-theme=cygnet] .property-selector-input {width:220px;margin-bottom:0;display:inline-block}
+#drupal-off-canvas [data-theme=cygnet] .json-editor-btntype-toggle {margin:0 10px 0 0}
+#drupal-off-canvas [data-theme=cygnet] .je-edit-json--textarea {height:170px !important;width:300px !important;display:block}
+*/

@@ -250,7 +250,7 @@ var cygnetTheme = /*#__PURE__*/function (_JSONEditor$AbstractT) {
     value: function getFormInputLabel(text, req) {
       var el = _get(_getPrototypeOf(cygnetTheme.prototype), "getFormInputLabel", this).call(this, text, req);
 
-      el.classList.add('je-form-input-label');
+      el.classList.add('je-cygnet-form-input-label');
       return el;
     }
   }, {
@@ -258,7 +258,7 @@ var cygnetTheme = /*#__PURE__*/function (_JSONEditor$AbstractT) {
     value: function getFormInputDescription(text) {
       var el = _get(_getPrototypeOf(cygnetTheme.prototype), "getFormInputDescription", this).call(this, text);
 
-      el.classList.add('je-form-input-label');
+      el.classList.add('je-cygnet-form-input-label');
       return el;
     }
   }, {
@@ -266,7 +266,8 @@ var cygnetTheme = /*#__PURE__*/function (_JSONEditor$AbstractT) {
     value: function getIndentedPanel() {
       var el = _get(_getPrototypeOf(cygnetTheme.prototype), "getIndentedPanel", this).call(this);
 
-      el.classList.add('je-indented-panel');
+      el.classList.add('je-cygnet-indented-panel');
+      el.style = el.style || {};
       return el;
     }
   }, {
@@ -279,9 +280,9 @@ var cygnetTheme = /*#__PURE__*/function (_JSONEditor$AbstractT) {
     value: function getChildEditorHolder() {
       var el = _get(_getPrototypeOf(cygnetTheme.prototype), "getChildEditorHolder", this).call(this);
 
-      el.classList.add('je-child-editor-holder');
+      el.classList.add('je-cygnet-child-editor-holder');
       return el;
-    } // If no title, use the text as title so that we have can use the 
+    } // If no title, use the text as title so that we have can use the
     // title attr as a CSS selector to style the collapse/expand state.
 
   }, {
@@ -301,7 +302,8 @@ var cygnetTheme = /*#__PURE__*/function (_JSONEditor$AbstractT) {
     key: "getHeaderButtonHolder",
     value: function getHeaderButtonHolder() {
       var el = this.getButtonHolder();
-      el.classList.add('je-header-button-holder');
+      el.classList.add('je-cygnet-header-button-holder');
+      el.style.display = 'block';
       return el;
     }
   }, {
@@ -344,6 +346,40 @@ var cygnetTheme = /*#__PURE__*/function (_JSONEditor$AbstractT) {
 
       if (input.errmsg) input.errmsg.style.display = 'none';
     }
+  }, {
+    key: "getTab",
+    value: function getTab(span, tabId) {
+      var el = document.createElement('div');
+      el.appendChild(span);
+      el.id = tabId;
+      el.style = el.style || {};
+      el.classList.add('je-cygnet-tab');
+      return el;
+    }
+  }, {
+    key: "markTabActive",
+    value: function markTabActive(row) {
+      row.tab.classList.remove('je-cygnet-tab--inactive');
+      row.tab.classList.add('je-cygnet-tab--active');
+
+      if (typeof row.rowPane !== 'undefined') {
+        row.rowPane.style.display = '';
+      } else {
+        row.container.style.display = '';
+      }
+    }
+  }, {
+    key: "markTabInactive",
+    value: function markTabInactive(row) {
+      row.tab.classList.remove('je-cygnet-tab--active');
+      row.tab.classList.add('je-cygnet-tab--inactive');
+
+      if (typeof row.rowPane !== 'undefined') {
+        row.rowPane.style.display = 'none';
+      } else {
+        row.container.style.display = 'none';
+      }
+    }
   }]);
 
   return cygnetTheme;
@@ -367,6 +403,698 @@ function patternkitEditorCygnet($, Drupal, JSONEditor) {
 },{}],3:[function(require,module,exports){
 "use strict";
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.patternkitEditorArray = patternkitEditorArray;
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+/*globals Console:false */
+
+/*globals Drupal:false */
+
+/*globals jQuery:false */
+
+/*globals JSONEditor:false */
+
+/**
+ * Duplicates json-editor trigger utility.
+ *
+ * Cannot figure out how to import it without errors.
+ * The function is defined in @json-editor/json-editor/src/utilities.
+ *
+ * @param el
+ * @param event
+ */
+var trigger = function trigger(el, event) {
+  var e = document.createEvent('HTMLEvents');
+  e.initEvent(event, true, true);
+  el.dispatchEvent(e);
+};
+/**
+ * @file PatternkitJsoneditorEditorArray class.
+ *
+ * @external Drupal
+ * @external jQuery
+ * @external JSONEditor
+ */
+
+
+var PatternkitJsoneditorEditorArray = /*#__PURE__*/function (_JSONEditor$defaults$) {
+  _inherits(PatternkitJsoneditorEditorArray, _JSONEditor$defaults$);
+
+  var _super = _createSuper(PatternkitJsoneditorEditorArray);
+
+  function PatternkitJsoneditorEditorArray() {
+    _classCallCheck(this, PatternkitJsoneditorEditorArray);
+
+    return _super.apply(this, arguments);
+  }
+
+  _createClass(PatternkitJsoneditorEditorArray, [{
+    key: "addControls",
+
+    /**
+     * Overrides json-editor array addControls() method.
+     *
+     * Overrides JSONEditor's addControls() method for arrays. The only change is to
+     * trigger toggle of section if user clicks on the label/title, not just on
+     * the expand/collapse button. Makes hiding/showing sections much easier.
+     */
+    value: function addControls() {
+      var _this = this;
+
+      this.collapsed = false;
+      this.toggle_button = this.getButton('', 'collapse', this.translate('button_collapse'));
+      this.toggle_button.classList.add('json-editor-btntype-toggle');
+      this.toggle_button.style.margin = '0 10px 0 0';
+      this.title.insertBefore(this.toggle_button, this.title.childNodes[0]);
+      var rowHolderDisplay = this.row_holder.style.display;
+      var controlsDisplay = this.controls.style.display; // <!-- Start PatternKit overrides. -->
+      // Replaces the click handler on the button (element `this.collapse_control`),
+      // so that the section is toggled if you click either on the button or its label
+      // (i.e., if you clicked anywhere on the title).
+
+      this.title.classList.add('patternkit-jsoneditor-clickable');
+      this.title.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (_this.collapsed) {
+          _this.collapsed = false;
+          if (_this.panel) _this.panel.style.display = '';
+          _this.row_holder.style.display = rowHolderDisplay;
+          if (_this.tabs_holder) _this.tabs_holder.style.display = '';
+          _this.controls.style.display = controlsDisplay;
+
+          _this.setButtonText(_this.toggle_button, '', 'collapse', _this.translate('button_collapse'));
+        } else {
+          _this.collapsed = true;
+          _this.row_holder.style.display = 'none';
+          if (_this.tabs_holder) _this.tabs_holder.style.display = 'none';
+          _this.controls.style.display = 'none';
+          if (_this.panel) _this.panel.style.display = 'none';
+
+          _this.setButtonText(_this.toggle_button, '', 'expand', _this.translate('button_expand'));
+        }
+      }); // <!-- End PatternKit overrides. -->
+
+      /* If it should start collapsed */
+
+      if (this.options.collapsed) {
+        trigger(this.toggle_button, 'click');
+      }
+      /* Collapse button disabled */
+
+
+      if (this.schema.options && typeof this.schema.options.disable_collapse !== 'undefined') {
+        if (this.schema.options.disable_collapse) this.toggle_button.style.display = 'none';
+      } else if (this.jsoneditor.options.disable_collapse) {
+        this.toggle_button.style.display = 'none';
+      }
+      /* Add "new row" and "delete last" buttons below editor */
+
+
+      this.add_row_button = this.getButton(this.getItemTitle(), 'add', this.translate('button_add_row_title', [this.getItemTitle()]));
+      this.add_row_button.classList.add('json-editor-btntype-add');
+      this.add_row_button.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var i = _this.rows.length;
+        var editor;
+
+        if (_this.row_cache[i]) {
+          editor = _this.rows[i] = _this.row_cache[i];
+
+          _this.rows[i].setValue(_this.rows[i].getDefault(), true);
+
+          _this.rows[i].container.style.display = '';
+          if (_this.rows[i].tab) _this.rows[i].tab.style.display = '';
+
+          _this.rows[i].register();
+        } else {
+          editor = _this.addRow();
+        }
+
+        _this.active_tab = _this.rows[i].tab;
+
+        _this.refreshTabs();
+
+        _this.refreshValue();
+
+        _this.onChange(true);
+
+        _this.jsoneditor.trigger('addRow', editor);
+      });
+      this.controls.appendChild(this.add_row_button);
+      this.delete_last_row_button = this.getButton(this.translate('button_delete_last', [this.getItemTitle()]), 'subtract', this.translate('button_delete_last_title', [this.getItemTitle()]));
+      this.delete_last_row_button.classList.add('json-editor-btntype-deletelast');
+      this.delete_last_row_button.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!_this.askConfirmation()) {
+          return false;
+        }
+
+        var rows = _this.getValue();
+
+        var newActiveTab = null;
+        var editor = rows.pop();
+
+        _this.setValue(rows);
+
+        if (_this.rows[_this.rows.length - 1]) {
+          newActiveTab = _this.rows[_this.rows.length - 1].tab;
+        }
+
+        if (newActiveTab) {
+          _this.active_tab = newActiveTab;
+
+          _this.refreshTabs();
+        }
+
+        _this.onChange(true);
+
+        _this.jsoneditor.trigger('deleteRow', editor);
+      });
+      this.controls.appendChild(this.delete_last_row_button);
+      this.remove_all_rows_button = this.getButton(this.translate('button_delete_all'), 'delete', this.translate('button_delete_all_title'));
+      this.remove_all_rows_button.classList.add('json-editor-btntype-deleteall');
+      this.remove_all_rows_button.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!_this.askConfirmation()) {
+          return false;
+        }
+
+        _this.empty(true);
+
+        _this.setValue([]);
+
+        _this.onChange(true);
+
+        _this.jsoneditor.trigger('deleteAllRows');
+      });
+      this.controls.appendChild(this.remove_all_rows_button);
+
+      if (this.tabs) {
+        this.add_row_button.style.width = '100%';
+        this.add_row_button.style.textAlign = 'left';
+        this.add_row_button.style.marginBottom = '3px';
+        this.delete_last_row_button.style.width = '100%';
+        this.delete_last_row_button.style.textAlign = 'left';
+        this.delete_last_row_button.style.marginBottom = '3px';
+        this.remove_all_rows_button.style.width = '100%';
+        this.remove_all_rows_button.style.textAlign = 'left';
+        this.remove_all_rows_button.style.marginBottom = '3px';
+      }
+    }
+  }]);
+
+  return PatternkitJsoneditorEditorArray;
+}(JSONEditor.defaults.editors.array);
+
+function patternkitEditorArray($, Drupal, JSONEditor) {
+  'use strict';
+
+  Drupal.behaviors.patternkitEditorArray = {
+    attach: function attach(context, settings) {
+      if (!window.JSONEditor) {
+        return;
+      }
+
+      JSONEditor.defaults.editors.patternkit_editor_array = PatternkitJsoneditorEditorArray;
+      JSONEditor.defaults.resolvers.unshift(function (schema) {
+        if (schema.type === 'array') {
+          return 'patternkit_editor_array';
+        }
+      });
+    }
+  };
+}
+
+},{}],4:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.patternkitEditorObject = patternkitEditorObject;
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _iterableToArrayLimit(arr, i) { if (typeof Symbol === "undefined" || !(Symbol.iterator in Object(arr))) return; var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+/*globals Console:false */
+
+/*globals Drupal:false */
+
+/*globals jQuery:false */
+
+/*globals JSONEditor:false */
+
+/**
+ * Duplicates json-editor trigger utility.
+ *
+ * Cannot figure out how to import it without errors.
+ * The function is defined in @json-editor/json-editor/src/utilities.
+ *
+ * @param el
+ * @param event
+ */
+var trigger = function trigger(el, event) {
+  var e = document.createEvent('HTMLEvents');
+  e.initEvent(event, true, true);
+  el.dispatchEvent(e);
+};
+/**
+ * @file PatternkitJsoneditorEditorObject class.
+ *
+ * @external Drupal
+ * @external jQuery
+ * @external JSONEditor
+ */
+
+
+var PatternkitJsoneditorEditorObject = /*#__PURE__*/function (_JSONEditor$defaults$) {
+  _inherits(PatternkitJsoneditorEditorObject, _JSONEditor$defaults$);
+
+  var _super = _createSuper(PatternkitJsoneditorEditorObject);
+
+  function PatternkitJsoneditorEditorObject() {
+    _classCallCheck(this, PatternkitJsoneditorEditorObject);
+
+    return _super.apply(this, arguments);
+  }
+
+  _createClass(PatternkitJsoneditorEditorObject, [{
+    key: "build",
+
+    /**
+     * Overrides json-editor object build() method.
+     *
+     * Overrides JSONEditor's build() method for objects. The only change is to
+     * trigger toggle of section if user clicks on the label/title, not just on
+     * the expand/collapse button. Makes hiding/showing sections much easier.
+     */
+    value: function build() {
+      var _this = this;
+
+      var isCategoriesFormat = this.format === 'categories';
+      this.rows = [];
+      this.active_tab = null;
+      /* If the object should be rendered as a table row */
+
+      if (this.options.table_row) {
+        this.editor_holder = this.container;
+        Object.entries(this.editors).forEach(function (_ref) {
+          var _ref2 = _slicedToArray(_ref, 2),
+              key = _ref2[0],
+              editor = _ref2[1];
+
+          var holder = _this.theme.getTableCell();
+
+          _this.editor_holder.appendChild(holder);
+
+          editor.setContainer(holder);
+          editor.build();
+          editor.postBuild();
+          editor.setOptInCheckbox(editor.header);
+
+          if (_this.editors[key].options.hidden) {
+            holder.style.display = 'none';
+          }
+
+          if (_this.editors[key].options.input_width) {
+            holder.style.width = _this.editors[key].options.input_width;
+          }
+        });
+        /* If the object should be rendered as a table */
+      } else if (this.options.table) {
+        /* TODO: table display format */
+        throw new Error('Not supported yet');
+        /* If the object should be rendered as a div */
+      } else {
+        this.header = '';
+
+        if (!this.options.compact) {
+          this.header = document.createElement('label');
+          this.header.textContent = this.getTitle();
+        }
+
+        this.title = this.theme.getHeader(this.header);
+        this.controls = this.theme.getButtonHolder();
+        this.controls.style.margin = '0 0 0 10px';
+        this.container.appendChild(this.title);
+        this.container.appendChild(this.controls);
+        this.container.style.position = 'relative';
+        /* Edit JSON modal */
+
+        this.editjson_holder = this.theme.getModal();
+        this.editjson_textarea = this.theme.getTextareaInput();
+        this.editjson_textarea.style.height = '170px';
+        this.editjson_textarea.style.width = '300px';
+        this.editjson_textarea.style.display = 'block';
+        this.editjson_save = this.getButton('Save', 'save', 'Save');
+        this.editjson_save.classList.add('json-editor-btntype-save');
+        this.editjson_save.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          _this.saveJSON();
+        });
+        this.editjson_copy = this.getButton('Copy', 'copy', 'Copy');
+        this.editjson_copy.classList.add('json-editor-btntype-copy');
+        this.editjson_copy.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          _this.copyJSON();
+        });
+        this.editjson_cancel = this.getButton('Cancel', 'cancel', 'Cancel');
+        this.editjson_cancel.classList.add('json-editor-btntype-cancel');
+        this.editjson_cancel.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          _this.hideEditJSON();
+        });
+        this.editjson_holder.appendChild(this.editjson_textarea);
+        this.editjson_holder.appendChild(this.editjson_save);
+        this.editjson_holder.appendChild(this.editjson_copy);
+        this.editjson_holder.appendChild(this.editjson_cancel);
+        /* Manage Properties modal */
+
+        this.addproperty_holder = this.theme.getModal();
+        this.addproperty_list = document.createElement('div');
+        this.addproperty_list.style.width = '295px';
+        this.addproperty_list.style.maxHeight = '160px';
+        this.addproperty_list.style.padding = '5px 0';
+        this.addproperty_list.style.overflowY = 'auto';
+        this.addproperty_list.style.overflowX = 'hidden';
+        this.addproperty_list.style.paddingLeft = '5px';
+        this.addproperty_list.setAttribute('class', 'property-selector');
+        this.addproperty_add = this.getButton('add', 'add', 'add');
+        this.addproperty_add.classList.add('json-editor-btntype-add');
+        this.addproperty_input = this.theme.getFormInputField('text');
+        this.addproperty_input.setAttribute('placeholder', 'Property name...');
+        this.addproperty_input.style.width = '220px';
+        this.addproperty_input.style.marginBottom = '0';
+        this.addproperty_input.style.display = 'inline-block';
+        this.addproperty_add.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          if (_this.addproperty_input.value) {
+            if (_this.editors[_this.addproperty_input.value]) {
+              window.alert('there is already a property with that name');
+              return;
+            }
+
+            _this.addObjectProperty(_this.addproperty_input.value);
+
+            if (_this.editors[_this.addproperty_input.value]) {
+              _this.editors[_this.addproperty_input.value].disable();
+            }
+
+            _this.onChange(true);
+          }
+        });
+        this.addproperty_input.addEventListener('input', function (e) {
+          e.target.previousSibling.childNodes.forEach(function (value) {
+            if (value.innerText.includes(e.target.value)) {
+              value.style.display = '';
+            } else {
+              value.style.display = 'none';
+            }
+          });
+        });
+        this.addproperty_holder.appendChild(this.addproperty_list);
+        this.addproperty_holder.appendChild(this.addproperty_input);
+        this.addproperty_holder.appendChild(this.addproperty_add);
+        var spacer = document.createElement('div');
+        spacer.style.clear = 'both';
+        this.addproperty_holder.appendChild(spacer);
+        /* Close properties modal if clicked outside modal */
+
+        document.addEventListener('click', this.onOutsideModalClick);
+        /* Description */
+
+        if (this.schema.description) {
+          this.description = this.theme.getDescription(this.schema.description);
+          this.container.appendChild(this.description);
+        }
+        /* Validation error placeholder area */
+
+
+        this.error_holder = document.createElement('div');
+        this.container.appendChild(this.error_holder);
+        /* Container for child editor area */
+
+        this.editor_holder = this.theme.getIndentedPanel();
+        this.container.appendChild(this.editor_holder);
+        /* Container for rows of child editors */
+
+        this.row_container = this.theme.getGridContainer();
+
+        if (isCategoriesFormat) {
+          this.tabs_holder = this.theme.getTopTabHolder(this.getValidId(this.schema.title));
+          this.tabPanesContainer = this.theme.getTopTabContentHolder(this.tabs_holder);
+          this.editor_holder.appendChild(this.tabs_holder);
+        } else {
+          this.tabs_holder = this.theme.getTabHolder(this.getValidId(this.schema.title));
+          this.tabPanesContainer = this.theme.getTabContentHolder(this.tabs_holder);
+          this.editor_holder.appendChild(this.row_container);
+        }
+
+        Object.values(this.editors).forEach(function (editor) {
+          var aPane = _this.theme.getTabContent();
+
+          var holder = _this.theme.getGridColumn();
+
+          var isObjOrArray = !!(editor.schema && (editor.schema.type === 'object' || editor.schema.type === 'array'));
+          aPane.isObjOrArray = isObjOrArray;
+
+          if (isCategoriesFormat) {
+            if (isObjOrArray) {
+              var singleRowContainer = _this.theme.getGridContainer();
+
+              singleRowContainer.appendChild(holder);
+              aPane.appendChild(singleRowContainer);
+
+              _this.tabPanesContainer.appendChild(aPane);
+
+              _this.row_container = singleRowContainer;
+            } else {
+              if (typeof _this.row_container_basic === 'undefined') {
+                _this.row_container_basic = _this.theme.getGridContainer();
+                aPane.appendChild(_this.row_container_basic);
+
+                if (_this.tabPanesContainer.childElementCount === 0) {
+                  _this.tabPanesContainer.appendChild(aPane);
+                } else {
+                  _this.tabPanesContainer.insertBefore(aPane, _this.tabPanesContainer.childNodes[1]);
+                }
+              }
+
+              _this.row_container_basic.appendChild(holder);
+            }
+
+            _this.addRow(editor, _this.tabs_holder, aPane);
+
+            aPane.id = _this.getValidId(editor.schema.title);
+            /* editor.schema.path//tab_text.textContent */
+          } else {
+            _this.row_container.appendChild(holder);
+          }
+
+          editor.setContainer(holder);
+          editor.build();
+          editor.postBuild();
+          editor.setOptInCheckbox(editor.header);
+        });
+
+        if (this.rows[0]) {
+          trigger(this.rows[0].tab, 'click');
+        }
+        /* Show/Hide button */
+
+
+        this.collapsed = false;
+        this.collapse_control = this.getButton('', 'collapse', this.translate('button_collapse'));
+        this.collapse_control.style.margin = '0 10px 0 0';
+        this.collapse_control.classList.add('json-editor-btntype-toggle');
+        this.title.insertBefore(this.collapse_control, this.title.childNodes[0]); // <!-- Start PatternKit overrides. -->
+        // Replaces the click handler on the button (element `this.collapse_control`),
+        // so that the section is toggled if you click either on the button or its label
+        // (i.e., if you clicked anywhere on the title).
+
+        this.title.classList.add('patternkit-jsoneditor-clickable');
+        this.title.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          if (_this.collapsed) {
+            _this.editor_holder.style.display = '';
+            _this.collapsed = false;
+
+            _this.setButtonText(_this.collapse_control, '', 'collapse', _this.translate('button_collapse'));
+          } else {
+            _this.editor_holder.style.display = 'none';
+            _this.collapsed = true;
+
+            _this.setButtonText(_this.collapse_control, '', 'expand', _this.translate('button_expand'));
+          }
+        }); // <!-- End PatternKit overrides. -->
+
+        /* If it should start collapsed */
+
+        if (this.options.collapsed) {
+          trigger(this.collapse_control, 'click');
+        }
+        /* Collapse button disabled */
+
+
+        if (this.schema.options && typeof this.schema.options.disable_collapse !== 'undefined') {
+          if (this.schema.options.disable_collapse) this.collapse_control.style.display = 'none';
+        } else if (this.jsoneditor.options.disable_collapse) {
+          this.collapse_control.style.display = 'none';
+        }
+        /* Edit JSON Button */
+
+
+        this.editjson_control = this.getButton('JSON', 'edit', 'Edit JSON');
+        this.editjson_control.classList.add('json-editor-btntype-editjson');
+        this.editjson_control.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          _this.toggleEditJSON();
+        });
+        this.controls.appendChild(this.editjson_control);
+        this.controls.insertBefore(this.editjson_holder, this.controls.childNodes[0]);
+        /* Edit JSON Buttton disabled */
+
+        if (this.schema.options && typeof this.schema.options.disable_edit_json !== 'undefined') {
+          if (this.schema.options.disable_edit_json) this.editjson_control.style.display = 'none';
+        } else if (this.jsoneditor.options.disable_edit_json) {
+          this.editjson_control.style.display = 'none';
+        }
+        /* Object Properties Button */
+
+
+        this.addproperty_button = this.getButton('Properties', 'edit_properties', this.translate('button_object_properties'));
+        this.addproperty_button.classList.add('json-editor-btntype-properties');
+        this.addproperty_button.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          _this.toggleAddProperty();
+        });
+        this.controls.appendChild(this.addproperty_button);
+        this.controls.insertBefore(this.addproperty_holder, this.controls.childNodes[1]);
+        this.refreshAddProperties();
+        /* non required properties start deactivated */
+
+        this.deactivateNonRequiredProperties();
+      }
+      /* Fix table cell ordering */
+
+
+      if (this.options.table_row) {
+        this.editor_holder = this.container;
+        this.property_order.forEach(function (key) {
+          _this.editor_holder.appendChild(_this.editors[key].container);
+        });
+        /* Layout object editors in grid if needed */
+      } else {
+        /* Initial layout */
+        this.layoutEditors();
+        /* Do it again now that we know the approximate heights of elements */
+
+        this.layoutEditors();
+      }
+    }
+  }]);
+
+  return PatternkitJsoneditorEditorObject;
+}(JSONEditor.defaults.editors.object);
+
+function patternkitEditorObject($, Drupal, JSONEditor) {
+  'use strict';
+
+  Drupal.behaviors.patternkitEditorObject = {
+    attach: function attach(context, settings) {
+      if (!window.JSONEditor) {
+        return;
+      }
+
+      JSONEditor.defaults.editors.patternkit_editor_object = PatternkitJsoneditorEditorObject;
+      JSONEditor.defaults.resolvers.unshift(function (schema) {
+        if (schema.type === 'object') {
+          return 'patternkit_editor_object';
+        }
+      });
+    }
+  };
+}
+
+},{}],5:[function(require,module,exports){
+"use strict";
+
 var _patternkitJsoneditorQuillEs = require("./patternkit.jsoneditor.quill.es6.js");
 
 var _patternkitJsoneditorCkeditor = require("./patternkit.jsoneditor.ckeditor.es6");
@@ -374,6 +1102,10 @@ var _patternkitJsoneditorCkeditor = require("./patternkit.jsoneditor.ckeditor.es
 var _patternkitJsoneditorCygnetEs = require("./patternkit.jsoneditor.cygnet.es6.js");
 
 var _patternkitJsoneditorProsemirror = require("./patternkit.jsoneditor.prosemirror.es6");
+
+var _patternkitJsoneditorEditorObject = require("./patternkit.jsoneditor.editor.object.es6");
+
+var _patternkitJsoneditorEditorArray = require("./patternkit.jsoneditor.editor.array.es6");
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
@@ -383,10 +1115,16 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
+// Instantiates wysiwyg plugins.
 (0, _patternkitJsoneditorQuillEs.patternkitEditorQuill)(jQuery, Drupal, JSONEditor);
 (0, _patternkitJsoneditorCkeditor.patternkitEditorCKEditor)(jQuery, Drupal, JSONEditor);
 (0, _patternkitJsoneditorCygnetEs.patternkitEditorCygnet)(jQuery, Drupal, JSONEditor);
-(0, _patternkitJsoneditorProsemirror.patternkitEditorProseMirror)(jQuery, Drupal, JSONEditor);
+(0, _patternkitJsoneditorProsemirror.patternkitEditorProseMirror)(jQuery, Drupal, JSONEditor); // Overrides the object and array json-editor editors, to customize certain
+// methods.  The only use case so far is to trigger toggling of items by
+// clicking on the button's title instead of just the small button itself.
+
+(0, _patternkitJsoneditorEditorObject.patternkitEditorObject)(jQuery, Drupal, JSONEditor);
+(0, _patternkitJsoneditorEditorArray.patternkitEditorArray)(jQuery, Drupal, JSONEditor);
 
 (function ($, Drupal, JSONEditor) {
   'use strict';
@@ -608,12 +1346,28 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
             $(_this2).off('submit');
           });
         });
+      }); // If user closes the Layout Builder dialog without saving, this cleans
+      // up Patternkit (and, in turn) CKEditor instance.  Code stolen from
+      // `Drupal.behaviors.offCanvasEvents`.
+
+      $(window).once('patternkit-jsoneditor-off-canvas').on('dialog:beforeclose', function (event, dialog, $element) {
+        // The editor may have already been destroyed if its form was
+        // submitted. The following code only destroys the editor if the modal
+        // gets closed without submitting the form.
+        if (window.patternkitEditor) {
+          window.patternkitEditor.disable();
+          window.patternkitEditor.destroy();
+          delete window.patternkitEditor;
+        }
       });
     }
-  };
+  }; // Uses Handlebars template engine so that we can use logic in
+  // `headerTemplate` property in schemas.
+
+  JSONEditor.defaults.options.template = 'handlebars';
 })(jQuery, Drupal, JSONEditor);
 
-},{"./patternkit.jsoneditor.ckeditor.es6":1,"./patternkit.jsoneditor.cygnet.es6.js":2,"./patternkit.jsoneditor.prosemirror.es6":4,"./patternkit.jsoneditor.quill.es6.js":5}],4:[function(require,module,exports){
+},{"./patternkit.jsoneditor.ckeditor.es6":1,"./patternkit.jsoneditor.cygnet.es6.js":2,"./patternkit.jsoneditor.editor.array.es6":3,"./patternkit.jsoneditor.editor.object.es6":4,"./patternkit.jsoneditor.prosemirror.es6":6,"./patternkit.jsoneditor.quill.es6.js":7}],6:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -796,7 +1550,7 @@ function patternkitEditorProseMirror($, Drupal, JSONEditor) {
   };
 }
 
-},{"prosemirror-example-setup":10,"prosemirror-model":16,"prosemirror-schema-basic":17,"prosemirror-schema-list":18,"prosemirror-state":19,"prosemirror-view":21}],5:[function(require,module,exports){
+},{"prosemirror-example-setup":12,"prosemirror-model":18,"prosemirror-schema-basic":19,"prosemirror-schema-list":20,"prosemirror-state":21,"prosemirror-view":23}],7:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1004,7 +1758,7 @@ function patternkitEditorQuill($, Drupal, JSONEditor) {
   };
 }
 
-},{}],6:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 'use strict';
 
 function crelt() {
@@ -1037,7 +1791,7 @@ function add(elt, child) {
 
 module.exports = crelt;
 
-},{}],7:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 // ::- Persistent data structure representing an ordered mapping from
 // strings to values, with some convenient update methods.
 function OrderedMap(content) {
@@ -1168,7 +1922,7 @@ OrderedMap.from = function(value) {
 
 module.exports = OrderedMap
 
-},{}],8:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -1851,7 +2605,7 @@ exports.toggleMark = toggleMark;
 exports.wrapIn = wrapIn;
 
 
-},{"prosemirror-model":16,"prosemirror-state":19,"prosemirror-transform":20}],9:[function(require,module,exports){
+},{"prosemirror-model":18,"prosemirror-state":21,"prosemirror-transform":22}],11:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -1994,7 +2748,7 @@ DropCursorView.prototype.dragleave = function dragleave (event) {
 exports.dropCursor = dropCursor;
 
 
-},{"prosemirror-state":19,"prosemirror-transform":20}],10:[function(require,module,exports){
+},{"prosemirror-state":21,"prosemirror-transform":22}],12:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -2599,7 +3353,7 @@ exports.buildMenuItems = buildMenuItems;
 exports.exampleSetup = exampleSetup;
 
 
-},{"prosemirror-commands":8,"prosemirror-dropcursor":9,"prosemirror-gapcursor":11,"prosemirror-history":12,"prosemirror-inputrules":13,"prosemirror-keymap":14,"prosemirror-menu":15,"prosemirror-schema-list":18,"prosemirror-state":19}],11:[function(require,module,exports){
+},{"prosemirror-commands":10,"prosemirror-dropcursor":11,"prosemirror-gapcursor":13,"prosemirror-history":14,"prosemirror-inputrules":15,"prosemirror-keymap":16,"prosemirror-menu":17,"prosemirror-schema-list":20,"prosemirror-state":21}],13:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -2804,7 +3558,7 @@ exports.GapCursor = GapCursor;
 exports.gapCursor = gapCursor;
 
 
-},{"prosemirror-keymap":14,"prosemirror-model":16,"prosemirror-state":19,"prosemirror-view":21}],12:[function(require,module,exports){
+},{"prosemirror-keymap":16,"prosemirror-model":18,"prosemirror-state":21,"prosemirror-view":23}],14:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -3263,7 +4017,7 @@ exports.undo = undo;
 exports.undoDepth = undoDepth;
 
 
-},{"prosemirror-state":19,"prosemirror-transform":20,"rope-sequence":22}],13:[function(require,module,exports){
+},{"prosemirror-state":21,"prosemirror-transform":22,"rope-sequence":24}],15:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -3457,7 +4211,7 @@ exports.undoInputRule = undoInputRule;
 exports.wrappingInputRule = wrappingInputRule;
 
 
-},{"prosemirror-state":19,"prosemirror-transform":20}],14:[function(require,module,exports){
+},{"prosemirror-state":21,"prosemirror-transform":22}],16:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -3569,7 +4323,7 @@ exports.keydownHandler = keydownHandler;
 exports.keymap = keymap;
 
 
-},{"prosemirror-state":19,"w3c-keyname":23}],15:[function(require,module,exports){
+},{"prosemirror-state":21,"w3c-keyname":25}],17:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -4227,7 +4981,7 @@ exports.undoItem = undoItem;
 exports.wrapItem = wrapItem;
 
 
-},{"crelt":6,"prosemirror-commands":8,"prosemirror-history":12,"prosemirror-state":19}],16:[function(require,module,exports){
+},{"crelt":8,"prosemirror-commands":10,"prosemirror-history":14,"prosemirror-state":21}],18:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -7672,7 +8426,7 @@ exports.Schema = Schema;
 exports.Slice = Slice;
 
 
-},{"orderedmap":7}],17:[function(require,module,exports){
+},{"orderedmap":9}],19:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -7847,7 +8601,7 @@ exports.nodes = nodes;
 exports.schema = schema;
 
 
-},{"prosemirror-model":16}],18:[function(require,module,exports){
+},{"prosemirror-model":18}],20:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -8103,7 +8857,7 @@ exports.splitListItem = splitListItem;
 exports.wrapInList = wrapInList;
 
 
-},{"prosemirror-model":16,"prosemirror-transform":20}],19:[function(require,module,exports){
+},{"prosemirror-model":18,"prosemirror-transform":22}],21:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -9254,7 +10008,7 @@ exports.TextSelection = TextSelection;
 exports.Transaction = Transaction;
 
 
-},{"prosemirror-model":16,"prosemirror-transform":20}],20:[function(require,module,exports){
+},{"prosemirror-model":18,"prosemirror-transform":22}],22:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -10925,7 +11679,7 @@ exports.liftTarget = liftTarget;
 exports.replaceStep = replaceStep;
 
 
-},{"prosemirror-model":16}],21:[function(require,module,exports){
+},{"prosemirror-model":18}],23:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -16107,7 +16861,7 @@ exports.__parseFromClipboard = parseFromClipboard;
 exports.__serializeForClipboard = serializeForClipboard;
 
 
-},{"prosemirror-model":16,"prosemirror-state":19,"prosemirror-transform":20}],22:[function(require,module,exports){
+},{"prosemirror-model":18,"prosemirror-state":21,"prosemirror-transform":22}],24:[function(require,module,exports){
 'use strict';
 
 var GOOD_LEAF_SIZE = 200;
@@ -16320,7 +17074,7 @@ var ropeSequence = RopeSequence;
 
 module.exports = ropeSequence;
 
-},{}],23:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -16454,4 +17208,4 @@ exports.base = base;
 exports.keyName = keyName;
 exports.shift = shift;
 
-},{}]},{},[3]);
+},{}]},{},[5]);

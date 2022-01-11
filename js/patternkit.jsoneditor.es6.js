@@ -19,11 +19,20 @@ import {patternkitEditorQuill} from './patternkit.jsoneditor.quill.es6.js';
 import {patternkitEditorCKEditor} from './patternkit.jsoneditor.ckeditor.es6';
 import {patternkitEditorCygnet} from './patternkit.jsoneditor.cygnet.es6.js';
 import {patternkitEditorProseMirror} from "./patternkit.jsoneditor.prosemirror.es6";
+import {patternkitEditorObject} from './patternkit.jsoneditor.editor.object.es6';
+import {patternkitEditorArray} from './patternkit.jsoneditor.editor.array.es6';
 
+// Instantiates wysiwyg plugins.
 patternkitEditorQuill(jQuery, Drupal, JSONEditor);
 patternkitEditorCKEditor(jQuery, Drupal, JSONEditor);
 patternkitEditorCygnet(jQuery, Drupal, JSONEditor);
 patternkitEditorProseMirror(jQuery, Drupal, JSONEditor);
+
+// Overrides the object and array json-editor editors, to customize certain
+// methods.  The only use case so far is to trigger toggling of items by
+// clicking on the button's title instead of just the small button itself.
+patternkitEditorObject(jQuery, Drupal, JSONEditor);
+patternkitEditorArray(jQuery, Drupal, JSONEditor);
 
 (function ($, Drupal, JSONEditor) {
  'use strict';
@@ -215,6 +224,25 @@ patternkitEditorProseMirror(jQuery, Drupal, JSONEditor);
          });
        });
      });
+
+     // If user closes the Layout Builder dialog without saving, this cleans
+     // up Patternkit (and, in turn) CKEditor instance.  Code stolen from
+     // `Drupal.behaviors.offCanvasEvents`.
+     $(window).once('patternkit-jsoneditor-off-canvas').on('dialog:beforeclose', (event, dialog, $element) => {
+       // The editor may have already been destroyed if its form was
+       // submitted. The following code only destroys the editor if the modal
+       // gets closed without submitting the form.
+       if (window.patternkitEditor) {
+         window.patternkitEditor.disable();
+         window.patternkitEditor.destroy();
+         delete window.patternkitEditor;
+       }
+     });
    }
  };
+
+ // Uses Handlebars template engine so that we can use logic in
+ // `headerTemplate` property in schemas.
+ JSONEditor.defaults.options.template = 'handlebars';
+
 })(jQuery, Drupal, JSONEditor);

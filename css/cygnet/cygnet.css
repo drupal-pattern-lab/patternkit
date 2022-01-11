@@ -1,458 +1,444 @@
 [data-theme=cygnet] {
-    font-family: 'RedHatText', Helvetica, Arial, sans-serif;
-    font-weight: 300;
-    color: #151515;
-    margin-top: 32px;
+  font-family: 'RedHatText', Helvetica, Arial, sans-serif;
+  font-weight: 300;
+  color: #151515;
+  margin-top: 32px;
 }
 
 [data-theme=cygnet] a {
-    color: #0066cc;
+  color: #0066cc;
 }
 
 [data-theme=cygnet] h3 {
-    margin: 0 0 16px 0;
-    font-weight: 300;
-    font-size: 18px;
+  margin: 0 0 16px 0;
+  font-weight: 300;
+  font-size: 18px;
 }
 
 [data-theme=cygnet] h3 > label {
-    position: relative;
-    top: 4px;
-    margin-right: 16px;
+  position: relative;
+  top: 4px;
+  margin-right: 16px;
 }
 
 [data-theme=cygnet] p {
-    margin-top: 0;
-    margin-left: 20px;
+  margin-top: 0;
+  margin-left: 20px;
 }
 
-/* Set pattern title largest font-size */
+/* Set largest font-size for top level titles. */
 
 [data-theme=cygnet] [data-schemapath=root] > h3 {
-    font-size: 28px;
+  font-size: 28px;
 }
 
-[data-theme=cygnet] .je-form-input-label {
-    display: block;
-    font-family: 'RedHatDisplay', Helvetica, Arial, sans-serif;
-    font-weight: 700;
-    font-size: 14px;
-    padding-bottom: 4px;
+.je-cygnet-form-input-label {
+  display: block;
+  font-family: 'RedHatDisplay', Helvetica, Arial, sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  padding-bottom: 4px;
 }
 
-[data-theme=cygnet] p.je-form-input-label {
-    font-weight: 300;
+[data-theme=cygnet] p.je-cygnet-form-input-label {
+  font-weight: 300;
 }
 
-[data-theme=cygnet] .je-indented-panel {
-    margin-bottom: 16px;
+.je-cygnet-indented-panel {
+  margin-bottom: 16px;
 }
 
 [data-theme=cygnet] input[type=text],
 [data-theme=cygnet] input[type=url],
 [data-theme=cygnet] select,
 [data-theme=cygnet] textarea {
-    width: 100% !important;
-    box-sizing: border-box;
-    border: 1px solid #d2d2d2;
-    border-bottom: 1px solid #6a6e73;
-    margin-left: 0 !important;
-    margin-bottom: 4px !important;
-    padding: 4px 8px !important;
-    background-color: #fff !important;
-    font-family: 'RedHatText', Helvetica, Arial, sans-serif;
-    font-size: 16px;
+  width: 100% !important;
+  box-sizing: border-box;
+  border: 1px solid #d2d2d2;
+  border-bottom: 1px solid #6a6e73;
+  margin-left: 0 !important;
+  margin-bottom: 4px !important;
+  padding: 4px 8px !important;
+  background-color: #fff !important;
+  font-family: 'RedHatText', Helvetica, Arial, sans-serif;
+  font-size: 16px;
 }
 
 [data-theme=cygnet] select {
-    font-style: normal !important;
-    font-size: 16px !important;
+  font-style: normal !important;
+  font-size: 16px !important;
 }
 
 [data-theme=cygnet] input[type=text],
 [data-theme=cygnet] input[type=url] {
-    width: 80%;
+  width: 80%;
 }
 
-[data-theme=cygnet] .je-indented-panel {
-    /* border: 1px solid #d2d2d2 !important; */
-    border-left: 0 !important;
-    border-radius: 3px;
+.je-cygnet-indented-panel {
+  border-radius: 3px;
 }
 
-/* GRAY BACKGROUND COLOR ON TOP-LEVEL OBJECTS */
+/* Gray background on second-level objects and arrays. */
 
-[data-theme=cygnet] > [data-schemapath=root] > .je-indented-panel > div > div > .row > [data-schematype=object] > .je-indented-panel,
-[data-theme=cygnet] > [data-schemapath=root] > .je-indented-panel > div > div > .row > [data-schematype=array] > .je-indented-panel {
-    border: 1px solid #d2d2d2 !important;
-    background-color: #f0f0f0;
-    border-radius: 3px;
-    margin-left: 20px !important;
+[data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] .je-cygnet-indented-panel,
+[data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] .je-cygnet-indented-panel {
+  border: 1px solid #d2d2d2 !important;
+  padding: 16px 16px 0 16px !important;
+  background-color: #f0f0f0;
+  border-radius: 3px;
 }
 
-[data-theme=cygnet] > [data-schemapath=root] > .je-indented-panel > div > div > .row > [data-schematype=array] > .je-indented-panel > div > .je-indented-panel {
-    background-color: transparent;
+/* White background on objects beneath the second-level objects and arrays. */
+
+[data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] .je-cygnet-indented-panel .je-cygnet-indented-panel,
+[data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] .je-cygnet-indented-panel .je-cygnet-indented-panel {
+  background-color: #fff;
 }
 
-[data-theme=cygnet] > [data-schematype=object] > .je-indented-panel > div > div > .row > [data-schematype=object],
-[data-theme=cygnet] > [data-schematype=object] > .je-indented-panel > div > div > .row > [data-schematype=array] {
-    margin-left: 20px;
+[data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel .je-cygnet-indented-panel,
+[data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] > .je-cygnet-indented-panel .je-cygnet-indented-panel {
+  padding: 16px 16px 0 16px !important;
+  background-color: #ffffff;
 }
 
-/* SET INDENTS ON TOP LEVEL STRING FIELDS */
+/* Objects and arrays nested two layers beneath the second level have no padding or borders.  */
 
-[data-theme=cygnet] > [data-schemapath=root] > .je-indented-panel > div > div > .row > [data-schematype=string] {
-    margin-left: 36px;
+[data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel .je-cygnet-indented-panel .je-cygnet-indented-panel,
+[data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] > .je-cygnet-indented-panel .je-cygnet-indented-panel .je-cygnet-indented-panel {
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+[data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] > .je-cygnet-indented-panel > div > .je-cygnet-indented-panel {
+  background-color: transparent;
+}
+
+/* Indent objects and arrays on the second level. */
+
+[data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object],
+[data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] {
+  margin-left: 20px;
+}
+
+[data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] .je-cygnet-indented-panel > .je-cygnet-indented-panel {
+  border: 0 !important;
+  margin-left: 0 !important;
+}
+
+/* Indent second-level rows. */
+
+[data-theme=cygnet] > [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row {
+  margin-left: 20px;
+}
+
+[data-theme=cygnet] > [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] {
+  margin-left: 0;
+}
+
+/* Indent top-level string fields. */
+
+[data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=string] {
+  margin-left: 36px;
 }
 
 
-/* WHITE BACKGROUND COLOR ON SECOND-LEVEL OBJECTS */
+/* White background on second-level objects */
 
-[data-theme=cygnet] > [data-schematype=object] > .je-indented-panel > div > div > .row > [data-schematype=object] > .je-indented-panel > [data-schematype=object] > .je-indented-panel > div > div > .row > div > .je-indented-panel {
-    border: 1px solid #d2d2d2 !important;
-    background-color: #ffffff;
-    border-radius: 3px;
-    margin-left: 20px !important;
+[data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel > [data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > div > .je-cygnet-indented-panel {
+  border: 1px solid #d2d2d2 !important;
+  background-color: #ffffff;
+  border-radius: 3px;
+  margin-left: 20px !important;
 }
 
-/* REMOVE BORDER FROM OBJECTS EMBEDDED IN TOP-LEVEL OBJECTS */
-
-[data-theme=cygnet] > [data-schematype=object] > .je-indented-panel > div > div .row > [data-schematype=object] > .je-indented-panel > div > div > .row > [data-schematype=object] > .je-indented-panel {
-    border: 0 !important;
+.je-cygnet-indented-panel .je-cygnet-indented-panel h3 {
+  font-size: 20px;
 }
 
-[data-theme=cygnet] .je-indented-panel .je-indented-panel {
-    background-color: #ffffff;
-    padding: 16px 16px 0 16px !important;
-    margin-left: 0 !important;
+/* Indent panels adjacent to clickable panes. */
+.je-cygnet-indented-panel div div .row [data-schematype=object] .patternkit-jsoneditor-clickable ~ .je-cygnet-indented-panel {
+  margin-left: 20px;
 }
 
-[data-theme=cygnet] .je-indented-panel .je-indented-panel h3 {
-    font-size: 20px;
+.je-cygnet-indented-panel [data-schematype=array] > .je-cygnet-indented-panel {
+  position: relative;
+  margin-bottom: 0;
 }
 
-/* REMOVE BORDERS AND PADDING FROM NESTED ARRAYS */
+/* Apply gray border to panels inside arrays. */
 
-[data-theme=cygnet] .je-indented-panel [data-schematype=array] > .je-indented-panel {
-    position: relative;
-    margin-bottom: 0;
+[data-schematype=array] > .je-cygnet-indented-panel {
+  border: 1px solid #d2d2d2 !important;
 }
 
-/* OBJECTS WITHIN ARRAYS SHOULD HAVE A BORDER */
+/* Remove gray border from panels inside arrays. */
 
-[data-theme=cygnet] [data-schematype=array] > .je-indented-panel {
-    border: 1px solid #d2d2d2 !important;
+[data-schematype=array] > .je-cygnet-indented-panel [data-schematype=array] > .je-cygnet-indented-panel {
+  border: 0 !important;
 }
 
-/* OBJECTS NESTED IN A NESTED ARRAY SHOULD NOT HAVE A BORDER */
+/* Remove margin and padding from panels nested within child-editor. */
 
-[data-theme=cygnet] [data-schematype=array] > .je-indented-panel [data-schematype=array] > .je-indented-panel {
-    border: 0 !important;
+.je-cygnet-child-editor-holder > .je-cygnet-indented-panel {
+  margin-bottom: 0;
+  padding-bottom: 0 !important;
+  padding-top: 0 !important;
 }
 
-/* REMOVE MARGIN FROM CHILD EDITOR */
-
-[data-theme=cygnet] .je-child-editor-holder > .je-indented-panel {
-    margin-bottom: 0;
-    padding-bottom: 0 !important;
-    padding-top: 0 !important;
+.je-cygnet-child-editor-holder > p {
+  margin-left: 36px;
 }
 
-[data-theme=cygnet] .je-child-editor-holder > p {
-    margin-left: 36px;
+.je-cygnet-child-editor-holder > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel {
+  padding: 0 !important;
 }
 
-[data-theme=cygnet] .je-child-editor-holder > .je-indented-panel > div > div > .row > [data-schematype=object] > .je-indented-panel {
-    padding: 0 !important;
+[data-schematype="array"] .je-cygnet-indented-panel {
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
-/* SET ARRAY LABELS TO BE STICKY */
-
-[data-theme=cygnet] > [data-schematype="object"] > .je-indented-panel [data-schematype="object"] > .je-indented-panel [data-schematype="array"] > .je-indented-panel [data-schematype=array] > h3 {
-    position: sticky;
-    box-sizing: border-box;
-    width: 100% !important;
-    top: 0;
-    background-color: #f0f0f0;
-    z-index: 40;
-    margin-bottom: 0;
-    padding: 0 0 8px 8px;
-    border: 1px solid #d2d2d2;
+[data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="array"] > .je-cygnet-indented-panel [data-schematype=array] > h3 + .je-cygnet-indented-panel {
+  border-top: 0;
 }
 
-[data-theme=cygnet] > [data-schematype="object"] > .je-indented-panel [data-schematype="object"] > .je-indented-panel [data-schematype="array"] > .je-indented-panel [data-schematype=array] > h3 + p {
-    margin-top: 16px;
-    margin-left: 28px;
+/* Apply borders to panels inside a nested array. */
+
+[data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="array"] > .je-cygnet-indented-panel [data-schematype=array] > .je-cygnet-indented-panel > div > .je-cygnet-indented-panel > div > .je-cygnet-child-editor-holder > .je-cygnet-indented-panel {
+  padding: 16px !important;
+  border: 1px solid #d2d2d2 !important;
+  margin-bottom: 16px;
+  margin-left: 36px !important;
 }
 
-[data-theme=cygnet] > [data-schematype="object"] > .je-indented-panel [data-schematype="object"] > .je-indented-panel [data-schematype="array"] > .je-indented-panel [data-schematype=array] > .je-indented-panel {
-    margin-left: 28px;
+[data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="array"] > .je-cygnet-indented-panel [data-schematype=array] > .je-cygnet-indented-panel > div > .je-cygnet-indented-panel > div > .je-cygnet-child-editor-holder > .je-cygnet-indented-panel > div > div > .row {
+  margin-left: 0;
 }
 
-[data-theme=cygnet] [data-schematype="array"] .je-indented-panel {
-    padding-top: 0;
-    padding-bottom: 0;
-}
-
-[data-theme=cygnet] > [data-schematype="object"] > .je-indented-panel [data-schematype="object"] > .je-indented-panel [data-schematype="array"] > .je-indented-panel [data-schematype=array] > h3 + .je-indented-panel {
-    border-top: 0;
-}
-
-/* UNSET STICKY LABELS FOR ARRAY WITHIN ARRAY */
-
-[data-theme=cygnet] > [data-schematype="object"] > .je-indented-panel [data-schematype="object"] > .je-indented-panel [data-schematype="array"] > .je-indented-panel [data-schematype=array] > .je-indented-panel h3 {
-    position: static;
-    width: auto;
-    background-color: transparent;
-    padding: 0;
-    margin-bottom: 16px;
-    border: 0;
-}
-
-/* BORDER AROUND FIELDS INSIDE A NESTED ARRAY */
-
-[data-theme=cygnet] > [data-schematype="object"] > .je-indented-panel [data-schematype="object"] > .je-indented-panel [data-schematype="array"] > .je-indented-panel [data-schematype=array] > .je-indented-panel > div > .je-indented-panel > div > .je-child-editor-holder > .je-indented-panel {
-    padding: 16px !important;
-    border: 1px solid #d2d2d2 !important;
-    margin-bottom: 16px;
-    margin-left: 36px !important;
-}
-
-[data-theme=cygnet] > [data-schematype="object"] > .je-indented-panel [data-schematype="object"] > .je-indented-panel [data-schematype="array"] > .je-indented-panel [data-schematype=array] > .je-indented-panel > div > .je-indented-panel > div > .je-child-editor-holder > .je-indented-panel > div > div > .row {
-    margin-left: 0;
-}
-
-/* FLEXBOX CONTAINER QUERY HACK */
+/* Flexbox container query hack. */
+/* https://heydonworks.com/article/the-flexbox-holy-albatross/ */
 
 [data-theme=cygnet] .row {
-    display: flex;
-    flex-wrap: wrap;
-    --multiplier: calc(30rem - 100%);
-    gap: 10px;
-    margin-left: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  --multiplier: calc(30rem - 100%);
+  gap: 10px;
+  margin-left: 20px;
 }
 
 [data-theme=cygnet] .row > div {
-    min-width: 48%;
-    max-width: 100%;
-    flex-grow: 1;
-    flex-basis: calc(var(--multiplier) * 999);
-    margin-bottom: 8px;
+  min-width: 48%;
+  max-width: 100%;
+  flex-grow: 1;
+  flex-basis: calc(var(--multiplier) * 999);
+  margin-bottom: 8px;
+}
+
+[data-theme=cygnet] .row > div:last-child {
+  margin-bottom: 16px;
 }
 
 [data-theme=cygnet] .row > * > span {
-    margin-left: 0 !important;
+  margin-left: 0 !important;
 }
 
 [data-theme=cygnet] .row > .col-md-3 {
-    min-width: 23%;
+  min-width: 23%;
 }
 
 [data-theme=cygnet] .row > .col-md-4 {
-    min-width: 31%;
+  min-width: 31%;
 }
 
-/* BUTTON STYLES */
+/* Button styles. */
 
 [data-theme=cygnet] button {
-    cursor: pointer;
-    font-family: 'RedHatDisplay', Helvetica, Arial, sans-serif;
-    color: #0066cc;
-    border: 1px solid #0066cc;
-    border-radius: 3px;
-    background-color: #ffffff;
-    font-size: 14px;
-    padding: 6px 16px;
+  cursor: pointer;
+  font-family: 'RedHatDisplay', Helvetica, Arial, sans-serif;
+  color: #0066cc;
+  border: 1px solid #0066cc;
+  border-radius: 3px;
+  background-color: #ffffff;
+  font-size: 14px;
+  padding: 6px 16px;
 }
 
 [data-theme=cygnet] button:hover {
-    background-color: #0066cc;
-    color: #ffffff;
-} 
+  background-color: #0066cc;
+  color: #ffffff;
+}
 
 [data-theme=cygnet] button[title=Collapse],
 [data-theme=cygnet] button[title=Expand] {
-    border: 0;
-    border-radius: 3px;
-    background-color: transparent;
-    padding: 8px 0;
+  border: 0;
+  border-radius: 3px;
+  background-color: transparent;
+  padding: 0;
 }
 
-.je-header-button-holder {
-    padding: 16px 0 0 16px;
+.je-cygnet-header-button-holder {
+  padding: 8px 0 0 0;
+  margin-left: 20px;
 }
 
 [data-theme=cygnet] .json-editor-btn-add {
-    border: 1px solid #0066cc;
-    background-color: #0066cc;
-    color: #ffffff;
-    margin-bottom: 16px;
+  border: 1px solid #0066cc;
+  background-color: #0066cc;
+  color: #ffffff;
+  margin-bottom: 16px;
 }
 
 [data-theme=cygnet] .json-editor-btn-subtract,
 [data-theme=cygnet] .json-editor-btn-delete {
-    border: 1px solid #ee0000;
-    color: #ee0000;
-    margin-left: 16px;
-    margin-bottom: 16px;
+  border: 1px solid #ee0000;
+  color: #ee0000;
+  margin-left: 16px;
+  margin-bottom: 16px;
 }
 
 [data-theme=cygnet] .json-editor-btn-subtract:hover,
 [data-theme=cygnet] .json-editor-btn-delete:hover {
-    background-color: #ee0000;
-    color: #ffffff;
+  background-color: #ee0000;
+  color: #ffffff;
 }
 
 [data-theme=cygnet] .json-editor-btn-moveup,
 [data-theme=cygnet] .json-editor-btn-movedown {
-    margin-left: 16px;
-    margin-bottom: 16px;
+  margin-left: 16px;
+  margin-bottom: 16px;
 }
 
-[data-theme=cygnet] .json-editor-btntype-properties:hover {
-    color: #0066cc;
-    text-decoration: underline;
+/* Hide the Properties buttons. */
+
+[data-theme=cygnet] .json-editor-btntype-properties {
+  display: none;
 }
 
-[data-theme=cygnet] [data-schemapath=root] > span > .json-editor-btntype-properties {
-    background-color: #ffffff;
-    border: 1px solid #0066cc;
-}
-
-[data-theme=cygnet] [data-schemapath=root] > span > .json-editor-btntype-properties: hover {
-    color: #ffffff;
-    background-color: #0066cc;
-}
-
-/* ACCORDION ARROWS */
+/* Accordion styles. */
 
 [data-theme=cygnet] button[title=Collapse]::before {
-    content: " ";
-    display: inline-block;
-    position: relative;
-    top: 3px;
-    width: 7px;
-    height: 7px;
-    border: solid #151515;
-    border-width: 0 1.75px 1.75px 0;
-    transform: rotate(-135deg);
-    -webkit-transform: rotate(-135deg);
+  content: " ";
+  cursor: pointer;
+  display: inline-block;
+  position: relative;
+  top: 3px;
+  width: 7px;
+  height: 7px;
+  border: solid #151515;
+  border-width: 0 1.75px 1.75px 0;
+  transform: rotate(45deg);
+  -webkit-transform: rotate(45deg);
 }
 
 [data-theme=cygnet] button[title=Expand]::before {
-    content: " ";
-    display: inline-block;
-    position: relative;
-    width: 7px;
-    height: 7px;
-    border: solid #151515;
-    border-width: 0 1.75px 1.75px 0;
-    transform: rotate(45deg);
-    -webkit-transform: rotate(45deg);
+  content: " ";
+  cursor: pointer;
+  display: inline-block;
+  position: relative;
+  width: 7px;
+  height: 7px;
+  border: solid #151515;
+  border-width: 0 1.75px 1.75px 0;
+  transform: rotate(315deg);
+  -webkit-transform: rotate(315deg);
 }
 
 [data-theme=cygnet] button[title=Collapse] > span,
 [data-theme=cygnet] button[title=Expand] > span {
-    display: none;
+  display: none;
 }
 
-/* PATTERN HEADER */
+/* Indent paragraphs inside root. */
 
 [data-theme=cygnet] [data-schemapath=root] > p {
-    margin-left: 20px;
+  margin-left: 20px;
 }
 
 [data-theme=cygnet] [data-schemapath=root] .form-control > p {
-    margin-left: 0;
-}
-
-/* TOP LEVEL PROPERTIES BUTTONS SHOULD FLOAT RIGHT */
-
-[data-theme=cygnet] [data-schemapath=root] > .je-indented-panel > div > div > .row > [data-schematype=object] > span > .json-editor-btntype-properties {
-    background-color: #ffffff;
-    border: 1px solid #06c;
-    border-radius: 3px;
-    float: right;
-}
-
-[data-theme=cygnet] [data-schemapath=root] > .je-indented-panel > div > div > .row > [data-schematype=object] > .je-indented-panel .json-editor-btntype-properties {
-    padding: 0;
-    border: 0;
-    background-color: transparent;
-}
-
-/* REGION LEVEL PANELS SHOULD HAVE GRAY BACKGROUND */
-
-[data-theme=cygnet] > div > .je-indented-panel {
-    background-color: #ffffff !important;
-    border: 0 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-}
-
-[data-theme=cygnet] [data-schematype="object"] [data-schematype="object"] .je-indented-panel .je-indented-panel {
-    background-color: #ffffff;
-    /* border-right: 1px solid #d2d2d2 !important; */
+  margin-left: 0;
 }
 
 [data-theme=cygnet] [data-schematype="object"] [data-schematype="object"] p {
-    font-size: 14px;
+  font-size: 14px;
 }
 
 [data-theme=cygnet] [data-schematype="object"] [data-schematype="object"] p:last-child {
-    margin-bottom: 0;
+  margin-bottom: 0;
 }
 
-[data-theme=cygnet] .je-indented-panel > div:empty {
-    margin-bottom: 16px;
+.je-cygnet-indented-panel > div:empty {
+  margin-bottom: 16px;
 }
 
-/* VERTICAL TABS */
+/* Remove margins on embedded forms. */
 
-[data-theme=cygnet] [data-schemapath^="root.header.aside"] > div {
-    margin-left: 20px;
+[data-theme=cygnet] > div > .je-cygnet-indented-panel div div .row,
+[data-theme=cygnet] > div > .je-cygnet-indented-panel div div .row > [data-schematype="object"],
+[data-theme=cygnet] > div > .je-cygnet-indented-panel div div .row > [data-schematype="array"] {
+  margin-left: 0;
 }
 
-[data-theme=cygnet] [data-schemapath^="root.header.aside"][class^="col-md"] > div,
+/* Vertical tab styling. */
+
+[data-schemapath^="root.header.aside"] > .je-cygnet-tab {
+  margin-left: 20px;
+}
+
+[data-schemapath^="root.header.aside"][class^="col-md"] > .je-cygnet-tab,
 [data-theme=cygnet] [data-schemapath^="root.header.aside"] .form-control {
-    margin-left: 0;
+  margin-left: 0;
 }
 
-[data-theme=cygnet] [data-schemapath^="root.header.aside"] > div > .content {
-    margin-left: 165px !important;
+[data-schemapath^="root.header.aside"] > .je-cygnet-tab > .content {
+  margin-left: 165px !important;
 }
 
-[data-theme=cygnet] .je-indented-panel[data-schemapath^="root.header.aside"] {
-    border: 1px solid #d2d2d2 !important;
+.je-cygnet-indented-panel[data-schemapath^="root.header.aside"] {
+  border: 1px solid #d2d2d2 !important;
 }
 
-[data-theme=cygnet] .je-indented-panel[data-schemapath^="root.header.aside"] > .je-indented-panel > div > div > .row {
-    margin-left: 0;
+.je-cygnet-indented-panel[data-schemapath^="root.header.aside"] > .je-cygnet-indented-panel > div > div > .row {
+  margin-left: 0;
 }
 
-[data-theme=cygnet] [data-schemapath^="root.header.aside"] > .je-indented-panel > span:not(.je-header-button-holder) > button:first-child,
-[data-theme=cygnet] [data-schemapath^="root.body.content"] > .je-indented-panel > span:not(.je-header-button-holder) > button:first-child {
-    margin-left: 16px;
+[data-schemapath^="root.header.aside"] > .je-cygnet-indented-panel > span:not(.je-cygnet-header-button-holder) > button:first-child,
+[data-schemapath^="root.body.content"] > .je-cygnet-indented-panel > span:not(.je-cygnet-header-button-holder) > button:first-child {
+  margin-left: 16px;
 }
 
 [data-theme=cygnet] .tabs {
-    margin-top: 20px;
+  position: relative;
+  margin-top: 20px;
+  left: 20px;
 }
 
-[data-theme=cygnet] .tabs > div {
-    width: 165px;
-    border: 0 !important;
-    border-top: 1px solid #d2d2d2 !important;
-    color: #0066cc;
-    border-radius: 0 !important;
-    font-size: 18px;
+.je-cygnet-tab {
+  width: 165px;
+  border: 0 !important;
+  border-left: 1px solid #d2d2d2 !important;
+  border-radius: 0 !important;
+  font-size: 16px;
+  font-weight: 300 !important;
+  text-align: left !important;
+  cursor: pointer;
 }
 
-[data-theme=cygnet] .tabs > div:hover {
-    text-decoration: underline;
-    opacity: 1 !important;
+.je-cygnet-tab--active {
+  padding: 14px 16px 16px;
+  border-left: 2px solid #ee0000 !important;
 }
 
-[data-theme=cygnet] .tabs > div:last-child {
-    border-bottom: 1px solid #d2d2d2 !important;
+.je-cygnet-tab--inactive {
+  padding: 16px;
+}
+
+[data-theme=cygnet] .patternkit-jsoneditor-clickable {
+cursor: pointer;
+}
+[data-theme=cygnet] .patternkit-jsoneditor-clickable label {
+cursor: inherit;
+}
+
+.patternkit-jsoneditor-clickable + div > .tabs {
+  margin-left: 40px;
 }
