@@ -308,6 +308,10 @@
   margin-bottom: 16px;
 }
 
+[data-theme=cygnet] .json-editor-btntype-toggle {
+  margin: 0 10px 0 0;
+}
+
 /* Hide the Properties buttons. */
 
 [data-theme=cygnet] .json-editor-btntype-properties {

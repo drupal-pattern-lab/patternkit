@@ -473,23 +473,21 @@ var PatternkitJsoneditorEditorArray = /*#__PURE__*/function (_JSONEditor$default
   }
 
   _createClass(PatternkitJsoneditorEditorArray, [{
-    key: "addControls",
+    key: "_createToggleButton",
 
     /**
-     * Overrides json-editor array addControls() method.
+     * Overrides json-editor array _createToggleButton() method.
      *
-     * Overrides JSONEditor's addControls() method for arrays. The only change is to
+     * Overrides JSONEditor's _createToggleButton() method for arrays. The only change is to
      * trigger toggle of section if user clicks on the label/title, not just on
      * the expand/collapse button. Makes hiding/showing sections much easier.
      */
-    value: function addControls() {
+    value: function _createToggleButton() {
       var _this = this;
 
-      this.collapsed = false;
-      this.toggle_button = this.getButton('', 'collapse', this.translate('button_collapse'));
-      this.toggle_button.classList.add('json-editor-btntype-toggle');
-      this.toggle_button.style.margin = '0 10px 0 0';
-      this.title.insertBefore(this.toggle_button, this.title.childNodes[0]);
+      var button = this.getButton('', 'collapse', 'button_collapse');
+      button.classList.add('json-editor-btntype-toggle');
+      this.title.insertBefore(button, this.title.childNodes[0]);
       var rowHolderDisplay = this.row_holder.style.display;
       var controlsDisplay = this.controls.style.display; // <!-- Start PatternKit overrides. -->
       // Replaces the click handler on the button (element `this.collapse_control`),
@@ -520,117 +518,7 @@ var PatternkitJsoneditorEditorArray = /*#__PURE__*/function (_JSONEditor$default
         }
       }); // <!-- End PatternKit overrides. -->
 
-      /* If it should start collapsed */
-
-      if (this.options.collapsed) {
-        trigger(this.toggle_button, 'click');
-      }
-      /* Collapse button disabled */
-
-
-      if (this.schema.options && typeof this.schema.options.disable_collapse !== 'undefined') {
-        if (this.schema.options.disable_collapse) this.toggle_button.style.display = 'none';
-      } else if (this.jsoneditor.options.disable_collapse) {
-        this.toggle_button.style.display = 'none';
-      }
-      /* Add "new row" and "delete last" buttons below editor */
-
-
-      this.add_row_button = this.getButton(this.getItemTitle(), 'add', this.translate('button_add_row_title', [this.getItemTitle()]));
-      this.add_row_button.classList.add('json-editor-btntype-add');
-      this.add_row_button.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        var i = _this.rows.length;
-        var editor;
-
-        if (_this.row_cache[i]) {
-          editor = _this.rows[i] = _this.row_cache[i];
-
-          _this.rows[i].setValue(_this.rows[i].getDefault(), true);
-
-          _this.rows[i].container.style.display = '';
-          if (_this.rows[i].tab) _this.rows[i].tab.style.display = '';
-
-          _this.rows[i].register();
-        } else {
-          editor = _this.addRow();
-        }
-
-        _this.active_tab = _this.rows[i].tab;
-
-        _this.refreshTabs();
-
-        _this.refreshValue();
-
-        _this.onChange(true);
-
-        _this.jsoneditor.trigger('addRow', editor);
-      });
-      this.controls.appendChild(this.add_row_button);
-      this.delete_last_row_button = this.getButton(this.translate('button_delete_last', [this.getItemTitle()]), 'subtract', this.translate('button_delete_last_title', [this.getItemTitle()]));
-      this.delete_last_row_button.classList.add('json-editor-btntype-deletelast');
-      this.delete_last_row_button.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        if (!_this.askConfirmation()) {
-          return false;
-        }
-
-        var rows = _this.getValue();
-
-        var newActiveTab = null;
-        var editor = rows.pop();
-
-        _this.setValue(rows);
-
-        if (_this.rows[_this.rows.length - 1]) {
-          newActiveTab = _this.rows[_this.rows.length - 1].tab;
-        }
-
-        if (newActiveTab) {
-          _this.active_tab = newActiveTab;
-
-          _this.refreshTabs();
-        }
-
-        _this.onChange(true);
-
-        _this.jsoneditor.trigger('deleteRow', editor);
-      });
-      this.controls.appendChild(this.delete_last_row_button);
-      this.remove_all_rows_button = this.getButton(this.translate('button_delete_all'), 'delete', this.translate('button_delete_all_title'));
-      this.remove_all_rows_button.classList.add('json-editor-btntype-deleteall');
-      this.remove_all_rows_button.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        if (!_this.askConfirmation()) {
-          return false;
-        }
-
-        _this.empty(true);
-
-        _this.setValue([]);
-
-        _this.onChange(true);
-
-        _this.jsoneditor.trigger('deleteAllRows');
-      });
-      this.controls.appendChild(this.remove_all_rows_button);
-
-      if (this.tabs) {
-        this.add_row_button.style.width = '100%';
-        this.add_row_button.style.textAlign = 'left';
-        this.add_row_button.style.marginBottom = '3px';
-        this.delete_last_row_button.style.width = '100%';
-        this.delete_last_row_button.style.textAlign = 'left';
-        this.delete_last_row_button.style.marginBottom = '3px';
-        this.remove_all_rows_button.style.width = '100%';
-        this.remove_all_rows_button.style.textAlign = 'left';
-        this.remove_all_rows_button.style.marginBottom = '3px';
-      }
+      return button;
     }
   }]);
 
