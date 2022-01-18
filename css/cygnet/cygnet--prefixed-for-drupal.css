@@ -312,12 +312,6 @@
   margin: 0 10px 0 0;
 }
 
-/* Hide the Properties buttons. */
-
-#drupal-off-canvas [data-theme=cygnet] .json-editor-btntype-properties {
-  display: none;
-}
-
 /* Accordion styles. */
 
 #drupal-off-canvas [data-theme=cygnet] button[title=Collapse]::before {
