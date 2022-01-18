@@ -232,10 +232,13 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
        // The editor may have already been destroyed if its form was
        // submitted. The following code only destroys the editor if the modal
        // gets closed without submitting the form.
-       if (window.patternkitEditor) {
-         window.patternkitEditor.disable();
-         window.patternkitEditor.destroy();
-         delete window.patternkitEditor;
+       var dialogEl = $element.get(0);
+       if (dialogEl && dialogEl.id === 'drupal-off-canvas') {
+         if (window.patternkitEditor) {
+           window.patternkitEditor.disable();
+           window.patternkitEditor.destroy();
+           delete window.patternkitEditor;
+         }
        }
      });
    }
