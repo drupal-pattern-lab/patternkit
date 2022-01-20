@@ -5,6 +5,7 @@
  * Install file for patternkit module.
  */
 
+use Drupal\Component\Serialization\Yaml;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Entity\ContentEntityType;
 use Drupal\Core\Entity\EntityAccessControlHandler;
@@ -155,4 +156,32 @@ function patternkit_update_8003(&$sandbox) {
   $entity_definition_update_manager
     ->installFieldStorageDefinition('pattern_id',
   'patternkit_block', 'patternkit', $pattern_id_field_definition);
+}
+
+/**
+ * Sets default values for new json-editor settings.
+ */
+function patternkit_update_8004(&$sandbox) {
+  $config_key = 'patternkit.settings';
+  $module_path = drupal_get_path('module', 'patternkit');
+  $config_install_path = file_get_contents($module_path . '/config/install/' . $config_key . '.yml');
+  $config_install = Yaml::decode($config_install_path);
+
+  $config_current = \Drupal::configFactory()->getEditable($config_key);
+  $new_keys = [
+    'patternkit_json_editor_use_shadow_dom',
+    'patternkit_json_editor_wysiwyg',
+    'patternkit_json_editor_ckeditor_toolbar',
+  ];
+  $changed = FALSE;
+  foreach ($new_keys as $new_key) {
+    if (is_null($config_current->get($new_key))) {
+      $config_current->set($new_key, $config_install[$new_key]);
+      $changed = TRUE;
+    }
+  }
+
+  if ($changed) {
+    $config_current->save();
+  }
 }
