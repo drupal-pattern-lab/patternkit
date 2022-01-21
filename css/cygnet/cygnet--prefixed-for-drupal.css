@@ -404,21 +404,31 @@
   margin-left: 16px;
 }
 
-#drupal-off-canvas [data-theme=cygnet] .tabs {
+#drupal-off-canvas .je-cygnet-tabs {
+  display: flex;
   position: relative;
   margin-top: 20px;
   left: 20px;
 }
+#drupal-off-canvas .je-cygnet-tabs__holder {
+  width: 165px;
+}
+#drupal-off-canvas .je-cygnet-tabs__content {
+  width: calc(100% - 185px);
+}
 
 #drupal-off-canvas .je-cygnet-tab {
-  width: 165px;
   border: 0 !important;
   border-left: 1px solid #d2d2d2 !important;
   border-radius: 0 !important;
   font-size: 16px;
   font-weight: 300 !important;
   text-align: left !important;
-  cursor: pointer;
+}
+
+#drupal-off-canvas .je-cygnet-tab,
+#drupal-off-canvas .je-cygnet-tab > span {
+  cursor: pointer !important;
 }
 
 #drupal-off-canvas .je-cygnet-tab--active {

@@ -83,6 +83,14 @@ class cygnetTheme extends JSONEditor.AbstractTheme {
     if (input.errmsg) input.errmsg.style.display = 'none'
   }
 
+  getTabHolder (propertyName) {
+    var pName = typeof propertyName === 'undefined' ? '' : propertyName;
+    var el = document.createElement('div');
+    el.classList.add('je-cygnet-tabs');
+    el.innerHTML = "<div class='je-tabholder tabs je-cygnet-tabs__holder'></div><div class='content je-cygnet-tabs__content' id='".concat(pName, "'></div><div class='je-tabholder--clear'></div>");
+    return el;
+  }
+
   getTab (span, tabId) {
     const el = document.createElement('div')
     el.appendChild(span)

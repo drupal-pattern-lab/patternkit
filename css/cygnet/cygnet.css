@@ -404,21 +404,31 @@
   margin-left: 16px;
 }
 
-[data-theme=cygnet] .tabs {
+.je-cygnet-tabs {
+  display: flex;
   position: relative;
   margin-top: 20px;
   left: 20px;
 }
+.je-cygnet-tabs__holder {
+  width: 165px;
+}
+.je-cygnet-tabs__content {
+  width: calc(100% - 185px);
+}
 
 .je-cygnet-tab {
-  width: 165px;
   border: 0 !important;
   border-left: 1px solid #d2d2d2 !important;
   border-radius: 0 !important;
   font-size: 16px;
   font-weight: 300 !important;
   text-align: left !important;
-  cursor: pointer;
+}
+
+.je-cygnet-tab,
+.je-cygnet-tab > span {
+  cursor: pointer !important;
 }
 
 .je-cygnet-tab--active {

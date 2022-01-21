@@ -347,6 +347,15 @@ var cygnetTheme = /*#__PURE__*/function (_JSONEditor$AbstractT) {
       if (input.errmsg) input.errmsg.style.display = 'none';
     }
   }, {
+    key: "getTabHolder",
+    value: function getTabHolder(propertyName) {
+      var pName = typeof propertyName === 'undefined' ? '' : propertyName;
+      var el = document.createElement('div');
+      el.classList.add('je-cygnet-tabs');
+      el.innerHTML = "<div class='je-tabholder tabs je-cygnet-tabs__holder'></div><div class='content je-cygnet-tabs__content' id='".concat(pName, "'></div><div class='je-tabholder--clear'></div>");
+      return el;
+    }
+  }, {
     key: "getTab",
     value: function getTab(span, tabId) {
       var el = document.createElement('div');
