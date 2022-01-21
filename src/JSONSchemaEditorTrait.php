@@ -3,6 +3,8 @@
 namespace Drupal\patternkit;
 
 use Drupal\ckeditor\Plugin\Editor\CKEditor;
+use Drupal\Core\Logger\LoggerChannelTrait;
+use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\editor\Entity\Editor;
 use Drupal\patternkit\Form\PatternLibraryJSONForm;
@@ -11,6 +13,9 @@ use Drupal\patternkit\Form\PatternLibraryJSONForm;
  * Adds a schema editor render array generator without needing a full service.
  */
 trait JSONSchemaEditorTrait {
+
+  use MessengerTrait;
+  use LoggerChannelTrait;
 
   /**
    * Patternkit config.
@@ -119,22 +124,25 @@ trait JSONSchemaEditorTrait {
 
     if ($this->config->get('patternkit_json_editor_wysiwyg') == 'ckeditor') {
       $selected_toolbar = $this->config->get('patternkit_json_editor_ckeditor_toolbar');
+      if (!empty($selected_toolbar)) {
+        // The following code builds a CKEditor toolbar. Code stolen from
+        // \Drupal\editor\Element::preRenderTextFormat.
+        $ckeditor_instance = CKEditor::create(\Drupal::getContainer(), [], 'ckeditor', ['provider' => 'patternkit']);
+        /** @var \Drupal\editor\Entity\Editor $ckeditor_config */
+        $ckeditor_entity = Editor::load($selected_toolbar);
+        if ($ckeditor_entity && $ckeditor_entity->status()) {
+          $editor_settings['patternkitCKEditorConfig'] = $ckeditor_instance->getJSSettings($ckeditor_entity);
+          // Pushes the selected toolbar to drupalSettings, so that client-side so
+          // that DrupalCKEditor.afterInputReady
+          $editor_settings['patternkitCKEditorConfig']['selected_toolbar'] = $selected_toolbar;
+        }
+        else {
+          $msg = $this->t('Missing Editor entity @name', ['@name' => $selected_toolbar]);
+          $this->getLogger('patternkit')->error($msg);
+          $this->messenger()->addError($msg);
+        }
+      }
     }
-    if (empty($selected_toolbar)) {
-      $selected_toolbar = 'full_html';
-    }
-
-    // The following code builds a CKEditor toolbar. Code stolen from
-    // \Drupal\editor\Element::preRenderTextFormat.
-
-    $ckeditor_instance = CKEditor::create(\Drupal::getContainer(), [], 'ckeditor', ['provider' => 'patternkit']);
-    /** @var \Drupal\editor\Entity\Editor $ckeditor_config */
-    $ckeditor_entity = Editor::load($selected_toolbar);
-
-    $editor_settings['patternkitCKEditorConfig'] = $ckeditor_instance->getJSSettings($ckeditor_entity);
-    // Pushes the selected toolbar to drupalSettings, so that client-side so
-    // that DrupalCKEditor.afterInputReady
-    $editor_settings['patternkitCKEditorConfig']['selected_toolbar'] = $selected_toolbar;
 
     // @todo Move to own JS file & Drupal Settings config var.
     $element = [
