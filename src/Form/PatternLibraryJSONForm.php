@@ -175,6 +175,7 @@ class PatternLibraryJSONForm extends ConfigFormBase {
       '#type' => 'select',
       '#title' => t('CKEditor toolbar'),
       '#options' => $ckeditor_toolbar_options,
+      '#empty_value' => '',
       '#default_value' => $config->get('patternkit_json_editor_ckeditor_toolbar') ?: '',
       '#states' => [
         'visible' => [

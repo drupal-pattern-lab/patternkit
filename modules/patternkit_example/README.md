@@ -52,9 +52,6 @@ Use the former for dynamic REST based components, and the latter for locally sou
 ## Important Variables
 * ```patternkit_cache_enabled``` - Whether or not the metadata and render cache are enabled. (Disable during development)
 * ```patternkit_pl_host``` - The scheme://hostname:port/ of the PatternLab library host.
-* ```patternkit_default_module_ttl``` - How long the rendered pattern should be cached.
-* ```patternkit_show_errors``` - Whether or not to display messages on the site.
-* ```patternkit_log_errors``` - Whether or not to log errors to php error log. 
 
 ## TODOs
 * https://github.com/drupal-pattern-lab/roadmap/issues/8 Solve the problem of mapping Drupal fields to pattern Variables.

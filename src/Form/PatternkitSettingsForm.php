@@ -106,12 +106,6 @@ class PatternkitSettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('patternkit_render_cache'),
     ];
 
-    $form['patternkit_default_module_ttl'] = [
-      '#type' => 'textfield',
-      '#title' => t('Patternkit Default Pattern TTL (in ms)'),
-      '#default_value' => $config->get('patternkit_default_module_ttl'),
-    ];
-
     return parent::buildForm($form, $form_state);
   }
 
@@ -138,7 +132,6 @@ class PatternkitSettingsForm extends ConfigFormBase {
       ->set('patternkit_libraries', $form_state->getValue('patternkit_libraries'))
       ->set('patternkit_cache_enabled', $form_state->getValue('patternkit_cache_enabled'))
       ->set('patternkit_render_cache', $form_state->getValue('patternkit_render_cache'))
-      ->set('patternkit_default_module_ttl', $form_state->getValue('patternkit_default_module_ttl'))
       ->save();
     if ($form_state->getValue('patternkit_cache_enabled')
       && !$config->get('patternkit_cache_enabled')) {
