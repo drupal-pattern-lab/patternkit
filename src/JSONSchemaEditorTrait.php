@@ -166,9 +166,11 @@ trait JSONSchemaEditorTrait {
     ];
 
     // Attaches attachments for selected editor.
-    /** @var \Drupal\editor\Plugin\EditorManager $editor_plugin_manager */
-    $editor_plugin_manager = \Drupal::service('plugin.manager.editor');
-    $element['#attached'] = BubbleableMetadata::mergeAttachments($element['#attached'], $editor_plugin_manager->getAttachments([$selected_toolbar]));
+    if (!empty($selected_toolbar)) {
+      /** @var \Drupal\editor\Plugin\EditorManager $editor_plugin_manager */
+      $editor_plugin_manager = \Drupal::service('plugin.manager.editor');
+      $element['#attached'] = BubbleableMetadata::mergeAttachments($element['#attached'], $editor_plugin_manager->getAttachments([$selected_toolbar]));
+    }
 
     return $element;
   }

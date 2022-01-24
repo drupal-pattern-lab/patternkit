@@ -192,7 +192,8 @@ function patternkitEditorCKEditor($, Drupal, JSONEditor) {
       };
       JSONEditor.defaults.editors.drupal_ckeditor = DrupalCKEditor;
       JSONEditor.defaults.resolvers.unshift(function (schema) {
-        if (schema.type === 'string' && schema.format === 'html' && schema.options && schema.options.wysiwyg && settings.patternkitEditor.wysiwygEditorName === 'ckeditor') {
+        if (schema.type === 'string' && schema.format === 'html' && schema.options && schema.options.wysiwyg && settings.patternkitEditor.wysiwygEditorName === 'ckeditor' // Ensures the Text format with CKEditor profile loaded okay.
+        && settings.patternkitEditor.patternkitCKEditorConfig) {
           return 'drupal_ckeditor';
         }
       });
