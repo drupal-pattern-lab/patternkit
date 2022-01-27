@@ -22,6 +22,7 @@ use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\Asset\LibraryInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Language\LanguageInterface;
 
 /**
  * Provides a block that will display a Pattern from a Library with context.
@@ -252,6 +253,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    */
   public function blockForm($form, FormStateInterface $form_state): array {
     $form += parent::blockForm($form, $form_state);
+
     $configuration = $this->getConfiguration();
     $plugin = $this->getPluginDefinition();
     /** @var \Drupal\patternkit\entity\PatternInterface $pattern */
@@ -274,18 +276,20 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       \Drupal::messenger()->addError($this->t('Unable to load the pattern @pattern. Check the logs for more info.', ['@pattern' => $pattern_id ?? $plugin['pattern']]));
       return ['#markup' => $this->t('Unable to edit a Patternkit block when the pattern fails to load.')];
     }
+
     $form_state->set('pattern', $pattern);
 
     /** @var \Drupal\Core\Entity\ContentEntityStorageInterface $block_storage */
     $block_storage = $this->entityTypeManager->getStorage('patternkit_block');
-    /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
     if (isset($configuration['patternkit_block_id'])
       && (int) $configuration['patternkit_block_id'] > 0) {
       if (isset($configuration['patternkit_block_rid'])
         && (int) $configuration['patternkit_block_rid'] > 0) {
+        /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
         $patternkit_block = $block_storage->loadRevision($configuration['patternkit_block_rid']);
       }
       else {
+        /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
         $patternkit_block = $block_storage->load($configuration['patternkit_block_id']);
         $configuration['patternkit_block_rid'] = $patternkit_block->getLoadedRevisionId();
       }
@@ -374,6 +378,9 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
         /** @var \Drupal\patternkit\Entity\PatternkitBlock $block_entity */
         $block_entity = $block_storage->load($configuration['patternkit_block_id']);
       }
+      if (!empty($configuration['langcode']) && $block_entity->hasTranslation(($configuration['langcode']))) {
+        $block_entity = $block_entity->getTranslation($configuration['langcode']);
+      }
       $block_data_field = $block_entity->get('data')->getValue();
       $block_data = reset($block_data_field)['value'] ?? '';
       $configuration['fields'] = $this->serializer::decode($block_data);
@@ -428,8 +435,10 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    *   In case of failures an exception is thrown.
    */
   public function blockSubmit($form, FormStateInterface $form_state) {
+
     $configuration = $this->getConfiguration();
     $pattern_id = \Drupal\patternkit\Plugin\Derivative\PatternkitBlock::derivativeToAssetId($this->getDerivativeId());
+
     /** @var \Drupal\Core\Entity\ContentEntityStorageInterface $block_storage */
     $block_storage = $this->entityTypeManager->getStorage('patternkit_block');
     $values = [
@@ -438,11 +447,13 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       'pattern_id' => $pattern_id,
       'published' => TRUE,
       'reusable' => $form_state->getValue('reusable'),
+      'langcode' => \Drupal::languageManager()->getCurrentLanguage(LanguageInterface::TYPE_CONTENT)->getId(),
     ];
-    /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
+
     if (isset($configuration['patternkit_block_id'])
       && (int) $configuration['patternkit_block_id'] > 0
       && $patternkit_block = $block_storage->load($configuration['patternkit_block_id'])) {
+      /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
       $patternkit_block->setPublished();
       foreach (array_keys($patternkit_block->getFields()) as $key) {
         if (isset($values[$key])) {
@@ -451,6 +462,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       }
     }
     else {
+      /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
       $patternkit_block = $block_storage->create($values);
     }
     $patternkit_block->setNewRevision();
@@ -539,7 +551,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     // @todo Remove support for loading by block id.
     // There is no need to store it if we're only using revisions.
     if (empty($configuration['patternkit_block_rid'])) {
-      /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block_latest */
+      /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
       $patternkit_block = $block_storage->load($configuration['patternkit_block_id'] ?? '');
       $configuration['patternkit_block_rid'] = $patternkit_block->getLoadedRevisionId();
     }
@@ -547,6 +559,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
       $patternkit_block = $block_storage->loadRevision($configuration['patternkit_block_rid'] ?? '');
     }
+
     $base_dependencies = [];
 
     // If an instance configuration provides a UUID, use it. If not, we should
@@ -590,6 +603,9 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     // Pull the dependencies and configuration.
     $pattern->config = [];
     if ($patternkit_block) {
+      if (!empty($configuration['langcode']) && $patternkit_block->hasTranslation($configuration['langcode'])) {
+        $patternkit_block = $patternkit_block->getTranslation($configuration['langcode']);
+      }
       $data = $patternkit_block->get('data')->getValue();
       $config = $this->serializer::decode(reset($data)['value']);
       $bubbleable_metadata = new BubbleableMetadata();
@@ -746,7 +762,11 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     // so we need to set empty context to '' to display them without errors.
     // @todo Remove after https://www.drupal.org/project/drupal/issues/3154986
     $contexts = [];
+
     $layout_contexts = $form_state->getTemporaryValue('gathered_contexts');
+    if (!$layout_contexts) {
+      return;
+    }
     foreach ($this->getContextDefinitions() as $name => $definition) {
       $matching_contexts = $this->contextHandler->getMatchingContexts($layout_contexts, $definition);
       $contexts[$name] = array_pop($matching_contexts);

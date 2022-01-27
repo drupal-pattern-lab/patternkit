@@ -149,7 +149,7 @@ class PatternkitBlock extends BlockContent {
   /**
    * Returns the block Patternkit pattern derivative id.
    *
-   * @return string|NULL
+   * @return string|null
    *   The Patternkit pattern derivative id.
    */
   public function getPattern() {

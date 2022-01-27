@@ -31,4 +31,8 @@ interface PatternInterface extends ContentEntityInterface {
 
   public function setTemplate($template);
 
+  public function getAssetId();
+
+  public function getVersion();
+
 }

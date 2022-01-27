@@ -144,7 +144,9 @@ class PatternLibraryJSONForm extends ConfigFormBase {
     $form['patternkit_json_editor_use_shadow_dom'] = array(
       '#type' => 'checkbox',
       '#title' => t('Use the Shadow DOM'),
-      '#description' => t('Select whether to use the Shadow DOM for the JSON Editor form. Most themes do not work outside the Shadow DOM, but most WYSIWYG editors do not work <em>inside</em> the Shadow DOM.'),
+      '#description' => t('Select whether to use the Shadow DOM for the JSON
+      Editor form. Most themes require the Shadow DOM, but most WYSIWYG editors
+      do not work with it.'),
       '#default_value' => $config->get('patternkit_json_editor_use_shadow_dom') ?? TRUE,
     );
 

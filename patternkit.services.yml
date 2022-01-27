@@ -37,3 +37,7 @@ services:
     arguments: ['.', '@logger.channel.patternkit', '@patternkit.asset.library']
     tags:
       - { name: twig.loader, priority: 100 }
+  patternkit.translate_layout_builder_block:
+    class: Drupal\patternkit\Routing\PatternkitTranslateBlockFormRouteSubscriber
+    tags:
+      - { name: event_subscriber }

@@ -1,0 +1,9 @@
+patternkit.json:
+  type: string
+  label: 'Text with text format'
+  # We declare the entire mapping of text and text format as translatable. This
+  # causes the entire mapping to be saved to the language overrides of the
+  # configuration. Storing only the (to be formatted) text could result in
+  # security problems in case the text format of the source text is changed.
+  translatable: true
+  form_element_class: 'Drupal\patternkit\FormElement\PatternkitJson'
