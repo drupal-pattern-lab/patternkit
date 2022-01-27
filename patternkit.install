@@ -6,6 +6,7 @@
  */
 
 use Drupal\Core\Cache\Cache;
+use Drupal\Core\Config\FileStorage;
 use Drupal\Core\Entity\ContentEntityType;
 use Drupal\Core\Entity\EntityAccessControlHandler;
 use Drupal\Core\Entity\EntityListBuilder;
@@ -155,4 +156,31 @@ function patternkit_update_8003(&$sandbox) {
   $entity_definition_update_manager
     ->installFieldStorageDefinition('pattern_id',
   'patternkit_block', 'patternkit', $pattern_id_field_definition);
+}
+
+/**
+ * Sets default values for new json-editor settings.
+ */
+function patternkit_update_8004(&$sandbox) {
+  $config_key = 'patternkit.settings';
+  $source = new FileStorage(drupal_get_path('module', 'patternkit') . '/config/install');
+  $config_install = $source->read($config_key);
+  $config_current = \Drupal::configFactory()->getEditable($config_key);
+
+  $new_keys = [
+    'patternkit_json_editor_use_shadow_dom',
+    'patternkit_json_editor_wysiwyg',
+    'patternkit_json_editor_ckeditor_toolbar',
+  ];
+  $changed = FALSE;
+  foreach ($new_keys as $new_key) {
+    if (is_null($config_current->get($new_key))) {
+      $config_current->set($new_key, $config_install[$new_key]);
+      $changed = TRUE;
+    }
+  }
+
+  if ($changed) {
+    $config_current->save();
+  }
 }

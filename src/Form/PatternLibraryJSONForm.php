@@ -148,6 +148,13 @@ class PatternLibraryJSONForm extends ConfigFormBase {
       '#default_value' => $config->get('patternkit_json_editor_use_shadow_dom') ?? TRUE,
     );
 
+    $form['patternkit_json_editor_disable_properties_buttons'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Hide the properties buttons'),
+      '#description' => t('Select whether to hide the property buttons (maps to json-editor option <em>disable_properties</em>).'),
+      '#default_value' => $config->get('patternkit_json_editor_disable_properties_buttons') ?? FALSE,
+    );
+
     $form['patternkit_json_editor_wysiwyg'] = array(
       '#type' => 'select',
       '#title' => t('WYSIWYG editor'),
@@ -168,6 +175,7 @@ class PatternLibraryJSONForm extends ConfigFormBase {
       '#type' => 'select',
       '#title' => t('CKEditor toolbar'),
       '#options' => $ckeditor_toolbar_options,
+      '#empty_value' => '',
       '#default_value' => $config->get('patternkit_json_editor_ckeditor_toolbar') ?: '',
       '#states' => [
         'visible' => [
@@ -204,6 +212,7 @@ class PatternLibraryJSONForm extends ConfigFormBase {
     $config->set('patternkit_json_editor_css', $form_values['patternkit_json_editor_css']);
     $config->set('patternkit_json_editor_js', $form_values['patternkit_json_editor_js']);
     $config->set('patternkit_json_editor_use_shadow_dom', (bool) $form_values['patternkit_json_editor_use_shadow_dom']);
+    $config->set('patternkit_json_editor_disable_properties_buttons', (bool) $form_values['patternkit_json_editor_disable_properties_buttons']);
     $config->set('patternkit_json_editor_wysiwyg', $form_values['patternkit_json_editor_wysiwyg']);
     $config->set('patternkit_json_editor_ckeditor_toolbar', $form_values['patternkit_json_editor_ckeditor_toolbar']);
     $config->save();

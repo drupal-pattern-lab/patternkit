@@ -44,19 +44,88 @@ See [CONTRIBUTING.md#get-an-answer-to-a-question](CONTRIBUTING.md#get-an-answer-
 
     Use the former for dynamic REST based components, and the latter for locally sourced Twig templates like those in a Drupal theme.
 
-1. If not already present in the library, add companion JSON schema files to your templates so that Patternkit can display the editor to allow for drag-n-drop mapping in the Layout Builder of your choice.
+1. If not already present in the library, add a companion JSON schema files to your templates so that Patternkit can display the editor to allow for drag-n-drop mapping in the Layout Builder of your choice.
 
     See [example.json](modules/patternkit_example/lib/patternkit/src/atoms/example/src/example.json).
 
 
 You can create your own plugins if you'd like to add support for other library types. Feel free to [create a pull request](https://github.com/drupal-pattern-lab/patternkit/pulls) to have it added to the repo!
 
-## Important Variables
-* ```patternkit_cache_enabled``` - Whether or not the metadata and render cache are enabled. (Disable during development)
-* ```patternkit_pl_host``` - The scheme://hostname:port/ of the PatternLab library host.
-* ```patternkit_default_module_ttl``` - How long the rendered pattern should be cached.
-* ```patternkit_show_errors``` - Whether or not to display messages on the site.
-* ```patternkit_log_errors``` - Whether or not to log errors to php error log.
+## Configuration
+
+### General settings
+
+Go to `/admin/config/user-interface/patternkit` to configure general Patternkit
+settings. You can exclude sets of patterns, if desired, and set cache settings.
+
+### JSON Editor settings
+
+Patternkit uses [JSON Editor](https://github.com/json-editor/json-editor) for
+building each Patternkit block's form, using schema derived from the JSON schema
+file that accompanies the pattern's template (see _Installation_ above).
+
+You can configure JSON Editor settings at
+`/admin/config/user-interface/patternkit/json`.
+
+#### Theme
+
+The JSON Editor interface loads with its own theme (not a Drupal theme), so it
+will appear differently from the Drupal main theme or administration theme in
+Drupal (which are set at `/admin/appearance`).  The default JSON Editor theme is
+Cygnet (based on vanilla HTML but customized for Patternkit). Patternkit comes
+bundled with other themes, based on Bootstrap, Foundation, etc.
+
+#### Shadow DOM?
+
+Most of our bundled JSON Editor themes work under the assumption that Patternkit
+has loaded JSON Editor in the context of a shadow DOM. However, you can set
+Patternkit to load JSON Editor without a shadow DOM. The main reason to do this
+is to enable CKEditor for wysiwyg support (see below).
+
+#### WYSIWYG support
+
+A pattern can support WYSIWYG for fields in its JSON schema. To do this, the
+schema must set the `type` to `string`, the `format` to `html`, and under
+`options`, set `wysiwyg` to `true`. Example:
+
+```json
+    "my_wysiwyg_field": {
+      "title": "My WYSIWYG field",
+      "type": "string",
+      "format": "html",
+      "options": {
+        "wysiwyg": true
+      }
+    }
+```
+
+At `/admin/config/user-interface/patternkit/json`, you can select which WYSIWYG
+plugin to use. Options:
+
+* CKEditor (preferred)
+  * Pick a Drupal text format in _CKEditor toolbar_ (see below for details)
+* ProseMirror
+* Quill
+
+##### Text format CKEditor configuration
+
+Under the hood, Patternkit uses Drupal core's bundled CKEditor plugin. To enable
+CKEditor in Patternkit, you first must define a Text format (at
+`/admin/config/content/formats`) that uses CKEditor as its text editor.
+Configure the text format to include the desired CKEditor buttons. Then, on
+`/admin/config/user-interface/patternkit/json`, you can select this text format
+in _CKEditor toolbar_.
+
+_Security note_: Please note that Patternkit does not filter the text before
+sending it to the pattern's template (e.g., to a Twig file). Even though you
+select a Text format in order to load CKEditor, Patternkit will not process the
+contents of a WYSIWYG field through that text format's filters.
+
+### Other settings
+The following settings are not available for configuration in the UI, so you must set
+them in config item `patternkit.settings` manually:
+
+* `patternkit_pl_host` - The PatternLab library host in format `scheme://hostname:port/`.
 
 ## Definitions
 Most of the thinking and vernacular used in Patternkit is inspired by conversations that have happened around Design Systems. A great reference for this is [Brad Frost's Atomic Design Book](http://atomicdesign.bradfrost.com/).

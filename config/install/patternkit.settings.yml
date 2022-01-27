@@ -4,6 +4,7 @@ patternkit_json_editor_icons: ""
 patternkit_json_editor_js: ""
 patternkit_json_editor_theme: cygnet
 patternkit_libraries: []
-patternkit_json_editor_use_shadow_dom: false
-patternkit_json_editor_wysiwyg: "ckeditor"
-patternkit_json_editor_ckeditor_toolbar: "full_html"
+patternkit_json_editor_use_shadow_dom: true
+patternkit_json_editor_wysiwyg: ""
+patternkit_json_editor_ckeditor_toolbar: ""
+patternkit_json_editor_disable_properties_buttons: false

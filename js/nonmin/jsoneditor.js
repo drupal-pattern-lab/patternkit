@@ -3,7 +3,7 @@
  * * @name JSON Editor
  * * @description JSON Schema Based Editor
  * * This library is the continuation of jdorn's great work (see also https://github.com/jdorn/json-editor/issues/800)
- * * @version "2.6.0"
+ * * @version "2.6.1"
  * * @author Jeremy Dorn
  * * @see https://github.com/jdorn/json-editor/
  * * @see https://github.com/json-editor/json-editor
@@ -9040,7 +9040,7 @@ var AbstractEditor = /*#__PURE__*/function () {
         this.dependenciesFulfilled = false;
       } else if (Array.isArray(choices)) {
         this.dependenciesFulfilled = choices.some(function (choice) {
-          if (value === choice) {
+          if (JSON.stringify(value) === JSON.stringify(choice)) {
             return true;
           }
         });

@@ -13,7 +13,9 @@ const gulpConfig = {
   lib: [
     './node_modules/@json-editor/json-editor/dist/**',
     './node_modules/ajv/dist/ajv.min.js',
-    './node_modules/ajv/dist/ajv.min.js.map'
+    './node_modules/ajv/dist/ajv.min.js.map',
+    './node_modules/handlebars/dist/handlebars.js',
+    './node_modules/handlebars/dist/handlebars.min.js',
   ]
 };
 
@@ -42,4 +44,4 @@ gulp.task('watch', function() {
   return gulp.watch(gulpConfig.src, 'compile:es6');
 });
 
-gulp.task('default', gulp.parallel(['compile:es6', 'copy:lib']));
+gulp.task('default', gulp.parallel(['compile:es6', 'copy:lib', 'prefix-css:cygnet-theme']));

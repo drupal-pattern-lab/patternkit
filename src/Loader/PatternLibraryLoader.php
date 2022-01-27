@@ -2,7 +2,7 @@
 
 namespace Drupal\patternkit\Loader;
 
-use Drupal\Core\Logger\LoggerChannelInterface;
+use Psr\Log\LoggerInterface;
 use Drupal\patternkit\Asset\LibraryInterface;
 use Twig\Loader\FilesystemLoader;
 
@@ -16,13 +16,13 @@ class PatternLibraryLoader extends FilesystemLoader {
    *
    * @param string|array $paths
    *   Paths to pass to the Filesystem loader.
-   * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
+   * @param Psr\Log\LoggerInterface $logger
    *   Logs to the patternkit channel.
    * @param \Drupal\patternkit\Asset\LibraryInterface $library
    *   Provides library names and paths.
    */
   public function __construct($paths,
-    LoggerChannelInterface $logger,
+    LoggerInterface $logger,
     LibraryInterface $library) {
     parent::__construct($paths);
     $libraries = [];

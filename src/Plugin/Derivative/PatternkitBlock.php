@@ -5,7 +5,7 @@ namespace Drupal\patternkit\Plugin\Derivative;
 use Drupal\Component\Plugin\Derivative\DeriverBase;
 use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\Entity\EntityStorageInterface;
-use Drupal\Core\Logger\LoggerChannelInterface;
+use Psr\Log\LoggerInterface;
 use Drupal\Core\Plugin\Discovery\ContainerDeriverInterface;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Form\PatternkitSettingsForm;
@@ -17,7 +17,7 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
   /** @var \Drupal\Core\Config\ImmutableConfig */
   protected $config;
 
-  /** @var \Drupal\Core\Logger\LoggerChannelInterface */
+  /** @var Psr\Log\LoggerInterface */
   protected $logger;
 
     /** @var \Drupal\Core\Entity\EntityStorageInterface */
@@ -40,7 +40,7 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
    */
   public function __construct(
     ImmutableConfig $config,
-    LoggerChannelInterface $logger,
+    LoggerInterface $logger,
     LibraryInterface $library,
     EntityStorageInterface $storage) {
     $this->config = $config;
