@@ -105,7 +105,7 @@ var DrupalCKEditor = /*#__PURE__*/function (_JSONEditor$defaults$) {
           this.ckeditor_instance.setReadOnly(true);
         }
 
-        this.ckeditor_instance.on('change', function () {
+        var saveEditorContent = Drupal.debounce(function () {
           _this.input.value = _this.ckeditor_instance.getData();
 
           _this.refreshValue(); // Dirty means display cache is invalidated for string editors.
@@ -114,6 +114,18 @@ var DrupalCKEditor = /*#__PURE__*/function (_JSONEditor$defaults$) {
           _this.is_dirty = true;
 
           _this.onChange(true);
+        }, 400);
+        this.ckeditor_instance.on('change', saveEditorContent); // In "source" mode (e.g., by clicking the "Source" button), CKEditor's
+        // "change" event does not fire, so we need to listen on the "input"
+        // event.
+        // See https://ckeditor.com/docs/ckeditor4/latest/api/CKEDITOR_editor.html#event-change
+
+        this.ckeditor_instance.on('mode', function () {
+          if (_this.ckeditor_instance.mode === 'source') {
+            var editable = _this.ckeditor_instance.editable();
+
+            editable.attachListener(editable, 'input', saveEditorContent);
+          }
         });
         this.theme.afterInputReady(this.input);
       } else {

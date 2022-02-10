@@ -23,6 +23,7 @@ patternkit.jsoneditor:
     - core/drupal.dialog.ajax
     - core/drupalSettings
     - core/jquery
+    - core/drupal.debounce
     - patternkit/jsoneditor
     - patternkit/quill
 

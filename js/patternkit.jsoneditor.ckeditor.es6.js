@@ -52,18 +52,31 @@ class DrupalCKEditor extends JSONEditor.defaults.editors.string {
       this.input.style.display = 'none';
 
       this.input.parentNode.insertBefore(this.ckeditor_container, this.input);
+
       this.ckeditor_instance = window.CKEDITOR.replace(this.ckeditor_container, this.options.ckeditor_config);
       this.ckeditor_instance.setData(this.getValue());
       if (this.schema.readOnly || this.schema.readonly || this.schema.template) {
         this.ckeditor_instance.setReadOnly(true);
       }
 
-      this.ckeditor_instance.on('change', () => {
+      const saveEditorContent = Drupal.debounce(() => {
         this.input.value = this.ckeditor_instance.getData();
         this.refreshValue();
         // Dirty means display cache is invalidated for string editors.
         this.is_dirty = true;
         this.onChange(true);
+      }, 400);
+
+      this.ckeditor_instance.on('change', saveEditorContent);
+      // In "source" mode (e.g., by clicking the "Source" button), CKEditor's
+      // "change" event does not fire, so we need to listen on the "input"
+      // event.
+      // See https://ckeditor.com/docs/ckeditor4/latest/api/CKEDITOR_editor.html#event-change
+      this.ckeditor_instance.on('mode', () => {
+        if (this.ckeditor_instance.mode === 'source') {
+          const editable = this.ckeditor_instance.editable();
+          editable.attachListener(editable, 'input', saveEditorContent);
+        }
       });
 
       this.theme.afterInputReady(this.input);
@@ -123,6 +136,7 @@ export function patternkitEditorCKEditor($, Drupal, JSONEditor) {
       if (!window.JSONEditor) {
         return;
       }
+
       JSONEditor.defaults.options.drupal_ckeditor = {
         ckeditor_config: settings.patternkitEditor.patternkitCKEditorConfig || {}
       };
