@@ -11,3 +11,12 @@
 #drupal-off-canvas [data-theme=cygnet] button {
     font-family: 'RedHatText', Helvetica, Arial, sans-serif;
 }
+
+/*
+ * Upstream styles in node_modules/@json-editor/json-editor/src/style.css set
+ * the height to 300px, which is too tall for all textareas. The browser
+ * provides a tooltip to resize the element.
+ */
+#drupal-off-canvas .je-textarea {
+  height: auto;
+}

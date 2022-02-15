@@ -252,8 +252,12 @@
 
 /* Button styles. */
 
-#drupal-off-canvas [data-theme=cygnet] button {
+#drupal-off-canvas [data-theme=cygnet] button,
+#drupal-off-canvas [data-theme=cygnet] button > span {
   cursor: pointer;
+}
+
+#drupal-off-canvas [data-theme=cygnet] button {
   font-family: 'RedHatDisplay', Helvetica, Arial, sans-serif;
   color: #0066cc;
   border: 1px solid #0066cc;
@@ -441,10 +445,10 @@
 }
 
 #drupal-off-canvas [data-theme=cygnet] .patternkit-jsoneditor-clickable {
-cursor: pointer;
+  cursor: pointer;
 }
 #drupal-off-canvas [data-theme=cygnet] .patternkit-jsoneditor-clickable label {
-cursor: inherit;
+  cursor: inherit;
 }
 
 #drupal-off-canvas .patternkit-jsoneditor-clickable + div > .tabs {

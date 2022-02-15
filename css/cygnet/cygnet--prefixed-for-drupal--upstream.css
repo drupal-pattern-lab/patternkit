@@ -1,0 +1,153 @@
+#drupal-off-canvas .je-float-right-linkholder {
+  float: right;
+  margin-left: 10px;
+}
+
+#drupal-off-canvas .je-modal {
+  background-color: white;
+  border: 1px solid black;
+  box-shadow: 3px 3px black;
+  position: absolute;
+  z-index: 10;
+}
+
+#drupal-off-canvas .je-infobutton-icon {
+  font-size: 16px;
+  font-weight: bold;
+  padding: 0.25rem;
+  position: relative;
+  display: inline-block;
+}
+
+#drupal-off-canvas .je-infobutton-tooltip {
+  font-size: 12px;
+  font-weight: normal;
+  font-family: sans-serif;
+  visibility: hidden;
+  background-color: rgba(50, 50, 50, 0.75);
+  margin: 0 0.25rem;
+  color: #fafafa;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  width: 20rem;
+  position: absolute;
+}
+
+#drupal-off-canvas .je-not-loaded {
+  pointer-events: none;
+}
+#drupal-off-canvas .je-header {
+  display: inline-block
+}
+
+#drupal-off-canvas .je-upload-preview img {
+  float: left;
+  margin: 0 0.5rem 0.5rem 0;
+  max-width: 100%;
+  max-height: 5rem;
+}
+
+#drupal-off-canvas .je-checkbox {
+  display: inline-block;
+  width: auto
+}
+
+#drupal-off-canvas .je-checkbox-control--compact {
+  display: inline-block;
+  margin-right: 1rem
+}
+
+#drupal-off-canvas .je-radio {
+  display: inline-block;
+  width: auto
+}
+
+#drupal-off-canvas .je-radio-control--compact {
+  display: inline-block;
+  margin-right: 1rem
+}
+
+#drupal-off-canvas .je-switcher {
+  background-color: transparent;
+  display: inline-block;
+  font-style: italic;
+  font-weight: normal;
+  height: auto;
+  width: auto;
+  margin-bottom: 0;
+  margin-left: 5px;
+  padding: 0 0 0 3px;
+}
+
+#drupal-off-canvas .je-textarea {
+  width: 100%;
+  height: 300px;
+  box-sizing: border-box
+}
+
+#drupal-off-canvas .je-range-control {
+  text-align: center
+}
+
+#drupal-off-canvas .je-indented-panel {
+  padding-left: 10px;
+  margin-left: 10px;
+  border-left: 1px solid #ccc
+}
+
+#drupal-off-canvas .je-indented-panel--top {
+  padding-left: 10px;
+  margin-left: 10px;
+}
+
+#drupal-off-canvas .je-tabholder {
+  float: left;
+  width: 130px;
+}
+
+#drupal-off-canvas .je-tabholder .content {
+  margin-left: 120px;
+}
+
+#drupal-off-canvas .je-tabholder--top {
+  margin-left: 10px;
+}
+
+#drupal-off-canvas .je-tabholder--clear {
+  clear:both;
+}
+
+#drupal-off-canvas .je-tab {
+  border: 1px solid #ccc;
+  border-width: 1px 0 1px 1px;
+  text-align: center;
+  line-height: 30px;
+  border-radius: 5px;
+  border-bottom-right-radius: 0;
+  border-top-right-radius: 0;
+  font-weight: bold;
+  cursor: pointer
+}
+
+#drupal-off-canvas .je-tab--top {
+  float: left;
+  border: 1px solid #ccc;
+  border-width: 1px 1px 0px 1px;
+  text-align: center;
+  line-height: 30px;
+  border-radius: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+  font-weight: bold;
+  cursor: pointer
+}
+
+#drupal-off-canvas .je-block-link {
+  display: block
+}
+
+#drupal-off-canvas .je-media {
+  width: 100%
+}

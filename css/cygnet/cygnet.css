@@ -252,8 +252,12 @@
 
 /* Button styles. */
 
-[data-theme=cygnet] button {
+[data-theme=cygnet] button,
+[data-theme=cygnet] button > span {
   cursor: pointer;
+}
+
+[data-theme=cygnet] button {
   font-family: 'RedHatDisplay', Helvetica, Arial, sans-serif;
   color: #0066cc;
   border: 1px solid #0066cc;
@@ -441,10 +445,10 @@
 }
 
 [data-theme=cygnet] .patternkit-jsoneditor-clickable {
-cursor: pointer;
+  cursor: pointer;
 }
 [data-theme=cygnet] .patternkit-jsoneditor-clickable label {
-cursor: inherit;
+  cursor: inherit;
 }
 
 .patternkit-jsoneditor-clickable + div > .tabs {

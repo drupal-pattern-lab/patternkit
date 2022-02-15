@@ -33,9 +33,21 @@ gulp.task('copy:lib', function() {
   return gulp.src(gulpConfig.lib).pipe(gulp.dest(gulpConfig.dist));
 });
 
+// Prefixes upstream JSON Editor's core styles so they can be used in non-shadow
+// DOM version of Cygnet.
+const drupalModalId = '#drupal-off-canvas';
+gulp.task('prefix-css:cygnet-theme-upstream', function(){
+  return gulp.src('./node_modules/@json-editor/json-editor/src/style.css')
+    .pipe(prefixCss(drupalModalId))
+    .pipe(rename('cygnet--prefixed-for-drupal--upstream.css'))
+    .pipe(gulp.dest('./css/cygnet'));
+});
+
+// Prefixes Cygnet's styles so they work when JSON Editor gets loaded outside
+// the shadow DOM.
 gulp.task('prefix-css:cygnet-theme', function(){
   return gulp.src('./css/cygnet/cygnet.css')
-    .pipe(prefixCss('#drupal-off-canvas'))
+    .pipe(prefixCss(drupalModalId))
     .pipe(rename('cygnet--prefixed-for-drupal.css'))
     .pipe(gulp.dest('./css/cygnet'));
 });
@@ -44,4 +56,4 @@ gulp.task('watch', function() {
   return gulp.watch(gulpConfig.src, 'compile:es6');
 });
 
-gulp.task('default', gulp.parallel(['compile:es6', 'copy:lib', 'prefix-css:cygnet-theme']));
+gulp.task('default', gulp.parallel(['compile:es6', 'copy:lib', 'prefix-css:cygnet-theme', 'prefix-css:cygnet-theme-upstream']));
