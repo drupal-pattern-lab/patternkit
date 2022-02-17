@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "category": "atom",
+  "title": "Example with filtered content",
+  "type": "object",
+  "format": "grid",
+  "properties": {
+    "text": {
+      "title": "Text",
+      "type": "string",
+      "options": {
+        "grid_columns": 4
+      }
+    },
+    "formatted_text": {
+      "title": "Formatted Text",
+      "type": "string",
+      "description": "Only links, bold/strong, and italic/emphasis tags are allowed (assuming CKEditor is the wysiwyg plugin). You can use any attributes on these elements (including class, style, and other attributes), except ones prefixed with \"data-\". This field's schema uses the \"disallowedContent\" rule to instruct CKEditor to strip these attributes. However, there is no server-side process that strips them. See Patternkit's README for details.",
+      "format": "html",
+      "options": {
+        "wysiwyg": true,
+        "allowedContent": "a b strong em i[*](*){*}",
+        "disallowedContent": "*[data-*]"
+      }
+    },
+    "hidden": {
+      "title": "hidden",
+      "type": "string"
+    }
+  }
+}

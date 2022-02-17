@@ -1,0 +1,8 @@
+Sample twig template with filtered content.
+
+<div>{{- text|striptags('') -}}</div>
+
+<h3>The following block allows only tags &lt;a&gt;&lt;b&gt;&lt;strong&gt;&lt;em&gt;&lt;i&gt;, including any attributes on them
+(including &lt;style&gt;).</h3>
+
+<div>{{ formatted_text|striptags('<a><b><strong><em><i>')|raw }}</div>

@@ -121,6 +121,52 @@ sending it to the pattern's template (e.g., to a Twig file). Even though you
 select a Text format in order to load CKEditor, Patternkit will not process the
 contents of a WYSIWYG field through that text format's filters.
 
+##### CKEditor content filtering
+
+If using CKEditor as the wysiwyg plugin, you can configure the schema to allow
+or disallow certain HTML tags and attributes. This feature uses [CKEditor's
+content filtering
+system](https://ckeditor.com/docs/ckeditor4/latest/guide/dev_acf.html).
+
+###### Setting allowed content
+
+To set which content is allowed, use property `allowedContent` in the `options`
+key of your schema. The property's value will be passed as-is to CKEditor's
+`allowedContent` configuration ([expected
+format](https://ckeditor.com/docs/ckeditor4/latest/guide/dev_allowed_content_rules.html)).
+
+###### Setting disallowed content
+
+Conversely, to prevent certain content, use property `disallowedContent` in the
+`options` key of your schema. The property's value will be passed as-is to
+CKEditor's `disallowedContent` configuration ([expected
+format](https://ckeditor.com/docs/ckeditor4/latest/guide/dev_disallowed_content.html)).
+
+###### Example
+
+In this example, only links, bold/strong, and italic/emphasis tags are allowed.
+You can use any attributes on these elements (including class, style, and other
+attributes), except ones prefixed with `data-`.
+
+```json
+    "formatted_text": {
+      "title": "Formatted Text",
+      "type": "string",
+      "format": "html",
+      "options": {
+        "wysiwyg": true,
+        "allowedContent": "a b strong em i[*](*){*}",
+        "disallowedContent": "*[data-*]"
+      }
+    },
+```
+
+_Security note_: Filtering content at the CKEditor layer (i.e., at content
+entry) does not filter it when rendered. For example, if you disallow `onclick`
+attributes in CKEditor but the pattern's template (e.g., Twig) does not strip
+those attibutes, a user might possibly save content with an `onclick` attribute,
+and that attribute would be rendered to the page.
+
 ### Other settings
 The following settings are not available for configuration in the UI, so you must set
 them in config item `patternkit.settings` manually:

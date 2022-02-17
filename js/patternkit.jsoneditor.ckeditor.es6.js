@@ -32,6 +32,16 @@ class DrupalCKEditor extends JSONEditor.defaults.editors.string {
         format: this.options.ckeditor_config.selected_toolbar,
       };
 
+      // The schema can determine which HTML tags are allowed and disallowed.
+      // These settings are passed as-is to CKEditor's ACF (content filtering)
+      // system. See https://ckeditor.com/docs/ckeditor4/latest/guide/dev_acf.html.
+      if (this.schema.options.allowedContent) {
+        this.options.ckeditor_config.allowedContent = this.schema.options.allowedContent;
+      }
+      if (this.schema.options.disallowedContent) {
+        this.options.ckeditor_config.disallowedContent = this.schema.options.disallowedContent;
+      }
+
       // @see Drupal.editors.ckeditor._loadExternalPlugins
       const externalPlugins = this.options.ckeditor_config.drupalExternalPlugins;
       if (externalPlugins) {
@@ -109,6 +119,8 @@ class DrupalCKEditor extends JSONEditor.defaults.editors.string {
     if (this.always_disabled) {
       return;
     }
+    // @TODO Fix this because, when the form is initially loaded, this throws a
+    // JS error.
     if (this.ckeditor_instance) {
       this.ckeditor_instance.setReadOnly(false);
     }
