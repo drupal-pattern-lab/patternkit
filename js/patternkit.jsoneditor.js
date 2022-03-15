@@ -1063,6 +1063,8 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
       var $target = $('#patternkit-editor-target', context);
       $target.once('patternkit-editor').each(function () {
+        var loadingIndicatorClass = 'js-patternkit-loading__on';
+        $target.before("<div class=\"".concat(loadingIndicatorClass, "\"></div>"));
         var theme_js = settings.patternkitEditor.themeJS;
 
         if (typeof theme_js === 'string') {
@@ -1216,6 +1218,8 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
           if (window.M) {
             window.M.updateTextFields();
           }
+
+          $('.' + loadingIndicatorClass).removeClass(loadingIndicatorClass);
         });
         window.patternkitEditor.on('change', saveSchema); // Drupal triggers Ajax submit via input events.
         // This is before allowing other events, so we need to add a pre-hook

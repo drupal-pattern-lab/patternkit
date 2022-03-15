@@ -1,0 +1,22 @@
+/*
+ * Miscellaneous styles for Patternkit interfaces.
+ */
+
+/*
+ * Implements spinning loader to display while
+ * JSON Editor's schemas are being loaded.
+ */
+.js-patternkit-loading__on {
+  border: 4px solid #ebebeb; /* Light grey */
+  border-top: 4px solid #0066cc; /* Blue */
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  margin: 40px auto;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

@@ -16,6 +16,9 @@ jsoneditor.dev:
 
 patternkit.jsoneditor:
   version: VERSION
+  css:
+    theme:
+      css/patternkit.css: {}
   js:
     js/patternkit.jsoneditor.js: {}
   dependencies:

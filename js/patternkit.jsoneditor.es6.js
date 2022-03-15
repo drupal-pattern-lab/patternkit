@@ -53,6 +53,9 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
      };
      let $target = $('#patternkit-editor-target', context);
      $target.once('patternkit-editor').each(function () {
+       var loadingIndicatorClass = 'js-patternkit-loading__on';
+
+       $target.before(`<div class="${loadingIndicatorClass}"></div>`);
 
        let theme_js = settings.patternkitEditor.themeJS;
        if (typeof theme_js === 'string') {
@@ -186,6 +189,8 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
          if (window.M) {
            window.M.updateTextFields();
          }
+
+         $('.' + loadingIndicatorClass).removeClass(loadingIndicatorClass);
        });
        window.patternkitEditor.on('change', saveSchema);
        // Drupal triggers Ajax submit via input events.
