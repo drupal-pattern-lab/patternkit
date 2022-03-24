@@ -1166,8 +1166,8 @@
       }
     },
     "@json-editor/json-editor": {
-      "version": "git://github.com/cybtachyon/json-editor.git#615de2daefd86873532a13e2b84fc1f00907a293",
-      "from": "git://github.com/cybtachyon/json-editor.git#cybtachyon/988--json-pointers",
+      "version": "git+https://github.com/cybtachyon/json-editor.git#f7309e1436d360aed5a681de05887e9bd92a71ec",
+      "from": "git+https://github.com/cybtachyon/json-editor.git#cybtachyon/988--json-pointers",
       "dev": true,
       "requires": {
         "core-js": "^3.12.1"
@@ -2269,9 +2269,9 @@
       }
     },
     "core-js": {
-      "version": "3.19.1",
-      "resolved": "https://registry.npmjs.org/core-js/-/core-js-3.19.1.tgz",
-      "integrity": "sha512-Tnc7E9iKd/b/ff7GFbhwPVzJzPztGrChB8X8GLqoYGdEOG8IpLnK1xPyo3ZoO3HsK6TodJS58VGPOxA+hLHQMg==",
+      "version": "3.21.1",
+      "resolved": "https://registry.npmjs.org/core-js/-/core-js-3.21.1.tgz",
+      "integrity": "sha512-FRq5b/VMrWlrmCzwRrpDYNxyHP9BcAZC+xHJaqTgIE5091ZV1NTmyh0sGOg5XqpnHvR0svdy0sv1gWA1zmhxig==",
       "dev": true
     },
     "core-js-compat": {

@@ -1204,13 +1204,18 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         };
         window.patternkitEditor = new JSONEditor(editor_root.getElementById('editor_holder'), config);
         window.patternkitEditor.on('ready', function () {
-          // If we provide starting JSON as a value, JSON Editor hides all
-          // non-required fields, which is desired behavior by most users of the
-          // library. For patterns, we want to include any new schema fields in
-          // our values so they are displayed by default, optional or not.
-          // This also allows us to pre-populate based on the schema provided.
-          if (_typeof(data.starting) === 'object' && !$.isEmptyObject(data.starting)) {
-            window.patternkitEditor.setValue(_objectSpread(_objectSpread({}, window.patternkitEditor.getValue()), data.starting));
+          try {
+            // If we provide starting JSON as a value, JSON Editor hides all
+            // non-required fields, which is desired behavior by most users of
+            // the library. For patterns, we want to include any new schema
+            // fields in our values so they are displayed by default, optional or
+            // not.  This also allows us to pre-populate based on the schema
+            // provided.
+            if (_typeof(data.starting) === 'object' && !$.isEmptyObject(data.starting)) {
+              window.patternkitEditor.setValue(_objectSpread(_objectSpread({}, window.patternkitEditor.getValue()), data.starting));
+            }
+          } catch (e) {
+            console.error(e);
           } // Material Design JS doesn't update fields on ready event.
           // We call it to make up for that gap.
 
