@@ -285,6 +285,7 @@ var cygnetTheme = /*#__PURE__*/function (_JSONEditor$AbstractT) {
       var el = _get(_getPrototypeOf(cygnetTheme.prototype), "getFormInputDescription", this).call(this, text);
 
       el.classList.add('je-cygnet-form-input-label');
+      el.innerHTML = text;
       return el;
     }
   }, {
@@ -307,6 +308,15 @@ var cygnetTheme = /*#__PURE__*/function (_JSONEditor$AbstractT) {
       var el = _get(_getPrototypeOf(cygnetTheme.prototype), "getChildEditorHolder", this).call(this);
 
       el.classList.add('je-cygnet-child-editor-holder');
+      return el;
+    }
+  }, {
+    key: "getDescription",
+    value: function getDescription(text) {
+      var el = _get(_getPrototypeOf(cygnetTheme.prototype), "getDescription", this).call(this, text);
+
+      el.classList.add('je-cygnet-description');
+      el.innerHTML = text;
       return el;
     } // If no title, use the text as title so that we have can use the
     // title attr as a CSS selector to style the collapse/expand state.

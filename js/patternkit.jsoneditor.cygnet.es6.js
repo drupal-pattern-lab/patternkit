@@ -8,6 +8,7 @@ class cygnetTheme extends JSONEditor.AbstractTheme {
   getFormInputDescription (text) {
     const el = super.getFormInputDescription(text)
     el.classList.add('je-cygnet-form-input-label')
+    el.innerHTML = text
     return el
   }
 
@@ -25,6 +26,13 @@ class cygnetTheme extends JSONEditor.AbstractTheme {
   getChildEditorHolder () {
     const el = super.getChildEditorHolder()
     el.classList.add('je-cygnet-child-editor-holder')
+    return el
+  }
+
+  getDescription (text) {
+    const el = super.getDescription(text)
+    el.classList.add('je-cygnet-description')
+    el.innerHTML = text
     return el
   }
 
