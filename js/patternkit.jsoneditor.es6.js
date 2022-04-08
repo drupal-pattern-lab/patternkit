@@ -107,7 +107,7 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
        JSONEditor.defaults.options.theme = settings.patternkitEditor.theme;
        JSONEditor.defaults.options.iconlib = settings.patternkitEditor.icons;
        JSONEditor.defaults.options.keep_oneof_values = false;
-       JSONEditor.defaults.options.disable_edit_json = true;
+       JSONEditor.defaults.options.disable_edit_json = settings.patternkitEditor.disableJsonEditButton;
        JSONEditor.defaults.options.disable_collapse = false;
        JSONEditor.defaults.options.collapse = false;
        JSONEditor.defaults.options.ajax = true;

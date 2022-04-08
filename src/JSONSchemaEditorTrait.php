@@ -87,6 +87,7 @@ trait JSONSchemaEditorTrait {
       'wysiwygEditorName' => $this->config->get('patternkit_json_editor_wysiwyg') ?? '',
       'useShadowDom' => $this->config->get('patternkit_json_editor_use_shadow_dom') ?? TRUE,
       'disablePropertiesButtons' => $this->config->get('patternkit_json_editor_disable_properties_buttons') ?? FALSE,
+      'disableJsonEditButton' => $this->config->get('patternkit_json_editor_disable_edit_json_button') ?? TRUE,
     ];
 
     if (isset(PatternLibraryJSONForm::THEMES[$theme])) {

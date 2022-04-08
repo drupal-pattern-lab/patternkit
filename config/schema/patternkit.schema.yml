@@ -39,6 +39,9 @@ patternkit.settings:
     patternkit_json_editor_disable_properties_buttons:
       type: boolean
       label: 'Boolean that determines whether to show the properties buttons.'
+    patternkit_json_editor_disable_edit_json_button:
+      type: boolean
+      label: 'Boolean that determines whether to show the JSON Edit button.'
 
 block.settings.patternkit_block:*:
   type: block_settings
