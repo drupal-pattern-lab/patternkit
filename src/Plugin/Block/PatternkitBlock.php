@@ -3,7 +3,6 @@
 namespace Drupal\patternkit\Plugin\Block;
 
 use Drupal\Component\Plugin\Context\Context;
-use Drupal\Component\Serialization\SerializationInterface;
 use Drupal\Component\Utility\Xss;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\ReplaceCommand;
@@ -79,13 +78,6 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
   protected $patternLibraryPluginManager;
 
   /**
-   * Encodes and decodes configuration for storage.
-   *
-   * @var \Drupal\Component\Serialization\SerializationInterface
-   */
-  protected $serializer;
-
-  /**
    * Parses and replaces Drupal tokens.
    *
    * @var \Drupal\Core\Utility\Token
@@ -132,8 +124,6 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $library = $container->get('patternkit.asset.library');
     /** @var \Drupal\patternkit\PatternLibraryPluginManager $pattern_plugin_manager */
     $pattern_plugin_manager = $container->get('plugin.manager.library.pattern');
-    /** @var \Drupal\Component\Serialization\SerializationInterface $serializer */
-    $serializer = $container->get('serialization.json');
     /** @var \Drupal\Core\Utility\Token $token */
     $token = $container->get('token');
     /** @var \Drupal\Core\Template\TwigEnvironment $twig */
@@ -148,7 +138,6 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       $pattern_plugin_manager,
       $plugin_id,
       $plugin_definition,
-      $serializer,
       $token,
       $twig);
   }
@@ -176,8 +165,6 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    *   Plugin ID.
    * @param array $plugin_definition
    *   Plugin definition.
-   * @param \Drupal\Component\Serialization\SerializationInterface $serializer
-   *   Serialization service.
    * @param \Drupal\Core\Utility\Token $token
    *   Token service.
    * @param \Drupal\Core\Template\TwigEnvironment $twig
@@ -193,7 +180,6 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     PatternLibraryPluginManager $pattern_plugin_manager,
     string $plugin_id,
     array $plugin_definition,
-    SerializationInterface $serializer,
     Token $token,
     TwigEnvironment $twig) {
 
@@ -203,7 +189,6 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $this->entityTypeManager = $entity_type_manager;
     $this->library = $library;
     $this->patternLibraryPluginManager = $pattern_plugin_manager;
-    $this->serializer = $serializer;
     $this->token = $token;
     $this->twig = $twig;
 
@@ -376,7 +361,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       }
       $block_data_field = $block_entity->get('data')->getValue();
       $block_data = reset($block_data_field)['value'] ?? '';
-      $configuration['fields'] = $this->serializer::decode($block_data);
+      $configuration['fields'] = json_decode($block_data);
       $editor_config = new PatternEditorConfig($configuration);
     }
 
@@ -591,7 +576,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $pattern->config = [];
     if ($patternkit_block) {
       $data = $patternkit_block->get('data')->getValue();
-      $config = $this->serializer::decode(reset($data)['value']);
+      $config = json_decode(reset($data)['value']);
       $bubbleable_metadata = new BubbleableMetadata();
       array_walk_recursive($config, function (&$value, $key) use ($context, $bubbleable_metadata) {
         $token_groups = $this->token->scan($value);
