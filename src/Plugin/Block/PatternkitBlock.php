@@ -383,7 +383,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       }
       $block_data_field = $block_entity->get('data')->getValue();
       $block_data = reset($block_data_field)['value'] ?? '';
-      $configuration['fields'] = $this->serializer::decode($block_data);
+      $configuration['fields'] = json_decode($block_data);
       $editor_config = new PatternEditorConfig($configuration);
     }
 
