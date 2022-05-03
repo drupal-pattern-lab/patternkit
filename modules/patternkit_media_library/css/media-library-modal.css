@@ -1,0 +1,56 @@
+/**
+ * @file
+ * Supplies decent defaults for the media library interface.
+ */
+
+/* Renders the grid mode as a grid. */
+.patternkit-media-library .media-library-views-form__rows {
+  display: flex;
+  flex-wrap: wrap;
+}
+.patternkit-media-library .media-library-item--grid {
+  /* Displays 3 items per row because the modal's width is max 900px. */
+  width: calc(33% - 1em);
+  margin: 0.5em;
+  padding: 0.5em;
+  border: 2px solid #dbdbdb;
+  border-radius: 2px;
+}
+.patternkit-media-library .media-library-item--grid.is-hover,
+.patternkit-media-library .media-library-item--grid.checked {
+  border-color: #5a8bed;
+}
+.patternkit-media-library .media-library-item--grid .media-library-item__click-to-select-trigger {
+  cursor: pointer;
+}
+
+/* Ensures each Views exposed form is displayed inline. */
+.patternkit-media-library .form--inline,
+.patternkit-media-library .views-exposed-form {
+  display: flex;
+  align-items: end;
+  margin-bottom: 1em;
+}
+.patternkit-media-library .form--inline > *,
+.patternkit-media-library .views-exposed-form > * {
+  margin: 0 1em 0 0;
+}
+
+/* Gives the Views pager some sane defaults. */
+.patternkit-media-library .media-library-view nav[role="navigation"] ul {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: center;
+  margin: 1em 0;
+  list-style: none;
+  text-align: center;
+  font-weight: bold;
+}
+.patternkit-media-library .media-library-view nav[role="navigation"] ul > li {
+  margin: 0 0.5em;
+}
+
+.patternkit-media-library .views-display-link.is-active {
+  font-weight: 700;
+}

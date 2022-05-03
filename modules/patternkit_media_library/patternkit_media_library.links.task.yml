@@ -1,0 +1,4 @@
+patternkit.settings.media_library:
+  title: 'Media Library Settings'
+  route_name: patternkit.settings.media_library
+  base_route: patternkit.settings

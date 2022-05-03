@@ -3,3 +3,10 @@ Sample twig template.
 <div>{{- text|striptags('') -}}</div>
 
 <div>{{ formatted_text|raw }}</div>
+
+{% if image_url %}
+  <figure>
+    <img src="{{ image_url }}" />
+    <figcaption>This is the image for URL <em>{{ image_url }}</em>.</figcaption>
+  </figure>
+{% endif %}

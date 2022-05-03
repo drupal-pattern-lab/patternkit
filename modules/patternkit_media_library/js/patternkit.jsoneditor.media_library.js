@@ -94,12 +94,15 @@ var DrupalImageEditor = /*#__PURE__*/function (_JSONEditor$AbstractE) {
             $dialog = jQuery("<div id=\"drupal-modal\" class=\"ui-front\"/>").appendTo('body');
           }
 
+          $dialog.addClass('patternkit-media-library');
+          var modalWidth = window.innerWidth >= 900 ? 900 : window.innerWidth;
+          var modalHeight = window.innerHeight >= 900 ? 900 : window.innerHeight;
           _this.dialog = Drupal.dialog($dialog.append(jQuery('<span>', {
             id: 'patternkit_image_dialog_loading'
           })), {
             title: Drupal.t('Choose Image'),
-            width: 900,
-            height: 900
+            width: modalWidth,
+            height: modalHeight
           }).showModal();
           Drupal.ajax({
             url: _this.options.image_url + '?' + media_library_settings,

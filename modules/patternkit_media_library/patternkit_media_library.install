@@ -23,3 +23,17 @@ function patternkit_media_library_requirements($phase) {
 
   return $requirements;
 }
+/**
+ * Sets default value for new config item 'patternkit_media_library.settings'.
+ */
+function patternkit_media_library_update_8001(&$sandbox) {
+  $config_key = 'patternkit_media_library.settings';
+
+  $config_current = \Drupal::configFactory()->getEditable($config_key);
+  // Installs the default config only if this config is not already set.
+  if (is_null($config_current->get('use_styles'))) {
+    /** @var \Drupal\Core\Config\ConfigInstaller $config_installer_service */
+    $config_installer_service = \Drupal::service('config.installer');
+    $config_installer_service->installDefaultConfig('module', 'patternkit_media_library');
+  }
+}

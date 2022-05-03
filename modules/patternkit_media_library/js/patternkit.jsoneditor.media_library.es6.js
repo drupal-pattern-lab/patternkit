@@ -53,7 +53,11 @@ class DrupalImageEditor extends JSONEditor.AbstractEditor {
             `<div id="drupal-modal" class="ui-front"/>`,
           ).appendTo('body');
         }
-        this.dialog = Drupal.dialog($dialog.append(jQuery('<span>', {id: 'patternkit_image_dialog_loading'})), { title: Drupal.t('Choose Image'), width: 900, height: 900 }).showModal();
+        $dialog.addClass('patternkit-media-library');
+
+        const modalWidth = window.innerWidth >= 900 ? 900 : window.innerWidth;
+        const modalHeight = window.innerHeight >= 900 ? 900 : window.innerHeight;
+        this.dialog = Drupal.dialog($dialog.append(jQuery('<span>', {id: 'patternkit_image_dialog_loading'})), { title: Drupal.t('Choose Image'), width: modalWidth, height: modalHeight }).showModal();
         Drupal.ajax({ url: this.options.image_url + '?' + media_library_settings, base: 'drupal-modal', wrapper: 'patternkit_image_dialog_loading' }).execute();
       });
     }

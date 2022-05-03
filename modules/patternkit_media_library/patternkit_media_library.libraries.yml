@@ -7,3 +7,9 @@ patternkit.jsoneditor.media_library:
     - core/jquery
     - media_library/ui
     - patternkit/jsoneditor
+
+media_library_modal:
+  version: VERSION
+  css:
+    theme:
+      css/media-library-modal.css: {}

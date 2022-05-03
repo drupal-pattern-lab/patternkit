@@ -4,3 +4,14 @@ patternkit.media_library:
     _controller: '\Drupal\patternkit_media_library\Controller\PatternkitMediaLibraryController::mediaLibrary'
   requirements:
     _permission: 'administer blocks,view media'
+
+patternkit.settings.media_library:
+  path: '/admin/config/user-interface/patternkit/media-library'
+  defaults:
+    _form: '\Drupal\patternkit_media_library\Form\MediaLibrarySettingsForm'
+    _title: 'Patternkit Media Library settings'
+    _description: 'Configure Patternkit Media Library Support.'
+  options:
+    _admin_route: TRUE
+  requirements:
+    _permission: 'access administration pages'

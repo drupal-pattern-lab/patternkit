@@ -20,6 +20,14 @@
         "wysiwyg": true
       }
     },
+    "image_url": {
+      "title": "Image URL",
+      "type": "string",
+      "format": "image",
+      "options": {
+        "grid_columns": 6
+      }
+    },
     "hidden": {
       "title": "hidden",
       "type": "string"
