@@ -1135,7 +1135,9 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         JSONEditor.defaults.options.disable_collapse = false;
         JSONEditor.defaults.options.collapse = false;
         JSONEditor.defaults.options.ajax = true;
-        JSONEditor.defaults.options.disable_properties = settings.patternkitEditor.disablePropertiesButtons; // @todo Loop through all editor plugins and add them at runtime.
+        JSONEditor.defaults.options.disable_properties = settings.patternkitEditor.disablePropertiesButtons;
+        JSONEditor.defaults.languages.en.button_delete_node_warning = 'Are you sure you want to remove this item?'; // Overrides alert message when removing an item.
+        // @todo Loop through all editor plugins and add them at runtime.
         // Override how references are resolved.
 
         JSONEditor.prototype._loadExternalRefs = function (schema, callback) {
