@@ -1,17 +1,15 @@
 # PatternKit
 
-[![Join the Patternkit Community on Slack](https://drupalslack.herokuapp.com/badge.svg)](https://drupalslack.herokuapp.com) [Drupal.org](https://www.drupal.org/project/patternkit)
+Patternkit is a Drupal module that loads a library of patterns as blocks to be used in Layout Builder.  These patterns can originate from a Drupal Theme, [PatternLab](https://patternlab.io), [Knapsack](https://www.knapsack.cloud/), [Storybook](https://storybook.js.org/), or an API.
 
-Drupal module that loads a ([Drupal Theme](https://drupal.org/projects/patternfly), [PatternLab](https://patternlab.io), [Knapsack](https://www.knapsack.cloud/), [Storybook](https://storybook.js.org/), [REST API](https://github.com/drupal-pattern-lab/patternapi)) library of templates (patterns) as blocks to be used in Layout Builder, Page Manager, and more.
-
-Components (patterns) can be provided by your existing theme templates - just add a [JSON file in schema format](https://json-schema.org/learn/getting-started-step-by-step.html) next to your template to allow editors to fill out and map the components, or download an existing Twig (or other frontend tech) library with JSON schema to be able to drag and drop those components on your layout.
+Patterns or components can be provided by your existing theme templates by adding a [JSON file in schema format](https://json-schema.org/learn/getting-started-step-by-step.html) next to your template to allow content authors to fill out and map the components, or download an existing Twig library with JSON schema to be able to drag and drop those components on your layout.
 
 When pattern configurations are saved, the template is downloaded locally (to mitigate origin failures and lock in version at time of configuration.)
 
 Rendered templates may contain Drupal tokens, which are then processed from block context.
 
 ## Get Help / Ask a Question
-See [CONTRIBUTING.md#get-an-answer-to-a-question](CONTRIBUTING.md#get-an-answer-to-a-question)
+Join the [#contrib-patternkit](https://drupal.slack.com/archives/C9A9ZD9K2) channel on Slack.
 
 ## Installation
 
@@ -44,12 +42,12 @@ See [CONTRIBUTING.md#get-an-answer-to-a-question](CONTRIBUTING.md#get-an-answer-
 
     Use the former for dynamic REST based components, and the latter for locally sourced Twig templates like those in a Drupal theme.
 
-1. If not already present in the library, add a companion JSON schema files to your templates so that Patternkit can display the editor to allow for drag-n-drop mapping in the Layout Builder of your choice.
+1. If not already present in the library, add companion JSON schema files to your templates so that Patternkit can display the editor to allow for drag-n-drop mapping in the Layout Builder of your choice.
 
     See [example.json](modules/patternkit_example/lib/patternkit/src/atoms/example/src/example.json).
 
 
-You can create your own plugins if you'd like to add support for other library types. Feel free to [create a pull request](https://github.com/drupal-pattern-lab/patternkit/pulls) to have it added to the repo!
+You can create your own plugins if you'd like to add support for other library types.  If you feel others can benefit from your plugin please feel free to contribute to the project.
 
 ## Configuration
 
@@ -116,10 +114,8 @@ Configure the text format to include the desired CKEditor buttons. Then, on
 `/admin/config/user-interface/patternkit/json`, you can select this text format
 in _CKEditor toolbar_.
 
-_Security note_: Please note that Patternkit does not filter the text before
-sending it to the pattern's template (e.g., to a Twig file). Even though you
-select a Text format in order to load CKEditor, Patternkit will not process the
-contents of a WYSIWYG field through that text format's filters.
+// TODO:  Include language about Patternkit processing text format filters once this feature has been implemented.
+
 
 ##### CKEditor content filtering
 
