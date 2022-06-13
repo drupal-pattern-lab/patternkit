@@ -214,9 +214,6 @@ class PatternkitCommands extends DrushCommands {
    * @command patternkit:libUpdate
    * @aliases pklu, patternkit-lib-update
    *
-   * @param string $library_name
-   *   The id of the pattern library to update from *.libraries.yml.
-   *
    * @return array|bool
    *   Drush expected command result.
    *
@@ -225,11 +222,9 @@ class PatternkitCommands extends DrushCommands {
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    * @throws \Drupal\Core\Entity\EntityStorageException
    */
-  public function libUpdate($library_name) {
+  public function libUpdate() {
     $logger = $this->logger();
-    if (empty($library_name)) {
-      throw new \InvalidArgumentException('Library name argument is empty or falsey.');
-    }
+
     $lb_enabled = FALSE;
     if (\Drupal::moduleHandler()->moduleExists('layout_builder')) {
       $lb_enabled = TRUE;
@@ -327,19 +322,18 @@ class PatternkitCommands extends DrushCommands {
       $block_count++;
     }
 
-    $logger->info($this->t('Parsed @entities entity layouts with @blocks Patternkit blocks.',
+    $logger->notice($this->t('Parsed @entities entity layouts with @blocks Patternkit blocks.',
       ['@entities' => $entity_count, '@blocks' => $block_count]));
     $block_manager->clearCachedDefinitions();
     $entity_type_manager->clearCachedDefinitions();
-    $logger->notice($this->t('Completed running Patternkit library updates for @library.',
-      ['@library' => $library_name]));
+    $logger->notice($this->t('Completed running Patternkit library updates.'));
     return true;
   }
 
   /**
    * Updates a Patternkit Block Component Plugin's Pattern to latest.
    *
-   * @param \Drupal\block\BlockInterface $component
+   * @param \Drupal\block\BlockInterface|\Drupal\layout_builder\SectionComponent $component
    *   The block plugin or component to update.
    * @param null|string $library_name
    *   The name of the library to match against, or NULL to skip matching.
@@ -350,7 +344,7 @@ class PatternkitCommands extends DrushCommands {
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    * @throws \Drupal\Core\Entity\EntityStorageException
    */
-  private function updateBlockComponentPluginPattern(BlockInterface $component, $library_name = NULL) {
+  private function updateBlockComponentPluginPattern($component, $library_name = NULL) {
     $logger = $this->logger();
     $block_storage = $this->blockStorage;
     $pattern_storage = $this->patternStorage;
@@ -379,7 +373,7 @@ class PatternkitCommands extends DrushCommands {
       }
       $configuration['patternkit_block_rid'] = $patternkit_block->getLoadedRevisionId();
     }
-    $logger->debug($this->t('Updating block plugin with id @plugin:',
+    $logger->notice($this->t('Updating block plugin with id @plugin:',
       ['@plugin' => $plugin_id]));
     try {
       $plugin = $component->getPlugin();
@@ -408,7 +402,7 @@ class PatternkitCommands extends DrushCommands {
     if ($base_pattern->getHash() === $pattern->getHash()) {
       return FALSE;
     }
-    $logger->debug(t('Updating pattern from @old to @new.',
+    $logger->notice(t('Updating pattern from @old to @new.',
       ['@old' => $pattern->getVersion(), '@new' => $base_pattern->getVersion()]));
     $pattern->setNewRevision();
     $pattern->isDefaultRevision(TRUE);
