@@ -29,36 +29,75 @@ class PatternkitTest extends BrowserTestBase {
   ];
 
   /**
+   * Default Drupal theme for running tests.
+   *
    * @var string
-   *   Default Drupal theme for running tests.
    */
   protected $defaultTheme = 'stable';
 
   /**
-   * Verify that the toolbar tab and tray are showing and functioning.
+   * Storage handler for patternkit_block content.
+   *
+   * @var \Drupal\Core\Entity\EntityStorageInterface
+   */
+  protected $patternBlockStorage;
+
+  /**
+   * Storage handler for patternkit_pattern content.
+   *
+   * @var \Drupal\Core\Entity\EntityStorageInterface
+   */
+  protected $patternStorage;
+
+  /**
+   * The patternkit library service.
+   *
+   * @var \Drupal\patternkit\Asset\Library
+   */
+  protected $library;
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setUp(): void {
+    parent::setUp();
+
+    $entity_type_manager = $this->container->get('entity_type.manager');
+    $this->patternBlockStorage = $entity_type_manager->getStorage('patternkit_block');
+    $this->patternStorage = $entity_type_manager->getStorage('patternkit_pattern');
+    $this->library = $this->container->get('patternkit.asset.library');
+  }
+
+  /**
+   * Verify creation, placement, and display of a patternkit block.
    *
    * @throws \Behat\Mink\Exception\ExpectationException
    * @throws \Behat\Mink\Exception\ResponseTextException
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    * @throws \Drupal\Core\Entity\EntityStorageException
    */
   public function testPatternkitExampleBlock() {
+    // Create a block instance for placement.
     // @todo Remove this when
     // Drupal\patternkit\Plugin\Block\PatternkitBlock::setConfig
     // handles default block creation.
     /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
-    $patternkit_block = \Drupal::entityTypeManager()->getStorage('patternkit_block')->create([
+    $patternkit_block = $this->patternBlockStorage->create([
       'data' => ['value' => '{}'],
       'info' => $this->randomMachineName(),
       'reusable' => FALSE,
       'published' => TRUE,
+      'pattern_id' => '@patternkit/atoms/example/src/example',
     ]);
     $patternkit_block->save();
-    /** @var \Drupal\Core\Entity\ContentEntityStorageInterface $pattern_storage */
-    $pattern_storage = \Drupal::entityTypeManager()->getStorage('patternkit_pattern');
+
+    // Identify and create the pattern entity to be used.
     $pattern_id = PatternkitBlock::derivativeToAssetId('patternkit_atoms_example_src_example');
-    /** @var \Drupal\patternkit\Entity\PatternInterface $pattern */
-    $pattern = Pattern::create(\Drupal::service('patternkit.asset.library')->getLibraryAsset($pattern_id));
-    $pattern_cache = $pattern_storage->loadByProperties([
+    $pattern = Pattern::create($this->library->getLibraryAsset($pattern_id));
+
+    // Load the pattern from storage.
+    $pattern_cache = $this->patternStorage->loadByProperties([
       'library' => $pattern->getLibrary(),
       'path' => $pattern->getPath(),
     ]);
@@ -75,7 +114,8 @@ class PatternkitTest extends BrowserTestBase {
     }
     $pattern->save();
 
-    $this->drupalPlaceBlock('patternkit_block:patternkit_atoms_example_src_example', [
+    // Place the block for viewing.
+    $block = $this->drupalPlaceBlock('patternkit_block:patternkit_atoms_example_src_example', [
       'region' => 'content',
       'pattern' => $pattern->getRevisionId(),
       'patternkit_block_id' => $patternkit_block->id(),
@@ -84,9 +124,10 @@ class PatternkitTest extends BrowserTestBase {
 
     $assert = $this->assertSession();
 
+    // Expect to see the block content on the page request.
     $this->drupalGet('');
     $assert->statusCodeEquals(200);
-    $assert->pageTextContains('Test sample twig template.');
+    $assert->pageTextContains('Sample twig template.');
   }
 
 }
