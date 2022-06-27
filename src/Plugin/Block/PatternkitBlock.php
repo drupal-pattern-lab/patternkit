@@ -14,7 +14,6 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Plugin\Context\ContextHandlerInterface;
 use Drupal\Core\Plugin\Context\ContextRepositoryInterface;
-use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Template\TwigEnvironment;
 use Drupal\Core\Utility\Token;
 use Drupal\patternkit\Entity\Pattern;
@@ -600,59 +599,22 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       $is_processed[$pattern_id] = 1;
     }
 
-    // Pull the dependencies and configuration.
-    $pattern->config = [];
+    // Load pattern configuration.
+    $config = [];
     if ($patternkit_block) {
       if (!empty($configuration['langcode']) && $patternkit_block->hasTranslation($configuration['langcode'])) {
         $patternkit_block = $patternkit_block->getTranslation($configuration['langcode']);
       }
       $data = $patternkit_block->get('data')->getValue();
       $config = $this->serializer::decode(reset($data)['value']);
-      $bubbleable_metadata = new BubbleableMetadata();
-      array_walk_recursive($config, function (&$value, $key) use ($context, $bubbleable_metadata) {
-        $token_groups = $this->token->scan($value);
-        $template = $value;
-        $template_context = [];
-        foreach ($token_groups as $group => $tokens) {
-          $tokenized = $this->token->generate(
-            $group,
-            $tokens,
-            $context,
-            [],
-            $bubbleable_metadata
-          );
-          foreach ($tokens as $token) {
-            $placeholder = preg_replace("/[^a-z]/", '', $token);
-            $template_context[$placeholder] = $tokenized[$token];
-            // If the user is not using Twig templating,
-            // wrap with a Twig write so we can process it.
-            $token_pos = strpos($template, $token);
-            $template_use_twig = strpos($template, '{{') < $token_pos
-              && strpos($template, '}}', $token_pos + strlen($token)) !== FALSE;
-            if (!$template_use_twig) {
-              $placeholder = '{{' . $placeholder . '}}';
-            }
-            $template = str_replace($token, $placeholder, $template);
-          }
-        }
-        $value = (string) $this->twig->renderInline($template, $template_context);
-      });
-      $pattern->config = $config;
     }
 
-    // @todo Revisit twig default hard-coding.
-    $pattern_plugin = $pattern->getLibraryPluginId();
-    $library_plugin_id = !empty($pattern_plugin) ? $pattern_plugin : 'twig';
-    /** @var \Drupal\patternkit\PatternLibraryPluginInterface $library_plugin */
-    $library_plugin = $this->patternLibraryPluginManager->createInstance($library_plugin_id);
-    $elements = $library_plugin->render([$pattern]);
-
-    // @todo Merge attachment JS and dependencies.
-
-    $elements['#attached'] = $config['pkdata']['attachments'] ?? [];
-    $bubbleable_metadata->applyTo($elements);
-
-    return $elements;
+    return [
+      '#type' => 'pattern',
+      '#pattern' => $pattern,
+      '#config' => $config,
+      '#context' => $context,
+    ];
   }
 
   /**

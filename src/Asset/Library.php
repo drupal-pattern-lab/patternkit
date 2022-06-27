@@ -385,7 +385,8 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
     $library_name = substr($key, 0, strpos($key, '/'));
     /** @var \Drupal\patternkit\PatternLibrary $library */
     $library = $this->get(trim($library_name, '@'));
-    return $library->patterns[substr($key, strlen($library_name . '/'))] ?? NULL;
+    $component_name = substr($key, strlen($library_name . '/'));
+    return $library->patterns[$component_name] ?? NULL;
   }
 
   /**

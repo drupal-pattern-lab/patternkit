@@ -41,3 +41,23 @@ services:
     class: Drupal\patternkit\Routing\PatternkitTranslateBlockFormRouteSubscriber
     tags:
       - { name: event_subscriber }
+  plugin.manager.pattern_field_processor:
+    class: Drupal\patternkit\PatternFieldProcessorPluginManager
+    arguments:
+      - '@container.namespaces'
+      - '@cache.discovery'
+      - '@module_handler'
+      - '@serialization.json'
+      - '@patternkit.asset.library'
+      - '@patternkit.schema.schema_walker_factory'
+      - '@logger.channel.patternkit'
+  patternkit.schema.ref_provider:
+    class: Drupal\patternkit\Schema\PatternkitRefProvider
+    arguments:
+      - '@patternkit.asset.library'
+    public: false
+  patternkit.schema.schema_walker_factory:
+    class: Drupal\patternkit\Schema\SchemaWalkerFactory
+    arguments:
+      - '@patternkit.schema.ref_provider'
+    public: false

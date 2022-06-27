@@ -7,6 +7,9 @@
   "properties": {
     "text": {
       "$ref": "@patternkit/atoms/example_ref/../example/src/example.json#/properties/text"
+    },
+    "nested_reference": {
+      "$ref": "@patternkit/atoms/example_ref/../example/src/example.json"
     }
   }
 }
