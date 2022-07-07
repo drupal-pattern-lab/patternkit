@@ -2,11 +2,13 @@
 
 namespace Drupal\patternkit\Plugin\PatternLibrary;
 
+use Drupal\patternkit\Asset\PatternLibraryParser\FilePatternLibraryParser;
+use Twig\Loader\FilesystemLoader;
+use Drupal\Core\Template\TwigEnvironment;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternLibraryPluginDefault;
-use Drupal\patternkit\PatternLibraryPluginInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -23,29 +25,29 @@ class PatternLibraryFile extends PatternLibraryPluginDefault implements Containe
    *
    * @var \Drupal\Core\Template\TwigEnvironment
    */
-  protected $twig;
+  protected TwigEnvironment $twig;
 
   /**
    * Twig file loader.
    *
    * @var \Twig\Loader\FilesystemLoader
    */
-  protected $twigLoader;
+  protected FilesystemLoader $twigLoader;
 
   /**
    * File pattern library parser service.
    *
    * @var \Drupal\patternkit\Asset\PatternLibraryParser\FilePatternLibraryParser
    */
-  protected $fileParser;
+  protected FilePatternLibraryParser $fileParser;
 
   /**
    * Creates a new File Pattern Library using the given container.
    *
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): PatternLibraryPluginInterface {
-    $root = $container->get('app.root');
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): self {
+    $root = $container->getParameter('app.root');
     /** @var \Drupal\patternkit\Asset\PatternLibraryParserInterface $file_parser */
     $file_parser = $container->get('patternkit.asset.library.parser.file');
     /** @var \Drupal\Core\Config\ConfigFactoryInterface $config_factory */
@@ -54,16 +56,9 @@ class PatternLibraryFile extends PatternLibraryPluginDefault implements Containe
   }
 
   /**
-   * Returns the editor for the generic file plugin.
-   *
-   * @param \Drupal\patternkit\entity\PatternInterface|null $pattern
-   * @param \Drupal\patternkit\PatternEditorConfig|null $config
-   *
-   * @return mixed|void
-   *   An editor render array or nothing if not present.
+   * {@inheritdoc}
    */
-  public function getEditor(PatternInterface $pattern = NULL,
-    PatternEditorConfig $config = NULL) {
+  public function getEditor(PatternInterface $pattern = NULL, ?PatternEditorConfig $config = NULL): string {
     // @todo Implement getEditor() method.
     return '';
   }
@@ -95,7 +90,7 @@ class PatternLibraryFile extends PatternLibraryPluginDefault implements Containe
       if (strpos($template, '@') === 0) {
         [$namespace, $file] = explode('#', $template);
       }
-      $bare       = basename($file);
+      $bare = basename($file);
       /** @var \Drupal\Core\Template\TwigEnvironment $twig */
       $twig       = \Drupal::service('twig');
       $template   = $twig->load("$namespace/$pattern->filename");

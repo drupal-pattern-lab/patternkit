@@ -2,60 +2,40 @@
 
 namespace Drupal\patternkit\Asset\PatternLibraryParser;
 
-use Drupal\Component\Serialization\SerializationInterface;
 use Drupal\Core\Asset\Exception\InvalidLibraryFileException;
-use Drupal\Core\Extension\ModuleHandlerInterface;
-use Drupal\Core\Theme\ThemeManagerInterface;
 use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\PatternLibraryJSONParserTrait;
 use Drupal\patternkit\Asset\PatternLibraryParserBase;
-use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 
 /**
  * Parses a Twig pattern library collection into usable metadata.
  */
 class JSONPatternLibraryParser extends PatternLibraryParserBase {
+
   use PatternLibraryJSONParserTrait;
 
   /**
-   * Attaches required services.
-   *
-   * @param \Drupal\Component\Serialization\SerializationInterface $serializer
-   *   Serializes and de-serializes data.
-   * @param string $root
-   *   The application root path.
-   * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
-   *   Allows modules to alter library parsing.
-   * @param \Drupal\Core\Theme\ThemeManagerInterface $theme_manager
-   *   Allows themes to alter library parsing.
-   * @param \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface $stream_wrapper
-   *   The stream wrapper manager.
+   * {@inheritdoc}
    */
-  public function __construct(
-    SerializationInterface $serializer,
-    $root,
-    ModuleHandlerInterface $module_handler,
-    ThemeManagerInterface $theme_manager,
-    StreamWrapperManagerInterface $stream_wrapper) {
-
-    $this->serializer = $serializer;
-    parent::__construct($root, $module_handler, $theme_manager, $stream_wrapper);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public function parsePatternLibraryInfo(PatternLibrary $library, $path): array {
+  public function parsePatternLibraryInfo(PatternLibrary $library, string $path): array {
     if (!file_exists($path)) {
       throw new InvalidLibraryFileException("Path $path does not exist.");
     }
     $metadata = [];
     $info = $library->getPatternInfo();
+    if ($path[0] === '/') {
+      // Trim the root path plus the trailing slash.
+      $relative_path = substr($path, strlen($this->root . '/'));
+    }
+    else {
+      $relative_path = $path;
+    }
+    $pattern_info = $info[$relative_path];
     foreach (self::discoverComponents($path, ['json']) as $name => $data) {
       if (empty($data['json']) || !file_exists($data['json'])) {
         continue;
       }
-      $category = $info[$path]['category'] ?? 'default';
+      $category = $pattern_info['category'] ?? 'default';
       $library_defaults = [
         '$schema' => 'https://json-schema.org/schema#',
         'assets' => ['schema' => $data['json']],
@@ -64,7 +44,7 @@ class JSONPatternLibraryParser extends PatternLibraryParserBase {
         'type' => 'object',
         'format' => 'grid',
         'library' => $library->id(),
-        'libraryPluginId' => $info[$path]['plugin'],
+        'libraryPluginId' => $pattern_info['plugin'],
         'license' => $library->license ?? [],
         'name' => $name,
         'properties' => (object) [],
@@ -76,7 +56,7 @@ class JSONPatternLibraryParser extends PatternLibraryParserBase {
         $pattern_path = trim(substr($data['json'], strlen($path), -strlen('.json')), '/\\');
         $category_guess = $library->category ?? strstr($pattern_path, DIRECTORY_SEPARATOR, TRUE);
         $pattern->category = $pattern->get('category')
-            ->getValue() ?? $category_guess;
+          ->getValue() ?? $category_guess;
       }
       else {
         // Create the pattern from defaults.
@@ -87,8 +67,8 @@ class JSONPatternLibraryParser extends PatternLibraryParserBase {
       $pattern->path = substr($pattern->filename, 0, -strlen('.json'));
       // @todo Set $pattern->url to the actual URL of the pattern.
       // @todo Add default of library version fallback to extension version.
-      $pattern->version = $pattern->version ?? 'VERSION';
-      $metadata['@' . $library->id() . '/' . $pattern->getPath()] = $pattern;
+      $pattern->version ??= 'VERSION';
+      $metadata[$pattern->getPath()] = $pattern;
     }
 
     foreach ($metadata as $pattern_type => $pattern) {

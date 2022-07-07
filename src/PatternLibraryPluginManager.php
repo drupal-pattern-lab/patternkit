@@ -2,7 +2,9 @@
 
 namespace Drupal\patternkit;
 
+use Drupal\Component\Plugin\Discovery\DiscoveryInterface;
 use Drupal\Component\Annotation\Plugin\Discovery\AnnotationBridgeDecorator;
+use Drupal\Component\Plugin\CategorizingPluginManagerInterface;
 use Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
@@ -12,9 +14,11 @@ use Drupal\Core\Plugin\Discovery\AnnotatedClassDiscovery;
 use Drupal\Core\Plugin\Discovery\ContainerDerivativeDiscoveryDecorator;
 use Drupal\Core\Plugin\FilteredPluginManagerTrait;
 use Drupal\patternkit\Annotation\PatternLibrary;
-use Traversable;
 
-class PatternLibraryPluginManager extends DefaultPluginManager {
+/**
+ * The plugin manager service for pattern library parser plugins.
+ */
+class PatternLibraryPluginManager extends DefaultPluginManager implements CategorizingPluginManagerInterface {
 
   use FilteredPluginManagerTrait;
 
@@ -23,7 +27,7 @@ class PatternLibraryPluginManager extends DefaultPluginManager {
    *
    * @var \Drupal\Core\Extension\ThemeHandlerInterface
    */
-  protected $themeHandler;
+  protected ThemeHandlerInterface $themeHandler;
 
   /**
    * Manages plugins that provide parsing and editing for pattern libraries.
@@ -38,7 +42,7 @@ class PatternLibraryPluginManager extends DefaultPluginManager {
    * @param \Drupal\Core\Extension\ThemeHandlerInterface $theme_handler
    *   The theme handler to invoke the alter hook with.
    */
-  public function __construct(Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler, ThemeHandlerInterface $theme_handler) {
+  public function __construct(\Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler, ThemeHandlerInterface $theme_handler) {
     parent::__construct('Plugin/PatternLibrary', $namespaces, $module_handler, PatternLibraryPluginInterface::class, PatternLibrary::class);
     $this->themeHandler = $theme_handler;
 
@@ -64,7 +68,7 @@ class PatternLibraryPluginManager extends DefaultPluginManager {
   /**
    * {@inheritdoc}
    */
-  protected function getDiscovery() {
+  protected function getDiscovery(): DiscoveryInterface {
     if (!$this->discovery) {
       $discovery = new AnnotatedClassDiscovery($this->subdir, $this->namespaces, $this->pluginDefinitionAnnotationName, $this->additionalAnnotationNamespaces);
       $discovery = new AnnotationBridgeDecorator($discovery, $this->pluginDefinitionAnnotationName);
@@ -79,7 +83,7 @@ class PatternLibraryPluginManager extends DefaultPluginManager {
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    */
-  public function processDefinition(&$definition, $plugin_id) {
+  public function processDefinition(&$definition, $plugin_id): void {
     parent::processDefinition($definition, $plugin_id);
 
     if (!$definition instanceof PatternLibraryPluginDefinition) {
@@ -102,12 +106,13 @@ class PatternLibraryPluginManager extends DefaultPluginManager {
   /**
    * {@inheritdoc}
    */
-  public function getCategories() {
+  public function getCategories(): array {
     // Fetch all categories from definitions and remove duplicates.
     $categories = array_unique(array_values(array_map(static function (PatternLibraryPluginDefinition $definition) {
       return $definition->getCategory();
     }, $this->getDefinitions())));
     natcasesort($categories);
+
     return $categories;
   }
 
@@ -115,13 +120,14 @@ class PatternLibraryPluginManager extends DefaultPluginManager {
    * {@inheritdoc}
    *
    * @return \Drupal\patternkit\PatternLibraryPluginDefinition[]
+   *   An array of plugin definitions, sorted by category and label.
    */
   public function getSortedDefinitions(array $definitions = NULL, $label_key = 'label'): array {
     // Sort the plugins first by category, then by label.
-    $definitions = $definitions ?? $this->getDefinitions();
+    $definitions ??= $this->getDefinitions();
     // Suppress errors because PHPUnit will indirectly modify the contents,
     // triggering https://bugs.php.net/bug.php?id=50688.
-    @uasort($definitions, static function (PatternLibraryPluginDefinition $a, PatternLibraryPluginDefinition $b) {
+    @uasort($definitions, static function (PatternLibraryPluginDefinition $a, PatternLibraryPluginDefinition $b): int {
       if ($a->getCategory() !== $b->getCategory()) {
         return strnatcasecmp($a->getCategory(), $b->getCategory());
       }
@@ -134,6 +140,8 @@ class PatternLibraryPluginManager extends DefaultPluginManager {
    * {@inheritdoc}
    *
    * @return \Drupal\patternkit\PatternLibraryPluginDefinition[][]
+   *   Keys are category names, and values are arrays of which the keys are
+   *   plugin IDs and the values are plugin definitions.
    */
   public function getGroupedDefinitions(array $definitions = NULL, $label_key = 'label'): array {
     $definitions = $this->getSortedDefinitions($definitions ?? $this->getDefinitions(), $label_key);
@@ -145,7 +153,10 @@ class PatternLibraryPluginManager extends DefaultPluginManager {
   }
 
   /**
-   * {@inheritdoc}
+   * Returns an array of layout labels grouped by category.
+   *
+   * @return string[][]
+   *   A nested array of labels suitable for #options.
    */
   public function getLayoutOptions(): array {
     $layout_options = [];
@@ -156,4 +167,5 @@ class PatternLibraryPluginManager extends DefaultPluginManager {
     }
     return $layout_options;
   }
+
 }

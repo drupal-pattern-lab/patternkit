@@ -46,12 +46,8 @@ class TokenProcessorTest extends UnitTestCase {
   protected function setUp(): void {
     parent::setUp();
 
-    $this->token = $this->getMockBuilder(Token::class)
-      ->disableOriginalConstructor()
-      ->getMock();
-    $this->twig = $this->getMockBuilder(TwigEnvironment::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $this->token = $this->createMock(Token::class);
+    $this->twig = $this->createMock(TwigEnvironment::class);
 
     // Instantiate the plugin for testing.
     $this->plugin = new TokenProcessor([], 'token', [],
@@ -183,8 +179,7 @@ JSON;
 
     $value = 'My [node:title] string';
     $randomTitle = $this->getRandomGenerator()->name();
-    $node = $this->getMockBuilder(NodeInterface::class)
-      ->getMock();
+    $node = $this->createMock(NodeInterface::class);
     $node->title = $randomTitle;
 
     // Mock the token discovery.

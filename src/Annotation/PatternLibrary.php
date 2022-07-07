@@ -28,7 +28,7 @@ class PatternLibrary extends Plugin {
    *
    * @var string
    */
-  public $id;
+  public string $id;
 
   /**
    * The human-readable name.
@@ -37,7 +37,7 @@ class PatternLibrary extends Plugin {
    *
    * @ingroup plugin_translatable
    */
-  public $label;
+  public string $label;
 
   /**
    * An optional description for advanced layouts.
@@ -51,7 +51,7 @@ class PatternLibrary extends Plugin {
    *
    * @ingroup plugin_translatable
    */
-  public $description;
+  public string $description;
 
   /**
    * The human-readable category.
@@ -62,7 +62,7 @@ class PatternLibrary extends Plugin {
    *
    * @ingroup plugin_translatable
    */
-  public $category;
+  public string $category;
 
   /**
    * The layout plugin class.
@@ -72,12 +72,12 @@ class PatternLibrary extends Plugin {
    *
    * @var string
    */
-  public $class = PatternLibraryPluginDefault::class;
+  public string $class = PatternLibraryPluginDefault::class;
 
   /**
    * {@inheritdoc}
    */
-  public function get() {
+  public function get(): PatternLibraryPluginDefinition {
     return new PatternLibraryPluginDefinition($this->definition);
   }
 

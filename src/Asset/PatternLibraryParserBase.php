@@ -2,10 +2,15 @@
 
 namespace Drupal\patternkit\Asset;
 
+use Drupal\Component\Serialization\SerializationInterface;
+use Drupal\Core\Asset\LibrariesDirectoryFileFinder;
 use Drupal\Core\Asset\LibraryDiscoveryParser;
+use Drupal\Core\Extension\ExtensionPathResolver;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\File\FileSystem;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
+use Drupal\Core\Theme\ThemeManagerInterface;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternEditorConfig;
@@ -15,6 +20,45 @@ use Symfony\Component\Finder\Iterator\RecursiveDirectoryIterator;
  * Base functionality for a pattern library parser.
  */
 abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implements PatternLibraryParserInterface {
+
+  /**
+   * Serializes and de-serializes data.
+   *
+   * @var \Drupal\Component\Serialization\SerializationInterface
+   */
+  protected SerializationInterface $serializer;
+
+  /**
+   * Constructor for PatternLibraryParser implementations.
+   *
+   * @param \Drupal\Component\Serialization\SerializationInterface $serializer
+   *   Serializes and de-serializes data.
+   * @param string $root
+   *   The application root path.
+   * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
+   *   Allows modules to alter library parsing.
+   * @param \Drupal\Core\Theme\ThemeManagerInterface $theme_manager
+   *   Allows themes to alter library parsing.
+   * @param \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface $stream_wrapper
+   *   The stream wrapper manager.
+   * @param \Drupal\Core\Asset\LibrariesDirectoryFileFinder $libraries_directory_file_finder
+   *   The libraries directory file finder service.
+   * @param \Drupal\Core\Extension\ExtensionPathResolver $extension_path_resolver
+   *   The extension path resolver service.
+   */
+  public function __construct(
+    SerializationInterface $serializer,
+    string $root,
+    ModuleHandlerInterface $module_handler,
+    ThemeManagerInterface $theme_manager,
+    StreamWrapperManagerInterface $stream_wrapper,
+    LibrariesDirectoryFileFinder $libraries_directory_file_finder,
+    ExtensionPathResolver $extension_path_resolver
+  ) {
+    parent::__construct($root, $module_handler, $theme_manager, $stream_wrapper, $libraries_directory_file_finder, $extension_path_resolver);
+
+    $this->serializer = $serializer;
+  }
 
   /**
    * Returns a new Patternkit Pattern.
@@ -30,7 +74,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
-  public function createPattern($name, $data): PatternInterface {
+  public function createPattern(string $name, $data): PatternInterface {
     // Pattern schemas contain values needed for Pattern fields.
     $values = ['name' => $name];
     return Pattern::create($values + $data);
@@ -48,7 +92,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
    *   Array of file components.
    *   [basename][extension] = filename.
    */
-  public static function discoverComponents($path, array $filter = []): array {
+  public static function discoverComponents(string $path, array $filter = []): array {
     $components = [];
     $rdit = new RecursiveDirectoryIterator($path, \FilesystemIterator::KEY_AS_PATHNAME | \FilesystemIterator::CURRENT_AS_FILEINFO);
     /** @var \SplFileInfo $file */
@@ -83,11 +127,11 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
   /**
    * Implements fetchAssets().
    *
-   * {@inheritDoc}
+   * {@inheritdoc}
    *
    * @todo Finish implementation.
    */
-  public static function fetchAssets($subtype, $config): PatternInterface {
+  public static function fetchAssets(string $subtype, object $config): PatternInterface {
     $patternkit_host = \Drupal::config('patternkit.settings')
       ->get('patternkit_pl_host') ?: 'http://localhost:9001';
 
@@ -96,13 +140,12 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
       ->withHeader('Content-Type', 'application/json')
       ->withBody($config->rawJSON);
 
-    // @TODO: Request failure handling.
-
+    // @todo Request failure handling.
     $pk_obj = \Drupal::service('serialization.json')->decode($result->getBody()->getContents());
 
     $dir = "public://patternkit/$subtype/{$config->instance_id}";
     if (!\Drupal::service('file_system')->prepareDirectory($dir, FileSystem::CREATE_DIRECTORY)) {
-      // @todo: Failure handling.
+      // @todo Failure handling.
       \Drupal::service('messenger')->addMessage(
         t(
         "Unable to create folder (@dir) to contain the pklugins artifacts.",
@@ -119,7 +162,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     $pk_obj->body = $save_result;
 
     if ($save_result === FALSE) {
-      // @TODO: Failure handling.
+      // @todo Failure handling.
       \Drupal::service('messenger')->addMessage(
         t(
         "Unable to create static archive of the JSON pklugins artifact for @subtype.",
@@ -194,8 +237,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
    * @return array
    *   An array of loaded patterns assets.
    */
-  public function fetchPatternAssets(PatternInterface $pattern,
-    PatternEditorConfig $config = NULL): array {
+  public function fetchPatternAssets(PatternInterface $pattern, PatternEditorConfig $config = NULL): array {
     // @todo Add support for twig lib attachments such as JS and images.
     $assets = $pattern->getAssets();
     foreach ($assets as $asset => $data) {
@@ -211,19 +253,11 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
   }
 
   /**
-   * Fetch a single asset from the patternkit platform.
-   *
-   * @param string $dir
-   *   The path to put the file under.
-   * @param string $asset_url
-   *   Relative path of the asset to the pattern folder.
-   *
-   * @return bool|string
-   *   FALSE on failure, stream path on success.
+   * {@inheritdoc}
    *
    * @todo Finish implementation.
    */
-  public static function fetchSingleAsset($dir, $asset_prefix, $asset_url) {
+  public static function fetchSingleAsset(string $dir, string $asset_prefix, string $asset_url) {
     $patternkit_host = \Drupal::config('patternkit.settings')
       ->get('patternkit_pl_host') ?: 'http://localhost:9001';
 
@@ -256,7 +290,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     );
 
     if ($save_result === FALSE) {
-      // @TODO: handle failure.
+      // @todo handle failure.
       return FALSE;
     }
 
@@ -275,11 +309,11 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
   /**
    * Implements fetchFragmentAssets.
    *
-   * {@inheritDoc}
+   * {@inheritdoc}
    *
    * @todo Finish implementation.
    */
-  public function fetchFragmentAssets($subtype, $config, &$pk_obj): PatternInterface {
+  public function fetchFragmentAssets($subtype, object $config, object &$pk_obj): PatternInterface {
     $patternkit_host = \Drupal::config('patternkit')->get(
       'patternkit_pl_host') ?: 'http://localhost:9001';
 
@@ -288,8 +322,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
       $url)->withHeader('Content-Type', 'application/json')
       ->withBody($config->rawJSON);
 
-    // @TODO: Request failure handling.
-
+    // @todo Request failure handling.
     $pk_obj->pattern = $subtype;
 
     $dir = "public://patternkit/$subtype/{$config->instance_id}";
@@ -297,11 +330,11 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
       \Drupal::service('messenger')->addMessage(
         t(
           'Unable to create folder or save metadata/assets for plugin @plugin',
-          [ '@plugin' => $subtype ]
+          ['@plugin' => $subtype]
         ));
       \Drupal::logger('patternkit')->error(
         'Unable to create folder or save metadata/assets for plugin @plugin',
-        [ '@plugin' => $subtype ]);
+        ['@plugin' => $subtype]);
     }
 
     // Fetch the body html artifact.
@@ -326,33 +359,33 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
       \Drupal::service('messenger')->addMessage(
         t(
           'Unable to save metadata/assets for plugin @plugin',
-          [ '@plugin' => $subtype ]
+          ['@plugin' => $subtype]
         ));
       \Drupal::logger('patternkit')->error(
         'Unable to save metadata/assets for plugin @plugin',
-        [ '@plugin' => $subtype ]);
-      // @todo: Handle this error gracefully.
+        ['@plugin' => $subtype]);
+      // @todo Handle this error gracefully.
     }
 
-    foreach (array('early', 'deferred') as $stage) {
+    foreach (['early', 'deferred'] as $stage) {
       foreach ($pk_obj->assets->js->{$stage} as $asset_fragment) {
         $path = $pk_obj->raw_assets[$asset_fragment];
 
         if (substr($path, 0, 19) === 'public://patternkit/') {
-          $pk_obj->attachments['js'][$path] = array(
+          $pk_obj->attachments['js'][$path] = [
             'type'   => 'file',
             'scope'  => $stage === 'early' ? 'header' : 'footer',
             'group'  => JS_DEFAULT,
             'weight' => 0,
-          );
+          ];
         }
         else {
-          $pk_obj->attachments['js'][$path] = array(
+          $pk_obj->attachments['js'][$path] = [
             'type'   => 'external',
             'scope'  => $stage === 'early' ? 'header' : 'footer',
             'group'  => JS_DEFAULT,
             'weight' => 0,
-          );
+          ];
         }
       }
     }
@@ -361,20 +394,20 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
       $path = $pk_obj->raw_assets[$asset_fragment];
 
       if (substr($path, 0, 19) === 'public://patternkit/') {
-        $pk_obj->attachments['css'][$path] = array(
+        $pk_obj->attachments['css'][$path] = [
           'type'   => 'file',
           'scope'  => 'header',
           'group'  => JS_DEFAULT,
           'weight' => 0,
-        );
+        ];
       }
       else {
-        $pk_obj->attachments['css'][$path] = array(
+        $pk_obj->attachments['css'][$path] = [
           'type'   => 'external',
           'scope'  => 'header',
           'group'  => JS_DEFAULT,
           'weight' => 0,
-        );
+        ];
       }
     }
 
@@ -382,20 +415,20 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
       $path = $pk_obj->raw_assets[$asset_fragment->src];
 
       if (substr($path, 0, 19) === 'public://patternkit/') {
-        $pk_obj->attachments['css'][$path] = array(
+        $pk_obj->attachments['css'][$path] = [
           'type'   => 'file',
           'scope'  => 'header',
           'group'  => JS_DEFAULT,
           'weight' => 0,
-        );
+        ];
       }
       else {
-        $pk_obj->attachments['css'][$path] = array(
+        $pk_obj->attachments['css'][$path] = [
           'type'   => 'external',
           'scope'  => 'header',
           'group'  => JS_DEFAULT,
           'weight' => 0,
-        );
+        ];
       }
     }
 
@@ -416,7 +449,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
    *   The merged array.
    */
   public function mergeJs(array $js1, array $js2): array {
-    $ret = array();
+    $ret = [];
 
     $x = 0;
     if (!empty($js1)) {

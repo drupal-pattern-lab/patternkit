@@ -2,6 +2,7 @@
 
 namespace Drupal\patternkit\Form;
 
+use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Config\TypedConfigManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -23,14 +24,14 @@ class PatternkitTranslateBlockForm extends TranslateBlockForm {
    *
    * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
-  protected $entityTypeManager;
+  protected EntityTypeManagerInterface $entityTypeManager;
 
   /**
    * The logger factory interface.
    *
    * @var \Drupal\Core\Logger\LoggerChannelInterface
    */
-  protected $logger;
+  protected LoggerChannelInterface $logger;
 
   /**
    * Constructs a new TranslateBlockForm.

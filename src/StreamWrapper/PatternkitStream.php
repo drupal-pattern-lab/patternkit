@@ -47,7 +47,10 @@ class PatternkitStream extends LocalStream {
    */
   public function getExternalUrl() {
     $path = str_replace('\\', '/', $this->getTarget());
-    return Url::fromRoute('system.patternkit', [], ['absolute' => TRUE, 'query' => ['file' => $path]])->toString();
+    return Url::fromRoute('system.patternkit', [], [
+      'absolute' => TRUE,
+      'query' => ['file' => $path],
+    ])->toString();
   }
 
 }

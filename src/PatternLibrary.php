@@ -2,6 +2,7 @@
 
 namespace Drupal\patternkit;
 
+use Drupal\Core\Extension\Extension;
 use Drupal\Core\Asset\Exception\LibraryDefinitionMissingLicenseException;
 
 /**
@@ -21,21 +22,21 @@ class PatternLibrary {
    *
    * @var string
    */
-  protected $id;
+  protected string $id;
 
   /**
    * The id of the extension providing the library definition.
    *
    * @var string
    */
-  protected $extension;
+  protected string $extension;
 
   /**
    * The type of extension providing the library definition.
    *
    * @var string
    */
-  protected $extensionType;
+  protected string $extensionType;
 
   /**
    * Truthy if there are overrides present in the library definition info.
@@ -49,42 +50,42 @@ class PatternLibrary {
    *
    * @var array
    */
-  protected $patternInfo = [];
+  protected array $patternInfo = [];
 
   /**
    * A list of dependencies for the library.
    *
    * @var array
    */
-  public $dependencies = [];
+  public array $dependencies = [];
 
   /**
    * Human-readable info about the library from the definition.
    *
    * @var string
    */
-  public $description = '';
+  public string $description = '';
 
   /**
    * An array of JS assets provided by the library definition.
    *
    * @var array
    */
-  public $js = [];
+  public array $js = [];
 
   /**
    * An array of CSS assets provided by the library definition.
    *
    * @var array
    */
-  public $css = [];
+  public array $css = [];
 
   /**
    * TRUE if the library is to be used in page headers and loaded first.
    *
    * @var bool|null
    */
-  public $header = NULL;
+  public ?bool $header = NULL;
 
   /**
    * A link or text of the library license.
@@ -98,21 +99,21 @@ class PatternLibrary {
    *
    * @var array
    */
-  public $patterns = [];
+  public array $patterns = [];
 
   /**
-   * TRUE if the library is loaded via remote URL.
+   * The URL for loading the library remotely or false if not remote.
    *
-   * @var bool
+   * @var string|false
    */
-  public $remote;
+  public $remote = FALSE;
 
   /**
    * Library version provided by the definition.
    *
-   * @var false|string
+   * @var string|false
    */
-  public $version;
+  public $version = FALSE;
 
   /**
    * PatternLibrary constructor.
@@ -133,19 +134,19 @@ class PatternLibrary {
    *   TRUE if the library is to be used in page headers and loaded first.
    */
   public function __construct(
-    $id,
-    $extensionType,
-    $extension,
-    $version = NULL,
+    string $id,
+    string $extensionType,
+    string $extension,
+    string $version = NULL,
     $license = NULL,
-    $remote = NULL,
-    $header = NULL) {
-
+    bool $remote = NULL,
+    bool $header = NULL
+  ) {
     $this->id = $id;
     $this->extensionType = $extensionType;
     $this->extension = $extension;
 
-    if (($version !== NULL) && is_string($version)) {
+    if (is_string($version)) {
       // @todo Retrieve version of a non-core extension.
       $this->version = $version;
       if ($version === 'VERSION') {
@@ -196,7 +197,7 @@ class PatternLibrary {
    *
    * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
    */
-  public function getExtension() {
+  public function getExtension(): Extension {
     /** @var \Drupal\Core\Extension\ExtensionList $extension_list */
     $extension_list = \Drupal::service("extension.list." . $this->extensionType);
     return $extension_list->get($this->extension);
@@ -211,7 +212,7 @@ class PatternLibrary {
    *   Pattern info array, in the following format:
    *   - string data The pattern path.
    */
-  public function getPatternInfo() {
+  public function getPatternInfo(): array {
     return $this->patternInfo;
   }
 
@@ -225,11 +226,12 @@ class PatternLibrary {
    *   An array overrides a single asset.
    *   FALSE requests no overrides, but may be ignored by other modules.
    *
-   * @return \Drupal\patternkit\PatternLibrary
+   * @return $this
    *   The updated PatternLibrary with overrides present.
    */
-  public function setOverride($override): PatternLibrary {
+  public function setOverride($override): self {
     $this->override = $override;
+
     return $this;
   }
 
@@ -237,14 +239,19 @@ class PatternLibrary {
    * Sets info for the pattern library, keyed by path.
    *
    * @param array $info
-   *   - string plugin
-   *   - string category
    *   An array of pattern info for the current set of patterns being processed.
+   *   It contains the following keys:
+   *     - 'plugin': The name of the plugin set for this library.
+   *     - 'category': A category for the patterns in this library.
+   *
+   * @return $this
    *
    * @todo Validate and provide helpful feedback for Pattern Library Info.
    */
-  public function setPatternInfo(array $info) {
+  public function setPatternInfo(array $info): self {
     $this->patternInfo = $info;
+
+    return $this;
   }
 
   /**

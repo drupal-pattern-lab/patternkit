@@ -11,9 +11,9 @@ use Drupal\patternkit\PatternLibraryPluginInterface;
  * Provides a render element to display a pattern.
  *
  * Properties:
- * - #pattern: The loaded Pattern entity to be rendered.
- * - #config: Configuration to be passed to the pattern for rendering.
- * - #context: Context values for rendering the pattern.
+ * - '#pattern': The loaded Pattern entity to be rendered.
+ * - '#config': Configuration to be passed to the pattern for rendering.
+ * - '#context': Context values for rendering the pattern.
  *
  * Usage Example:
  * @code
@@ -94,6 +94,8 @@ class Pattern extends RenderElement {
    *
    * @return \Drupal\patternkit\PatternLibraryPluginInterface
    *   The pattern library plugin needed by the given pattern.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\PluginException
    */
   protected static function getPatternLibraryPlugin(PatternInterface $pattern): PatternLibraryPluginInterface {
     /** @var \Drupal\patternkit\PatternLibraryPluginManager $pattern_plugin_manager */

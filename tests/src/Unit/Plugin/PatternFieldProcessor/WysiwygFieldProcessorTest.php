@@ -53,16 +53,13 @@ class WysiwygFieldProcessorTest extends UnitTestCase {
     parent::setUp();
 
     // Mock the settings values to be returned from configuration.
-    $this->settingsConfig = $this->getMockBuilder(ImmutableConfig::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $this->settingsConfig = $this->createMock(ImmutableConfig::class);
     $this->settingsConfig->method('get')
       ->with('patternkit_json_editor_ckeditor_toolbar')
       ->willReturn($this->format);
 
     // Mock the renderer for injection.
-    $this->renderer = $this->getMockBuilder(RendererInterface::class)
-      ->getMock();
+    $this->renderer = $this->createMock(RendererInterface::class);
     $this->renderer->method('render')
       ->willReturnCallback(function ($element) {
         return $element['#text'];

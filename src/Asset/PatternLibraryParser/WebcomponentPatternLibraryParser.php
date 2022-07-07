@@ -9,6 +9,9 @@ use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternLibrary;
 
+/**
+ * A library parser plugin implementation for loading web component patterns.
+ */
 class WebcomponentPatternLibraryParser extends PatternLibraryParserBase {
 
   /**
@@ -22,44 +25,44 @@ class WebcomponentPatternLibraryParser extends PatternLibraryParserBase {
    * @return \Drupal\patternkit\Entity\PatternInterface
    *   The patternkit object representing the pattern.
    *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   *
    * @todo Finish implementation.
    */
-  public static function fetchAssets($subtype, $config): PatternInterface {
+  public static function fetchAssets(string $subtype, $config): PatternInterface {
     $patternkit_host = 'http://localhost:9001';
-
-    //json_decode($config->rawJSON);
 
     $url = $patternkit_host . '/api/render/webcomponent';
     $client = \Drupal::httpClient();
     $request = $client->get(
       $url,
-      array(
-        'headers'  => array('Content-Type' => 'application/json'),
+      [
+        'headers'  => ['Content-Type' => 'application/json'],
         'jsondata' => $config->rawJSON,
         // 'timeout' => 10,.
         'method'   => 'POST',
-      )
+      ]
     );
 
-    // @TODO: Request failure handling.
-
+    // @todo Request failure handling.
     // Create the stub object.
-    $pk_obj = (object) array(
+    $pk_obj = (object) [
       'PatternkitPattern' => $subtype,
-      'attachments' => array(),
+      'attachments' => [],
       'body'        => 'fragment.html',
-    );
+    ];
 
     $dir = "public://patternkit/$subtype/{$config->instance_id}";
     if (!\Drupal::service('file_system')->prepareDirectory($dir, FileSystemInterface::CREATE_DIRECTORY)) {
       \Drupal::service('messenger')->addMessage(
         t(
           'Unable to create folder or save metadata/assets for plugin @plugin',
-          [ '@plugin' => $subtype ]
+          ['@plugin' => $subtype]
         ));
       \Drupal::logger('patternkit')->error(
         'Unable to create folder or save metadata/assets for plugin @plugin',
-        [ '@plugin' => $subtype ]);
+        ['@plugin' => $subtype]);
     }
 
     // Fetch the body html artifact.
@@ -79,28 +82,28 @@ class WebcomponentPatternLibraryParser extends PatternLibraryParserBase {
 
     $pk_obj->body = $save_result;
 
-    $pk_obj->attachments['js']['https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/0.7.24/webcomponents.min.js'] = array(
+    $pk_obj->attachments['js']['https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/0.7.24/webcomponents.min.js'] = [
       'type'   => 'external',
       'scope'  => 'header',
       'group'  => JS_DEFAULT,
       'weight' => 0,
-    );
+    ];
 
     // Add the header link rel import.
-    $pk_obj->attachments['drupal_add_html_head_link'][] = array(
-      array(
+    $pk_obj->attachments['drupal_add_html_head_link'][] = [
+      [
         'rel'  => 'import',
         'href' => $pk_obj->body,
-      ),
-    );
+      ],
+    ];
 
-    if ($save_result == FALSE) {
+    if (!$save_result) {
       \Drupal::service('messenger')->addMessage(
         t('Unable to save metadata/assets for plugin @plugin',
-          [ '@plugin' => $subtype ]));
+          ['@plugin' => $subtype]));
       \Drupal::logger('patternkit')->error(
         'Unable to save metadata/assets for plugin @plugin',
-        [ '@plugin' => $subtype ]);
+        ['@plugin' => $subtype]);
       // @todo Handle the failure gracefully.
     }
 
@@ -108,10 +111,10 @@ class WebcomponentPatternLibraryParser extends PatternLibraryParserBase {
   }
 
   /**
-   * @inheritDoc
+   * {@inheritdoc}
    */
   public function parsePatternLibraryInfo(PatternLibrary $library, $path): array {
-    // @todo: Implement parsePatternLibraryInfo() method.
+    // @todo Implement parsePatternLibraryInfo() method.
     return [];
   }
 

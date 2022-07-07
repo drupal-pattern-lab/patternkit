@@ -5,29 +5,48 @@ namespace Drupal\patternkit\Plugin\Derivative;
 use Drupal\Component\Plugin\Derivative\DeriverBase;
 use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\Entity\EntityStorageInterface;
-use Psr\Log\LoggerInterface;
+use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Plugin\Discovery\ContainerDeriverInterface;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Form\PatternkitSettingsForm;
 use Drupal\patternkit\Asset\LibraryInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
+/**
+ * A deriver to create block derivatives for all discovered patterns.
+ */
 class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
 
-  /** @var \Drupal\Core\Config\ImmutableConfig */
-  protected $config;
-
-  /** @var Psr\Log\LoggerInterface */
-  protected $logger;
-
-    /** @var \Drupal\Core\Entity\EntityStorageInterface */
-  protected $patternkitStorage;
-
-  /** @var \Drupal\patternkit\Asset\LibraryInterface */
-  protected $library;
+  /**
+   * Configuration for the patternkit module.
+   *
+   * @var \Drupal\Core\Config\ImmutableConfig
+   */
+  protected ImmutableConfig $config;
 
   /**
-   * Used to populate all of the types of Patternkit blocks based on libraries.
+   * A logger for output of messages during processing.
+   *
+   * @var \Drupal\Core\Logger\LoggerChannelInterface
+   */
+  protected LoggerChannelInterface $logger;
+
+  /**
+   * The storage handler for patternkit blocks.
+   *
+   * @var \Drupal\Core\Entity\EntityStorageInterface
+   */
+  protected EntityStorageInterface $patternkitStorage;
+
+  /**
+   * The patternkit library service.
+   *
+   * @var \Drupal\patternkit\Asset\LibraryInterface
+   */
+  protected LibraryInterface $library;
+
+  /**
+   * Used to populate all the types of Patternkit blocks based on libraries.
    *
    * @param \Drupal\Core\Config\ImmutableConfig $config
    *   Provides patternkit configurable settings.
@@ -40,9 +59,10 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
    */
   public function __construct(
     ImmutableConfig $config,
-    LoggerInterface $logger,
+    LoggerChannelInterface $logger,
     LibraryInterface $library,
-    EntityStorageInterface $storage) {
+    EntityStorageInterface $storage
+  ) {
     $this->config = $config;
     $this->logger = $logger;
     $this->library = $library;
@@ -57,7 +77,7 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    *   Thrown if the storage handler couldn't be loaded.
    */
-  public static function create(ContainerInterface $container, $base_plugin_id): PatternkitBlock {
+  public static function create(ContainerInterface $container, $base_plugin_id): self {
     /** @var \Drupal\Core\Config\ConfigFactoryInterface $config_factory */
     $config_factory = $container->get('config.factory');
     $config = $config_factory->get(PatternkitSettingsForm::SETTINGS);
@@ -67,11 +87,13 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
     $logger = $container->get('logger.channel.patternkit');
     /** @var \Drupal\patternkit\Asset\LibraryInterface $library */
     $library = $container->get('patternkit.asset.library');
+
     return new static(
       $config,
       $logger,
       $library,
-      $entity_manager->getStorage('patternkit_block'));
+      $entity_manager->getStorage('patternkit_block')
+    );
   }
 
   /**
@@ -83,44 +105,49 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
    * @return string
    *   A derivative ID in the format 'library__name_path_to_pattern'.
    */
-  public static function assetToDerivativeId($asset_id) {
-    return trim(str_replace('/', '_', str_replace('_', '__', $asset_id)),'@');
+  public static function assetToDerivativeId(string $asset_id): string {
+    return trim(str_replace('/', '_', str_replace('_', '__', $asset_id)), '@');
   }
 
   /**
    * Translate the derivative ID to a pattern library asset ID.
    *
    * @param string $derivative_id
-   *   A derivative ID in the format 'patternkit_block:library__name_path_to_pattern'.
+   *   A derivative ID in the format
+   *   'patternkit_block:library__name_path_to_pattern'.
    *
    * @return string
    *   An asset ID in the format '@library_name/path/to/pattern'.
    *
    * @todo Deprecate this function, and rewrite dependent methods.
    */
-  public static function derivativeToAssetId($derivative_id) {
+  public static function derivativeToAssetId(string $derivative_id): string {
     return '@' . str_replace('//', '_', str_replace('_', '/', $derivative_id));
   }
 
   /**
    * Provides block definitions from pattern libraries and reusable patterns.
    *
-   * @param array $base_definition
+   * @param array $base_plugin_definition
    *   The definition array of the base plugin.
+   *
    * @return array
    *   An array of full derivative definitions keyed on derivative id.
    *
-   * Definitions per Drupal Core convention are keyed as:
+   *   Definitions per Drupal Core convention are keyed as:
+   *
    * @code plugin_id:definition_id{:variant} @endcode
+   * @see getDerivativeDefinition()
    * @example
    * @code patternkit_block:pattern.library.name_path_to_pattern @endcode
-   * to keep consistency with other block plugins.
+   *   to keep consistency with other block plugins.
    *
-   * Drupal block derivative definitions appear in both schema as well as URLs.
+   *   Drupal block derivative definitions appear in both schema and URLs.
    *
-   * @see getDerivativeDefinition()
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
-  public function getDerivativeDefinitions($base_definition): array {
+  public function getDerivativeDefinitions($base_plugin_definition): array {
     // Reset the discovered definitions.
     $this->derivatives = [];
     $patterns = [];
@@ -154,13 +181,13 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
         'admin_label' => t('[Patternkit] @pattern', ['@pattern' => $pattern->label()]),
         'pattern' => $pattern,
       ];
-      $this->derivatives[$pattern_id] += $base_definition;
+      $this->derivatives[$pattern_id] += $base_plugin_definition;
     }
 
     $patternkit_blocks = $this->patternkitStorage->loadByProperties(['reusable' => TRUE]);
     foreach ($patternkit_blocks as $patternkit_block) {
       $pkb_uuid = $patternkit_block->uuid();
-      $this->derivatives[$pkb_uuid] = $base_definition;
+      $this->derivatives[$pkb_uuid] = $base_plugin_definition;
       $block_pattern_id = $patternkit_block->getPattern() ?? '';
       $this->derivatives[$pkb_uuid]['pattern'] = $this->derivatives[$block_pattern_id]['pattern'] ?? Pattern::create([]);
       $this->derivatives[$pkb_uuid]['admin_label'] = $patternkit_block->label();
@@ -168,7 +195,7 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
         $patternkit_block->getConfigDependencyName(),
       ];
     }
-    return parent::getDerivativeDefinitions($base_definition);
+    return parent::getDerivativeDefinitions($base_plugin_definition);
   }
 
 }

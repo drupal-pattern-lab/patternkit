@@ -79,7 +79,7 @@ class PatternkitBlock extends BlockContent {
   /**
    * {@inheritdoc}
    */
-  public static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
+  public static function baseFieldDefinitions(EntityTypeInterface $entity_type): array {
     /** @var \Drupal\Core\Field\BaseFieldDefinition[] $fields */
     $fields = EditorialContentEntityBase::baseFieldDefinitions($entity_type);
 
@@ -141,7 +141,7 @@ class PatternkitBlock extends BlockContent {
    *
    * @return $this
    */
-  public function setPattern($pattern) {
+  public function setPattern(string $pattern): self {
     $this->set('pattern_id', $pattern);
     return $this;
   }
@@ -152,7 +152,7 @@ class PatternkitBlock extends BlockContent {
    * @return string|null
    *   The Patternkit pattern derivative id.
    */
-  public function getPattern() {
+  public function getPattern(): ?string {
     return $this->get('pattern_id')->getString();
   }
 

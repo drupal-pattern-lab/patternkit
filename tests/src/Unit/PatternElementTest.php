@@ -52,17 +52,14 @@ class PatternElementTest extends RendererTestBase {
     parent::setUp();
 
     // Mock a library plugin to use for rendering.
-    $this->libraryPlugin = $this->getMockBuilder(PatternLibraryPluginInterface::class)
-      ->getMock();
+    $this->libraryPlugin = $this->createMock(PatternLibraryPluginInterface::class);
 
     // Mock pattern library plugin manager to return our mocked plugin instance.
     $this->patternLibraryPluginManager = $this->createMock(PatternLibraryPluginManager::class);
     $this->patternLibraryPluginManager->method('createInstance')
       ->willReturn($this->libraryPlugin);
 
-    $this->patternFieldProcessorPluginManager = $this->getMockBuilder(PatternFieldProcessorPluginManager::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $this->patternFieldProcessorPluginManager = $this->createMock(PatternFieldProcessorPluginManager::class);
 
     // Mock the string translation service.
     $this->translation = $this->getStringTranslationStub();
@@ -90,9 +87,7 @@ class PatternElementTest extends RendererTestBase {
    * @covers ::preRenderPatternElement
    */
   public function testPreRenderPatternElement() {
-    $patternMock = $this->getMockBuilder(PatternInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $patternMock = $this->createMock(PatternInterface::class);
     $element = [
       '#type' => 'pattern',
       '#pattern' => $patternMock,
@@ -125,6 +120,7 @@ class PatternElementTest extends RendererTestBase {
    *
    * @covers ::preRenderPatternElement
    * @covers ::preprocessConfigValues
+   * @doesNotPerformAssertions
    */
   public function testPreRenderProcessesConfigValues() {
     // Create a unique config set for confirmation in the mock.
@@ -133,9 +129,7 @@ class PatternElementTest extends RendererTestBase {
     ];
 
     // Mock a pattern for rendering.
-    $patternMock = $this->getMockBuilder(PatternInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $patternMock = $this->createMock(PatternInterface::class);
     $pattern = [
       '#type' => 'pattern',
       '#pattern' => $patternMock,

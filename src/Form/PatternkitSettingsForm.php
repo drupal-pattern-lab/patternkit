@@ -8,20 +8,42 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\patternkit\Asset\LibraryInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
+/**
+ * The patternkit module settings configuration form.
+ */
 class PatternkitSettingsForm extends ConfigFormBase {
 
-  /** @var string */
+  /**
+   * The configuration identifier for patternkit settings.
+   *
+   * @var string
+   */
   const SETTINGS = 'patternkit.settings';
 
-  /** @var \Drupal\patternkit\Asset\LibraryInterface */
-  protected $library;
+  /**
+   * The Patternkit library service.
+   *
+   * @var \Drupal\patternkit\Asset\LibraryInterface
+   */
+  protected LibraryInterface $library;
 
+  /**
+   * Constructor for PatternkitSettingsForm.
+   *
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   The config factory service.
+   * @param \Drupal\patternkit\Asset\LibraryInterface $library
+   *   The patternkit library service.
+   */
   public function __construct(ConfigFactoryInterface $config_factory, LibraryInterface $library) {
     $this->library = $library;
     parent::__construct($config_factory);
   }
 
-  public static function create(ContainerInterface $container) {
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container): self {
     /** @var \Drupal\Core\Config\ConfigFactoryInterface $config_factory */
     $config_factory = $container->get('config.factory');
     /** @var \Drupal\patternkit\Asset\LibraryInterface $library */
@@ -30,9 +52,9 @@ class PatternkitSettingsForm extends ConfigFormBase {
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state) :array {
+  public function buildForm(array $form, FormStateInterface $form_state): array {
     $config = $this->config(static::SETTINGS);
     try {
       $libraries = $this->library->getLibraryDefinitions();
@@ -82,7 +104,12 @@ class PatternkitSettingsForm extends ConfigFormBase {
         '#wrapper_attributes' => ['class' => ['checkbox']],
         '#type' => 'checkbox',
         '#default_value' => $library_options[$lib_title]['enabled'] ?? 1,
-        '#attributes' => ['class' => ['lib-' . $lib_title, 'js-lib-' . $lib_title]],
+        '#attributes' => [
+          'class' => [
+            'lib-' . $lib_title,
+            'js-lib-' . $lib_title,
+          ],
+        ],
       ];
       $form['patternkit_libraries'][$lib_title]['visible'] = [
         '#title' => $this->t('Library Visible in Lists'),
@@ -90,7 +117,12 @@ class PatternkitSettingsForm extends ConfigFormBase {
         '#wrapper_attributes' => ['class' => ['checkbox']],
         '#type' => 'checkbox',
         '#default_value' => $library_options[$lib_title]['visible'] ?? 1,
-        '#attributes' => ['class' => ['lib-' . $lib_title, 'js-lib-' . $lib_title]],
+        '#attributes' => [
+          'class' => [
+            'lib-' . $lib_title,
+            'js-lib-' . $lib_title,
+          ],
+        ],
       ];
     }
 
@@ -110,23 +142,23 @@ class PatternkitSettingsForm extends ConfigFormBase {
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
-  protected function getEditableConfigNames() :array {
+  protected function getEditableConfigNames(): array {
     return [static::SETTINGS];
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
-  public function getFormId() :string {
+  public function getFormId(): string {
     return 'patternkit_config';
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
-  public function submitForm(array &$form, FormStateInterface $form_state) {
+  public function submitForm(array &$form, FormStateInterface $form_state): void {
     $config = $this->config(static::SETTINGS);
     $config
       ->set('patternkit_libraries', $form_state->getValue('patternkit_libraries'))
@@ -140,6 +172,7 @@ class PatternkitSettingsForm extends ConfigFormBase {
     $libraries = $this->library->getLibraries();
     $count = count($libraries);
     $this->messenger()->addStatus($this->t('Rebuilt Patternkit Library Cache with @count libraries.', ['@count' => $count]));
+
     parent::submitForm($form, $form_state);
   }
 

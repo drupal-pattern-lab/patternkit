@@ -2,6 +2,7 @@
 
 namespace Drupal\patternkit\Asset;
 
+use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Component\Plugin\Exception\PluginException;
 use Drupal\Component\Serialization\Exception\InvalidDataTypeException;
 use Drupal\Component\Utility\NestedArray;
@@ -11,7 +12,7 @@ use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Cache\CacheCollector;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
-use Drupal\Core\Extension\ExtensionList;
+use Drupal\Core\Extension\ExtensionPathResolver;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Lock\LockBackendInterface;
 use Drupal\Core\Serialization\Yaml;
@@ -43,20 +44,40 @@ use Symfony\Component\Serializer\Serializer;
  */
 class Library extends CacheCollector implements LibraryInterface, ContainerInjectionInterface {
 
-  /** @var string */
+  /**
+   * The plugin ID for the default library parser plugin to use.
+   *
+   * @var string
+   */
   const DEFAULT_LIBRARY_PLUGIN_ID = 'twig';
 
-  /** @var string */
+  /**
+   * The identifier for the library discovery cache.
+   *
+   * @var string
+   */
   const PERSISTENT_CACHE_ID = 'patternkit.library.cache';
 
-  /** @var \Drupal\Core\Config\ImmutableConfig */
-  protected $config;
+  /**
+   * Configuration values for the Patternkit module settings.
+   *
+   * @var \Drupal\Core\Config\ImmutableConfig
+   */
+  protected ImmutableConfig $config;
 
-  /** @var \Drupal\Core\Extension\Extension[] */
-  protected $extensionList;
+  /**
+   * A list of all installed extensions for processing.
+   *
+   * @var \Drupal\Core\Extension\Extension[]
+   */
+  protected array $extensionList;
 
-  /** @var array */
-  protected $libraries;
+  /**
+   * A static cache of loaded library definitions.
+   *
+   * @var array
+   */
+  protected array $libraries;
 
   /**
    * The final library definitions, statically cached.
@@ -66,41 +87,56 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
    *
    * @var array
    */
-  protected $libraryDefinitions = [];
-
-  /** @var \Drupal\patternkit\PatternLibraryPluginManager */
-  protected $libraryPluginManager;
-
-  /** @var \Drupal\Core\Extension\ModuleHandlerInterface */
-  protected $moduleHandler;
-
-  /** @var string */
-  protected $root;
-
-  /** @var \Drupal\Core\Theme\ThemeManagerInterface */
-  protected $themeManager;
+  protected array $libraryDefinitions = [];
 
   /**
-   * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
-   *   The Symfony app container.
+   * The plugin manager service for library parser plugins.
    *
-   * @return self
+   * @var \Drupal\patternkit\PatternLibraryPluginManager
+   */
+  protected PatternLibraryPluginManager $libraryPluginManager;
+
+  /**
+   * The module handler service.
+   *
+   * @var \Drupal\Core\Extension\ModuleHandlerInterface
+   */
+  protected ModuleHandlerInterface $moduleHandler;
+
+  /**
+   * The path for the Drupal root.
+   *
+   * @var string
+   */
+  protected string $root;
+
+  /**
+   * The theme manager service.
+   *
+   * @var \Drupal\Core\Theme\ThemeManagerInterface
+   */
+  protected ThemeManagerInterface $themeManager;
+
+  /**
+   * The extension path resolver service.
+   *
+   * @var \Drupal\Core\Extension\ExtensionPathResolver
+   */
+  protected ExtensionPathResolver $extensionPathResolver;
+
+  /**
+   * {@inheritdoc}
    */
   public static function create(ContainerInterface $container): self {
-    /** @var \Drupal\Core\Cache\CacheBackendInterface $cache */
     $cache = $container->get('cache.discovery');
-    /** @var \Drupal\Core\Config\ConfigFactoryInterface $config_factory */
     $config_factory = $container->get('config.factory');
-    /** @var \Drupal\patternkit\PatternLibraryPluginManager $library_plugin_manager */
     $library_plugin_manager = $container->get('plugin.manager.library.pattern');
-    /** @var \Drupal\Core\Lock\LockBackendInterface $lock */
     $lock = $container->get('lock');
-    /** @var \Drupal\Core\Extension\ModuleHandlerInterface $module_handler */
     $module_handler = $container->get('module_handler');
-    /** @var string $root */
-    $root = $container->get('app.root');
-    /** @var \Drupal\Core\Theme\ThemeManagerInterface $theme_manager */
+    $root = $container->getParameter('app.root');
     $theme_manager = $container->get('theme.manager');
+    $extension_path_resolver = $container->get('extension.path.resolver');
+
     return new static(
       $cache,
       $config_factory,
@@ -108,26 +144,30 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
       $lock,
       $module_handler,
       $root,
-      $theme_manager);
+      $theme_manager,
+      $extension_path_resolver
+    );
   }
 
   /**
-   * Constructs a \Drupal\system\ConfigFormBase object.
+   * Constructs a Library instance.
    *
    * @param \Drupal\Core\Cache\CacheBackendInterface $cache
    *   Provide a default cache.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   Provide the factory for configuration objects.
+   * @param \Drupal\patternkit\PatternLibraryPluginManager $library_plugin_manager
+   *   Provide a plugin manager for pattern libraries.
    * @param \Drupal\Core\Lock\LockBackendInterface $lock
    *   Provide the lock backend.
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
    *   Provide a module handler.
-   * @param \Drupal\patternkit\PatternLibraryPluginManager $library_plugin_manager
-   *   Provide a plugin manager for pattern libraries.
    * @param string $root
    *   The app root path.
    * @param \Drupal\Core\Theme\ThemeManagerInterface $theme_manager
    *   Provide a theme manager.
+   * @param \Drupal\Core\Extension\ExtensionPathResolver $extension_path_resolver
+   *   Provide the extension path resolver service.
    */
   public function __construct(
     CacheBackendInterface $cache,
@@ -135,14 +175,17 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
     PatternLibraryPluginManager $library_plugin_manager,
     LockBackendInterface $lock,
     ModuleHandlerInterface $module_handler,
-    $root,
-    ThemeManagerInterface $theme_manager) {
-
+    string $root,
+    ThemeManagerInterface $theme_manager,
+    ExtensionPathResolver $extension_path_resolver
+  ) {
     $this->config = $config_factory->get(PatternkitSettingsForm::SETTINGS);
     $this->libraryPluginManager = $library_plugin_manager;
     $this->moduleHandler = $module_handler;
     $this->root = $root;
     $this->themeManager = $theme_manager;
+    $this->extensionPathResolver = $extension_path_resolver;
+
     parent::__construct(static::PERSISTENT_CACHE_ID, $cache, $lock);
   }
 
@@ -163,7 +206,7 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
    *
    * @throws \Drupal\Core\Asset\Exception\InvalidLibrariesOverrideSpecificationException
    */
-  protected function applyLibrariesOverride($libraries, $extension): array {
+  protected function applyLibrariesOverride(array $libraries, string $extension): array {
     $active_theme = $this->themeManager->getActiveTheme();
     // ActiveTheme::getLibrariesOverride() returns libraries-overrides for the
     // current theme as well as all its base themes.
@@ -203,7 +246,10 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
               }
               if ($sub_key === 'patterns') {
                 foreach ($value as $category => $overrides) {
-                  $this->setOverrideValue($library->patterns, [$sub_key, $category], $overrides, $theme_path);
+                  $this->setOverrideValue($library->patterns, [
+                    $sub_key,
+                    $category,
+                  ], $overrides, $theme_path);
                 }
               }
               else {
@@ -221,7 +267,7 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
   /**
    * {@inheritdoc}
    */
-  public function clearCachedDefinitions() {
+  public function clearCachedDefinitions(): void {
     $this->libraryDefinitions = [];
     $this->clear();
   }
@@ -246,12 +292,12 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
    *   only throw when there are actual errors or missing lines, then add
    *   helpful error logs that have fix suggestions.
    */
-  public function buildByExtension($extension_type, $extension): array {
+  public function buildByExtension(string $extension_type, string $extension): array {
     if ($extension === 'core') {
       $path = 'core';
     }
     else {
-      $path = $this->drupalGetPath($extension_type, $extension);
+      $path = $this->extensionPathResolver->getPath($extension_type, $extension);
     }
 
     $libraries = $this->parseLibraryInfo($extension_type, $extension, $path);
@@ -322,7 +368,8 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
+   *
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    */
   public function getAssets(): array {
@@ -339,12 +386,12 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
    * Returns a static array of libraries with parsed information.
    *
    * @param bool $reset
-   *   TRUE if the library cache should be re-parsed.
+   *   TRUE if the library cache should be reparsed.
    *
    * @return \Drupal\patternkit\PatternLibrary[]
    *   An array of libraries and information.
    */
-  public function getLibraries($reset = FALSE): array {
+  public function getLibraries(bool $reset = FALSE): array {
     if (isset($this->libraries) && !$reset) {
       return $this->libraries;
     }
@@ -366,7 +413,7 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
   /**
    * {@inheritdoc}
    */
-  public function getLibrariesByExtension($extension) {
+  public function getLibrariesByExtension(string $extension): array {
     if (!isset($this->libraryDefinitions[$extension])) {
       $libraries = $this->get($extension);
       $this->libraryDefinitions[$extension] = [];
@@ -379,24 +426,27 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
-  public function getLibraryAsset($key) {
+  public function getLibraryAsset(string $key) {
     $library_name = substr($key, 0, strpos($key, '/'));
     /** @var \Drupal\patternkit\PatternLibrary $library */
     $library = $this->get(trim($library_name, '@'));
     $component_name = substr($key, strlen($library_name . '/'));
+
     return $library->patterns[$component_name] ?? NULL;
   }
 
   /**
    * Returns the specified Patternkit module metadata.
    *
-   * @return \Drupal\patternkit\PatternLibrary[]
+   * @return mixed[]
    *   Array of metadata objects found or object if specific pattern requested.
    *   Keyed by library name in the format.
    *
    * @throws \Drupal\Component\Plugin\Exception\PluginException
+   *
+   * @todo Evaluate if we should validate the cache set worked properly.
    */
   public function getLibraryDefinitions(): array {
     if (!empty($this->libraryDefinitions)) {
@@ -422,7 +472,6 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
         // @todo Evaluate encoding via JSON instead to shrink data size.
         $this->cache->set(static::PERSISTENT_CACHE_ID,
           $cached_metadata);
-        // @todo Evaluate if we should validate the cache set worked properly.
       }
     }
     $this->libraryDefinitions = $cached_metadata;
@@ -438,29 +487,10 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
       return FALSE;
     }
     if (isset($libraries[$name]['deprecated'])) {
+      // phpcs:ignore Drupal.Semantics.FunctionTriggerError.TriggerErrorTextLayoutRelaxed
       @trigger_error(str_replace('%library_id%', "$extension/$name", $libraries[$name]['deprecated']), E_USER_DEPRECATED);
     }
     return $libraries[$name];
-  }
-
-  /**
-   * Wraps drupal_get_path().
-   *
-   * Returns the path to a system item (module, theme, etc.).
-   *
-   * @param $type
-   *   The type of the item; one of 'core', 'profile', 'module', 'theme', or
-   *   'theme_engine'.
-   * @param $name
-   *   The name of the item for which the path is requested. Ignored for
-   *   $type 'core'.
-   *
-   * @return string
-   *   The path to the requested item or an empty string if the item is not
-   *   found.
-   */
-  protected function drupalGetPath($type, $name): string {
-    return drupal_get_path($type, $name);
   }
 
   /**
@@ -478,7 +508,7 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
    * @return bool
    *   TRUE if the URI is allowed.
    */
-  protected function fileValidUri($uri): bool {
+  protected function fileValidUri(string $uri): bool {
     // Assert that the URI has an allowed scheme. Bare paths are not allowed.
     /** @var \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface $stream_wrapper_manager */
     $stream_wrapper_manager = \Drupal::service('stream_wrapper_manager');
@@ -499,6 +529,7 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
    * @todo Replace with Symfony tag methods when they become available.
    *
    * @return \Drupal\Core\Extension\Extension[]
+   *   An array of all loaded extensions from extension list services.
    */
   protected function getExtensionList(): array {
     if (isset($this->extensionList)) {
@@ -519,21 +550,22 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
       $service_ids = $container->getServiceIds();
       $list_services = [];
       foreach ($service_ids as $service_id) {
-        if (strpos($service_id, $extension_prefix) === 0) {
+        if (strpos($service_id, (string) $extension_prefix) === 0) {
           $list_services[] = $service_id;
         }
       }
     }
     $this->extensionList = [];
     foreach ($list_services as $service_name) {
-      /** @var ExtensionList|null $extension_service */
+      /** @var \Drupal\Core\Extension\ExtensionList|null $extension_service */
       $extension_service = $container->get($service_name);
       if ($extension_service === NULL) {
         continue;
       }
-      /** \Drupal\Core\Extension\Extension[] $extension_list */
+      /** @var \Drupal\Core\Extension\Extension[] $extension_list */
       $this->extensionList += $extension_service->getList();
     }
+
     return $this->extensionList;
   }
 
@@ -616,7 +648,7 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
    * @return bool
    *   TRUE if the string is a valid URI.
    */
-  protected function isValidUri($uri): bool {
+  protected function isValidUri(string $uri): bool {
     return count(explode('://', $uri)) === 2;
   }
 
@@ -696,7 +728,7 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
    * @throws \Drupal\Core\Asset\Exception\InvalidLibraryFileException
    *   Thrown when a parser exception got thrown.
    */
-  protected function parseLibraryInfo($extension_type, $extension, $path): array {
+  protected function parseLibraryInfo(string $extension_type, string $extension, string $path): array {
     $libraries = [];
 
     $library_file = $path . '/' . $extension . '.libraries.yml';
@@ -712,7 +744,7 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
 
     // Allow modules to add dynamic library definitions.
     $hook = 'library_info_build';
-    if ($this->moduleHandler->implementsHook($extension, $hook)) {
+    if ($this->moduleHandler->hasImplementations($hook, $extension)) {
       $libraries = NestedArray::mergeDeep($libraries, $this->moduleHandler->invoke($extension, $hook));
     }
 
@@ -733,11 +765,11 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    *
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    */
-  protected function resolveCacheMiss($key) {
+  protected function resolveCacheMiss($key): ?PatternLibrary {
     $definitions = $this->getLibraryDefinitions();
     $this->storage[$key] = $definitions[$key] ?? NULL;
     $this->persist($key);
@@ -756,7 +788,7 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
    * @return string
    *   A fully resolved theme asset path relative to the Drupal directory.
    */
-  protected function resolveThemeAssetPath($theme_path, $overriding_asset): string {
+  protected function resolveThemeAssetPath(string $theme_path, string $overriding_asset): string {
     if ($overriding_asset[0] !== '/' && !$this->isValidUri($overriding_asset)) {
       // The destination is not an absolute path and it's not a URI (e.g.
       // public://generated_js/example.js or http://example.com/js/my_js.js), so
@@ -784,7 +816,7 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
     array &$patterns,
     array $sub_key,
     array $overrides,
-    $theme_path) {
+    string $theme_path): void {
 
     foreach ($overrides as $original => $replacement) {
       // Get the attributes of the asset to be overridden. If the key does

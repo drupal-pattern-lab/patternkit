@@ -5,6 +5,7 @@ namespace Drupal\patternkit_media_library;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\File\FileUrlGeneratorInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\media_library\MediaLibraryOpenerInterface;
 use Drupal\media_library\MediaLibraryState;
@@ -23,13 +24,23 @@ class MediaLibraryJSONLibraryOpener implements MediaLibraryOpenerInterface {
   protected $entityTypeManager;
 
   /**
+   * The file url generator service.
+   *
+   * @var \Drupal\Core\File\FileUrlGeneratorInterface
+   */
+  protected $fileUrlGenerator;
+
+  /**
    * MediaLibraryFieldWidgetOpener constructor.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager.
+   * @param \Drupal\Core\File\FileUrlGeneratorInterface $file_url_generator
+   *   The file url generator service.
    */
-  public function __construct(EntityTypeManagerInterface $entity_type_manager) {
+  public function __construct(EntityTypeManagerInterface $entity_type_manager, FileUrlGeneratorInterface $file_url_generator) {
     $this->entityTypeManager = $entity_type_manager;
+    $this->fileUrlGenerator = $file_url_generator;
   }
 
   /**
@@ -71,7 +82,7 @@ class MediaLibraryJSONLibraryOpener implements MediaLibraryOpenerInterface {
         $url = $file->toUrl()->setAbsolute(FALSE);
       }
       elseif ($file->access('download')) {
-        $url = file_url_transform_relative(file_create_url($file->getFileUri()));
+        $url = $this->fileUrlGenerator->generateString($file->getFileUri());
       }
       else {
         $url = $file->label();

@@ -15,7 +15,7 @@ class PatternRouteProvider implements EntityRouteProviderInterface {
   /**
    * {@inheritdoc}
    */
-  public function getRoutes(EntityTypeInterface $entity_type) {
+  public function getRoutes(EntityTypeInterface $entity_type): RouteCollection {
     $route_collection = new RouteCollection();
     $route = (new Route('/patternkit/{patternkit_pattern}'))
       ->addDefaults([

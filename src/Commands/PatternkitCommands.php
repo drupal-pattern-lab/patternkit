@@ -4,11 +4,13 @@ namespace Drupal\patternkit\Commands;
 
 use Drupal\block\BlockInterface;
 use Drupal\Core\Cache\CacheableMetadata;
+use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Plugin\Context\Context;
 use Drupal\Core\Plugin\Context\ContextDefinition;
 use Drupal\Core\Plugin\Context\EntityContext;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay;
+use Drupal\patternkit\Asset\LibraryInterface;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Plugin\Derivative\PatternkitBlock;
 use Drush\Commands\DrushCommands;
@@ -24,21 +26,21 @@ class PatternkitCommands extends DrushCommands {
    *
    * @var \Drupal\Core\Entity\EntityStorageInterface
    */
-  protected $blockStorage;
+  protected EntityStorageInterface $blockStorage;
 
   /**
    * Asset Library manager.
    *
    * @var \Drupal\patternkit\Asset\LibraryInterface
    */
-  protected $library;
+  protected LibraryInterface $library;
 
   /**
    * Pattern storage manager.
    *
    * @var \Drupal\Core\Entity\EntityStorageInterface
    */
-  protected $patternStorage;
+  protected EntityStorageInterface $patternStorage;
 
   /**
    * Constructs the Patternkit Drush Commands functionality.
@@ -60,7 +62,7 @@ class PatternkitCommands extends DrushCommands {
    * @command patternkit:devUpdate
    * @aliases pkdu, patternkit-dev-update
    */
-  public function devUpdate() {
+  public function devUpdate(): void {
     $logger = $this->logger();
     if (!\Drupal::moduleHandler()->moduleExists('layout_builder')) {
       $logger->notice($this->t('Patternkit from-dev updates only apply to Layout Builder, which is not enabled. Skipping Patternkit from-dev updates.'));
@@ -142,13 +144,11 @@ class PatternkitCommands extends DrushCommands {
             continue;
           }
           $logger->debug($this->t('Updating block plugin with id @plugin:', ['@plugin' => $plugin_id]));
-          /**
-           * Old plugin ids were in the format:
-           *   'patternkit_block:library.name_path_to_pattern'
-           *
-           * New plugin ids are:
-           *   'patternkit_block:library__name_path_to_pattern'
-           */
+
+          // Old plugin ids were in the format:
+          // 'patternkit_block:library.name_path_to_pattern'.
+          // New plugin ids are:
+          // 'patternkit_block:library__name_path_to_pattern'.
           if (strpos($plugin_id, '.')) {
             $config['id'] = 'patternkit_block:' . str_replace('.', '_', str_replace('_', '__', substr($plugin_id, strlen('patternkit_block:'))));
           }
@@ -214,7 +214,7 @@ class PatternkitCommands extends DrushCommands {
    * @command patternkit:libUpdate
    * @aliases pklu, patternkit-lib-update
    *
-   * @return array|bool
+   * @return bool
    *   Drush expected command result.
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
@@ -222,7 +222,7 @@ class PatternkitCommands extends DrushCommands {
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    * @throws \Drupal\Core\Entity\EntityStorageException
    */
-  public function libUpdate() {
+  public function libUpdate(): bool {
     $logger = $this->logger();
 
     $lb_enabled = FALSE;
@@ -327,7 +327,8 @@ class PatternkitCommands extends DrushCommands {
     $block_manager->clearCachedDefinitions();
     $entity_type_manager->clearCachedDefinitions();
     $logger->notice($this->t('Completed running Patternkit library updates.'));
-    return true;
+
+    return TRUE;
   }
 
   /**
@@ -335,16 +336,18 @@ class PatternkitCommands extends DrushCommands {
    *
    * @param \Drupal\block\BlockInterface|\Drupal\layout_builder\SectionComponent $component
    *   The block plugin or component to update.
-   * @param null|string $library_name
+   * @param string|null $library_name
    *   The name of the library to match against, or NULL to skip matching.
    *
-   * @return false|array The updated configuration, or FALSE if it failed.
+   * @return false|array
+   *   The updated configuration, or FALSE if it failed.
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    * @throws \Drupal\Core\Entity\EntityStorageException
    */
-  private function updateBlockComponentPluginPattern($component, $library_name = NULL) {
+  private function updateBlockComponentPluginPattern($component, ?string $library_name = NULL) {
     $logger = $this->logger();
     $block_storage = $this->blockStorage;
     $pattern_storage = $this->patternStorage;
@@ -366,7 +369,8 @@ class PatternkitCommands extends DrushCommands {
       if ($patternkit_block === NULL) {
         return FALSE;
       }
-    } else {
+    }
+    else {
       $patternkit_block = $block_storage->load($configuration['patternkit_block_id']);
       if ($patternkit_block === NULL) {
         return FALSE;
@@ -381,10 +385,12 @@ class PatternkitCommands extends DrushCommands {
       /** @var \Drupal\patternkit\entity\PatternInterface $pattern */
       if (!empty($configuration['pattern'])) {
         $pattern = $pattern_storage->loadRevision($configuration['pattern']);
-      } else {
+      }
+      else {
         $pattern = $library->getLibraryAsset($pattern_id);
       }
-    } catch (\Exception $exception) {
+    }
+    catch (\Exception $exception) {
       $logger->error($this->t('Unable to load the pattern @pattern. Check the logs for more info.', ['@pattern' => $pattern_id ?? $plugin->getPluginId()]));
       return FALSE;
     }
@@ -414,6 +420,7 @@ class PatternkitCommands extends DrushCommands {
     /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
     $patternkit_block = $block_storage->load($configuration['patternkit_block_id']);
     $configuration['patternkit_block_rid'] = $patternkit_block->getRevisionId();
+
     return $configuration;
   }
 

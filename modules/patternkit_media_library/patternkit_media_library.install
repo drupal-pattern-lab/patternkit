@@ -23,6 +23,7 @@ function patternkit_media_library_requirements($phase) {
 
   return $requirements;
 }
+
 /**
  * Sets default value for new config item 'patternkit_media_library.settings'.
  */

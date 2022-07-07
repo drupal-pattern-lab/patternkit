@@ -2,6 +2,7 @@
 
 namespace Drupal\patternkit\Form;
 
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -12,9 +13,11 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class PatternLibraryJSONForm extends ConfigFormBase {
 
   /**
-   * @var \Drupal\Core\Entity\EntityTypeManager
+   * The entity type manager service.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
-  protected $entityStorage;
+  protected EntityTypeManagerInterface $entityTypeManager;
 
   /**
    * Settings identifier.
@@ -88,6 +91,11 @@ class PatternLibraryJSONForm extends ConfigFormBase {
     'fontawesome5' => 'https://use.fontawesome.com/releases/v5.6.1/css/all.css',
   ];
 
+  /**
+   * Array of editor options supported by the JSON Schema Editor.
+   *
+   * @var array
+   */
   public const EDITORS = [
     'ckeditor' => 'CKEditor',
     'prosemirror' => 'ProseMirror',
@@ -95,85 +103,83 @@ class PatternLibraryJSONForm extends ConfigFormBase {
   ];
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container) {
+  public static function create(ContainerInterface $container): self {
     $instance = parent::create($container);
-    $instance->entityStorage = $container->get('entity_type.manager');
+    $instance->entityTypeManager = $container->get('entity_type.manager');
     return $instance;
   }
 
   /**
-   * Implements buildForm().
-   *
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) :array {
     $config = $this->config(static::SETTINGS);
 
     $themes = array_keys(static::THEMES);
-    $form['patternkit_json_editor_theme'] = array(
+    $form['patternkit_json_editor_theme'] = [
       '#type' => 'select',
       '#title' => t('Select the JSON Editor Theme'),
       '#options' => array_combine($themes, $themes),
       '#default_value' => $config->get('patternkit_json_editor_theme'),
-    );
+    ];
 
     $icons = array_keys(static::ICONS);
-    $form['patternkit_json_editor_icons'] = array(
+    $form['patternkit_json_editor_icons'] = [
       '#type' => 'select',
       '#title' => t('Select the icons to be used with the editor'),
       '#options' => array_combine($icons, $icons),
       '#default_value' => $config->get('patternkit_json_editor_icons'),
-    );
+    ];
 
-    $form['patternkit_json_editor_css'] = array(
+    $form['patternkit_json_editor_css'] = [
       '#type' => 'textfield',
       '#title' => t('Add to the editor theme CSS'),
       '#description' => t('Enter a comma-separated list of additional CSS to include.'),
       '#default_value' => $config->get('patternkit_json_editor_css'),
-    );
+    ];
 
-    $form['patternkit_json_editor_js'] = array(
+    $form['patternkit_json_editor_js'] = [
       '#type' => 'textfield',
       '#title' => t('Add to the editor theme JS'),
       '#description' => t('Enter a comma-separated list of additional JS to include.'),
       '#default_value' => $config->get('patternkit_json_editor_js'),
-    );
+    ];
 
-    $form['patternkit_json_editor_use_shadow_dom'] = array(
+    $form['patternkit_json_editor_use_shadow_dom'] = [
       '#type' => 'checkbox',
       '#title' => t('Use the Shadow DOM'),
       '#description' => t('Select whether to use the Shadow DOM for the JSON
       Editor form. Most themes require the Shadow DOM, but most WYSIWYG editors
       do not work with it.'),
       '#default_value' => $config->get('patternkit_json_editor_use_shadow_dom') ?? TRUE,
-    );
+    ];
 
-    $form['patternkit_json_editor_disable_properties_buttons'] = array(
+    $form['patternkit_json_editor_disable_properties_buttons'] = [
       '#type' => 'checkbox',
       '#title' => t('Hide the properties buttons'),
       '#description' => t('Select whether to hide the property buttons (maps to json-editor option <em>disable_properties</em>).'),
       '#default_value' => $config->get('patternkit_json_editor_disable_properties_buttons') ?? FALSE,
-    );
+    ];
 
-    $form['patternkit_json_editor_disable_edit_json_button'] = array(
+    $form['patternkit_json_editor_disable_edit_json_button'] = [
       '#type' => 'checkbox',
       '#title' => t('Hide the JSON Edit button'),
       '#description' => t('Select whether to show the Edit JSON button (maps to json-editor option <em>disable_edit_json</em>).'),
       '#default_value' => $config->get('patternkit_json_editor_disable_edit_json_button') ?? TRUE,
-    );
+    ];
 
-    $form['patternkit_json_editor_wysiwyg'] = array(
+    $form['patternkit_json_editor_wysiwyg'] = [
       '#type' => 'select',
       '#title' => t('WYSIWYG editor'),
       '#options' => static::EDITORS,
       '#empty_value' => '',
       '#default_value' => $config->get('patternkit_json_editor_wysiwyg') ?: '',
-    );
+    ];
 
     $ckeditor_toolbar_options = [];
-    foreach ($this->entityStorage->getStorage('editor')->loadMultiple() as $editor) {
+    foreach ($this->entityTypeManager->getStorage('editor')->loadMultiple() as $editor) {
       if ($editor->getEditor() === 'ckeditor') {
         $ckeditor_toolbar_options[$editor->id()] = $editor->label();
       }
@@ -197,23 +203,23 @@ class PatternLibraryJSONForm extends ConfigFormBase {
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
-  protected function getEditableConfigNames() :array {
+  protected function getEditableConfigNames(): array {
     return [static::SETTINGS];
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
-  public function getFormId() :string {
+  public function getFormId(): string {
     return 'patternkit_json_editor_config';
   }
 
   /**
    * {@inheritdoc}
    */
-  public function submitForm(array &$form, FormStateInterface $form_state) {
+  public function submitForm(array &$form, FormStateInterface $form_state): void {
     $form_values = $form_state->getValues();
     $config = $this->config(self::SETTINGS);
     $config->set('patternkit_json_editor_theme', $form_values['patternkit_json_editor_theme']);
@@ -226,6 +232,7 @@ class PatternLibraryJSONForm extends ConfigFormBase {
     $config->set('patternkit_json_editor_wysiwyg', $form_values['patternkit_json_editor_wysiwyg']);
     $config->set('patternkit_json_editor_ckeditor_toolbar', $form_values['patternkit_json_editor_ckeditor_toolbar']);
     $config->save();
+
     parent::submitForm($form, $form_state);
   }
 

@@ -31,6 +31,7 @@ function patternkit_help($route_name, RouteMatchInterface $route_match) {
   <dd>Users with the <em>Administer blocks</em> permission can add Patternkit blocks to the site block layout.</dd>
 </dl>
 HTML;
+      // phpcs:ignore Drupal.Semantics.FunctionT.NotLiteralString
       return t($output, [
         ':patternkit_example' => $patternkit_example,
         ':patternkit_media_library' => $patternkit_media_library,
@@ -44,7 +45,7 @@ HTML;
 /**
  * Implements hook_theme().
  */
-function patternkit_theme($existing, $type, $theme, $path) {
+function patternkit_theme($existing, $type, $theme, $path): array {
   return [
     'patternkit_add_list' => [
       'variables' => ['content' => NULL],

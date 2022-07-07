@@ -2,48 +2,20 @@
 
 namespace Drupal\patternkit\Asset\PatternLibraryParser;
 
-use Drupal\Component\Serialization\SerializationInterface;
 use Drupal\Core\Asset\Exception\InvalidLibraryFileException;
-use Drupal\Core\Extension\ModuleHandlerInterface;
-use Drupal\Core\Theme\ThemeManagerInterface;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\PatternLibraryJSONParserTrait;
 use Drupal\patternkit\Asset\PatternLibraryParserBase;
-use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 
 /**
  * Parses a Twig pattern library collection into usable metadata.
  */
 class TwigPatternLibraryParser extends PatternLibraryParserBase {
+
   use PatternLibraryJSONParserTrait;
-
-  /**
-   * TwigPatternLibraryParser constructor.
-   *
-   * @param \Drupal\Component\Serialization\SerializationInterface $serializer
-   *   Serializes and de-serializes data.
-   * @param string $root
-   *   The application root path.
-   * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
-   *   Allows modules to alter library parsing.
-   * @param \Drupal\Core\Theme\ThemeManagerInterface $theme_manager
-   *   Allows themes to alter library parsing.
-   * @param \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface $stream_wrapper
-   *   The stream wrapper manager.
-   */
-  public function __construct(
-    SerializationInterface $serializer,
-    $root,
-    ModuleHandlerInterface $module_handler,
-    ThemeManagerInterface $theme_manager,
-    StreamWrapperManagerInterface $stream_wrapper) {
-
-    $this->serializer = $serializer;
-    parent::__construct($root, $module_handler, $theme_manager, $stream_wrapper, null);
-  }
 
   /**
    * Returns a new Patternkit Pattern.
@@ -59,17 +31,19 @@ class TwigPatternLibraryParser extends PatternLibraryParserBase {
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
-  public function createPattern($name, $data): PatternInterface {
+  public function createPattern(string $name, $data): PatternInterface {
     // Pattern schemas contain values needed for Pattern fields.
     $values = ['name' => $data['title'] ?? $name];
     return Pattern::create($values + $data);
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
-  public function fetchPatternAssets(PatternInterface $pattern,
-                                     PatternEditorConfig $config = NULL): array {
+  public function fetchPatternAssets(
+    PatternInterface $pattern,
+    PatternEditorConfig $config = NULL
+  ): array {
     // @todo Add support for twig lib attachments such as JS and images.
     $assets = parent::fetchPatternAssets($pattern, $config);
     $assets['template'] = $assets['twig'];
@@ -83,8 +57,6 @@ class TwigPatternLibraryParser extends PatternLibraryParserBase {
     $assets['schema'] = $this->serializer::encode($schema);
     return $assets;
   }
-
-  public function parsePattern() { }
 
   /**
    * Parses a given library file and allows modules and themes to alter it.
@@ -134,7 +106,7 @@ class TwigPatternLibraryParser extends PatternLibraryParserBase {
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
-  public function parsePatternLibraryInfo(PatternLibrary $library, $path): array {
+  public function parsePatternLibraryInfo(PatternLibrary $library, string $path): array {
     if (!file_exists($path)) {
       throw new InvalidLibraryFileException("Path $path does not exist.");
     }

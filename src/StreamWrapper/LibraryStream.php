@@ -15,14 +15,14 @@ class LibraryStream extends PublicStream {
   /**
    * Override to interpret the uri as the actual library file.
    *
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
   protected function getTarget($uri = NULL) {
     if (!isset($uri)) {
       $uri = $this->uri;
     }
 
-    list(, $path) = explode('://', $uri, 2);
+    [, $path] = explode('://', $uri, 2);
 
     // Remove erroneous leading or trailing, forward-slashes and backslashes.
     $uri = trim($path, '\/');
@@ -52,7 +52,7 @@ class LibraryStream extends PublicStream {
         // @todo Create a temporary {libraryname}.json that holds the data.
         return ['js' => $js, 'css' => $css];
     }
-    list(, $target) = explode('://', reset($query_assets)['data'], 2);
+    [, $target] = explode('://', reset($query_assets)['data'], 2);
     return $target;
   }
 

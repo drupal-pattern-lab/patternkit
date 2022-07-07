@@ -11,22 +11,37 @@ use GuzzleHttp\ClientInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
 /**
- * Class RESTLib.
+ * A library parser implementation for REST pattern libraries.
  */
 class RESTPatternLibraryParser {
 
-  /** @var \GuzzleHttp\ClientInterface */
-  protected $client;
-
-  /** @var \Drupal\Core\File\FileSystemInterface */
-  protected $fs;
+  /**
+   * HTTP client service.
+   *
+   * @var \GuzzleHttp\ClientInterface
+   */
+  protected ClientInterface $client;
 
   /**
-   * PatternkitRESTLib constructor.
+   * Filesystem interface service.
    *
-   * {@inheritDoc}
+   * @var \Drupal\Core\File\FileSystemInterface
+   */
+  protected FileSystemInterface $fs;
+
+  /**
+   * RESTPatternLibraryParser constructor.
+   *
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   The config factory service.
+   * @param \Drupal\Core\Cache\CacheBackendInterface $cache
+   *   A cache backend service.
+   * @param \Symfony\Component\Serializer\SerializerInterface $serializer
+   *   The serializer service.
    * @param \GuzzleHttp\ClientInterface $client
    *   The HTTP client for rest API library retrieval.
+   * @param \Drupal\Core\File\FileSystemInterface $fs
+   *   The file system service.
    */
   public function __construct(ConfigFactoryInterface $config_factory,
     CacheBackendInterface $cache,
@@ -60,22 +75,22 @@ class RESTPatternLibraryParser {
     $result = $this->client->request(
       'GET',
       $url,
-      array(
-        'headers' => array('Content-Type' => 'application/json'),
+      [
+        'headers' => ['Content-Type' => 'application/json'],
         'data'    => $config->rawJSON,
         'timeout' => 10,
         'method'  => 'POST',
-      )
+      ]
     );
 
-    // @TODO: Request failure handling.
+    // @todo Request failure handling.
     $body = $result->getBody();
     $response = $body->read($body->getSize());
     $pk_obj = $this->serializer->deserialize($response, 'object', 'json');
     $subtype = $pattern->subtype;
     $dir = "public://patternkit/$subtype/{$config->instance_id}";
     if (!$this->fs->prepareDirectory($dir)) {
-      // @TODO: Failure handling.
+      // @todo Failure handling.
       _patternkit_show_error(
         "Unable to create folder ($dir) to contain the pklugins artifacts."
       );
@@ -90,13 +105,13 @@ class RESTPatternLibraryParser {
     $pk_obj->body = $save_result;
 
     if ($save_result === FALSE) {
-      // @TODO: Failure handling.
+      // @todo Failure handling.
       _patternkit_show_error(
         "Unable to create static archive of the JSON pklugins artifact for $subtype."
       );
     }
 
-    $assets = array();
+    $assets = [];
 
     // Normalize the object for easier processing.
     if (!empty($pk_obj->assets)) {
@@ -109,7 +124,7 @@ class RESTPatternLibraryParser {
       $pk_obj->assets->js->early = $pk_obj->global_assets->js;
       $pk_obj->assets->js->deferred = $pk_obj->global_assets->footer_js;
       $pk_obj->assets->css->list = $pk_obj->global_assets->css;
-      $pk_obj->assets->css->shared = array();
+      $pk_obj->assets->css->shared = [];
     }
 
     if (!empty($pk_obj->assets)) {
@@ -193,13 +208,13 @@ class RESTPatternLibraryParser {
    *
    * @param string|null $subtype
    *   If specified, return an editor customized for this subtype.
-   * @param PatternEditorConfig $config
+   * @param \Drupal\patternkit\PatternEditorConfig|null $config
    *   Optional configuration settings for the editor.
    *
    * @return mixed
    *   The renderable pattern editor.
    */
-  public function getEditor($subtype = NULL, PatternEditorConfig $config = NULL) {
+  public function getEditor(string $subtype = NULL, ?PatternEditorConfig $config = NULL): string {
     $patternkit_host = $this->configFactory->get('patternkit_pl_host');
     $url = $patternkit_host . '/schema/editor/' . substr($subtype, 3);
 
@@ -245,6 +260,8 @@ HTML;
    *
    * @return array
    *   Array of metadata objects found.
+   *
+   * @throws \GuzzleHttp\Exception\GuzzleException
    */
   protected function getRawMetadata() :array {
     $patternkit_host = $this->config->get('patternkit_pl_host');
@@ -253,14 +270,14 @@ HTML;
       $request = $this->client->request(
         'GET',
         $patternkit_host . '/api/patterns',
-        array(
-          'headers' => array('Content-Type' => 'application/json'),
+        [
+          'headers' => ['Content-Type' => 'application/json'],
           'timeout' => 10,
-        )
+        ]
       );
     }
     catch (\Exception $exception) {
-      return array();
+      return [];
     }
     $body = $request->getBody();
     $patterns = $body->read($body->getSize());
@@ -269,12 +286,12 @@ HTML;
       || (int) $request->getStatusCode() !== 200) {
       _patternkit_show_error(
         'Patternkit failed to load metadata from service (%service_uri): %error',
-        array(
+        [
           '%service_uri' => $patternkit_host . '/api/patterns',
           '%error'       => !empty($request->error) ? $request->error : $request->getStatusCode(),
-        )
+        ]
       );
-      return array();
+      return [];
     }
     /** @var array $metadata */
     $metadata = $this->serializer->deserialize($patterns, 'array', 'json');

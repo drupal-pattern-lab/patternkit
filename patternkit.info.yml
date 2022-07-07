@@ -2,10 +2,9 @@ name: Patternkit
 description: Adds Patternkit patterns as blocks.
 type: module
 package: Presentation Framework
-core: 8.x
-core_version_requirement: ^8 || ^9
+core_version_requirement: ^9
 configure: patternkit.settings
 dependencies:
   - drupal:block_content
   - drupal:ckeditor
-php: 7.3
+php: 7.4

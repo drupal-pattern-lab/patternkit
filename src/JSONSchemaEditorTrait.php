@@ -2,11 +2,16 @@
 
 namespace Drupal\patternkit;
 
+use Drupal\Core\File\FileUrlGeneratorInterface;
+use Drupal\Core\State\StateInterface;
+use Drupal\Component\Serialization\SerializationInterface;
+use Drupal\Core\Config\ImmutableConfig;
 use Drupal\ckeditor\Plugin\Editor\CKEditor;
 use Drupal\Core\Logger\LoggerChannelTrait;
 use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\editor\Entity\Editor;
+use Drupal\editor\Plugin\EditorManager;
 use Drupal\patternkit\Form\PatternLibraryJSONForm;
 
 /**
@@ -22,21 +27,35 @@ trait JSONSchemaEditorTrait {
    *
    * @var \Drupal\Core\Config\ImmutableConfig
    */
-  protected $config;
+  protected ImmutableConfig $config;
 
   /**
    * Encodes and decodes strings.
    *
    * @var \Drupal\Component\Serialization\SerializationInterface
    */
-  protected $serializer;
+  protected SerializationInterface $serializer;
 
   /**
    * Application static state.
    *
    * @var \Drupal\Core\State\StateInterface
    */
-  protected $state;
+  protected StateInterface $state;
+
+  /**
+   * The file url generator service.
+   *
+   * @var \Drupal\Core\File\FileUrlGeneratorInterface
+   */
+  protected FileUrlGeneratorInterface $fileUrlGenerator;
+
+  /**
+   * The editor plugin manager service.
+   *
+   * @var \Drupal\editor\Plugin\EditorManager
+   */
+  protected EditorManager $editorPluginManager;
 
   /**
    * Returns a fully-qualified asset URL from a URI.
@@ -51,12 +70,12 @@ trait JSONSchemaEditorTrait {
    *
    * @todo Eval if this belongs in PatternkitLibraryDiscovery instead.
    */
-  public function getLibraryAssetUrlFromUri($uri): string {
-    $url = file_create_url($uri);
+  public function getLibraryAssetUrlFromUri(string $uri): string {
+    $url = $this->fileUrlGenerator->generateAbsoluteString($uri);
     if ($url !== $uri) {
       $query_string = $this->state->get('system.css_js_query_string') ?: '0';
       $query_string_separator = (strpos($url, '?') !== FALSE) ? '&' : '?';
-      $url = file_url_transform_relative($url) . $query_string_separator . $query_string;
+      $url = $this->fileUrlGenerator->transformRelative($url) . $query_string_separator . $query_string;
     }
     return $url;
   }
@@ -72,7 +91,7 @@ trait JSONSchemaEditorTrait {
    * @return array
    *   Schema editor Drupal render array.
    */
-  public function schemaEditor($schema, PatternEditorConfig $config): array {
+  public function schemaEditor(string $schema, PatternEditorConfig $config): array {
     $starting_json = $config !== NULL
       ? $this->serializer::encode($config->fields)
       : $config;
@@ -133,8 +152,8 @@ trait JSONSchemaEditorTrait {
         $ckeditor_entity = Editor::load($selected_toolbar);
         if ($ckeditor_entity && $ckeditor_entity->status()) {
           $editor_settings['patternkitCKEditorConfig'] = $ckeditor_instance->getJSSettings($ckeditor_entity);
-          // Pushes the selected toolbar to drupalSettings, so that client-side so
-          // that DrupalCKEditor.afterInputReady
+          // Pushes the selected toolbar to drupalSettings, so that client-side
+          // so that DrupalCKEditor.afterInputReady.
           $editor_settings['patternkitCKEditorConfig']['selected_toolbar'] = $selected_toolbar;
         }
         else {
@@ -152,7 +171,7 @@ trait JSONSchemaEditorTrait {
       '#value'    => '',
       '#attributes' => [
         'id' => 'patternkit-editor-target',
-        'style' => ['all: initial; background: white; display: inline-block; width: 100%;']
+        'style' => ['all: initial; background: white; display: inline-block; width: 100%;'],
       ],
       '#attached' => [
         'drupalSettings' => [
@@ -166,14 +185,33 @@ trait JSONSchemaEditorTrait {
       ],
     ];
 
-    // Attaches attachments for selected editor.
-    if (!empty($selected_toolbar)) {
-      /** @var \Drupal\editor\Plugin\EditorManager $editor_plugin_manager */
-      $editor_plugin_manager = \Drupal::service('plugin.manager.editor');
-      $element['#attached'] = BubbleableMetadata::mergeAttachments($element['#attached'], $editor_plugin_manager->getAttachments([$selected_toolbar]));
+    // Attaches attachments for the selected editor.
+    if (!empty($selected_toolbar) && $editor_plugin_manager = $this->getEditorPluginManager()) {
+      $attachments = $editor_plugin_manager->getAttachments([$selected_toolbar]);
+      $element['#attached'] = BubbleableMetadata::mergeAttachments($element['#attached'], $attachments);
     }
 
     return $element;
+  }
+
+  /**
+   * Get the editor plugin manager service if available.
+   *
+   * @return \Drupal\editor\Plugin\EditorManager|null
+   *   The editor plugin manager service or null if not available.
+   */
+  protected function getEditorPluginManager(): ?EditorManager {
+    return $this->editorPluginManager ?? NULL;
+  }
+
+  /**
+   * Set the editor plugin manager service.
+   *
+   * @param \Drupal\editor\Plugin\EditorManager $editor_plugin_manager
+   *   The editor plugin manager service.
+   */
+  protected function setEditorPluginManager(EditorManager $editor_plugin_manager) {
+    $this->editorPluginManager = $editor_plugin_manager;
   }
 
 }

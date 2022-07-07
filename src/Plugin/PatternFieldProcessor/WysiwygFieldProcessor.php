@@ -57,7 +57,7 @@ class WysiwygFieldProcessor extends PatternFieldProcessorBase {
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): self {
     /** @var \Drupal\Core\Config\ConfigFactoryInterface $configFactory */
     $configFactory = $container->get('config.factory');
     $settings = $configFactory->get('patternkit.settings');

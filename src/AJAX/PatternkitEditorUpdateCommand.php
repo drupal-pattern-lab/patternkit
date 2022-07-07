@@ -46,7 +46,7 @@ class PatternkitEditorUpdateCommand implements CommandInterface {
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
   public function render(): array {
     return [

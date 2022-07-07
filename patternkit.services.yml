@@ -8,16 +8,19 @@ services:
       - { name: path_processor_inbound, priority: 200 }
   patternkit.asset.library:
     class: Drupal\patternkit\Asset\Library
-    arguments: ['@cache.discovery', '@config.factory', '@plugin.manager.library.pattern', '@lock', '@module_handler', '@app.root', '@theme.manager']
+    arguments: ['@cache.discovery', '@config.factory', '@plugin.manager.library.pattern', '@lock', '@module_handler', '%app.root%', '@theme.manager', '@extension.path.resolver']
+  patternkit.asset.library.parser.base:
+    abstract: true
+    arguments: [ '@serialization.json', '%app.root%', '@module_handler', '@theme.manager', '@stream_wrapper_manager', '@library.libraries_directory_file_finder', '@extension.path.resolver' ]
   patternkit.asset.library.parser.file:
+    parent: patternkit.asset.library.parser.base
     class: Drupal\patternkit\Asset\PatternLibraryParser\FilePatternLibraryParser
-    arguments: ['@serialization.json', '@app.root', '@module_handler', '@theme.manager', '@stream_wrapper_manager']
   patternkit.asset.library.parser.json:
+    parent: patternkit.asset.library.parser.base
     class: Drupal\patternkit\Asset\PatternLibraryParser\JSONPatternLibraryParser
-    arguments: ['@serialization.json', '@app.root', '@module_handler', '@theme.manager', '@stream_wrapper_manager']
   patternkit.asset.library.parser.twig:
+    parent: patternkit.asset.library.parser.base
     class: Drupal\patternkit\Asset\PatternLibraryParser\TwigPatternLibraryParser
-    arguments: ['@serialization.json', '@app.root', '@module_handler', '@theme.manager', '@stream_wrapper_manager']
   plugin.manager.library.pattern:
     class: Drupal\patternkit\PatternLibraryPluginManager
     arguments: ['@container.namespaces', '@cache.discovery', '@module_handler', '@theme_handler']

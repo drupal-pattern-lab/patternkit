@@ -24,14 +24,14 @@ class TokenProcessor extends PatternFieldProcessorBase {
    *
    * @var \Drupal\Core\Utility\Token
    */
-  protected $token;
+  protected Token $token;
 
   /**
    * Renders strings using the Twig template engine.
    *
    * @var \Drupal\Core\Template\TwigEnvironment
    */
-  protected $twig;
+  protected TwigEnvironment $twig;
 
   /**
    * Constructor for the TokenProcessor plugin.
@@ -57,7 +57,7 @@ class TokenProcessor extends PatternFieldProcessorBase {
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): self {
     /** @var \Drupal\Core\Utility\Token $token */
     $token = $container->get('token');
     /** @var \Drupal\Core\Template\TwigEnvironment $twig */
@@ -82,7 +82,7 @@ class TokenProcessor extends PatternFieldProcessorBase {
   /**
    * {@inheritdoc}
    */
-  public function apply(SchemaContract $propertySchema, $value, $context, BubbleableMetadata $bubbleableMetadata) {
+  public function apply(SchemaContract $propertySchema, $value, $context, BubbleableMetadata $bubbleableMetadata): string {
     $token_groups = $this->token->scan($value);
     $template = $value;
     $template_context = [];
@@ -104,7 +104,7 @@ class TokenProcessor extends PatternFieldProcessorBase {
         $template_context[$placeholder] = $tokenized[$token];
         // If the user is not using Twig templating,
         // wrap with a Twig write so we can process it.
-        $token_pos = strpos($template, $token);
+        $token_pos = strpos($template, (string) $token);
         $template_use_twig = strpos($template, '{{') < $token_pos
           && strpos($template, '}}', $token_pos + strlen($token)) !== FALSE;
         if (!$template_use_twig) {

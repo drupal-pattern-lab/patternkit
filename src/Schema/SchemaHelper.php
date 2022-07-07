@@ -125,7 +125,7 @@ class SchemaHelper {
    * @return object
    *   The provided array values recursively cast as stdClass objects.
    */
-  public static function castArrayToObject(array $value) {
+  public static function castArrayToObject(array $value): object {
     return json_decode(json_encode($value));
   }
 

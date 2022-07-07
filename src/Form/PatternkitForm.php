@@ -23,7 +23,7 @@ class PatternkitForm extends ContentEntityForm {
   /**
    * {@inheritdoc}
    */
-  public function form(array $form, FormStateInterface $form_state) {
+  public function form(array $form, FormStateInterface $form_state): array {
     $block = $this->entity;
 
     $form = parent::form($form, $form_state);
@@ -42,7 +42,7 @@ class PatternkitForm extends ContentEntityForm {
   /**
    * {@inheritdoc}
    */
-  public function save(array $form, FormStateInterface $form_state) {
+  public function save(array $form, FormStateInterface $form_state): void {
     $block = $this->entity;
 
     $insert = $block->isNew();

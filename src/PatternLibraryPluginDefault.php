@@ -2,6 +2,9 @@
 
 namespace Drupal\patternkit;
 
+use Drupal\Component\Plugin\DependentPluginInterface;
+use Drupal\Core\Config\ImmutableConfig;
+use Drupal\Component\Plugin\ConfigurableInterface;
 use Drupal\Component\Plugin\PluginBase;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -22,7 +25,7 @@ use Drupal\patternkit\Form\PatternkitSettingsForm;
  * @see \Drupal\patternkit\Form\PatternLibraryJSONForm
  * @see \Drupal\patternkit\Plugin\PatternLibrary\PatternLibraryJSON
  */
-abstract class PatternLibraryPluginDefault extends PluginBase implements PatternLibraryPluginInterface {
+abstract class PatternLibraryPluginDefault extends PluginBase implements ConfigurableInterface, DependentPluginInterface, PatternLibraryPluginInterface {
   use StringTranslationTrait;
   use DependencySerializationTrait;
   use MessengerTrait;
@@ -32,14 +35,14 @@ abstract class PatternLibraryPluginDefault extends PluginBase implements Pattern
    *
    * @var \Drupal\Core\Config\ImmutableConfig
    */
-  protected $config;
+  protected ImmutableConfig $config;
 
   /**
    * Parses library files into a Patternkit Library.
    *
    * @var \Drupal\patternkit\Asset\PatternLibraryParserInterface
    */
-  protected $parser;
+  protected PatternLibraryParserInterface $parser;
 
   /**
    * The application root path.
@@ -48,7 +51,7 @@ abstract class PatternLibraryPluginDefault extends PluginBase implements Pattern
    *
    * @var string
    */
-  protected $root;
+  protected string $root;
 
   /**
    * Attaches services.
@@ -72,8 +75,8 @@ abstract class PatternLibraryPluginDefault extends PluginBase implements Pattern
     ConfigFactoryInterface $config_factory,
     array $configuration,
     $plugin_id,
-    $plugin_definition) {
-
+    $plugin_definition
+  ) {
     $this->config = $config_factory->get(PatternkitSettingsForm::SETTINGS);
     $this->root = $root;
     $this->parser = $parser;
@@ -83,10 +86,8 @@ abstract class PatternLibraryPluginDefault extends PluginBase implements Pattern
 
   /**
    * Implements build().
-   *
-   * {@inheritDoc}
    */
-  public function build() {
+  public function build(): array {
     $build = [];
     $build['#settings'] = $this->getConfiguration();
     $build['#definition'] = $this->pluginDefinition;
@@ -94,59 +95,46 @@ abstract class PatternLibraryPluginDefault extends PluginBase implements Pattern
   }
 
   /**
-   * @param \Drupal\patternkit\Entity\PatternInterface $pattern
-   * @param \Drupal\patternkit\PatternEditorConfig|null $config
-   *
-   * @return array
+   * {@inheritdoc}
    */
-  public function fetchAssets(PatternInterface $pattern, PatternEditorConfig $config = NULL) {
+  public function fetchAssets(PatternInterface $pattern, ?PatternEditorConfig $config = NULL): array {
     return $this->parser->fetchPatternAssets($pattern, $config);
   }
 
   /**
-   * Gets the plugin configuration.
-   *
-   * @return array
+   * {@inheritdoc}
    */
-  public function getConfiguration() {
+  public function getConfiguration(): array {
     return $this->configuration;
   }
 
   /**
-   * Implements setConfiguration().
-   *
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
-  public function setConfiguration(array $configuration) {
+  public function setConfiguration(array $configuration): void {
     $this->configuration = NestedArray::mergeDeep($this->defaultConfiguration(), $configuration);
   }
 
   /**
-   * Provides the default plugin configuration.
-   *
-   * @return array
+   * {@inheritdoc}
    */
-  public function defaultConfiguration() {
+  public function defaultConfiguration(): array {
     return [];
   }
 
   /**
-   * Implements calculateDependencies().
-   *
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
-  public function calculateDependencies() {
+  public function calculateDependencies(): array {
     return [];
   }
 
   /**
-   * Implements getMetadata().
-   *
-   * {@inheritDoc}
+   * {@inheritdoc}
    *
    * @todo Provide full library metadata.
    */
-  public function getMetadata(Extension $extension, PatternLibrary $library, $path): array {
+  public function getMetadata(Extension $extension, PatternLibrary $library, string $path): array {
     $path = $this->root . '/' . $path;
     return $this->parser->parsePatternLibraryInfo($library, $path);
   }

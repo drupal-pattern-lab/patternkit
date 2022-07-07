@@ -14,7 +14,7 @@ class PatternkitAddLocalAction extends LocalActionDefault {
   /**
    * {@inheritdoc}
    */
-  public function getOptions(RouteMatchInterface $route_match) {
+  public function getOptions(RouteMatchInterface $route_match): array {
     $options = parent::getOptions($route_match);
     // If the route specifies a theme, append it to the query string.
     if ($theme = $route_match->getParameter('theme')) {

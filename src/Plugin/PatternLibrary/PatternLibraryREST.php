@@ -2,19 +2,21 @@
 
 namespace Drupal\patternkit\Plugin\PatternLibrary;
 
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Extension\Extension;
 use Drupal\Core\State\StateInterface;
+use Drupal\patternkit\Asset\PatternLibraryParserInterface;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\PatternLibraryPluginDefault;
 
 /**
+ * A Pattern library based on querying a configured REST API.
+ *
  * @PatternLibrary(
  *   id = "rest",
  * )
- *
- * A Pattern library based on querying a configured REST API.
  */
 class PatternLibraryREST extends PatternLibraryPluginDefault {
 
@@ -23,7 +25,7 @@ class PatternLibraryREST extends PatternLibraryPluginDefault {
    *
    * @var \Drupal\Core\State\StateInterface
    */
-  protected $state;
+  protected StateInterface $state;
 
   /**
    * Constructs a PatternRESTCollectionRenderer.
@@ -44,29 +46,29 @@ class PatternLibraryREST extends PatternLibraryPluginDefault {
    * @param \Drupal\Core\State\StateInterface $state
    *   The state key/value store.
    */
-  public function __construct($root, $parser, $config_factory, array $configuration, $plugin_id, $plugin_definition, StateInterface $state) {
+  public function __construct($root, PatternLibraryParserInterface $parser, ConfigFactoryInterface $config_factory, array $configuration, $plugin_id, $plugin_definition, StateInterface $state) {
     parent::__construct($root, $parser, $config_factory, $configuration, $plugin_id, $plugin_definition);
     $this->state = $state;
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
   public function getEditor(PatternInterface $pattern = NULL,
-    PatternEditorConfig $config = NULL) {
+    PatternEditorConfig $config = NULL): void {
     // @todo Implement getEditor() method.
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
-  public function getMetadata(Extension $extension, PatternLibrary $library, $path): array {
+  public function getMetadata(Extension $extension, PatternLibrary $library, string $path): array {
     // @todo Implement getMetadata() method.
     return [];
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    *
    * This class evaluates the aggregation enabled/disabled condition on a group
    * by group basis by testing whether an aggregate file has been made for the
@@ -78,7 +80,7 @@ class PatternLibraryREST extends PatternLibraryPluginDefault {
    */
   public function render(array $assets): array {
     $elements = [];
-    /** @var PatternInterface $pattern */
+    /** @var \Drupal\patternkit\Entity\PatternInterface $pattern */
     foreach ($assets as $pattern) {
       $config = $pattern->config ?? [];
       if (empty($config['presentation_style']) || empty($config['instance_id'])) {

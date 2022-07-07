@@ -3,12 +3,12 @@
 namespace Drupal\patternkit;
 
 /**
- * Class PatternkitEditorConfig.
+ * An organizational structure for Pattern editor configuration.
  */
 class PatternEditorConfig {
 
   /**
-   * PatternkitPattern constructor.
+   * PatternEditorConfig constructor.
    *
    * @param object|array $config
    *   An optional JSON config object to use.
@@ -88,8 +88,18 @@ class PatternEditorConfig {
    */
   public $rawJSON;
 
+  /**
+   * The active theme.
+   *
+   * @var string
+   */
   public $theme;
 
+  /**
+   * The theme stylesheet.
+   *
+   * @var string
+   */
   public $themeStylesheet;
 
 }

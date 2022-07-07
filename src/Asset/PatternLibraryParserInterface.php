@@ -22,7 +22,7 @@ interface PatternLibraryParserInterface {
    * @return \Drupal\patternkit\Entity\PatternInterface
    *   A fully-instantiated Patternkit Pattern.
    */
-  public function createPattern($name, $schema): PatternInterface;
+  public function createPattern(string $name, $schema): PatternInterface;
 
   /**
    * Returns an array of file components grouped by file basename and extension.
@@ -36,7 +36,7 @@ interface PatternLibraryParserInterface {
    *   Array of file components.
    *   [basename][extension] = filename.
    */
-  public static function discoverComponents($path, array $filter = []): array;
+  public static function discoverComponents(string $path, array $filter = []): array;
 
   /**
    * Fetch and cache assets to render this pattern.
@@ -47,9 +47,8 @@ interface PatternLibraryParserInterface {
    *   Configuration object for this instance of the pattern.
    *
    * @return \Drupal\patternkit\Entity\PatternInterface
-   *   The patternkit object of interest.
-   */
-  public static function fetchAssets($subtype, $config): PatternInterface;
+   *   The patternkit object of interest.*/
+  public static function fetchAssets(string $subtype, object $config): PatternInterface;
 
   /**
    * Fetch and cache assets to render this pattern.
@@ -62,9 +61,8 @@ interface PatternLibraryParserInterface {
    *   The patternkit pattern object to extend.
    *
    * @return \Drupal\patternkit\Entity\PatternInterface
-   *   The patternkit object representing the pattern..
-   */
-  public function fetchFragmentAssets($subtype, $config, &$pk_obj): PatternInterface;
+   *   The patternkit object representing the pattern..*/
+  public function fetchFragmentAssets(string $subtype, object $config, object &$pk_obj): PatternInterface;
 
   /**
    * Fetch a single asset from the patternkit platform.
@@ -79,7 +77,7 @@ interface PatternLibraryParserInterface {
    * @return bool|string
    *   FALSE on failure, stream path on success.
    */
-  public static function fetchSingleAsset($dir, $asset_prefix, $asset_url);
+  public static function fetchSingleAsset(string $dir, string $asset_prefix, string $asset_url);
 
   /**
    * Fetches all assets for a pattern.
@@ -92,8 +90,7 @@ interface PatternLibraryParserInterface {
    * @return array
    *   The pattern assets keyed by path or type.
    */
-  public function fetchPatternAssets(PatternInterface $pattern,
-    PatternEditorConfig $config = NULL): array;
+  public function fetchPatternAssets(PatternInterface $pattern, PatternEditorConfig $config = NULL): array;
 
   /**
    * Parses a given library file and allows modules and themes to alter it.
@@ -142,6 +139,6 @@ interface PatternLibraryParserInterface {
    * @throws \Drupal\Core\Asset\Exception\InvalidLibraryFileException
    *   Thrown when a parser exception was thrown.
    */
-  public function parsePatternLibraryInfo(PatternLibrary $library, $path): array;
+  public function parsePatternLibraryInfo(PatternLibrary $library, string $path): array;
 
 }

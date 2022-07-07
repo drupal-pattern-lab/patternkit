@@ -4,9 +4,6 @@ namespace Drupal\patternkit\Entity;
 
 use Drupal\Component\Plugin\Exception\PluginException;
 use Drupal\Component\Plugin\Exception\PluginNotFoundException;
-use Drupal\Core\Annotation\PluralTranslation;
-use Drupal\Core\Annotation\Translation;
-use Drupal\Core\Entity\Annotation\ContentEntityType;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
@@ -74,30 +71,31 @@ class Pattern extends ContentEntityBase implements PatternInterface {
    * Constructs a new Pattern object, without permanently saving it.
    *
    * @param array $values
-   *   (optional) An array of values to set, keyed by property name.
+   *   (Optional) An array of values to set, keyed by property name.
    *
    * @return static
-   *   The Pattern object.
+   *   The Pattern instance.
    *
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    *   Thrown if the entity type doesn't exist.
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    *   Thrown if the storage handler couldn't be loaded.
    */
-  public static function create(array $values = []) {
+  public static function create(array $values = []): self {
     $entity_type_manager = \Drupal::entityTypeManager();
     $storage = $entity_type_manager->getStorage('patternkit_pattern');
-    /** @var Pattern $pattern */
+    /** @var \Drupal\patternkit\Entity\Pattern $pattern */
     $pattern = $storage->create($values);
+
     return $pattern;
   }
 
   /**
-   * @inheritDoc
+   * {@inheritdoc}
    *
    * @see \Drupal::service('plugin.manager.field.field_type')->getDefinitions();
    */
-  public static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
+  public static function baseFieldDefinitions(EntityTypeInterface $entity_type): array {
     $fields = parent::baseFieldDefinitions($entity_type);
 
     $fields['hash'] = BaseFieldDefinition::create('string')
@@ -139,17 +137,15 @@ class Pattern extends ContentEntityBase implements PatternInterface {
   }
 
   /**
-   * Provides an asset ID in library/path namespace format.
-   *
-   * @return string
-   *   ID string in the format:
-   *     @code @library.name/path/to/pattern @endcode
+   * {@inheritdoc}
    */
-  public function getAssetId() {
+  public function getAssetId(): string {
     return '@' . $this->getLibrary() . '/' . $this->getPath();
   }
 
   /**
+   * {@inheritdoc}
+   *
    * Map fields do not have main properties, so the entire field must be used.
    *
    * Assets must have unique keys, so the array is returned collapsed.
@@ -158,40 +154,65 @@ class Pattern extends ContentEntityBase implements PatternInterface {
    * weighted assets.
    *
    * @return \Drupal\Core\Field\FieldItemListInterface|mixed
+   *   A collection of all assets for the pattern instance.
    */
-  public function getAssets() {
+  public function getAssets(): array {
     return array_merge([], ...$this->get('assets')->getValue());
   }
 
-  public function getCategory() {
+  /**
+   * {@inheritdoc}
+   */
+  public function getCategory(): string {
     return $this->getEntityKey('category');
   }
 
-  public function getDescription() {
+  /**
+   * {@inheritdoc}
+   */
+  public function getDescription(): string {
     return $this->getEntityKey('description');
   }
 
-  public function getHash() {
+  /**
+   * {@inheritdoc}
+   */
+  public function getHash(): string {
     return $this->getEntityKey('hash') ?? $this->computeHash();
   }
 
-  public function getLibrary() {
+  /**
+   * {@inheritdoc}
+   */
+  public function getLibrary(): string {
     return $this->getEntityKey('library');
   }
 
-  public function getLibraryPluginId() {
+  /**
+   * {@inheritdoc}
+   */
+  public function getLibraryPluginId(): ?string {
     return $this->getEntityKey('libraryPluginId');
   }
 
-  public function getName() {
+  /**
+   * {@inheritdoc}
+   */
+  public function getName(): string {
     return $this->label();
   }
 
-  public function getPath() {
+  /**
+   * {@inheritdoc}
+   */
+  public function getPath(): string {
     return $this->getEntityKey('path');
   }
 
-  public function getSchema() {
+  /**
+   * {@inheritdoc}
+   */
+  public function getSchema(): string {
     $schema = $this->getEntityKey('schema');
     if (!isset($schema)) {
       $this->fetchAssets();
@@ -199,7 +220,10 @@ class Pattern extends ContentEntityBase implements PatternInterface {
     return $this->getEntityKey('schema');
   }
 
-  public function getTemplate() {
+  /**
+   * {@inheritdoc}
+   */
+  public function getTemplate(): string {
     $template = $this->getEntityKey('template');
     if (!isset($template)) {
       $this->fetchAssets();
@@ -207,49 +231,75 @@ class Pattern extends ContentEntityBase implements PatternInterface {
     return $this->getEntityKey('template');
   }
 
-  public function getVersion() {
+  /**
+   * {@inheritdoc}
+   */
+  public function getVersion(): string {
     return $this->getEntityKey('version');
   }
 
   /**
-   * Calls all getters for lazy-loaded values.
-   *
-   * @return int
-   * @throws \Drupal\Core\Entity\EntityStorageException
+   * {@inheritdoc}
    *
    * @todo Should be a way to hook into ContentEntity lazy loading instead.
    */
-  public function save() {
+  public function save(): int {
     $this->toArray();
     $this->computeHash();
     return parent::save();
   }
 
-  public function setAssets($assets) {
+  /**
+   * {@inheritdoc}
+   */
+  public function setAssets(array $assets): self {
     return $this->set('assets', $assets);
   }
 
-  public function setLibraryPluginId($id) {
+  /**
+   * {@inheritdoc}
+   */
+  public function setLibraryPluginId(string $id): self {
     return $this->set('libraryPluginId', $id);
   }
 
-  public function setSchema($schema) {
+  /**
+   * {@inheritdoc}
+   */
+  public function setSchema($schema): self {
+    assert(is_string($schema) || is_array($schema), 'The schema value is expected to be either a serialized JSON string or an array for serialization.');
+
+    // Serialize the schema value if we were provided with an array.
+    if (is_array($schema)) {
+      // Encode the provided schema value and throw an exception if it fails for
+      // any reason.
+      $schema = json_encode($schema, JSON_THROW_ON_ERROR);
+    }
     $value = $this->set('schema', $schema);
     $this->set('hash', NULL);
     return $value;
   }
 
-  public function setTemplate($template) {
+  /**
+   * {@inheritdoc}
+   */
+  public function setTemplate(string $template): self {
     $value = $this->set('template', $template);
     $this->set('hash', NULL);
     return $value;
   }
 
-  public function setVersion($version) {
+  /**
+   * {@inheritdoc}
+   */
+  public function setVersion(string $version): self {
     return $this->set('version', $version);
   }
 
-  public function toArray() {
+  /**
+   * {@inheritdoc}
+   */
+  public function toArray(): array {
     foreach ($this->getEntityType()->getKeys() as $key => $value) {
       $getter = 'get' . ucfirst($key);
       if ($value === NULL && method_exists($this, $getter)) {
@@ -259,9 +309,16 @@ class Pattern extends ContentEntityBase implements PatternInterface {
     return $this->entityKeys + parent::toArray();
   }
 
-  protected function computeHash() {
+  /**
+   * Compute the hash for this pattern.
+   *
+   * @return string
+   *   The computed hash for this pattern.
+   */
+  protected function computeHash(): string {
     $hash = md5($this->getPath() . $this->getSchema() . $this->getTemplate());
     $this->set('hash', $hash);
+
     return $hash;
   }
 
@@ -270,10 +327,13 @@ class Pattern extends ContentEntityBase implements PatternInterface {
    *
    * Schema and Template are always stored as assets when fetched.
    *
+   * @return array
+   *   Assets for the pattern.
+   *
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
-  protected function fetchAssets() {
+  protected function fetchAssets(): array {
     $plugin_id = $this->getLibraryPluginId();
     /** @var \Drupal\patternkit\PatternLibraryPluginManager $plugin_manager */
     $plugin_manager = \Drupal::service('plugin.manager.library.pattern');
@@ -293,6 +353,8 @@ class Pattern extends ContentEntityBase implements PatternInterface {
     $assets = $plugin->fetchAssets($this);
     $this->setTemplate($assets['template'] ?? '');
     $this->setSchema($assets['schema'] ?? '');
+
     return $assets;
   }
+
 }

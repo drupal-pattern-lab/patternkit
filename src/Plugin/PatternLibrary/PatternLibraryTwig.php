@@ -4,9 +4,9 @@ namespace Drupal\patternkit\Plugin\PatternLibrary;
 
 use Drupal\Component\Utility\Html;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Template\TwigEnvironment;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternEditorConfig;
-use Drupal\patternkit\PatternLibraryPluginInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -23,62 +23,39 @@ class PatternLibraryTwig extends PatternLibraryJSON {
   /**
    * Twig environment service.
    *
-   * @var \Drupal\Core\Template\TwigEnvironment
+   * @var \Drupal\Core\Template\TwigEnvironment|null
    */
-  protected $twig;
+  protected ?TwigEnvironment $twig = NULL;
 
   /**
-   * Twig file loader.
-   *
-   * @var \Twig\Loader\FilesystemLoader
+   * {@inheritdoc}
    */
-  protected $twigLoader;
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): self {
+    $instance = parent::create($container, $configuration, $plugin_id, $plugin_definition);
 
-  /**
-   * Twig pattern library parser service.
-   *
-   * @var \Drupal\patternkit\Asset\PatternLibraryParser\TwigPatternLibraryParser
-   */
-  protected $twigParser;
+    // Replace the parser with the Twig parser instead.
+    $instance->parser = $container->get('patternkit.asset.library.parser.twig');
 
-  /**
-   * Creates a new Twig Pattern Library using the given container.
-   *
-   * {@inheritDoc}
-   */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): PatternLibraryPluginInterface {
-    $root = $container->get('app.root');
-    /** @var \Drupal\Component\Serialization\SerializationInterface $serializer */
-    $serializer = $container->get('serialization.json');
-    /** @var \Drupal\Core\State\StateInterface $state */
-    $state = $container->get('state');
-    /** @var \Drupal\patternkit\Asset\PatternLibraryParserInterface $twig_parser */
-    $twig_parser = $container->get('patternkit.asset.library.parser.twig');
-    /** @var \Drupal\Core\Config\ConfigFactoryInterface $config_factory */
-    $config_factory = $container->get('config.factory');
-    return new static($root, $serializer, $state, $twig_parser, $config_factory, $configuration, $plugin_id, $plugin_definition);
+    return $instance;
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
-  public function fetchAssets(PatternInterface $pattern, PatternEditorConfig $config = NULL) {
+  public function fetchAssets(PatternInterface $pattern, ?PatternEditorConfig $config = NULL): array {
     return $this->parser->fetchPatternAssets($pattern, $config);
   }
 
   /**
    * Overrides the JSON Library render method.
    *
-   * {@inheritDoc}
+   * {@inheritdoc}
    *
    * @throws \Throwable
    *
    * @todo Return render arrays for Twig only.
    */
   public function render(array $assets): array {
-    if ($this->twig === NULL) {
-      $this->twig = \Drupal::service('twig');
-    }
     $elements = [];
     /** @var \Drupal\patternkit\Entity\Pattern $pattern */
     foreach ($assets as $pattern) {
@@ -86,13 +63,13 @@ class PatternLibraryTwig extends PatternLibraryJSON {
       if (empty($template)) {
         return [];
       }
-      $pattern->config = $pattern->config ?? [];
+      $pattern->config ??= [];
       $output = [
         '#type' => 'inline_template',
         '#template' => $template,
         '#context' => $pattern->config,
       ];
-      if ($this->twig->isDebug()) {
+      if ($this->getTwigEnvironment()->isDebug()) {
         $hash = $pattern->getHash();
         $asset_id = $pattern->getAssetId();
         $path = trim($pattern->getAssets()['twig'] ?: $this->t('Could not resolve file path.'), DRUPAL_ROOT);
@@ -114,6 +91,28 @@ class PatternLibraryTwig extends PatternLibraryJSON {
       $elements[] = $output;
     }
     return $elements;
+  }
+
+  /**
+   * Get the lazy-loaded twig environment service.
+   *
+   * Since this plugin is loaded from the patternkit twig loader
+   * ('@twig.loader.patternlibrary'), a circular dependency on the twig
+   * environment is created. To resolve this, the twig enviornment is only
+   * needed at render time for this plugin, so it is lazy loaded from the
+   * container at that time.
+   *
+   * @return \Drupal\Core\Template\TwigEnvironment
+   *   The twig environment service.
+   *
+   * @see \Drupal\patternkit\Loader\PatternLibraryLoader
+   */
+  public function getTwigEnvironment(): TwigEnvironment {
+    if (!$this->twig) {
+      $this->twig = \Drupal::service('twig');
+    }
+
+    return $this->twig;
   }
 
 }

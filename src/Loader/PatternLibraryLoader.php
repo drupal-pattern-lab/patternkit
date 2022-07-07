@@ -16,15 +16,18 @@ class PatternLibraryLoader extends FilesystemLoader {
    *
    * @param string|array $paths
    *   Paths to pass to the Filesystem loader.
-   * @param Psr\Log\LoggerInterface $logger
+   * @param \Psr\Log\LoggerInterface $logger
    *   Logs to the patternkit channel.
    * @param \Drupal\patternkit\Asset\LibraryInterface $library
    *   Provides library names and paths.
    */
-  public function __construct($paths,
+  public function __construct(
+    $paths,
     LoggerInterface $logger,
-    LibraryInterface $library) {
+    LibraryInterface $library
+  ) {
     parent::__construct($paths);
+
     $libraries = [];
     try {
       $libraries = $library->getLibraryDefinitions();
@@ -50,7 +53,7 @@ class PatternLibraryLoader extends FilesystemLoader {
    * @param string $namespace
    *   (optional) A path name.
    */
-  public function addPath($path, $namespace = self::MAIN_NAMESPACE) {
+  public function addPath($path, $namespace = self::MAIN_NAMESPACE): void {
     // Invalidate the cache.
     $this->cache = [];
     $this->paths[$namespace][] = rtrim($path, '/\\');

@@ -14,7 +14,7 @@ class SchemaException extends \RuntimeException {
    *
    * @var \Swaggest\JsonSchema\SchemaContract|null
    */
-  protected ?SchemaContract $schema;
+  protected ?SchemaContract $schema = null;
 
   /**
    * Set the schema being processed at the time of the exception.

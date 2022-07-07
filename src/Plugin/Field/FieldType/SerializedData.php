@@ -22,7 +22,7 @@ class SerializedData extends FieldItemBase {
   /**
    * {@inheritdoc}
    */
-  public static function propertyDefinitions(FieldStorageDefinitionInterface $field_definition) {
+  public static function propertyDefinitions(FieldStorageDefinitionInterface $field_definition): array {
     $properties['value'] = DataDefinition::create('string')
       ->setLabel(new TranslatableMarkup('Serialized data'))
       ->setRequired(TRUE);

@@ -21,7 +21,7 @@ class SchemaIterator extends \RecursiveArrayIterator {
    *
    * @var \Swaggest\JsonSchema\SchemaContract|null
    */
-  protected ?SchemaContract $propertySchema;
+  protected ?SchemaContract $propertySchema = null;
 
   /**
    * Whether the schema uses composition elements requiring more processing.

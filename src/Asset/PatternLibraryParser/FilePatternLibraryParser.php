@@ -2,11 +2,7 @@
 
 namespace Drupal\patternkit\Asset\PatternLibraryParser;
 
-use Drupal\Component\Serialization\SerializationInterface;
 use Drupal\Core\Asset\Exception\InvalidLibraryFileException;
-use Drupal\Core\Extension\ModuleHandlerInterface;
-use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
-use Drupal\Core\Theme\ThemeManagerInterface;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternLibrary;
@@ -17,38 +13,13 @@ use Drupal\patternkit\Asset\PatternLibraryParserBase;
  * Parses a File pattern library collection into usable metadata.
  */
 class FilePatternLibraryParser extends PatternLibraryParserBase {
+
   use PatternLibraryJSONParserTrait;
 
   /**
-   * FilePatternLibraryParser constructor.
-   *
-   * @param \Drupal\Component\Serialization\SerializationInterface $serializer
-   *   Serializes and de-serializes data.
-   * @param string $root
-   *   The application root path.
-   * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
-   *   Allows modules to alter library parsing.
-   * @param \Drupal\Core\Theme\ThemeManagerInterface $theme_manager
-   *   Allows themes to alter library parsing.
-   * @param \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface $stream_wrapper
-   *   The stream wrapper manager.
+   * {@inheritdoc}
    */
-  public function __construct(
-    SerializationInterface $serializer,
-    $root,
-    ModuleHandlerInterface $module_handler,
-    ThemeManagerInterface $theme_manager,
-    StreamWrapperManagerInterface $stream_wrapper) {
-
-    $this->serializer = $serializer;
-    parent::__construct($root, $module_handler, $theme_manager, $stream_wrapper);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public function fetchPatternAssets(PatternInterface $pattern,
-    PatternEditorConfig $config = NULL): array {
+  public function fetchPatternAssets(PatternInterface $pattern, PatternEditorConfig $config = NULL): array {
     // @todo Add support for File lib attachments such as JS and images.
     return [];
   }
@@ -101,7 +72,7 @@ class FilePatternLibraryParser extends PatternLibraryParserBase {
    * @throws \Drupal\Core\Asset\Exception\InvalidLibraryFileException
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    */
-  public function parsePatternLibraryInfo(PatternLibrary $library, $path): array {
+  public function parsePatternLibraryInfo(PatternLibrary $library, string $path): array {
     if (!file_exists($path)) {
       throw new InvalidLibraryFileException("Path $path does not exist.");
     }
@@ -143,7 +114,7 @@ class FilePatternLibraryParser extends PatternLibraryParserBase {
       // store namespace.
       $pattern->url = $library['name'];
       // @todo add default of library version fallback to extension version.
-      $pattern->version = $pattern->version ?? 'VERSION';
+      $pattern->version ??= 'VERSION';
       $metadata['@' . $library['name'] . '/' . $pattern->path] = $pattern;
     }
 

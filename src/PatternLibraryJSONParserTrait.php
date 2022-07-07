@@ -2,6 +2,7 @@
 
 namespace Drupal\patternkit;
 
+use Drupal\Component\Serialization\SerializationInterface;
 use Drupal\patternkit\Entity\PatternInterface;
 
 /**
@@ -12,9 +13,9 @@ trait PatternLibraryJSONParserTrait {
   /**
    * Serializes and de-serializes data.
    *
-   * @var \Drupal\Component\Serialization\Json
+   * @var \Drupal\Component\Serialization\SerializationInterface
    */
-  protected $serializer;
+  protected SerializationInterface $serializer;
 
   /**
    * Fetches a JSON Schema from a file URI.
@@ -25,20 +26,20 @@ trait PatternLibraryJSONParserTrait {
    * @return mixed
    *   Truthy mixed data if the contents are successfully decoded.
    */
-  public function fetchJsonSchemaAsset($file_uri) {
+  public function fetchJsonSchemaAsset(string $file_uri) {
     return $this->serializer::decode(file_get_contents($file_uri));
   }
 
   /**
    * Parses schema properties for $ref and updates their location.
    *
-   * @param object $properties
+   * @param array|object $properties
    *   The properties to parse.
    * @param \Drupal\patternkit\Entity\PatternInterface $pattern
    *   Pattern for retrieving schema data and pathing.
    *
-   * @return object
-   *   The updated schema properties object.
+   * @return array|object
+   *   The updated schema properties.
    *
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    *

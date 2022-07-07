@@ -22,7 +22,7 @@ use Drupal\views\EntityViewsData;
 /**
  * Implements hook_requirements().
  */
-function patternkit_requirements($phase) {
+function patternkit_requirements($phase): array {
   $requirements = [];
 
   if (version_compare(\Drupal::VERSION, 8.9, '<')) {
@@ -163,7 +163,8 @@ function patternkit_update_8003(&$sandbox) {
  */
 function patternkit_update_8004(&$sandbox) {
   $config_key = 'patternkit.settings';
-  $source = new FileStorage(drupal_get_path('module', 'patternkit') . '/config/install');
+  $patternkit_module_path = \Drupal::service('extension.list.module')->getPath('patternkit');
+  $source = new FileStorage($patternkit_module_path . '/config/install');
   $config_install = $source->read($config_key);
   $config_current = \Drupal::configFactory()->getEditable($config_key);
 

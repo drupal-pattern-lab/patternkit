@@ -19,35 +19,35 @@ class PatternLibraryPluginDefinition extends PluginDefinition implements Derivab
    *
    * @var string|null
    */
-  protected $deriver;
+  protected ?string $deriver = NULL;
 
   /**
    * The human-readable name.
    *
-   * @var string
+   * @var string|null
    */
-  protected $label;
+  protected ?string $label = NULL;
 
   /**
    * An optional description.
    *
-   * @var string
+   * @var string|null
    */
-  protected $description;
+  protected ?string $description = NULL;
 
   /**
    * The human-readable category.
    *
-   * @var string
+   * @var string|null
    */
-  protected $category;
+  protected ?string $category = NULL;
 
   /**
    * Any additional properties and values.
    *
    * @var array
    */
-  protected $additional = [];
+  protected array $additional = [];
 
   /**
    * Constructor.
@@ -70,12 +70,12 @@ class PatternLibraryPluginDefinition extends PluginDefinition implements Derivab
    * @return mixed
    *   The value for that property, or NULL if the property does not exist.
    */
-  public function get($property) {
+  public function get(string $property) {
     if (property_exists($this, $property)) {
-      $value = isset($this->{$property}) ? $this->{$property} : NULL;
+      $value = $this->{$property} ?? NULL;
     }
     else {
-      $value = isset($this->additional[$property]) ? $this->additional[$property] : NULL;
+      $value = $this->additional[$property] ?? NULL;
     }
     return $value;
   }
@@ -90,7 +90,7 @@ class PatternLibraryPluginDefinition extends PluginDefinition implements Derivab
    *
    * @return $this
    */
-  public function set($property, $value) {
+  public function set(string $property, $value): self {
     if (property_exists($this, $property)) {
       $this->{$property} = $value;
     }
@@ -103,10 +103,10 @@ class PatternLibraryPluginDefinition extends PluginDefinition implements Derivab
   /**
    * Gets the human-readable name of the definition.
    *
-   * @return string|\Drupal\Core\StringTranslation\TranslatableMarkup
+   * @return string|\Drupal\Core\StringTranslation\TranslatableMarkup|null
    *   The human-readable name of the definition.
    */
-  public function getLabel() {
+  public function getLabel(): ?string {
     return $this->label;
   }
 
@@ -118,7 +118,7 @@ class PatternLibraryPluginDefinition extends PluginDefinition implements Derivab
    *
    * @return $this
    */
-  public function setLabel($label) {
+  public function setLabel($label): self {
     $this->label = $label;
     return $this;
   }
@@ -126,10 +126,10 @@ class PatternLibraryPluginDefinition extends PluginDefinition implements Derivab
   /**
    * Gets the description of the definition.
    *
-   * @return string|\Drupal\Core\StringTranslation\TranslatableMarkup
+   * @return string|\Drupal\Core\StringTranslation\TranslatableMarkup|null
    *   The description of the definition.
    */
-  public function getDescription() {
+  public function getDescription(): ?string {
     return $this->description;
   }
 
@@ -141,7 +141,7 @@ class PatternLibraryPluginDefinition extends PluginDefinition implements Derivab
    *
    * @return $this
    */
-  public function setDescription($description) {
+  public function setDescription($description): self {
     $this->description = $description;
     return $this;
   }
@@ -149,10 +149,10 @@ class PatternLibraryPluginDefinition extends PluginDefinition implements Derivab
   /**
    * Gets the human-readable category of the definition.
    *
-   * @return string|\Drupal\Core\StringTranslation\TranslatableMarkup
+   * @return string|\Drupal\Core\StringTranslation\TranslatableMarkup|null
    *   The human-readable category of the definition.
    */
-  public function getCategory() {
+  public function getCategory(): ?string {
     return $this->category;
   }
 
@@ -164,7 +164,7 @@ class PatternLibraryPluginDefinition extends PluginDefinition implements Derivab
    *
    * @return $this
    */
-  public function setCategory($category) {
+  public function setCategory($category): self {
     $this->category = $category;
     return $this;
   }
@@ -172,14 +172,14 @@ class PatternLibraryPluginDefinition extends PluginDefinition implements Derivab
   /**
    * {@inheritdoc}
    */
-  public function getDeriver() {
+  public function getDeriver(): ?string {
     return $this->deriver;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setDeriver($deriver) {
+  public function setDeriver($deriver): self {
     $this->deriver = $deriver;
     return $this;
   }

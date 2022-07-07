@@ -15,7 +15,7 @@ class PatternkitJson extends FormElementBase {
   /**
    * {@inheritdoc}
    */
-  protected function getTranslationElement(LanguageInterface $translation_language, $source_config, $translation_config) {
+  protected function getTranslationElement(LanguageInterface $translation_language, $source_config, $translation_config): array {
     $form = [];
     $configuration = $source_config;
     $configuration['patternkit_block_id'] = $translation_config['patternkit_block_id'] ?? $source_config['patternkit_block_id'];

@@ -34,7 +34,7 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
    *
    * @var \Drupal\patternkit\PatternLibraryPluginManager
    */
-  protected $patternLibraryPluginManager;
+  protected PatternLibraryPluginManager $patternLibraryPluginManager;
 
   /**
    * The pattern field processor plugin manager for testing.
@@ -106,8 +106,7 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
     parent::setUp();
 
     // Mock a library plugin to use for rendering.
-    $this->libraryPlugin = $this->getMockBuilder(PatternLibraryPluginInterface::class)
-      ->getMock();
+    $this->libraryPlugin = $this->createMock(PatternLibraryPluginInterface::class);
 
     // Mock pattern library plugin manager to return our mocked plugin instance.
     $this->patternLibraryPluginManager = $this->createMock(PatternLibraryPluginManager::class);
@@ -116,19 +115,11 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
 
     // Mock service dependencies for the plugin manager.
     $this->containerNamespaces = new \ArrayIterator([]);
-    $this->cacheDiscovery = $this->getMockBuilder(CacheBackendInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
-    $this->moduleHandler = $this->getMockBuilder(ModuleHandlerInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $this->cacheDiscovery = $this->createMock(CacheBackendInterface::class);
+    $this->moduleHandler = $this->createMock(ModuleHandlerInterface::class);
     $this->serializer = new Json();
-    $this->library = $this->getMockBuilder(LibraryInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
-    $this->logger = $this->getMockBuilder(LoggerChannelInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $this->library = $this->createMock(LibraryInterface::class);
+    $this->logger = $this->createMock(LoggerChannelInterface::class);
 
     // Expect no errors to be logged unless overridden in a specific test.
     $this->logger->expects($this->never())->method('error');
@@ -184,9 +175,7 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
 JSON;
 
     // Mock the pattern to be processed and return our schema.
-    $pattern = $this->getMockBuilder(Pattern::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $pattern = $this->createMock(Pattern::class);
     $pattern->expects($this->once())
       ->method('getSchema')
       ->willReturn($schema_json);
@@ -207,9 +196,7 @@ JSON;
     // that no errors should be logged in most cases.
     // @todo Refactor once https://www.drupal.org/project/drupal/issues/2903456 is completed.
     /** @var \Drupal\Core\Logger\LoggerChannelInterface|\PHPUnit\Framework\MockObject\MockObject errorLogger */
-    $errorLogger = $this->getMockBuilder(LoggerChannelInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $errorLogger = $this->createMock(LoggerChannelInterface::class);
     $errorLogger->expects($this->exactly(1))
       ->method('error')
       ->with(
@@ -248,9 +235,7 @@ JSON;
    */
   public function testTraverseSchema(string $schema_json, $values, callable $expectationsCallback) {
     // Mock the callback for confirming it's called with expected properties.
-    $processorMock = $this->getMockBuilder(PatternFieldProcessorInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $processorMock = $this->createMock(PatternFieldProcessorInterface::class);
 
     // Mock the additional parameters for the apply function.
     $context = [$this->getRandomGenerator()->name() => $this->getRandomGenerator()->object()];
@@ -536,8 +521,7 @@ JSON;
 JSON;
 
     // Mock a processor to observe what values are passed in.
-    $processor = $this->getMockBuilder(PatternFieldProcessorInterface::class)
-      ->getMock();
+    $processor = $this->createMock(PatternFieldProcessorInterface::class);
 
     // Expect applies to be called for successful properties.
     $processor->expects($this->never())
@@ -624,8 +608,7 @@ JSON;
     $metadata = new BubbleableMetadata();
 
     // Mock a processor to observe what values are passed in.
-    $processor = $this->getMockBuilder(PatternFieldProcessorInterface::class)
-      ->getMock();
+    $processor = $this->createMock(PatternFieldProcessorInterface::class);
 
     // Expect applies to be called for each array item.
     $processor->expects($this->exactly(count($values['breakpoints']) + 1))
@@ -765,8 +748,7 @@ JSON;
     $metadata = new BubbleableMetadata();
 
     // Mock a processor to observe what values are passed in.
-    $processor = $this->getMockBuilder(PatternFieldProcessorInterface::class)
-      ->getMock();
+    $processor = $this->createMock(PatternFieldProcessorInterface::class);
 
     // Expect applies to be called for each array item.
     $processor->expects($this->exactly(5))
@@ -860,8 +842,7 @@ JSON;
    */
   protected function getAppendingProcessorMock() {
     // Mock a processor to observe what values are passed in.
-    $processor = $this->getMockBuilder(PatternFieldProcessorInterface::class)
-      ->getMock();
+    $processor = $this->createMock(PatternFieldProcessorInterface::class);
 
     // Expect to be checked against various properties, but only apply to
     // properties with string values.

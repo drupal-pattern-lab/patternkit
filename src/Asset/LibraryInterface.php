@@ -22,7 +22,7 @@ interface LibraryInterface extends CacheCollectorInterface {
   /**
    * Clears static and persistent library definition caches.
    */
-  public function clearCachedDefinitions();
+  public function clearCachedDefinitions(): void;
 
   /**
    * Returns an array of library assets keyed by library and file.
@@ -50,7 +50,7 @@ interface LibraryInterface extends CacheCollectorInterface {
    * @throws \Drupal\Core\Asset\Exception\IncompleteLibraryDefinitionException
    * @throws \Drupal\Core\Asset\Exception\InvalidLibraryFileException
    */
-  public function getLibraryAsset($key);
+  public function getLibraryAsset(string $key);
 
   /**
    * Returns an array of all libraries.
@@ -72,7 +72,7 @@ interface LibraryInterface extends CacheCollectorInterface {
    *
    * @see self::getLibraryByName()
    */
-  public function getLibrariesByExtension($extension);
+  public function getLibrariesByExtension(string $extension): array;
 
   /**
    * Gets a single library defined by an extension by name.
@@ -83,10 +83,10 @@ interface LibraryInterface extends CacheCollectorInterface {
    *   The name of a registered library to retrieve.
    *
    * @return array|false
-   *   The definition of the requested library, if $name was passed and it
+   *   The definition of the requested library, if $name was passed, and it
    *   exists, otherwise FALSE.
    */
-  public function getLibraryByName($extension, $name);
+  public function getLibraryByName(string $extension, string $name);
 
   /**
    * Returns the specified Patternkit module metadata.
