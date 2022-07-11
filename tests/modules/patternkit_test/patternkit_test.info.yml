@@ -1,0 +1,5 @@
+name: 'Patternkit module tests'
+type: module
+description: 'Support module for patternkit related testing.'
+package: Testing
+version: VERSION

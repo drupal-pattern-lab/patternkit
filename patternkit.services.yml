@@ -54,6 +54,10 @@ services:
       - '@patternkit.asset.library'
       - '@patternkit.schema.schema_walker_factory'
       - '@logger.channel.patternkit'
+  patternkit.schema.schema_factory:
+    class: Drupal\patternkit\Schema\SchemaFactory
+    arguments:
+      - '@patternkit.schema.ref_provider'
   patternkit.schema.ref_provider:
     class: Drupal\patternkit\Schema\PatternkitRefProvider
     arguments:
@@ -62,5 +66,5 @@ services:
   patternkit.schema.schema_walker_factory:
     class: Drupal\patternkit\Schema\SchemaWalkerFactory
     arguments:
-      - '@patternkit.schema.ref_provider'
+      - '@patternkit.schema.schema_factory'
     public: false

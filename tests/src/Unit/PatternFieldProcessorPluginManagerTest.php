@@ -14,6 +14,7 @@ use Drupal\patternkit\PatternFieldProcessorPluginManager;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\patternkit\Plugin\PatternFieldProcessor\PatternFieldProcessorInterface;
+use Drupal\patternkit\Schema\SchemaFactory;
 use Drupal\patternkit\Schema\SchemaWalkerFactory;
 use Drupal\Tests\patternkit\Unit\Schema\TestPatternkitRefProvider;
 use Drupal\Tests\UnitTestCase;
@@ -86,6 +87,13 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
   protected TestPatternkitRefProvider $refProvider;
 
   /**
+   * The factory service for creating new schema instances.
+   *
+   * @var \Drupal\patternkit\Schema\SchemaFactory
+   */
+  protected SchemaFactory $schemaFactory;
+
+  /**
    * The factory service for creating new SchemaWalker instances.
    *
    * @var \Drupal\patternkit\Schema\SchemaWalkerFactory
@@ -127,7 +135,8 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
     // Create a SchemaWalkerFactory with a mocked ref provider for loading
     // references within schemas.
     $this->refProvider = new TestPatternkitRefProvider();
-    $this->schemaWalkerFactory = new SchemaWalkerFactory($this->refProvider);
+    $this->schemaFactory = new SchemaFactory($this->refProvider);
+    $this->schemaWalkerFactory = new SchemaWalkerFactory($this->schemaFactory);
 
     // Instantiate the plugin manager for testing with our mocked services.
     $this->pluginManager = new PatternFieldProcessorPluginManager(
@@ -219,6 +228,7 @@ JSON;
     );
 
     // Execute processing of the properties.
+    $this->expectException(SchemaReferenceException::class);
     $pluginManager->processSchemaValues(
       $pattern,
       $values,

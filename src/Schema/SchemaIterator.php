@@ -64,6 +64,8 @@ class SchemaIterator extends \RecursiveArrayIterator {
   /**
    * {@inheritdoc}
    *
+   * @throws \Drupal\patternkit\Exception\SchemaValidationException
+   *
    * @todo Expand to allow traversal into additional properties without schemas.
    */
   public function hasChildren(): bool {
@@ -91,6 +93,8 @@ class SchemaIterator extends \RecursiveArrayIterator {
    * @return \Swaggest\JsonSchema\SchemaContract|null
    *   The loaded schema for the current property or NULL if one was unable to
    *   be identified.
+   *
+   * @throws \Drupal\patternkit\Exception\SchemaValidationException
    */
   public function getPropertySchema(): ?SchemaContract {
     // Return the current property schema if it's already been evaluated.

@@ -2,7 +2,9 @@
 
 namespace Drupal\patternkit\Schema;
 
+use Drupal\patternkit\Exception\SchemaValidationException;
 use Swaggest\JsonSchema\Exception as JsonSchemaException;
+use Swaggest\JsonSchema\InvalidValue;
 use Swaggest\JsonSchema\SchemaContract;
 use Swaggest\JsonSchema\Structure\ObjectItemContract;
 
@@ -54,7 +56,7 @@ class SchemaHelper {
    *   The schema that validates for the given value or NULL if one could not be
    *   identified.
    *
-   * @throws \Swaggest\JsonSchema\InvalidValue
+   * @throws \Drupal\patternkit\Exception\SchemaValidationException
    *   Throws an exception if the given value fails to validate against the
    *   provided schema.
    */
@@ -68,7 +70,20 @@ class SchemaHelper {
     }
     $value = is_array($value) && !array_is_list($value) ? static::castArrayToObject($value) : $value;
 
-    $validationResult = $schema->in($value);
+    try {
+      $validationResult = $schema->in($value);
+    }
+    catch (InvalidValue $exception) {
+      // Set the parent document path for context on the exception.
+      $exception->addPath($schema->getDocumentPath());
+
+      // Wrap the underlying exception in our own class to abstract the library
+      // in use.
+      $wrappedException = new SchemaValidationException($exception->getMessage(), $exception->getCode(), $exception);
+      $wrappedException->setSchema($schema);
+
+      throw $wrappedException;
+    }
 
     // Complex values validate and return a schema object, so we can use that to
     // identify which rules were matched.

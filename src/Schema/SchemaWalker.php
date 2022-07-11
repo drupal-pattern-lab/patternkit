@@ -55,6 +55,8 @@ class SchemaWalker extends \RecursiveIteratorIterator {
    * @return \Swaggest\JsonSchema\SchemaContract|null
    *   The loaded schema for the current property or NULL if one was unable to
    *   be identified.
+   *
+   * @throws \Drupal\patternkit\Exception\SchemaValidationException
    */
   public function getPropertySchema(): ?SchemaContract {
     /** @var \Drupal\patternkit\Schema\SchemaIterator $iterator */

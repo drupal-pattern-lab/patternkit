@@ -2,9 +2,6 @@
 
 namespace Drupal\patternkit\Schema;
 
-use Swaggest\JsonSchema\Context;
-use Swaggest\JsonSchema\RemoteRefProvider;
-use Swaggest\JsonSchema\Schema;
 use Swaggest\JsonSchema\SchemaContract;
 
 /**
@@ -17,20 +14,20 @@ use Swaggest\JsonSchema\SchemaContract;
 class SchemaWalkerFactory {
 
   /**
-   * The reference provider to be used for loading schema references.
+   * The schema factory service for creating new schema instances.
    *
-   * @var \Swaggest\JsonSchema\RemoteRefProvider
+   * @var \Drupal\patternkit\Schema\SchemaFactory
    */
-  protected RemoteRefProvider $refProvider;
+  protected SchemaFactory $schemaFactory;
 
   /**
    * Create a new SchemaWalkerFactory instance.
    *
-   * @param \Swaggest\JsonSchema\RemoteRefProvider $refProvider
-   *   The ref provider for loading schema references.
+   * @param \Drupal\patternkit\Schema\SchemaFactory $schemaFactory
+   *   The schema factory service for creating new schema instances.
    */
-  public function __construct(RemoteRefProvider $refProvider) {
-    $this->refProvider = $refProvider;
+  public function __construct(SchemaFactory $schemaFactory) {
+    $this->schemaFactory = $schemaFactory;
   }
 
   /**
@@ -59,11 +56,12 @@ class SchemaWalkerFactory {
    * @return \Drupal\patternkit\Schema\SchemaWalker
    *   A configured SchemaWalker instance.
    *
-   * @throws \Swaggest\JsonSchema\Exception
-   * @throws \Swaggest\JsonSchema\InvalidValue
+   * @throws \Drupal\patternkit\Exception\SchemaReferenceException
+   * @throws \Drupal\patternkit\Exception\SchemaValidationException
+   * @throws \Drupal\patternkit\Exception\SchemaException
    */
   public function createFromString(string $schema_json, $values): SchemaWalker {
-    $schema = Schema::import(json_decode($schema_json), new Context($this->refProvider));
+    $schema = $this->schemaFactory->createInstance($schema_json);
 
     return $this->createInstance($schema, $values);
   }

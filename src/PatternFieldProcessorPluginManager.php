@@ -11,9 +11,7 @@ use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\patternkit\Asset\LibraryInterface;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Exception\SchemaException;
-use Drupal\patternkit\Exception\SchemaReferenceException;
 use Drupal\patternkit\Schema\SchemaWalkerFactory;
-use Swaggest\JsonSchema\Exception;
 use Swaggest\JsonSchema\Path\PointerUtil;
 use Swaggest\JsonSchema\SchemaContract;
 
@@ -112,6 +110,7 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager {
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    * @throws \Drupal\patternkit\Exception\SchemaException
    * @throws \Drupal\patternkit\Exception\SchemaReferenceException
+   * @throws \Drupal\patternkit\Exception\SchemaValidationException
    */
   public function processSchemaValues(PatternInterface $pattern, array &$values, array $context, BubbleableMetadata $bubbleableMetadata): void {
     // Load and instantiate all defined schema field processors.
@@ -130,10 +129,14 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager {
       );
     }
     catch (SchemaException $schemaException) {
-      $this->logger->error("Error while processing schema values for the pattern @pattern.\n@msg", [
+      // Log the error before throwing it further.
+      $this->logger->error("Error while processing schema values for the pattern @pattern.<br />Exception:<pre>@msg</pre>Data:<pre>@data</pre>", [
         '@pattern' => $pattern->getAssetId(),
         '@msg' => $schemaException->getMessage(),
+        '@data' => print_r($values, TRUE),
       ]);
+
+      throw $schemaException;
     }
   }
 
@@ -208,24 +211,12 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager {
    * @return mixed
    *   The modified collection of values after processing.
    *
-   * @throws \Drupal\patternkit\Exception\SchemaReferenceException
    * @throws \Drupal\patternkit\Exception\SchemaException
+   * @throws \Drupal\patternkit\Exception\SchemaReferenceException
+   * @throws \Drupal\patternkit\Exception\SchemaValidationException
    */
   public function traverseSchema(string $schema_json, $values, callable $callback, ...$args) {
-    try {
-      $schemaWalker = $this->schemaWalkerFactory->createFromString($schema_json, $values);
-    }
-    catch (Exception $jsonSchemaException) {
-      // Re-cast as a more specific exception if we can identify the cause.
-      $message = $jsonSchemaException->getMessage();
-      if (strpos($message, 'Failed to decode content from') === 0) {
-        throw new SchemaReferenceException($message, $jsonSchemaException->getCode(), $jsonSchemaException);
-      }
-
-      // Re-cast as our own exception class in case we need to change the
-      // underlying library at some point.
-      throw new SchemaException($message, $jsonSchemaException->getCode(), $jsonSchemaException);
-    }
+    $schemaWalker = $this->schemaWalkerFactory->createFromString($schema_json, $values);
 
     // Iterate over the values provided for the schema.
     foreach ($schemaWalker as $key => $value) {

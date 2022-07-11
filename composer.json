@@ -22,7 +22,8 @@
     },
     "require-dev": {
         "drupal/core-recommended": "^9",
-        "drupal/core-dev": "^9"
+        "drupal/core-dev": "^9",
+        "drupal/devel": "^4.1"
     },
     "extra": {
         "drush": {

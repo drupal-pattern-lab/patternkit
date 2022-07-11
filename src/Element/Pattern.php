@@ -2,10 +2,15 @@
 
 namespace Drupal\patternkit\Element;
 
+use Drupal\patternkit\PatternFieldProcessorPluginManager;
+use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Render\Element\RenderElement;
 use Drupal\patternkit\Entity\PatternInterface;
+use Drupal\patternkit\Exception\SchemaException;
 use Drupal\patternkit\PatternLibraryPluginInterface;
+use Drupal\patternkit\PatternLibraryPluginManager;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Provides a render element to display a pattern.
@@ -19,7 +24,7 @@ use Drupal\patternkit\PatternLibraryPluginInterface;
  * @code
  * $build['example_pattern'] = [
  *   '#type' => 'pattern',
- *   '#pattern' => 'example',
+ *   '#pattern' => Pattern,
  *   '#config' => [
  *     'text' => '[node:title]',
  *     'formatted_text' => '<p><strong>My formatted text</strong></p>',
@@ -32,7 +37,21 @@ use Drupal\patternkit\PatternLibraryPluginInterface;
  *
  * @RenderElement("pattern")
  */
-class Pattern extends RenderElement {
+class Pattern extends RenderElement implements ContainerFactoryPluginInterface {
+
+  /**
+   * The pattern field processor plugin manager.
+   *
+   * @var \Drupal\patternkit\PatternFieldProcessorPluginManager
+   */
+  protected PatternFieldProcessorPluginManager $fieldProcessorPluginManager;
+
+  /**
+   * The pattern library plugin manager.
+   *
+   * @var \Drupal\patternkit\PatternLibraryPluginManager
+   */
+  protected PatternLibraryPluginManager $libraryPluginManager;
 
   /**
    * {@inheritdoc}
@@ -40,12 +59,46 @@ class Pattern extends RenderElement {
   public function getInfo(): array {
     return [
       '#pre_render' => [
-        [get_class($this), 'preRenderPatternElement'],
+        [$this, 'preRenderPatternElement'],
       ],
       '#pattern' => NULL,
       '#config' => [],
       '#context' => [],
     ];
+  }
+
+  /**
+   * Constructs a \Drupal\Component\Plugin\PluginBase object.
+   *
+   * @param array $configuration
+   *   A configuration array containing information about the plugin instance.
+   * @param string $plugin_id
+   *   The plugin_id for the plugin instance.
+   * @param mixed $plugin_definition
+   *   The plugin implementation definition.
+   * @param \Drupal\patternkit\PatternFieldProcessorPluginManager $fieldProcessorPluginManager
+   *   The field processor plugin manager service.
+   * @param \Drupal\patternkit\PatternLibraryPluginManager $libraryPluginManager
+   *   The pattern library parser plugin manager service.
+   */
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, PatternFieldProcessorPluginManager $fieldProcessorPluginManager, PatternLibraryPluginManager $libraryPluginManager) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
+
+    $this->fieldProcessorPluginManager = $fieldProcessorPluginManager;
+    $this->libraryPluginManager = $libraryPluginManager;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): self {
+    return new static(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
+      $container->get('plugin.manager.pattern_field_processor'),
+      $container->get('plugin.manager.library.pattern'),
+    );
   }
 
   /**
@@ -59,29 +112,43 @@ class Pattern extends RenderElement {
    *
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    */
-  public static function preRenderPatternElement(array $element): array {
+  public function preRenderPatternElement(array $element): array {
     /** @var \Drupal\patternkit\Entity\Pattern $pattern */
     $pattern = $element['#pattern'];
 
     // Fail early if a pattern was unable to be loaded.
     if (is_null($pattern)) {
-      $element = [
+      return [
         '#markup' => t('Pattern unavailable.'),
       ];
-      return $element;
     }
 
     $pattern->config = $element['#config'];
     $pattern->context = $element['#context'];
 
-    $bubbleableMetadata = new BubbleableMetadata();
-    static::preprocessConfigValues($pattern, $pattern->config, $pattern->context, $bubbleableMetadata);
+    try {
+      $bubbleableMetadata = new BubbleableMetadata();
+      $this->fieldProcessorPluginManager->processSchemaValues($pattern, $pattern->config, $pattern->context, $bubbleableMetadata);
 
-    $library_plugin = static::getPatternLibraryPlugin($pattern);
-    $elements = $library_plugin->render([$pattern]);
+      $library_plugin = $this->getPatternLibraryPlugin($pattern);
+      $elements = $library_plugin->render([$pattern]);
 
-    // Apply all bubbleable metadata from preprocessing.
-    $bubbleableMetadata->applyTo($elements);
+      // Apply all bubbleable metadata from preprocessing.
+      $bubbleableMetadata->applyTo($elements);
+    }
+    catch (SchemaException $exception) {
+      // Replace the pattern output with an error element for more sophisticated
+      // output handling.
+      // @see \Drupal\patternkit\Element\PatternError
+      $elements = [];
+      $elements['error'] = [
+        '#type' => 'pattern_error',
+        '#pattern' => $element['#pattern'],
+        '#config' => $element['#config'],
+        '#context' => $element['#context'],
+        '#exception' => $exception,
+      ];
+    }
 
     return $elements;
   }
@@ -97,34 +164,13 @@ class Pattern extends RenderElement {
    *
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    */
-  protected static function getPatternLibraryPlugin(PatternInterface $pattern): PatternLibraryPluginInterface {
-    /** @var \Drupal\patternkit\PatternLibraryPluginManager $pattern_plugin_manager */
-    $patternLibraryPluginManager = \Drupal::service('plugin.manager.library.pattern');
-
+  protected function getPatternLibraryPlugin(PatternInterface $pattern): PatternLibraryPluginInterface {
     $pattern_plugin = $pattern->getLibraryPluginId();
     $library_plugin_id = !empty($pattern_plugin) ? $pattern_plugin : 'twig';
 
-    return $patternLibraryPluginManager->createInstance($library_plugin_id);
-  }
-
-  /**
-   * Execute value processing on configuration values.
-   *
-   * @param \Drupal\patternkit\Entity\PatternInterface $pattern
-   *   The pattern being prepared and processed.
-   * @param array $config
-   *   Configuration values for the pattern being prepared.
-   * @param array $context
-   *   Context values configured for the pattern being prepared.
-   * @param \Drupal\Core\Render\BubbleableMetadata $bubbleable_metadata
-   *   Bubbleable metadata to be tracked and updated during processing.
-   *
-   * @throws \Drupal\Component\Plugin\Exception\PluginException
-   */
-  public static function preprocessConfigValues(PatternInterface $pattern, array &$config, array $context, BubbleableMetadata $bubbleable_metadata): void {
-    /** @var \Drupal\patternkit\PatternFieldProcessorPluginManager $manager */
-    $manager = \Drupal::service('plugin.manager.pattern_field_processor');
-    $manager->processSchemaValues($pattern, $config, $context, $bubbleable_metadata);
+    /** @var \Drupal\patternkit\PatternLibraryPluginInterface */
+    $plugin = $this->libraryPluginManager->createInstance($library_plugin_id);
+    return $plugin;
   }
 
 }

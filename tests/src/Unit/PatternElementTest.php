@@ -2,6 +2,9 @@
 
 namespace Drupal\Tests\patternkit\Unit;
 
+use Drupal\Core\StringTranslation\TranslationInterface;
+use Drupal\patternkit\Exception\SchemaValidationException;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\patternkit\Element\Pattern;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternFieldProcessorPluginManager;
@@ -20,30 +23,44 @@ class PatternElementTest extends RendererTestBase {
   /**
    * The mocked pattern library plugin manager.
    *
-   * @var \Drupal\patternkit\PatternLibraryPluginManager
+   * @var \Drupal\patternkit\PatternLibraryPluginManager|null
    */
-  protected $patternLibraryPluginManager;
+  protected ?PatternLibraryPluginManager $patternLibraryPluginManager;
 
   /**
    * The mocked pattern field processor plugin manager.
    *
-   * @var \Drupal\patternkit\PatternFieldProcessorPluginManager
+   * @var \Drupal\patternkit\PatternFieldProcessorPluginManager|null
    */
-  protected $patternFieldProcessorPluginManager;
+  protected ?PatternFieldProcessorPluginManager $patternFieldProcessorPluginManager;
 
   /**
    * A mocked pattern library plugin.
    *
-   * @var \Drupal\patternkit\PatternLibraryPluginInterface
+   * @var \Drupal\patternkit\PatternLibraryPluginInterface|null
    */
-  protected $libraryPlugin;
+  protected ?PatternLibraryPluginInterface $libraryPlugin;
 
   /**
    * The string translation service.
    *
-   * @var \Drupal\Core\StringTranslation\TranslationManager
+   * @var \Drupal\Core\StringTranslation\TranslationInterface|null
    */
-  protected $translation;
+  protected ?TranslationInterface $translation;
+
+  /**
+   * The dependency injection container.
+   *
+   * @var \Symfony\Component\DependencyInjection\ContainerInterface|null
+   */
+  protected ?ContainerInterface $container;
+
+  /**
+   * The instantiated pattern element for testing.
+   *
+   * @var \Drupal\patternkit\Element\Pattern|null
+   */
+  protected ?Pattern $patternElement;
 
   /**
    * {@inheritdoc}
@@ -65,17 +82,19 @@ class PatternElementTest extends RendererTestBase {
     $this->translation = $this->getStringTranslationStub();
 
     // Register mocked services into the container.
-    $container = \Drupal::getContainer();
-    $container->set('plugin.manager.library.pattern', $this->patternLibraryPluginManager);
-    $container->set('plugin.manager.pattern_field_processor', $this->patternFieldProcessorPluginManager);
-    $container->set('string_translation', $this->translation);
+    $this->container = \Drupal::getContainer();
+    $this->container->set('plugin.manager.library.pattern', $this->patternLibraryPluginManager);
+    $this->container->set('plugin.manager.pattern_field_processor', $this->patternFieldProcessorPluginManager);
+    $this->container->set('string_translation', $this->translation);
+
+    $this->patternElement = Pattern::create($this->container, [], 'pattern', []);
   }
 
   /**
    * @covers ::getInfo
    */
   public function testGetInfo() {
-    $patternElement = new Pattern([], 'test', 'test');
+    $patternElement = Pattern::create($this->container, [], 'test', 'test');
     $info = $patternElement->getInfo();
     $this->assertArrayHasKey('#pre_render', $info);
     $this->assertArrayHasKey('#pattern', $info);
@@ -106,7 +125,7 @@ class PatternElementTest extends RendererTestBase {
       }))
       ->willReturn($returnValue);
 
-    $result = Pattern::preRenderPatternElement($element);
+    $result = $this->patternElement->preRenderPatternElement($element);
 
     // @todo Restore this back to rendering once double-escaping in the renderer is resolved.
     // Sometimes, rendering with special characters gets HTML encoded causing
@@ -143,15 +162,15 @@ class PatternElementTest extends RendererTestBase {
       ->method('processSchemaValues')
       ->with($patternMock, $config);
 
-    Pattern::preRenderPatternElement($pattern);
+    $this->patternElement->preRenderPatternElement($pattern);
   }
 
   /**
-   * Test pattern prerendering with invalid input.
+   * Test pattern prerendering without a pattern for input.
    *
    * @covers ::preRenderPatternElement
    */
-  public function testPreRenderPatternElementError() {
+  public function testPreRenderPatternElementWithoutPattern() {
     $pattern = [
       '#type' => 'pattern',
       '#pattern' => NULL,
@@ -159,12 +178,50 @@ class PatternElementTest extends RendererTestBase {
       '#context' => [],
     ];
 
-    $output = Pattern::preRenderPatternElement($pattern);
+    $output = $this->patternElement->preRenderPatternElement($pattern);
 
     // Expect error output.
     $this->assertEquals([
       '#markup' => 'Pattern unavailable.',
     ], $output);
+  }
+
+  /**
+   * Test pattern prerendering with an exception during processing.
+   *
+   * @covers ::preRenderPatternElement
+   */
+  public function testPreRenderElementWithError() {
+    // Prepare to throw an exception during processing to test error handling.
+    $exception = new SchemaValidationException('Expected exception.');
+    $this->patternFieldProcessorPluginManager->expects($this->once())
+      ->method('processSchemaValues')
+      ->willThrowException($exception);
+
+    // Mock a pattern for rendering.
+    $patternMock = $this->createMock(PatternInterface::class);
+    $config = [
+      'config_value' => $this->getRandomGenerator()->string(),
+    ];
+    $context = [
+      'context_value' => $this->getRandomGenerator()->object(),
+    ];
+    $pattern = [
+      '#type' => 'pattern',
+      '#pattern' => $patternMock,
+      '#config' => $config,
+      '#context' => $context,
+    ];
+
+    $output = $this->patternElement->preRenderPatternElement($pattern);
+
+    // Expect to receive an error render element back for rendering.
+    $this->assertArrayHasKey('error', $output);
+    $this->assertEquals('pattern_error', $output['error']['#type']);
+    $this->assertEquals($patternMock, $output['error']['#pattern']);
+    $this->assertEquals($config, $output['error']['#config']);
+    $this->assertEquals($context, $output['error']['#context']);
+    $this->assertEquals($exception, $output['error']['#exception']);
   }
 
 }

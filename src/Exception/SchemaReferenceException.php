@@ -3,6 +3,6 @@
 namespace Drupal\patternkit\Exception;
 
 /**
- * Base exception for unexpected events during Schema processing.
+ * An exception that occurs from errors processing references in schemas.
  */
 class SchemaReferenceException extends SchemaException {}
