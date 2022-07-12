@@ -9,6 +9,7 @@ use Drupal\Tests\BrowserTestBase;
  *
  * @coversDefaultClass \Drupal\patternkit\Form\PatternkitSettingsForm
  * @group patternkit
+ * @group legacy
  */
 class PatternkitSettingsTest extends BrowserTestBase {
 
@@ -66,6 +67,11 @@ class PatternkitSettingsTest extends BrowserTestBase {
    * Test that the settings form loads as expected.
    */
   public function testPatternkitSettingsForm() {
+    // @todo Remove this once the referenced deprecation is resolved.
+    // @see https://www.drupal.org/node/3000490
+    // @see https://www.drupal.org/project/patternkit/issues/3295521
+    $this->expectDeprecation('ModuleHandlerInterface::implementsHook() is deprecated in drupal:9.4.0 and is removed from drupal:10.0.0. Instead you should use ModuleHandlerInterface::hasImplementations()  with the $modules argument. See https://www.drupal.org/node/3000490');
+
     $account = $this->drupalCreateUser(['access administration pages']);
     $this->drupalLogin($account);
 

@@ -744,7 +744,10 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
 
     // Allow modules to add dynamic library definitions.
     $hook = 'library_info_build';
-    if ($this->moduleHandler->hasImplementations($hook, $extension)) {
+    // @todo Refactor library info building and hook invocation to use invokeAll() method instead.
+    // @see https://www.drupal.org/node/3000490
+    // @see https://www.drupal.org/project/patternkit/issues/3295521
+    if ($this->moduleHandler->implementsHook($extension, $hook)) {
       $libraries = NestedArray::mergeDeep($libraries, $this->moduleHandler->invoke($extension, $hook));
     }
 

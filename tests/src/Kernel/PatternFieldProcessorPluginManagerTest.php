@@ -15,6 +15,7 @@ use Drupal\patternkit\Plugin\PatternFieldProcessor\WysiwygFieldProcessor;
  * Test pattern field processor plugin manager functionality.
  *
  * @group patternkit
+ * @group legacy
  */
 class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
 
@@ -48,6 +49,11 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
     $this->installEntitySchema('node');
 
     $this->pluginManager = $this->container->get('plugin.manager.pattern_field_processor');
+
+    // @todo Remove this once the referenced deprecation is resolved.
+    // @see https://www.drupal.org/node/3000490
+    // @see https://www.drupal.org/project/patternkit/issues/3295521
+    $this->expectDeprecation('ModuleHandlerInterface::implementsHook() is deprecated in drupal:9.4.0 and is removed from drupal:10.0.0. Instead you should use ModuleHandlerInterface::hasImplementations()  with the $modules argument. See https://www.drupal.org/node/3000490');
   }
 
   /**
