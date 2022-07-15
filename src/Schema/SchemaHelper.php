@@ -31,7 +31,10 @@ class SchemaHelper {
    */
   public static function isCompositionSchema(SchemaContract $schema): bool {
     foreach (['anyOf', 'oneOf', 'allOf'] as $constraint) {
-      if (isset($schema->$constraint)) {
+      // Test like this instead of using isset() or empty() to avoid triggering
+      // an exception if we're working with a Wrapper instance.
+      // @see \Swaggest\JsonSchema\Wrapper::__isset
+      if (property_exists($schema, $constraint) && $schema->$constraint !== NULL) {
         return TRUE;
       }
     }
@@ -71,7 +74,11 @@ class SchemaHelper {
     $value = is_array($value) && !array_is_list($value) ? static::castArrayToObject($value) : $value;
 
     try {
-      $validationResult = $schema->in($value);
+      // Get a globally configured execution context for use in schema
+      // operations. This will ensure expected options as well as configured
+      // remote reference providers and data preprocessors are available.
+      $context = \Drupal::service('patternkit.schema.schema_factory')->getDefaultContext();
+      $validationResult = $schema->in($value, $context);
     }
     catch (InvalidValue $exception) {
       // Set the parent document path for context on the exception.

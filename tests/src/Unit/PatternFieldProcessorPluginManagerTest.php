@@ -4,6 +4,7 @@ namespace Drupal\Tests\patternkit\Unit;
 
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Cache\CacheBackendInterface;
+use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Render\BubbleableMetadata;
@@ -14,13 +15,16 @@ use Drupal\patternkit\PatternFieldProcessorPluginManager;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\patternkit\Plugin\PatternFieldProcessor\PatternFieldProcessorInterface;
+use Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor;
 use Drupal\patternkit\Schema\SchemaFactory;
 use Drupal\patternkit\Schema\SchemaWalkerFactory;
 use Drupal\Tests\patternkit\Unit\Schema\TestPatternkitRefProvider;
 use Drupal\Tests\UnitTestCase;
 use PHPUnit\Framework\Constraint\IsType;
 use PHPUnit\Framework\MockObject\MockObject;
+use Swaggest\JsonSchema\DataPreProcessor;
 use Swaggest\JsonSchema\SchemaContract;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Test functionality for the Pattern Field Processor Plugin Manager.
@@ -87,6 +91,13 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
   protected TestPatternkitRefProvider $refProvider;
 
   /**
+   * A data preprocessor to register for schema operations.
+   *
+   * @var \Swaggest\JsonSchema\DataPreProcessor
+   */
+  protected DataPreProcessor $dataPreProcessor;
+
+  /**
    * The factory service for creating new schema instances.
    *
    * @var \Drupal\patternkit\Schema\SchemaFactory
@@ -106,6 +117,13 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
    * @var \Drupal\Core\Logger\LoggerChannelInterface
    */
   protected LoggerChannelInterface $logger;
+
+  /**
+   * The Drupal container to configure for dependency services.
+   *
+   * @var \Symfony\Component\DependencyInjection\ContainerInterface
+   */
+  protected ContainerInterface $container;
 
   /**
    * {@inheritdoc}
@@ -135,7 +153,8 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
     // Create a SchemaWalkerFactory with a mocked ref provider for loading
     // references within schemas.
     $this->refProvider = new TestPatternkitRefProvider();
-    $this->schemaFactory = new SchemaFactory($this->refProvider);
+    $this->dataPreProcessor = new ObjectCoercionDataPreProcessor();
+    $this->schemaFactory = new SchemaFactory($this->refProvider, $this->dataPreProcessor);
     $this->schemaWalkerFactory = new SchemaWalkerFactory($this->schemaFactory);
 
     // Instantiate the plugin manager for testing with our mocked services.
@@ -148,6 +167,11 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
       $this->schemaWalkerFactory,
       $this->logger,
     );
+
+    $this->container = new ContainerBuilder();
+    $this->container->set('patternkit.schema.schema_factory', $this->schemaFactory);
+
+    \Drupal::setContainer($this->container);
   }
 
   /**
@@ -158,30 +182,30 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
   public function testProcessSchemaValuesWithErrors() {
     // Prepare the schema for the pattern being processed.
     $schema_json = <<<JSON
-{
-  "\$schema": "http://json-schema.org/draft-04/schema#",
-  "category": "atom",
-  "title": "Example",
-  "type": "object",
-  "format": "grid",
-  "properties": {
-    "text": {
-      "title": "Text",
-      "type": "string",
-      "options": {
-        "grid_columns": 4
+      {
+        "\$schema": "http://json-schema.org/draft-04/schema#",
+        "category": "atom",
+        "title": "Example",
+        "type": "object",
+        "format": "grid",
+        "properties": {
+          "text": {
+            "title": "Text",
+            "type": "string",
+            "options": {
+              "grid_columns": 4
+            }
+          },
+          "unknown_reference": {
+            "\$ref": "/unknown/reference/value"
+          },
+          "hidden": {
+            "title": "hidden",
+            "type": "string"
+          }
+        }
       }
-    },
-    "unknown_reference": {
-      "\$ref": "/unknown/reference/value"
-    },
-    "hidden": {
-      "title": "hidden",
-      "type": "string"
-    }
-  }
-}
-JSON;
+      JSON;
 
     // Mock the pattern to be processed and return our schema.
     $pattern = $this->createMock(Pattern::class);
@@ -276,69 +300,69 @@ JSON;
     $cases = [];
 
     $flat_schema_json = <<<JSON
-{
-  "\$schema": "http://json-schema.org/draft-04/schema#",
-  "category": "atom",
-  "title": "Example",
-  "type": "object",
-  "format": "grid",
-  "properties": {
-    "text": {
-      "title": "Text",
-      "type": "string",
-      "options": {
-        "grid_columns": 4
-      }
-    },
-    "formatted_text": {
-      "title": "Formatted Text",
-      "type": "string",
-      "format": "html",
-      "options": {
-        "wysiwyg": true
-      }
-    },
-    "image": {
-      "title": "Image Object",
-      "type": "object",
-      "properties": {
-        "image_url": {
-          "title": "Image URL",
-          "type": "string",
-          "format": "image",
-          "options": {
-            "grid_columns": 6
+      {
+        "\$schema": "http://json-schema.org/draft-04/schema#",
+        "category": "atom",
+        "title": "Example",
+        "type": "object",
+        "format": "grid",
+        "properties": {
+          "text": {
+            "title": "Text",
+            "type": "string",
+            "options": {
+              "grid_columns": 4
+            }
+          },
+          "formatted_text": {
+            "title": "Formatted Text",
+            "type": "string",
+            "format": "html",
+            "options": {
+              "wysiwyg": true
+            }
+          },
+          "image": {
+            "title": "Image Object",
+            "type": "object",
+            "properties": {
+              "image_url": {
+                "title": "Image URL",
+                "type": "string",
+                "format": "image",
+                "options": {
+                  "grid_columns": 6
+                }
+              }
+            }
+          },
+          "hidden": {
+            "title": "hidden",
+            "type": "string"
+          },
+          "breakpoints": {
+            "title": "Breakpoints",
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "title": "",
+                  "type": "string",
+                  "enum": [
+                    "",
+                    "xxs",
+                    "xs",
+                    "sm",
+                    "md",
+                    "lg"
+                  ]
+                }
+              ]
+            }
           }
         }
       }
-    },
-    "hidden": {
-      "title": "hidden",
-      "type": "string"
-    },
-    "breakpoints": {
-      "title": "Breakpoints",
-      "type": "array",
-      "items": {
-        "anyOf": [
-          {
-            "title": "",
-            "type": "string",
-            "enum": [
-              "",
-              "xxs",
-              "xs",
-              "sm",
-              "md",
-              "lg"
-            ]
-          }
-        ]
-      }
-    }
-  }
-}
-JSON;
+      JSON;
 
     $values = [
       'text' => 'test',
@@ -415,43 +439,43 @@ JSON;
   public function testTraverseSchemaProcessing() {
     // Prepare the schema for the pattern being processed.
     $schema_json = <<<JSON
-{
-  "\$schema": "http://json-schema.org/draft-04/schema#",
-  "category": "atom",
-  "title": "Example",
-  "type": "object",
-  "format": "grid",
-  "properties": {
-    "text": {
-      "title": "Text",
-      "type": "string",
-      "options": {
-        "grid_columns": 4
+      {
+        "\$schema": "http://json-schema.org/draft-04/schema#",
+        "category": "atom",
+        "title": "Example",
+        "type": "object",
+        "format": "grid",
+        "properties": {
+          "text": {
+            "title": "Text",
+            "type": "string",
+            "options": {
+              "grid_columns": 4
+            }
+          },
+          "formatted_text": {
+            "title": "Formatted Text",
+            "type": "string",
+            "format": "html",
+            "options": {
+              "wysiwyg": true
+            }
+          },
+          "image_url": {
+            "title": "Image URL",
+            "type": "string",
+            "format": "image",
+            "options": {
+              "grid_columns": 6
+            }
+          },
+          "hidden": {
+            "title": "hidden",
+            "type": "string"
+          }
+        }
       }
-    },
-    "formatted_text": {
-      "title": "Formatted Text",
-      "type": "string",
-      "format": "html",
-      "options": {
-        "wysiwyg": true
-      }
-    },
-    "image_url": {
-      "title": "Image URL",
-      "type": "string",
-      "format": "image",
-      "options": {
-        "grid_columns": 6
-      }
-    },
-    "hidden": {
-      "title": "hidden",
-      "type": "string"
-    }
-  }
-}
-JSON;
+      JSON;
 
     // Prepare test and config values for the pattern being processed.
     $text_value = $this->getRandomGenerator()->sentences(3);
@@ -505,30 +529,30 @@ JSON;
   public function testTraverseSchemaWithErrors() {
     // Prepare the schema for the pattern being processed.
     $schema_json = <<<JSON
-{
-  "\$schema": "http://json-schema.org/draft-04/schema#",
-  "category": "atom",
-  "title": "Example",
-  "type": "object",
-  "format": "grid",
-  "properties": {
-    "text": {
-      "title": "Text",
-      "type": "string",
-      "options": {
-        "grid_columns": 4
+      {
+        "\$schema": "http://json-schema.org/draft-04/schema#",
+        "category": "atom",
+        "title": "Example",
+        "type": "object",
+        "format": "grid",
+        "properties": {
+          "text": {
+            "title": "Text",
+            "type": "string",
+            "options": {
+              "grid_columns": 4
+            }
+          },
+          "unknown_reference": {
+            "\$ref": "/unknown/reference/value"
+          },
+          "hidden": {
+            "title": "hidden",
+            "type": "string"
+          }
+        }
       }
-    },
-    "unknown_reference": {
-      "\$ref": "/unknown/reference/value"
-    },
-    "hidden": {
-      "title": "hidden",
-      "type": "string"
-    }
-  }
-}
-JSON;
+      JSON;
 
     // Mock a processor to observe what values are passed in.
     $processor = $this->createMock(PatternFieldProcessorInterface::class);
@@ -572,36 +596,36 @@ JSON;
   public function testTraverseSchemaWithArrays() {
     // Prepare the schema for the pattern being processed.
     $schema_json = <<<JSON
-{
-  "\$schema": "http://json-schema.org/draft-04/schema#",
-  "category": "atom",
-  "title": "Array Example",
-  "type": "object",
-  "format": "grid",
-  "properties": {
-    "breakpoints": {
-      "title": "Breakpoints",
-      "type": "array",
-      "items": {
-        "anyOf": [
-          {
-            "title": "",
-            "type": "string",
-            "enum": [
-              "",
-              "xxs",
-              "xs",
-              "sm",
-              "md",
-              "lg"
-            ]
+      {
+        "\$schema": "http://json-schema.org/draft-04/schema#",
+        "category": "atom",
+        "title": "Array Example",
+        "type": "object",
+        "format": "grid",
+        "properties": {
+          "breakpoints": {
+            "title": "Breakpoints",
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "title": "",
+                  "type": "string",
+                  "enum": [
+                    "",
+                    "xxs",
+                    "xs",
+                    "sm",
+                    "md",
+                    "lg"
+                  ]
+                }
+              ]
+            }
           }
-        ]
+        }
       }
-    }
-  }
-}
-JSON;
+      JSON;
 
     $values = [
       'breakpoints' => [
@@ -688,54 +712,54 @@ JSON;
   public function testTraverseSchemaWithArraysWithRefs() {
     // Prepare the schema for the pattern being processed.
     $schema_json = <<<JSON
-{
-  "\$schema": "http://json-schema.org/draft-04/schema#",
-  "category": "atom",
-  "title": "Array Example With References",
-  "type": "object",
-  "properties": {
-    "references": {
-      "title": "Example reference items",
-      "type": "array",
-      "items": {
-        "anyOf": [
-          { "\$ref": "/api/patternkit/patternkit/refs/text?asset=schema" },
-          { "\$ref": "/api/patternkit/patternkit/refs/number?asset=schema" },
-          { "\$ref": "/api/patternkit/patternkit/refs/object?asset=schema" }
-        ]
+      {
+        "\$schema": "http://json-schema.org/draft-04/schema#",
+        "category": "atom",
+        "title": "Array Example With References",
+        "type": "object",
+        "properties": {
+          "references": {
+            "title": "Example reference items",
+            "type": "array",
+            "items": {
+              "anyOf": [
+                { "\$ref": "/api/patternkit/patternkit/refs/text?asset=schema" },
+                { "\$ref": "/api/patternkit/patternkit/refs/number?asset=schema" },
+                { "\$ref": "/api/patternkit/patternkit/refs/object?asset=schema" }
+              ]
+            }
+          }
+        }
       }
-    }
-  }
-}
-JSON;
+      JSON;
 
     // Mock referenced schemas.
     $text_schema = <<<JSON
-{
-  "\$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "Text property",
-  "type": "string"
-}
-JSON;
+      {
+        "\$schema": "http://json-schema.org/draft-04/schema#",
+        "title": "Text property",
+        "type": "string"
+      }
+      JSON;
     $number_schema = <<<JSON
-{
-  "\$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "Number property",
-  "type": "number"
-}
-JSON;
+      {
+        "\$schema": "http://json-schema.org/draft-04/schema#",
+        "title": "Number property",
+        "type": "number"
+      }
+      JSON;
     $object_schema = <<<JSON
-{
-  "\$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "Object property",
-  "type": "object",
-  "properties": {
-    "text": {
-      "type": "string"
-    }
-  }
-}
-JSON;
+      {
+        "\$schema": "http://json-schema.org/draft-04/schema#",
+        "title": "Object property",
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        }
+      }
+      JSON;
     $this->registerRefSchema($text_schema, '@patternkit/refs/text');
     $this->registerRefSchema($number_schema, '@patternkit/refs/number');
     $this->registerRefSchema($object_schema, '@patternkit/refs/object');

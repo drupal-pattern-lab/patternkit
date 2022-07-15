@@ -2,7 +2,10 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
+use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\patternkit\Schema\SchemaIterator;
+use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
+use Drupal\Tests\patternkit\Traits\SchemaHelperTestTrait;
 use Drupal\Tests\UnitTestCase;
 use Swaggest\JsonSchema\Schema;
 
@@ -14,86 +17,100 @@ use Swaggest\JsonSchema\Schema;
  */
 class SchemaIteratorTest extends UnitTestCase {
 
+  use JsonDecodeTrait;
+  use SchemaHelperTestTrait;
+
   /**
    * A basic JSON schema with various property types, but no references.
    *
    * @var string
    */
   protected string $flatSchema = <<<JSON
-{
-  "\$schema": "http://json-schema.org/draft-04/schema#",
-  "category": "atom",
-  "title": "Example",
-  "type": "object",
-  "format": "grid",
-  "properties": {
-    "text": {
-      "title": "Text",
-      "type": "string",
-      "options": {
-        "grid_columns": 4
-      }
-    },
-    "formatted_text": {
-      "title": "Formatted Text",
-      "type": "string",
-      "format": "html",
-      "options": {
-        "wysiwyg": true
-      }
-    },
-    "image": {
-      "title": "Image Object",
+    {
+      "\$schema": "http://json-schema.org/draft-04/schema#",
+      "category": "atom",
+      "title": "Example",
       "type": "object",
+      "format": "grid",
       "properties": {
-        "image_url": {
-          "title": "Image URL",
+        "text": {
+          "title": "Text",
           "type": "string",
-          "format": "image",
           "options": {
-            "grid_columns": 6
+            "grid_columns": 4
+          }
+        },
+        "formatted_text": {
+          "title": "Formatted Text",
+          "type": "string",
+          "format": "html",
+          "options": {
+            "wysiwyg": true
+          }
+        },
+        "image": {
+          "title": "Image Object",
+          "type": "object",
+          "properties": {
+            "image_url": {
+              "title": "Image URL",
+              "type": "string",
+              "format": "image",
+              "options": {
+                "grid_columns": 6
+              }
+            }
+          }
+        },
+        "hidden": {
+          "title": "hidden",
+          "type": "string"
+        },
+        "breakpoints": {
+          "title": "Breakpoints",
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "title": "Abbreviated sizes",
+                "type": "string",
+                "enum": [
+                  "",
+                  "xxs",
+                  "xs",
+                  "sm",
+                  "md",
+                  "lg"
+                ]
+              },
+              {
+                "title": "Explicit sizes",
+                "type": "string",
+                "enum": [
+                  "extra-extra-small",
+                  "extra-small",
+                  "small",
+                  "medium",
+                  "large"
+                ]
+              }
+            ]
           }
         }
       }
-    },
-    "hidden": {
-      "title": "hidden",
-      "type": "string"
-    },
-    "breakpoints": {
-      "title": "Breakpoints",
-      "type": "array",
-      "items": {
-        "anyOf": [
-          {
-            "title": "Abbreviated sizes",
-            "type": "string",
-            "enum": [
-              "",
-              "xxs",
-              "xs",
-              "sm",
-              "md",
-              "lg"
-            ]
-          },
-          {
-            "title": "Explicit sizes",
-            "type": "string",
-            "enum": [
-              "extra-extra-small",
-              "extra-small",
-              "small",
-              "medium",
-              "large"
-            ]
-          }
-        ]
-      }
     }
+    JSON;
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setUp(): void {
+    parent::setUp();
+
+    $container = new ContainerBuilder();
+    $this->setUpSchemaFactory($container);
+    \Drupal::setContainer($container);
   }
-}
-JSON;
 
   /**
    * @covers ::key
@@ -112,7 +129,7 @@ JSON;
       ],
     ];
 
-    $schema = Schema::import(json_decode($this->flatSchema));
+    $schema = Schema::import($this->decodeJson($this->flatSchema));
     $iterator = new SchemaIterator($schema, $values);
 
     // Test the first string property and value.
