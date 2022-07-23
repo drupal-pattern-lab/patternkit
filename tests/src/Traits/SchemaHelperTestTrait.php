@@ -2,15 +2,11 @@
 
 namespace Drupal\Tests\patternkit\Traits;
 
-use Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor;
 use Drupal\patternkit\Schema\SchemaFactory;
-use Drupal\Tests\patternkit\Unit\Schema\TestPatternkitRefProvider;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Psr\Container\ContainerInterface;
 use Swaggest\JsonSchema\Context;
-use Swaggest\JsonSchema\DataPreProcessor;
-use Swaggest\JsonSchema\RemoteRefProvider;
 
 /**
  * A helper trait to assist unit tests with dependencies on SchemaHelper.
@@ -28,23 +24,9 @@ trait SchemaHelperTestTrait {
   /**
    * A prophecy mock for the schema factory service.
    *
-   * @var \Prophecy\Prophecy\ObjectProphecy
+   * @var \Drupal\patternkit\Schema\SchemaFactory|\Prophecy\Prophecy\ObjectProphecy
    */
   protected ObjectProphecy $schemaFactory;
-
-  /**
-   * A reference provider for loading schemas from.
-   *
-   * @var \Drupal\Tests\patternkit\Unit\Schema\TestPatternkitRefProvider
-   */
-  protected TestPatternkitRefProvider $refProvider;
-
-  /**
-   * A data preprocessor to configure in schema contexts.
-   *
-   * @var \Swaggest\JsonSchema\DataPreProcessor
-   */
-  protected DataPreProcessor $dataPreProcessor;
 
   /**
    * A default schema context to use for schema operations.
@@ -75,7 +57,7 @@ trait SchemaHelperTestTrait {
    */
   protected function setUpSchemaFactory(?ContainerInterface $container = NULL): ObjectProphecy {
     $this->schemaFactory = $this->prophesize(SchemaFactory::class);
-    $this->schemaFactory->getDefaultContext()->willReturn($this->getSchemaContext());
+    $this->schemaFactory->getDefaultContext()->will([$this, 'getContext']);
 
     if (isset($container)) {
       $container->set('patternkit.schema.schema_factory', $this->schemaFactory->reveal());
@@ -85,55 +67,18 @@ trait SchemaHelperTestTrait {
   }
 
   /**
-   * Get the default remote reference provider for schema contexts.
-   *
-   * @return \Swaggest\JsonSchema\RemoteRefProvider
-   *   A remote reference provider for schema contexts.
-   */
-  protected function refProvider(): RemoteRefProvider {
-    if (!isset($this->refProvider)) {
-      $this->refProvider = new TestPatternkitRefProvider();
-    }
-
-    return $this->refProvider;
-  }
-
-  /**
-   * Get the default data preprocessor for schema contexts.
-   *
-   * @return \Swaggest\JsonSchema\DataPreProcessor
-   *   A date preprocessor to use in schema contexts.
-   */
-  protected function dataPreProcessor(): DataPreProcessor {
-    if (!isset($this->dataPreProcessor)) {
-      $this->dataPreProcessor = new ObjectCoercionDataPreProcessor();
-    }
-
-    return $this->dataPreProcessor;
-  }
-
-  /**
-   * Get a configured schema context for schema operations.
+   * A helper function to get the context configured for a specific test.
    *
    * @return \Swaggest\JsonSchema\Context
-   *   A configured schema context for schema operations.
+   *   The schema context as configured by the currently executing test.
    */
-  protected function getSchemaContext(): Context {
+  public function getContext(): Context {
     if (!isset($this->context)) {
-      $this->context = new Context($this->refProvider());
-      $this->context->setDataPreProcessor($this->dataPreProcessor());
+      $this->context = new Context();
     }
 
     // Clone the context to avoid persisting state of schema operations.
     return clone($this->context);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function tearDown(): void {
-    parent::tearDown();
-    $this->tearDownProphecy();
   }
 
 }

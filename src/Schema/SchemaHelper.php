@@ -3,6 +3,7 @@
 namespace Drupal\patternkit\Schema;
 
 use Drupal\patternkit\Exception\SchemaValidationException;
+use Swaggest\JsonSchema\Context;
 use Swaggest\JsonSchema\Exception as JsonSchemaException;
 use Swaggest\JsonSchema\InvalidValue;
 use Swaggest\JsonSchema\SchemaContract;
@@ -96,45 +97,12 @@ class SchemaHelper {
     // Complex values validate and return a schema object, so we can use that to
     // identify which rules were matched.
     if ($validationResult instanceof ObjectItemContract) {
-      $documentPath = $validationResult->getDocumentPath();
-
-      // Parse the document path from the object match to identify which schema
-      // rule to load as the property schema.
-      $parts = explode('->', $documentPath);
-      $matches = [];
-      preg_match('#^(\w+)\[(\d+)\]$#', $parts[1], $matches);
-      [, $rule, $index] = $matches;
-
-      // Load the matching schema rule from the original schema object in order
-      // to ensure the full schema is loaded in the case of ref values.
-      return $schema->$rule[$index];
+      return static::getConstraintFromObject($validationResult, $schema);
     }
     // Simple values only return the value itself, so we'll need to manually
     // traverse the constraints and identify what applied.
     else {
-      // @todo Evaluate whether allOf needs to be processed separately and aggregated.
-      $constraints = $schema->jsonSerialize();
-      $composition = array_merge(
-        $constraints->anyOf ?? [],
-        $constraints->oneOf ?? [],
-        $constraints->allOf ?? [],
-      );
-
-      // Return the first composition schema that matches the given value.
-      foreach ($composition as $constraint) {
-        try {
-          if ($constraint->in($value, $context)) {
-            return $constraint;
-          }
-        }
-        catch (JsonSchemaException $ignored) {
-          // Ignore validation exceptions at this point since we're expecting
-          // them until we find one of the constraints that successfully
-          // applies.
-        }
-      }
-
-      return NULL;
+      return static::manuallyTestConstraints($value, $schema, $context);
     }
   }
 
@@ -148,8 +116,83 @@ class SchemaHelper {
    * @return object
    *   The provided array values recursively cast as stdClass objects.
    */
-  public static function castArrayToObject(array $value): object {
+  protected static function castArrayToObject(array $value): object {
     return json_decode(json_encode($value));
+  }
+
+  /**
+   * Parse the applied validation constraint from a validation result object.
+   *
+   * @param \Swaggest\JsonSchema\Structure\ObjectItemContract $validationResult
+   *   The result output from a validation operation.
+   * @param \Swaggest\JsonSchema\SchemaContract $schema
+   *   The schema used for validation containing the validation constraints.
+   *
+   * @return \Swaggest\JsonSchema\SchemaContract
+   *   The applied validation constraint for the validation result.
+   */
+  protected static function getConstraintFromObject(ObjectItemContract $validationResult, SchemaContract $schema): SchemaContract {
+    $documentPath = $validationResult->getDocumentPath();
+
+    // Parse the document path from the object match to identify which schema
+    // rule to load as the property schema.
+    $parts = explode('->', $documentPath);
+    $matches = [];
+    preg_match('#^(\w+)\[(\d+)\]$#', $parts[1], $matches);
+    [, $rule, $index] = $matches;
+
+    // Load the matching schema rule from the original schema object in order
+    // to ensure the full schema is loaded in the case of ref values.
+    return $schema->$rule[$index];
+  }
+
+  /**
+   * Manually test constraints to find the applicable rule.
+   *
+   * @param mixed $data
+   *   Test data being applied to the schema.
+   * @param \Swaggest\JsonSchema\SchemaContract $schema
+   *   The schema being tested against.
+   * @param \Swaggest\JsonSchema\Context $context
+   *   Schema context for executing validation operations.
+   *
+   * @return \Swaggest\JsonSchema\SchemaContract
+   *   The schema constraint applying to the data for validation.
+   *
+   * @throws \Drupal\patternkit\Exception\SchemaValidationException
+   *   Throws an exception if data doesn't successfully validate for any of the
+   *   composition constraints.
+   *
+   * @todo Evaluate whether allOf needs to be processed separately and aggregated.
+   * @todo Remove once upstream issue is resolved.
+   * @see https://github.com/swaggest/php-json-schema/issues/143
+   */
+  protected static function manuallyTestConstraints($data, SchemaContract $schema, Context $context): SchemaContract {
+    $constraints = $schema->jsonSerialize();
+    $composition = array_merge(
+      $constraints->anyOf ?? [],
+      $constraints->oneOf ?? [],
+      $constraints->allOf ?? [],
+    );
+
+    // Return the first composition schema that matches the given value.
+    foreach ($composition as $constraint) {
+      try {
+        if ($constraint->in($data, $context)) {
+          return $constraint;
+        }
+      }
+      catch (JsonSchemaException $ignored) {
+        // Ignore validation exceptions at this point since we're expecting
+        // them until we find one of the constraints that successfully
+        // applies.
+      }
+    }
+
+    // Throw an exception if we didn't find a matching constraint.
+    $exception = new SchemaValidationException('Unable to identify valid schema constraint.');
+    $exception->setSchema($schema);
+    throw $exception;
   }
 
 }

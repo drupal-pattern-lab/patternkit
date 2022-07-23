@@ -3,10 +3,15 @@
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
+use Drupal\patternkit\Exception\SchemaValidationException;
+use Drupal\patternkit\Schema\SchemaFactory;
 use Drupal\patternkit\Schema\SchemaHelper;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\patternkit\Traits\SchemaHelperTestTrait;
 use Drupal\Tests\UnitTestCase;
+use Prophecy\Argument;
+use Swaggest\JsonSchema\Context;
+use Swaggest\JsonSchema\InvalidValue;
 use Swaggest\JsonSchema\Schema;
 use Swaggest\JsonSchema\SchemaContract;
 
@@ -120,9 +125,16 @@ class SchemaHelperTest extends UnitTestCase {
   public function setUp(): void {
     parent::setUp();
 
+    $this->schemaFactory = $this->prophesize(SchemaFactory::class);
+    $this->schemaFactory->getDefaultContext()->will([$this, 'getContext']);
+
     $container = new ContainerBuilder();
-    $this->setUpSchemaFactory($container);
+    $container->set('patternkit.schema.schema_factory', $this->schemaFactory->reveal());
     \Drupal::setContainer($container);
+
+    // Initialize to an empty context for tests that don't set anything up
+    // explicitly for their use case.
+    $this->context = new Context();
   }
 
   /**
@@ -157,6 +169,8 @@ class SchemaHelperTest extends UnitTestCase {
 
   /**
    * @covers ::getCompositionSchema
+   * @covers ::getConstraintFromObject
+   * @covers ::manuallyTestConstraints
    */
   public function testGetCompositionSchema() {
     $schema = Schema::import($this->decodeJson($this->flatSchema));
@@ -173,30 +187,43 @@ class SchemaHelperTest extends UnitTestCase {
     $this->assertEquals('string', $valueSchema->type);
     $this->assertIsArray($valueSchema->enum);
     $this->assertEquals('Explicit sizes', $valueSchema->title);
+
+    $nestedItemsSchema = $schema->getProperties()->nested_items->items;
+    $data = (object) [
+      'test_key' => 'my_test_value',
+      'another_property' => 1234,
+      'nested' => (object) [
+        'abc' => 'def',
+      ],
+    ];
+
+    $valueSchema = SchemaHelper::getCompositionSchema($nestedItemsSchema, $data);
+
+    $this->assertEquals('object', $valueSchema->type);
+    $this->assertEquals('Simple object', $valueSchema->title);
   }
 
   /**
+   * Test expectations for throwing validation exceptions.
+   *
    * @covers ::getCompositionSchema
-   * @covers ::isCompositionSchema
+   * @uses \Drupal\patternkit\Exception\SchemaException
    */
-  public function testGetCompositionSchemaWithDataCasting() {
-    $schema = Schema::import($this->decodeJson($this->flatSchema));
+  public function testGetCompositionSchemaValidationException() {
+    $exceptionMessage = 'Encountered intentional validation exception';
+    $expectedException = new InvalidValue($exceptionMessage);
+    $documentPath = '#->my->document->path';
 
-    $propertySchema = $schema->getProperties()->nested_items->items;
-    $this->assertTrue(SchemaHelper::isCompositionSchema($propertySchema), 'The property schema was not recognized as a composition schema.');
+    $schema = $this->prophesize(Schema::class);
+    $schema->in('my_value', Argument::type(Context::class))
+      ->willThrow($expectedException)
+      ->shouldBeCalledOnce();
+    $schema->getDocumentPath()->willReturn($documentPath)->shouldBeCalledOnce();
 
-    // A simple string value should validate and return the expected schema.
-    $result = SchemaHelper::getCompositionSchema($propertySchema, 'My test string');
-    $this->assertEquals($propertySchema->anyOf[1], $result, 'The expected composition rule was not identified.');
-
-    // It should successfully validate when provided with an object.
-    $result = SchemaHelper::getCompositionSchema($propertySchema, $this->decodeJson('{ }'));
-    $this->assertEquals($propertySchema->anyOf[0], $result, 'The expected composition rule was not identified.');
-
-    // If flexible casting is not supported this will fail validation when
-    // provided with an object cast as an array.
-    $result = SchemaHelper::getCompositionSchema($propertySchema, $this->decodeJson('{ }', JSON_OBJECT_AS_ARRAY));
-    $this->assertEquals($propertySchema->anyOf[0], $result, 'The expected composition rule was not identified.');
+    $this->expectException(SchemaValidationException::class);
+    $this->expectExceptionMessage($exceptionMessage, 'Expected the exception message to contain the original exception message.');
+    $this->expectExceptionMessage($documentPath, 'Expected the exception message to contain the document path.');
+    SchemaHelper::getCompositionSchema($schema->reveal(), 'my_value');
   }
 
 }
