@@ -65,15 +65,6 @@ class SchemaHelper {
    *   provided schema.
    */
   public static function getCompositionSchema(SchemaContract $schema, $value): ?SchemaContract {
-    // Cast associative arrays to an object for validation against object
-    // constraints if necessary.
-    // Test with PHP core function if available (PHP >= 8.1).
-    // @todo Consider adding a polyfil dependency or in-module implementation.
-    if (!function_exists('array_is_list')) {
-      require_once __DIR__ . '/../../patternkit.polyfil.php';
-    }
-    $value = is_array($value) && !array_is_list($value) ? static::castArrayToObject($value) : $value;
-
     try {
       // Get a globally configured execution context for use in schema
       // operations. This will ensure expected options as well as configured
@@ -104,20 +95,6 @@ class SchemaHelper {
     else {
       return static::manuallyTestConstraints($value, $schema, $context);
     }
-  }
-
-  /**
-   * Recursively cast an array value to an object.
-   *
-   * @param array $value
-   *   An array of values, usually an associative array, to recursively cast to
-   *   stdClass objects.
-   *
-   * @return object
-   *   The provided array values recursively cast as stdClass objects.
-   */
-  protected static function castArrayToObject(array $value): object {
-    return json_decode(json_encode($value));
   }
 
   /**
