@@ -83,8 +83,13 @@ class SchemaIterator extends \RecursiveArrayIterator {
   /**
    * {@inheritdoc}
    */
-  public function getChildren(): SchemaIterator {
-    return new SchemaIterator($this->getPropertySchema(), $this->current());
+  public function getChildren(): ?SchemaIterator {
+    if (is_iterable($this->current()) && ($schema = $this->getPropertySchema())) {
+      return new SchemaIterator($schema, $this->current());
+    }
+    else {
+      return NULL;
+    }
   }
 
   /**
@@ -95,6 +100,8 @@ class SchemaIterator extends \RecursiveArrayIterator {
    *   be identified.
    *
    * @throws \Drupal\patternkit\Exception\SchemaValidationException
+   *
+   * @todo Refactor and clearly redefine expectations for results.
    */
   public function getPropertySchema(): ?SchemaContract {
     // Return the current property schema if it's already been evaluated.

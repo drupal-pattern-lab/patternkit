@@ -5,20 +5,24 @@ namespace Drupal\Tests\patternkit\Unit\Schema;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\patternkit\Schema\SchemaIterator;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
+use Drupal\Tests\patternkit\Traits\SchemaFixtureTrait;
 use Drupal\Tests\patternkit\Traits\SchemaHelperTestTrait;
 use Drupal\Tests\UnitTestCase;
+use Swaggest\JsonSchema\Context;
 use Swaggest\JsonSchema\Schema;
 
 /**
  * Test the SchemaIterator class implementation.
  *
  * @coversDefaultClass \Drupal\patternkit\Schema\SchemaIterator
+ * @uses \Drupal\patternkit\Schema\SchemaHelper
  * @group patternkit
  */
 class SchemaIteratorTest extends UnitTestCase {
 
   use JsonDecodeTrait;
   use SchemaHelperTestTrait;
+  use SchemaFixtureTrait;
 
   /**
    * A basic JSON schema with various property types, but no references.
@@ -110,12 +114,20 @@ class SchemaIteratorTest extends UnitTestCase {
     $container = new ContainerBuilder();
     $this->setUpSchemaFactory($container);
     \Drupal::setContainer($container);
+
+    $this->context = new Context();
   }
 
   /**
    * @covers ::getPropertySchema
+   * @covers ::hasChildren
+   * @covers ::getChildren
+   * @covers ::next
+   * @covers ::rewind
+   * @covers ::seek
+   * @uses \Drupal\patternkit\Schema\SchemaIterator::__construct
    */
-  public function testGetPropertySchema() {
+  public function testIteration() {
     $values = [
       'text' => 'test',
       'image' => [
@@ -180,6 +192,166 @@ class SchemaIteratorTest extends UnitTestCase {
     $propertySchema = $subIterator->getPropertySchema();
     $this->assertEquals('string', $propertySchema->type);
     $this->assertEquals('Explicit sizes', $propertySchema->title);
+
+    $iterator->rewind();
+    $this->assertEquals('text', $iterator->key());
+    $this->assertEquals($values['text'], $iterator->current());
+    $this->assertEquals($schema->getProperties()->text, $iterator->getPropertySchema());
+
+    $iterator->seek(2);
+    $this->assertEquals('breakpoints', $iterator->key());
+    $this->assertEquals($values['breakpoints'], $iterator->current());
+    $this->assertEquals($schema->getProperties()->breakpoints, $iterator->getPropertySchema());
+  }
+
+  /**
+   * @covers ::getSchema
+   * @uses \Drupal\patternkit\Schema\SchemaIterator::__construct
+   */
+  public function testGetSchema() {
+    $values = [
+      'text' => 'test',
+      'image' => [
+        'image_url' => 'abc123',
+      ],
+      'breakpoints' => [
+        'xs',
+        'large',
+      ],
+    ];
+
+    $schema = Schema::import($this->decodeJson($this->flatSchema));
+    $iterator = new SchemaIterator($schema, $values);
+
+    $this->assertEquals($schema, $iterator->getSchema());
+
+    $subSchema = $schema->getProperties()->image;
+    $iterator = new SchemaIterator($subSchema, $values['image']);
+
+    $this->assertEquals($subSchema, $iterator->getSchema());
+  }
+
+  /**
+   * @covers ::hasChildren
+   * @uses \Drupal\patternkit\Schema\SchemaIterator::__construct
+   * @uses \Drupal\patternkit\Schema\SchemaIterator::getPropertySchema
+   * @uses \Drupal\patternkit\Schema\SchemaIterator::next
+   */
+  public function testHasChildren() {
+    $values = [
+      'text' => 'test',
+      'image' => [
+        'image_url' => 'abc123',
+      ],
+      'breakpoints' => [
+        'xs',
+        'large',
+      ],
+    ];
+
+    $schema = Schema::import($this->decodeJson($this->flatSchema));
+    $iterator = new SchemaIterator($schema, $values);
+
+    $this->assertEquals('test', $iterator->current());
+    $this->assertFalse($iterator->hasChildren());
+
+    $iterator->next();
+    $this->assertEquals($values['image'], $iterator->current());
+    $this->assertTrue($iterator->hasChildren());
+
+    $iterator->next();
+    $this->assertEquals($values['breakpoints'], $iterator->current());
+    $this->assertTrue($iterator->hasChildren());
+  }
+
+  /**
+   * @covers ::getChildren
+   * @covers ::__construct
+   * @uses \Drupal\patternkit\Schema\SchemaIterator::getPropertySchema
+   * @uses \Drupal\patternkit\Schema\SchemaIterator::next
+   * @uses \Drupal\patternkit\Schema\SchemaIterator::getSchema
+   * @uses \Drupal\patternkit\Schema\SchemaIterator::hasChildren()
+   */
+  public function testGetChildren() {
+    $values = [
+      'text' => 'test',
+      'image' => [
+        'image_url' => 'abc123',
+      ],
+      'breakpoints' => [
+        'xs',
+        'large',
+      ],
+    ];
+
+    $schema = Schema::import($this->decodeJson($this->flatSchema));
+    $iterator = new SchemaIterator($schema, $values);
+
+    $this->assertEquals('test', $iterator->current());
+    $this->assertFalse($iterator->hasChildren());
+    $this->assertNull($iterator->getChildren());
+
+    $iterator->next();
+    $this->assertEquals($values['image'], $iterator->current());
+    $childIterator = $iterator->getChildren();
+    $this->assertInstanceOf(SchemaIterator::class, $childIterator);
+    $this->assertNotEquals($iterator, $childIterator);
+    $this->assertEquals($schema->getProperties()->image, $childIterator->getSchema());
+
+    $iterator->next();
+    $this->assertEquals($values['breakpoints'], $iterator->current());
+    $this->assertTrue($iterator->hasChildren());
+  }
+
+  /**
+   * @covers ::getPropertySchema
+   * @covers ::<public>
+   * @uses \Drupal\patternkit\Schema\SchemaIterator::__construct
+   */
+  public function testGetPropertySchema() {
+    $schema_json = $this->loadFixture('schemas/composed_component.json');
+
+    $values = (object) [
+      'references_array' => [
+        1,
+        'two',
+        (object) [
+          "number" => "three",
+        ],
+      ],
+      'ambiguous_object' => (object) [
+        'text' => 'my text',
+        'number' => 4,
+      ],
+    ];
+
+    $schema = Schema::import($this->decodeJson($schema_json));
+    $iterator = new SchemaIterator($schema, $values);
+
+    $this->assertEquals('references_array', $iterator->key());
+    $this->assertEquals($schema->getProperties()->references_array, $iterator->getPropertySchema());
+
+    // Test iteration into array elements.
+    $this->assertTrue($iterator->hasChildren());
+    $this->assertInstanceOf(SchemaIterator::class, $subIterator = $iterator->getChildren());
+
+    $this->assertEquals($schema->getProperties()->references_array, $subSchema = $subIterator->getSchema());
+
+    $this->assertEquals($values->references_array[0], $subIterator->current());
+    $this->assertEquals($subSchema->items->anyOf[1], $subIterator->getPropertySchema());
+
+    $subIterator->next();
+    $this->assertEquals($values->references_array[1], $subIterator->current());
+    $this->assertEquals($subSchema->items->anyOf[0], $subIterator->getPropertySchema());
+
+    $subIterator->next();
+    $this->assertEquals($values->references_array[2], $subIterator->current());
+    $this->assertEquals($subSchema->items->anyOf[2], $subIterator->getPropertySchema());
+
+    // Move on to the next top-level element.
+    $iterator->next();
+    $this->assertEquals('ambiguous_object', $iterator->key());
+    $this->assertEquals($schema->getProperties()->ambiguous_object, $iterator->getPropertySchema());
   }
 
 }

@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "category": "atom",
+  "title": "Example component using references and composition rules",
+  "type": "object",
+  "properties": {
+    "references_array": {
+      "title": "Array with reference items",
+      "type": "array",
+      "items": {
+        "anyOf": [
+          { "$ref": "#/definitions/text"},
+          { "$ref": "#/definitions/number"},
+          { "$ref": "#/definitions/object"}
+        ]
+      }
+    },
+    "ambiguous_object": {
+      "oneOf": [
+        { "$ref": "#/definitions/object"},
+        {
+          "type": "object",
+          "title": "Strict object",
+          "properties": {
+            "text": {
+              "$ref": "#/definitions/text"
+            },
+            "number": {
+              "$ref": "#/definitions/number"
+            }
+          },
+          "required": [
+            "text",
+            "number"
+          ]
+        }
+      ]
+    }
+  },
+  "definitions": {
+    "text": {
+      "title": "Text property",
+      "type": "string"
+    },
+    "number": {
+      "title": "Number property",
+      "type": "number"
+    },
+    "object": {
+      "title": "Object property",
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
