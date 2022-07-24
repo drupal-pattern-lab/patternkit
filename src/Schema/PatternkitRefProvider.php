@@ -12,6 +12,8 @@ use Webmozart\PathUtil\Path;
 
 /**
  * A reference provider implementation to load Patternkit schema references.
+ *
+ * @todo Remove unused LibraryNamespaceResolver dependency.
  */
 class PatternkitRefProvider implements RemoteRefProvider {
 
@@ -177,7 +179,7 @@ class PatternkitRefProvider implements RemoteRefProvider {
     assert($ref[0] === '@', 'Namespaced pattern references are expected to start with an "@".');
 
     $matches = [];
-    if (preg_match('&^(?<namespace>@[^/]+)/(?<path>[^#]+)(#(?<pointer>.+))?$&', $ref, $matches)) {
+    if (preg_match('&^(?<namespace>@[^/#]+)/(?<path>[^#]+)(#(?<pointer>.+))?$&', $ref, $matches)) {
       // Since pattern references may sometimes contain relative pathing, this
       // will need to be resolved to a direct path before it will match an
       // indexed pattern identifier.

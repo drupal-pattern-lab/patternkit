@@ -3,6 +3,7 @@
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
 use Drupal\patternkit\Schema\PatternkitRefProvider;
+use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\UnitTestCase;
 
 /**
@@ -12,6 +13,8 @@ use Drupal\Tests\UnitTestCase;
  * @group patternkit
  */
 class PatternkitRefProviderTest extends UnitTestCase {
+
+  use JsonDecodeTrait;
 
   /**
    * The reference provider being tested.
@@ -26,19 +29,19 @@ class PatternkitRefProviderTest extends UnitTestCase {
    * @var string
    */
   protected string $simpleRefSchemaJson = <<<JSON
-{
-  "\$schema": "http://json-schema.org/draft-04/schema#",
-  "category": "atom",
-  "title": "Example reference property",
-  "type": "object",
-  "format": "grid",
-  "properties": {
-    "text_reference": {
-      "\$ref": "/api/patternkit/patternkit/refs/text?asset=schema"
+    {
+      "\$schema": "http://json-schema.org/draft-04/schema#",
+      "category": "atom",
+      "title": "Example reference property",
+      "type": "object",
+      "format": "grid",
+      "properties": {
+        "text_reference": {
+          "\$ref": "/api/patternkit/patternkit/refs/text?asset=schema"
+        }
+      }
     }
-  }
-}
-JSON;
+    JSON;
 
   /**
    * A testing schema with an array of anyOf references.
@@ -46,26 +49,26 @@ JSON;
    * @var string
    */
   protected string $arrayRefSchemaJson = <<<JSON
-{
-  "\$schema": "http://json-schema.org/draft-04/schema#",
-  "category": "atom",
-  "title": "Array Example With References",
-  "type": "object",
-  "properties": {
-    "references": {
-      "title": "Example reference items",
-      "type": "array",
-      "items": {
-        "anyOf": [
-          { "\$ref": "/api/patternkit/patternkit/refs/text?asset=schema" },
-          { "\$ref": "/api/patternkit/patternkit/refs/number?asset=schema" },
-          { "\$ref": "/api/patternkit/patternkit/refs/object?asset=schema" }
-        ]
+    {
+      "\$schema": "http://json-schema.org/draft-04/schema#",
+      "category": "atom",
+      "title": "Array Example With References",
+      "type": "object",
+      "properties": {
+        "references": {
+          "title": "Example reference items",
+          "type": "array",
+          "items": {
+            "anyOf": [
+              { "\$ref": "/api/patternkit/patternkit/refs/text?asset=schema" },
+              { "\$ref": "/api/patternkit/patternkit/refs/number?asset=schema" },
+              { "\$ref": "/api/patternkit/patternkit/refs/object?asset=schema" }
+            ]
+          }
+        }
       }
     }
-  }
-}
-JSON;
+    JSON;
 
   /**
    * A testing schema with a basic text property.
@@ -73,12 +76,12 @@ JSON;
    * @var string
    */
   protected string $simpleTextSchemaJson = <<<JSON
-{
-  "\$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "Text property",
-  "type": "string"
-}
-JSON;
+    {
+      "\$schema": "http://json-schema.org/draft-04/schema#",
+      "title": "Text property",
+      "type": "string"
+    }
+    JSON;
 
   /**
    * A testing schema with a basic number property.
@@ -86,12 +89,12 @@ JSON;
    * @var string
    */
   protected string $simpleNumberSchemaJson = <<<JSON
-{
-  "\$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "Number property",
-  "type": "number"
-}
-JSON;
+    {
+      "\$schema": "http://json-schema.org/draft-04/schema#",
+      "title": "Number property",
+      "type": "number"
+    }
+    JSON;
 
   /**
    * A testing schema with a nested object property.
@@ -99,17 +102,17 @@ JSON;
    * @var string
    */
   protected string $simpleObjectSchemaJson = <<<JSON
-{
-  "\$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "Object property",
-  "type": "object",
-  "properties": {
-    "text": {
-      "type": "string"
+    {
+      "\$schema": "http://json-schema.org/draft-04/schema#",
+      "title": "Object property",
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        }
+      }
     }
-  }
-}
-JSON;
+    JSON;
 
   /**
    * {@inheritdoc}
@@ -142,26 +145,26 @@ JSON;
     // Test loading simple schemas directly.
     $cases['simple_text_schema'] = [
       '/api/patternkit/patternkit/refs/text?asset=schema',
-      json_decode($this->simpleTextSchemaJson),
+      $this->decodeJson($this->simpleTextSchemaJson),
     ];
     $cases['simple_number_schema'] = [
       '/api/patternkit/patternkit/refs/number?asset=schema',
-      json_decode($this->simpleNumberSchemaJson),
+      $this->decodeJson($this->simpleNumberSchemaJson),
     ];
     $cases['simple_object_schema'] = [
       '/api/patternkit/patternkit/refs/object?asset=schema',
-      json_decode($this->simpleObjectSchemaJson),
+      $this->decodeJson($this->simpleObjectSchemaJson),
     ];
 
     // Test loading a schema with a local path defined.
     // Expected behavior is that the local path is ignored at this point.
     $cases['object_with_path'] = [
       '/api/patternkit/patternkit/refs/object?asset=schema#/properties/text',
-      json_decode($this->simpleObjectSchemaJson),
+      $this->decodeJson($this->simpleObjectSchemaJson),
     ];
     $cases['object_with_invalid_path'] = [
       '/api/patternkit/patternkit/refs/object?asset=schema#/properties/undefined_property',
-      json_decode($this->simpleObjectSchemaJson),
+      $this->decodeJson($this->simpleObjectSchemaJson),
     ];
 
     // Test loading an unregistered pattern.
@@ -288,6 +291,9 @@ JSON;
       'path' => '/properties/text',
     ];
     $cases['relative_ref_with_path'] = [$ref, $expected];
+
+    $ref = '@unknown#/properties/text';
+    $cases['invalid_reference'] = [$ref, FALSE];
 
     return $cases;
   }
