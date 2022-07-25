@@ -2,19 +2,28 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
+use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\patternkit\Asset\LibraryNamespaceResolverInterface;
+use Drupal\patternkit\Asset\PatternDiscoveryInterface;
+use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Schema\PatternkitRefProvider;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\UnitTestCase;
+use Prophecy\Argument;
+use Prophecy\PhpUnit\ProphecyTrait;
 
 /**
  * Test the PatternkitRefProvider class.
  *
  * @coversDefaultClass \Drupal\patternkit\Schema\PatternkitRefProvider
+ * @uses \Drupal\patternkit\Schema\PatternkitRefProvider::__construct()
  * @group patternkit
  */
 class PatternkitRefProviderTest extends UnitTestCase {
 
   use JsonDecodeTrait;
+  use ProphecyTrait;
 
   /**
    * The reference provider being tested.
@@ -22,6 +31,27 @@ class PatternkitRefProviderTest extends UnitTestCase {
    * @var \Drupal\patternkit\Schema\PatternkitRefProvider
    */
   protected PatternkitRefProvider $provider;
+
+  /**
+   * The mocked pattern discovery service.
+   *
+   * @var \Drupal\patternkit\Asset\PatternDiscoveryInterface|\Prophecy\Prophecy\ObjectProphecy
+   */
+  protected $patternDiscovery;
+
+  /**
+   * The mocked entity type manager service.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface|\Prophecy\Prophecy\ObjectProphecy
+   */
+  protected $entityTypeManager;
+
+  /**
+   * Mocked entity storage for the patternkit_pattern entity type.
+   *
+   * @var \Drupal\Core\Entity\EntityStorageInterface|\Prophecy\Prophecy\ObjectProphecy
+   */
+  protected $patternStorage;
 
   /**
    * A testing schema with a property using a reference.
@@ -120,16 +150,100 @@ class PatternkitRefProviderTest extends UnitTestCase {
   public function setUp(): void {
     parent::setUp();
 
-    $this->provider = new TestPatternkitRefProvider();
+    // Mock dependencies.
+    $this->patternDiscovery = $this->prophesize(PatternDiscoveryInterface::class);
+    $this->patternStorage = $this->prophesize(EntityStorageInterface::class);
+    $this->entityTypeManager = $this->prophesize(EntityTypeManagerInterface::class);
 
-    // Register simple schemas for references.
-    $this->provider->registerPatternSchema('@patternkit/refs/text', $this->simpleTextSchemaJson);
-    $this->provider->registerPatternSchema('@patternkit/refs/number', $this->simpleNumberSchemaJson);
-    $this->provider->registerPatternSchema('@patternkit/refs/object', $this->simpleObjectSchemaJson);
+    // Prepare pattern definitions for test usage.
+    $this->patternDiscovery->getPatternDefinition('@patternkit/refs/text')
+      ->willReturn([
+        'pattern_id' => '@patternkit/refs/text',
+        'schema' => $this->simpleTextSchemaJson,
+      ]);
+    $this->patternDiscovery->getPatternDefinition('@patternkit/refs/number')
+      ->willReturn([
+        'pattern_id' => '@patternkit/refs/number',
+        'schema' => $this->simpleNumberSchemaJson,
+      ]);
+    $this->patternDiscovery->getPatternDefinition('@patternkit/refs/object')
+      ->willReturn([
+        'pattern_id' => '@patternkit/refs/object',
+        'schema' => $this->simpleObjectSchemaJson,
+      ]);
+    $this->patternDiscovery->getPatternDefinition('@patternkit/refs/invalid')
+      ->willReturn([
+        'pattern_id' => '@patternkit/refs/invalid',
+        'schema' => '[ Some invalid JSON }',
+      ]);
+    $this->patternDiscovery->getPatternDefinition('@patternkit/refs/undefined')
+      ->willReturn(NULL);
+
+    // Prepare pattern creation to produce mocked pattern entities.
+    $this->mockPatternCreation();
+
+    // Instantiate the provider for default usage. Tests that need more mocked
+    // customization may configure the mocks and re-run this method.
+    $this->provider = $this->getRefProvider();
+  }
+
+  /**
+   * Get the reference provider instance with mock dependencies injected.
+   *
+   * @return \Drupal\patternkit\Schema\PatternkitRefProvider
+   *   The reference provider instance with mock dependencies injected.
+   */
+  protected function getRefProvider(): PatternkitRefProvider {
+    // @todo Remove unused LibraryNamespaceResolver dependency.
+    $libraryNamespaceResolver = $this->prophesize(LibraryNamespaceResolverInterface::class);
+
+    // Wait to mock this method to ensure the patternStorage service was
+    // prepared ahead of time.
+    $this->entityTypeManager->getStorage('patternkit_pattern')
+      ->willReturn($this->patternStorage->reveal());
+
+    return new PatternkitRefProvider(
+      $this->patternDiscovery->reveal(),
+      $libraryNamespaceResolver->reveal(),
+      $this->entityTypeManager->reveal(),
+    );
+  }
+
+  /**
+   * A helper function to mock pattern creation using pattern storage.
+   *
+   * This prepares the create() method on the pattern entity storage mock to
+   * accept an associative array containing the following keys and return a
+   * mocked Pattern entity with the data for return in related getter methods.
+   * - pattern_id: The namespaced pattern ID.
+   * - schema: A JSON string value to be returned from getSchema().
+   */
+  protected function mockPatternCreation(): void {
+    $pattern = $this->prophesize(PatternInterface::class);
+
+    $this->patternStorage->create(
+      Argument::allOf(
+        Argument::withKey('pattern_id'),
+        Argument::withKey('schema'),
+      )
+    )->will(
+      function ($args) use ($pattern) {
+        // Customize the pattern-specific prophecy.
+        $pattern->getSchema()->willReturn($args[0]['schema']);
+
+        // Reveal and return the mocked pattern.
+        return $pattern->reveal();
+      }
+    );
   }
 
   /**
    * @covers ::getSchemaData
+   * @covers ::__construct
+   * @covers ::patternStorage
+   * @covers ::getPatternSchema
+   * @uses \Drupal\patternkit\Schema\PatternkitRefProvider::parseNamespacedSchemaReference()
+   * @uses \Drupal\patternkit\Schema\PatternkitRefProvider::parseNormalizedSchemaReference()
    * @dataProvider providerGetSchemaData
    */
   public function testGetSchemaData(string $url, $expected) {
@@ -147,12 +261,24 @@ class PatternkitRefProviderTest extends UnitTestCase {
       '/api/patternkit/patternkit/refs/text?asset=schema',
       $this->decodeJson($this->simpleTextSchemaJson),
     ];
+    $cases['simple_text_schema_namespaced'] = [
+      '@patternkit/refs/text',
+      $this->decodeJson($this->simpleTextSchemaJson),
+    ];
     $cases['simple_number_schema'] = [
       '/api/patternkit/patternkit/refs/number?asset=schema',
       $this->decodeJson($this->simpleNumberSchemaJson),
     ];
+    $cases['simple_number_schema_namespaced'] = [
+      '@patternkit/refs/number',
+      $this->decodeJson($this->simpleNumberSchemaJson),
+    ];
     $cases['simple_object_schema'] = [
       '/api/patternkit/patternkit/refs/object?asset=schema',
+      $this->decodeJson($this->simpleObjectSchemaJson),
+    ];
+    $cases['simple_object_schema_namespaced'] = [
+      '@patternkit/refs/object',
       $this->decodeJson($this->simpleObjectSchemaJson),
     ];
 
@@ -162,8 +288,16 @@ class PatternkitRefProviderTest extends UnitTestCase {
       '/api/patternkit/patternkit/refs/object?asset=schema#/properties/text',
       $this->decodeJson($this->simpleObjectSchemaJson),
     ];
+    $cases['object_with_path_namespaced'] = [
+      '@patternkit/refs/object#/properties/text',
+      $this->decodeJson($this->simpleObjectSchemaJson),
+    ];
     $cases['object_with_invalid_path'] = [
       '/api/patternkit/patternkit/refs/object?asset=schema#/properties/undefined_property',
+      $this->decodeJson($this->simpleObjectSchemaJson),
+    ];
+    $cases['object_with_invalid_path_namespaced'] = [
+      '@patternkit/refs/object#/properties/undefined_property',
       $this->decodeJson($this->simpleObjectSchemaJson),
     ];
 
@@ -172,8 +306,22 @@ class PatternkitRefProviderTest extends UnitTestCase {
       '/api/patternkit/patternkit/refs/undefined?asset=schema',
       FALSE,
     ];
+    $cases['unregistered_patternkit_pattern_namespaced'] = [
+      '@patternkit/refs/undefined',
+      FALSE,
+    ];
     $cases['unregistered_external_pattern'] = [
       '/external/refs/undefined',
+      FALSE,
+    ];
+
+    // Test loading a schema with invalid JSON content.
+    $cases['invalid_patternkit_pattern'] = [
+      '/api/patternkit/patternkit/refs/invalid?asset=schema',
+      FALSE,
+    ];
+    $cases['invalid_patternkit_pattern_namespaced'] = [
+      '@patternkit/refs/invalid',
       FALSE,
     ];
 
