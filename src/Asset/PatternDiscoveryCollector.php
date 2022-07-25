@@ -13,6 +13,7 @@ use Drupal\patternkit\PatternLibraryPluginManager;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * A cache collector implementation to load and cache pattern definitions.
@@ -74,9 +75,9 @@ class PatternDiscoveryCollector extends CacheCollector {
   /**
    * A serializer for instantiating PatternLibrary instances.
    *
-   * @var \Symfony\Component\Serializer\Serializer
+   * @var \Symfony\Component\Serializer\SerializerInterface
    */
-  protected Serializer $serializer;
+  protected SerializerInterface $serializer;
 
   /**
    * Creates an instance of PatternDiscoveryCollector.
@@ -91,15 +92,24 @@ class PatternDiscoveryCollector extends CacheCollector {
    *   The pattern library plugin manager service.
    * @param \Psr\Log\LoggerInterface $logger
    *   A logger for message output.
+   * @param \Symfony\Component\Serializer\SerializerInterface $serializer
+   *   (optional) A serializer for normalizing pattern library properties.
    */
-  public function __construct(CacheBackendInterface $cache, LockBackendInterface $lock, LibraryNamespaceResolverInterface $namespaceResolver, PatternLibraryPluginManager $libraryPluginManager, LoggerInterface $logger) {
+  public function __construct(
+    CacheBackendInterface $cache,
+    LockBackendInterface $lock,
+    LibraryNamespaceResolverInterface $namespaceResolver,
+    PatternLibraryPluginManager $libraryPluginManager,
+    LoggerInterface $logger,
+    SerializerInterface $serializer = NULL
+  ) {
     parent::__construct(self::PERSISTENT_CACHE_ID, $cache, $lock, self::CACHE_TAGS);
 
     $this->namespaceResolver = $namespaceResolver;
     $this->libraryPluginManager = $libraryPluginManager;
     $this->logger = $logger;
 
-    $this->serializer = new Serializer([new PropertyNormalizer()]);
+    $this->serializer = $serializer ?? new Serializer([new PropertyNormalizer()]);
   }
 
   /**
@@ -127,8 +137,10 @@ class PatternDiscoveryCollector extends CacheCollector {
    * @see \Drupal\patternkit\Asset\LibraryNamespaceResolver::getLibraryDefinitions()
    */
   protected function getPatternsByNamespace(string $library): array {
+    $namespace = $library[0] === '@' ? $library : "@$library";
+
     // @todo Handle failures to load a library definition.
-    $library_definition = $this->namespaceResolver->getLibraryFromNamespace($library);
+    $library_definition = $this->namespaceResolver->getLibraryFromNamespace($namespace);
     $pattern_info = $library_definition['patterns'] ?? [];
 
     // @todo Remove usage of the PatternLibrary object.
@@ -154,12 +166,16 @@ class PatternDiscoveryCollector extends CacheCollector {
         continue;
       }
 
+      // Propagate the library namespace down for access from each plugin.
+      $info['namespace'] = $namespace;
+
       /** @var \Drupal\patternkit\PatternLibraryPluginInterface $plugin */
       try {
         $plugin = $this->getLibraryPlugin($info);
       }
       catch (PluginException $exception) {
         // Allow plugin fall-backs of type 'base_plugin.override_plugin'.
+        // @todo Move fall-back handling into plugin manager.
         $plugin_id = strstr($info['plugin'], '.', TRUE);
         if (empty($plugin_id)) {
           throw new InvalidLibraryFileException("Error loading pattern libraries via $plugin_id: " . $exception->getMessage());
@@ -193,7 +209,6 @@ class PatternDiscoveryCollector extends CacheCollector {
     }
 
     // Prefix all pattern keys with the library namespace.
-    $namespace = $library[0] === '@' ? $library : "@$library";
     $pattern_definitions = [];
     foreach (array_keys($patterns) as $name) {
       $pattern_definitions["$namespace/$name"] = $patterns[$name];
@@ -221,7 +236,7 @@ class PatternDiscoveryCollector extends CacheCollector {
       $this->logger->notice(
         "No 'plugin' key set for the '%library' pattern library, defaulting to '%default'."
         . " Recommend setting the key to one of the available plugins: %plugins.", [
-          '%library' => $library_info['name'],
+          '%library' => $library_info['namespace'],
           '%default' => self::DEFAULT_LIBRARY_PLUGIN_ID,
           '%plugins' => implode(', ', array_keys($this->libraryPluginManager->getSortedDefinitions())),
         ]

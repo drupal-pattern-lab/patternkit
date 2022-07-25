@@ -17,6 +17,8 @@ use Drupal\patternkit\Annotation\PatternLibrary;
 
 /**
  * The plugin manager service for pattern library parser plugins.
+ *
+ * @todo Implement FallbackPluginManagerInterface to take responsibility for loading fallback plugins.
  */
 class PatternLibraryPluginManager extends DefaultPluginManager implements CategorizingPluginManagerInterface {
 

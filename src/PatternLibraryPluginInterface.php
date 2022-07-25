@@ -2,13 +2,14 @@
 
 namespace Drupal\patternkit;
 
+use Drupal\Component\Plugin\PluginInspectionInterface;
 use Drupal\Core\Extension\Extension;
 use Drupal\patternkit\Entity\PatternInterface;
 
 /**
  * Service that renders a collection of patterns.
  */
-interface PatternLibraryPluginInterface {
+interface PatternLibraryPluginInterface extends PluginInspectionInterface {
 
   /**
    * Fetches and loads all assets for a provided Pattern.
