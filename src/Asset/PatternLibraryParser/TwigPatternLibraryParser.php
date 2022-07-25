@@ -112,6 +112,14 @@ class TwigPatternLibraryParser extends PatternLibraryParserBase {
     }
     $metadata = [];
     $info = $library->getPatternInfo();
+    if ($path[0] === '/') {
+      // Trim the root path plus the trailing slash.
+      $relative_path = substr($path, strlen($this->root . '/'));
+    }
+    else {
+      $relative_path = $path;
+    }
+    $pattern_info = $info[$relative_path];
     foreach (self::discoverComponents($path, ['json', 'twig']) as $name => $data) {
       if (empty($data['twig']) || !file_exists($data['twig'])) {
         continue;
@@ -120,7 +128,7 @@ class TwigPatternLibraryParser extends PatternLibraryParserBase {
       // If the component has a JSON file, create the pattern from it.
       $defaults = [
         'assets'          => ['twig' => $data['twig']],
-        'category'        => $info[$path]['category'] ?? 'default',
+        'category'        => $pattern_info['category'] ?? 'default',
         'library'         => $library->id(),
         'libraryPluginId' => 'twig',
         'name'            => $name,
@@ -128,7 +136,7 @@ class TwigPatternLibraryParser extends PatternLibraryParserBase {
         'version'         => $library->version ?? 'VERSION',
       ];
       if (!empty($data['json']) && $file_contents = file_get_contents($data['json'])) {
-        $category_guess = $info[$path]['category'] ?? strstr($pattern_path, DIRECTORY_SEPARATOR, TRUE);
+        $category_guess = $pattern_info['category'] ?? strstr($pattern_path, DIRECTORY_SEPARATOR, TRUE);
         $defaults['category'] = $category_guess ?? $defaults['category'];
         $defaults['assets']['json'] = $data['json'];
         $pattern = $this->createPattern($name, (array) $this->serializer::decode($file_contents) + $defaults);

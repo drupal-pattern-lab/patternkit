@@ -18,7 +18,8 @@
         "ext-json": "*",
         "swaggest/json-schema": "^0.12",
         "symfony/finder": "^3.4 || ^4.0",
-        "symfony/yaml": "^3.4 || ^4.0"
+        "symfony/yaml": "^3.4 || ^4.0",
+        "webmozart/path-util": "^2.1.0"
     },
     "require-dev": {
         "drupal/core-recommended": "^9",

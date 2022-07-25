@@ -8,7 +8,6 @@ use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Plugin\DefaultPluginManager;
 use Drupal\Core\Render\BubbleableMetadata;
-use Drupal\patternkit\Asset\LibraryInterface;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Exception\SchemaException;
 use Drupal\patternkit\Schema\SchemaWalkerFactory;
@@ -26,13 +25,6 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager {
    * @var \Drupal\Component\Serialization\SerializationInterface
    */
   protected SerializationInterface $serializer;
-
-  /**
-   * Loads discovered patterns.
-   *
-   * @var \Drupal\patternkit\Asset\LibraryInterface
-   */
-  protected LibraryInterface $library;
 
   /**
    * The logger channel for logging any errors or notifications.
@@ -60,8 +52,6 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager {
    *   The module handler to invoke the alter hook with.
    * @param \Drupal\Component\Serialization\SerializationInterface $serializer
    *   The serialization service for unserializing schemas.
-   * @param \Drupal\patternkit\Asset\LibraryInterface $library
-   *   The pattern library service for loading discovered patterns.
    * @param \Drupal\patternkit\Schema\SchemaWalkerFactory $schemaWalkerFactory
    *   The SchemaWalkerFactory service.
    * @param \Drupal\Core\Logger\LoggerChannelInterface $loggerChannel
@@ -72,7 +62,6 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager {
     CacheBackendInterface $cache_backend,
     ModuleHandlerInterface $module_handler,
     SerializationInterface $serializer,
-    LibraryInterface $library,
     SchemaWalkerFactory $schemaWalkerFactory,
     LoggerChannelInterface $loggerChannel
   ) {
@@ -85,7 +74,6 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager {
     );
 
     $this->serializer = $serializer;
-    $this->library = $library;
     $this->schemaWalkerFactory = $schemaWalkerFactory;
     $this->logger = $loggerChannel;
 

@@ -16,6 +16,13 @@ use Drupal\Core\Cache\CacheCollectorInterface;
  *   registered by another extension can only rely on that extension's library.
  * - Two (or more) extensions can still register the same library and use it
  *   without conflicts in case the libraries are loaded on certain pages only.
+ *
+ * @deprecated in patternkit:9.1.0-beta4 and is removed from patternkit:9.1.0.
+ *   Use \Drupal\patternkit\Asset\LibraryNamespaceResolver or
+ *   \Drupal\patternkit\Asset\PatternDiscovery instead.
+ * @see https://www.drupal.org/node/3295833
+ * @see \Drupal\patternkit\Asset\LibraryNamespaceResolverInterface
+ * @see \Drupal\patternkit\Asset\PatternDiscoveryInterface
  */
 interface LibraryInterface extends CacheCollectorInterface {
 

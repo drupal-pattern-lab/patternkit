@@ -3,6 +3,8 @@
 namespace Drupal\patternkit\Asset\PatternLibraryParser;
 
 use Drupal\Core\Asset\Exception\InvalidLibraryFileException;
+use Drupal\patternkit\Entity\PatternInterface;
+use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\PatternLibraryJSONParserTrait;
 use Drupal\patternkit\Asset\PatternLibraryParserBase;
@@ -13,6 +15,27 @@ use Drupal\patternkit\Asset\PatternLibraryParserBase;
 class JSONPatternLibraryParser extends PatternLibraryParserBase {
 
   use PatternLibraryJSONParserTrait;
+
+  /**
+   * {@inheritdoc}
+   */
+  public function fetchPatternAssets(
+    PatternInterface $pattern,
+    PatternEditorConfig $config = NULL
+  ): array {
+    // @todo Add support for twig lib attachments such as JS and images.
+    $assets = parent::fetchPatternAssets($pattern, $config);
+    $assets['schema'] = $assets['json'];
+    // Replace any $ref links with relative paths.
+    $schema = $this->serializer::decode($assets['schema']);
+    $schema = static::schemaDereference(
+      $schema,
+      $pattern
+    );
+    $assets['schema'] = $this->serializer::encode($schema);
+
+    return $assets;
+  }
 
   /**
    * {@inheritdoc}
@@ -35,11 +58,12 @@ class JSONPatternLibraryParser extends PatternLibraryParserBase {
       if (empty($data['json']) || !file_exists($data['json'])) {
         continue;
       }
-      $category = $pattern_info['category'] ?? 'default';
+      $pattern_path = trim(substr($data['json'], strlen($path), -strlen('.json')), '/\\');
+
       $library_defaults = [
         '$schema' => 'https://json-schema.org/schema#',
         'assets' => ['schema' => $data['json']],
-        'category' => $category,
+        'category' => $pattern_info['category'] ?? 'default',
         'title' => $name,
         'type' => 'object',
         'format' => 'grid',
@@ -47,16 +71,16 @@ class JSONPatternLibraryParser extends PatternLibraryParserBase {
         'libraryPluginId' => $pattern_info['plugin'],
         'license' => $library->license ?? [],
         'name' => $name,
+        'path' => $pattern_path,
         'properties' => (object) [],
         'required' => [],
         'version' => $library->version ?? '',
       ];
       if (!empty($data['json']) && $file_contents = file_get_contents($data['json'])) {
-        $pattern = $this->createPattern($name, (array) $this->serializer::decode($file_contents) + $library_defaults);
-        $pattern_path = trim(substr($data['json'], strlen($path), -strlen('.json')), '/\\');
         $category_guess = $library->category ?? strstr($pattern_path, DIRECTORY_SEPARATOR, TRUE);
-        $pattern->category = $pattern->get('category')
-          ->getValue() ?? $category_guess;
+        $library_defaults['category'] = $category_guess ?? $library_defaults['category'];
+        $library_defaults['assets']['json'] = $data['json'];
+        $pattern = $this->createPattern($name, (array) $this->serializer::decode($file_contents) + $library_defaults);
       }
       else {
         // Create the pattern from defaults.
@@ -64,23 +88,13 @@ class JSONPatternLibraryParser extends PatternLibraryParserBase {
         $pattern = $this->createPattern($name, $library_defaults);
       }
       $pattern->filename = trim(substr($data['json'], strlen($path)), '/\\');
-      $pattern->path = substr($pattern->filename, 0, -strlen('.json'));
       // @todo Set $pattern->url to the actual URL of the pattern.
       // @todo Add default of library version fallback to extension version.
       $pattern->version ??= 'VERSION';
-      $metadata[$pattern->getPath()] = $pattern;
+
+      $metadata[$pattern->getPath()] = $pattern->toArray();
     }
 
-    foreach ($metadata as $pattern_type => $pattern) {
-      // Replace any $ref links with relative paths.
-      $schema = json_decode($pattern->getSchema(), TRUE);
-      $schema = static::schemaDereference(
-        $schema,
-        $pattern
-      );
-      $pattern->setSchema($schema);
-      $metadata[$pattern_type] = $pattern->toArray();
-    }
     return $metadata;
   }
 

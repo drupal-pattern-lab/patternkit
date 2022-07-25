@@ -133,6 +133,7 @@ abstract class PatternLibraryPluginDefault extends PluginBase implements Configu
    * {@inheritdoc}
    *
    * @todo Provide full library metadata.
+   * @todo Refactor to remove passing in the extension object.
    */
   public function getMetadata(Extension $extension, PatternLibrary $library, string $path): array {
     $path = $this->root . '/' . $path;

@@ -138,7 +138,6 @@ class PatternElementTest extends RendererTestBase {
    * Test that config values are passed for plugin processing.
    *
    * @covers ::preRenderPatternElement
-   * @covers ::preprocessConfigValues
    * @doesNotPerformAssertions
    */
   public function testPreRenderProcessesConfigValues() {

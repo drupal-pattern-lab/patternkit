@@ -113,8 +113,6 @@ class SchemaIteratorTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::key
-   * @covers ::current
    * @covers ::getPropertySchema
    */
   public function testGetPropertySchema() {

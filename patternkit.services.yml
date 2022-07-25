@@ -8,7 +8,8 @@ services:
       - { name: path_processor_inbound, priority: 200 }
   patternkit.asset.library:
     class: Drupal\patternkit\Asset\Library
-    arguments: ['@cache.discovery', '@config.factory', '@plugin.manager.library.pattern', '@lock', '@module_handler', '%app.root%', '@theme.manager', '@extension.path.resolver']
+    arguments: ['@cache.discovery', '@config.factory', '@lock', '@patternkit.pattern.discovery', '@patternkit.library.namespace_resolver']
+    deprecated: 'The "%service_id%" service is deprecated. Use "patternkit.library.namespace_resolver" or "patternkit.pattern.discovery" instead.'
   patternkit.asset.library.parser.base:
     abstract: true
     arguments: [ '@serialization.json', '%app.root%', '@module_handler', '@theme.manager', '@stream_wrapper_manager', '@library.libraries_directory_file_finder', '@extension.path.resolver' ]
@@ -21,6 +22,19 @@ services:
   patternkit.asset.library.parser.twig:
     parent: patternkit.asset.library.parser.base
     class: Drupal\patternkit\Asset\PatternLibraryParser\TwigPatternLibraryParser
+  patternkit.library.namespace_resolver:
+    class: Drupal\patternkit\Asset\LibraryNamespaceResolver
+    arguments: [ '@service_container', '@library.discovery', '@cache.discovery', '@lock' ]
+    tags:
+      - { name: needs_destruction }
+  patternkit.pattern.discovery:
+    class: Drupal\patternkit\Asset\PatternDiscovery
+    arguments: [ '@patternkit.pattern.discovery.collector', '@patternkit.library.namespace_resolver']
+  patternkit.pattern.discovery.collector:
+    class: Drupal\patternkit\Asset\PatternDiscoveryCollector
+    arguments: [ '@cache.discovery', '@lock', '@patternkit.library.namespace_resolver', '@plugin.manager.library.pattern', '@logger.channel.patternkit']
+    tags:
+      - { name: needs_destruction }
   plugin.manager.library.pattern:
     class: Drupal\patternkit\PatternLibraryPluginManager
     arguments: ['@container.namespaces', '@cache.discovery', '@module_handler', '@theme_handler']
@@ -37,7 +51,7 @@ services:
     # We use '.' instead of '@app.root' as the path for non-namespaced template
     # files so that they match the relative paths of templates loaded via the
     # theme registry or via Twig namespaces.
-    arguments: ['.', '@logger.channel.patternkit', '@patternkit.asset.library']
+    arguments: ['.', '@logger.channel.patternkit', '@patternkit.library.namespace_resolver']
     tags:
       - { name: twig.loader, priority: 100 }
   patternkit.translate_layout_builder_block:
@@ -51,7 +65,6 @@ services:
       - '@cache.discovery'
       - '@module_handler'
       - '@serialization.json'
-      - '@patternkit.asset.library'
       - '@patternkit.schema.schema_walker_factory'
       - '@logger.channel.patternkit'
   patternkit.schema.schema_factory:
@@ -61,7 +74,8 @@ services:
   patternkit.schema.ref_provider:
     class: Drupal\patternkit\Schema\PatternkitRefProvider
     arguments:
-      - '@patternkit.asset.library'
+      - '@patternkit.pattern.discovery'
+      - '@patternkit.library.namespace_resolver'
     public: false
   patternkit.schema.schema_walker_factory:
     class: Drupal\patternkit\Schema\SchemaWalkerFactory

@@ -101,10 +101,9 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
       if (!$file->isFile()) {
         continue;
       }
-      $file_path = $file->getPath();
 
       // Skip tests folders.
-      if (strpos($file_path, '/tests') !== FALSE) {
+      if (strpos($file->getRelativePath(), '/tests') !== FALSE) {
         continue;
       }
 
@@ -119,6 +118,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
       $file_basename = $file->getBasename('.' . $file_ext);
 
       // Build an array of all the filenames of interest, keyed by name.
+      $file_path = $file->getPath();
       $components[$file_basename][$file_ext] = "$file_path/$file_basename.$file_ext";
     }
     return $components;

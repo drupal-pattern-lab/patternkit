@@ -2,10 +2,12 @@
 
 namespace Drupal\patternkit\Form;
 
+use Drupal\Core\Cache\CacheCollectorInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\patternkit\Asset\LibraryInterface;
+use Drupal\patternkit\Asset\LibraryNamespaceResolverInterface;
+use Drupal\patternkit\Asset\PatternDiscoveryInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -21,22 +23,37 @@ class PatternkitSettingsForm extends ConfigFormBase {
   const SETTINGS = 'patternkit.settings';
 
   /**
-   * The Patternkit library service.
+   * The library namespace resolver service for loading library definitions.
    *
-   * @var \Drupal\patternkit\Asset\LibraryInterface
+   * @var \Drupal\patternkit\Asset\LibraryNamespaceResolverInterface
    */
-  protected LibraryInterface $library;
+  protected LibraryNamespaceResolverInterface $libraryNamespaceResolver;
+
+  /**
+   * The pattern discovery service for loading patterns.
+   *
+   * @var \Drupal\patternkit\Asset\PatternDiscoveryInterface
+   */
+  protected PatternDiscoveryInterface $patternDiscovery;
 
   /**
    * Constructor for PatternkitSettingsForm.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The config factory service.
-   * @param \Drupal\patternkit\Asset\LibraryInterface $library
-   *   The patternkit library service.
+   * @param \Drupal\patternkit\Asset\LibraryNamespaceResolverInterface $libraryNamespaceResolver
+   *   The library namespace resolver service.
+   * @param \Drupal\patternkit\Asset\PatternDiscoveryInterface $patternDiscovery
+   *   The pattern discovery service.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, LibraryInterface $library) {
-    $this->library = $library;
+  public function __construct(
+    ConfigFactoryInterface $config_factory,
+    LibraryNamespaceResolverInterface $libraryNamespaceResolver,
+    PatternDiscoveryInterface $patternDiscovery
+  ) {
+    $this->libraryNamespaceResolver = $libraryNamespaceResolver;
+    $this->patternDiscovery = $patternDiscovery;
+
     parent::__construct($config_factory);
   }
 
@@ -44,11 +61,11 @@ class PatternkitSettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container): self {
-    /** @var \Drupal\Core\Config\ConfigFactoryInterface $config_factory */
-    $config_factory = $container->get('config.factory');
-    /** @var \Drupal\patternkit\Asset\LibraryInterface $library */
-    $library = $container->get('patternkit.asset.library');
-    return new static($config_factory, $library);
+    return new static(
+      $container->get('config.factory'),
+      $container->get('patternkit.library.namespace_resolver'),
+      $container->get('patternkit.pattern.discovery'),
+    );
   }
 
   /**
@@ -57,7 +74,8 @@ class PatternkitSettingsForm extends ConfigFormBase {
   public function buildForm(array $form, FormStateInterface $form_state): array {
     $config = $this->config(static::SETTINGS);
     try {
-      $libraries = $this->library->getLibraryDefinitions();
+      $libraries = $this->libraryNamespaceResolver->getLibraryDefinitions();
+      $patterns = $this->patternDiscovery->getPatternDefinitions();
     }
     catch (\Exception $exception) {
       $this->getLogger('patternkit')->error('Unable to load Patternkit libraries list: @message', ['@message' => $exception->getMessage()]);
@@ -77,50 +95,52 @@ class PatternkitSettingsForm extends ConfigFormBase {
       '#sticky' => TRUE,
     ];
     $library_options = $config->get('patternkit_libraries') ?? [];
-    foreach ($libraries as $lib_title => $library) {
-      if (empty($library->patterns)) {
+    foreach ($libraries as $namespace => $library) {
+      if (empty($library['patterns'])) {
         continue;
       }
-      $lib_desc = $library->description ?? $lib_title;
-      if (!empty($library->patterns)) {
-        $lib_desc = t('@title (@count patterns)', [
-          '@title' => $lib_title,
-          '@count' => count($library->patterns),
-        ]);
-      }
-      $form['patternkit_libraries'][$lib_title]['description'] = [
+
+      $lib_id = $library['id'];
+      $lib_desc = $library['description'] ?? $lib_id;
+      $lib_patterns = $patterns[$library['namespace']];
+      $lib_desc = t('@title (@count patterns)', [
+        '@title' => $lib_desc,
+        '@count' => count($lib_patterns),
+      ]);
+
+      $form['patternkit_libraries'][$lib_id]['description'] = [
         '#type' => 'inline_template',
         '#template' => '<div class="library"><span class="title">{{ title }}</span>{% if description or warning %}<div class="description">{{ description }}</div>{% endif %}</div>',
         '#context' => [
           'title' => $lib_desc,
         ],
       ];
-      if (!empty($library->description)) {
-        $form['patternkit_libraries'][$lib_title]['description']['#context']['description'] = $library['description'];
+      if (!empty($library['description'])) {
+        $form['patternkit_libraries'][$lib_id]['description']['#context']['description'] = $library['description'];
       }
-      $form['patternkit_libraries'][$lib_title]['enabled'] = [
+      $form['patternkit_libraries'][$lib_id]['enabled'] = [
         '#title' => $this->t('Library Enabled'),
         '#title_display' => 'invisible',
         '#wrapper_attributes' => ['class' => ['checkbox']],
         '#type' => 'checkbox',
-        '#default_value' => $library_options[$lib_title]['enabled'] ?? 1,
+        '#default_value' => $library_options[$lib_id]['enabled'] ?? 1,
         '#attributes' => [
           'class' => [
-            'lib-' . $lib_title,
-            'js-lib-' . $lib_title,
+            'lib-' . $lib_id,
+            'js-lib-' . $lib_id,
           ],
         ],
       ];
-      $form['patternkit_libraries'][$lib_title]['visible'] = [
+      $form['patternkit_libraries'][$lib_id]['visible'] = [
         '#title' => $this->t('Library Visible in Lists'),
         '#title_display' => 'invisible',
         '#wrapper_attributes' => ['class' => ['checkbox']],
         '#type' => 'checkbox',
-        '#default_value' => $library_options[$lib_title]['visible'] ?? 1,
+        '#default_value' => $library_options[$lib_id]['visible'] ?? 1,
         '#attributes' => [
           'class' => [
-            'lib-' . $lib_title,
-            'js-lib-' . $lib_title,
+            'lib-' . $lib_id,
+            'js-lib-' . $lib_id,
           ],
         ],
       ];
@@ -169,11 +189,21 @@ class PatternkitSettingsForm extends ConfigFormBase {
       && !$config->get('patternkit_cache_enabled')) {
       $this->library->clearCachedDefinitions();
     }
-    $libraries = $this->library->getLibraries();
+    $libraries = $this->libraryNamespaceResolver->getLibraryDefinitions();
     $count = count($libraries);
     $this->messenger()->addStatus($this->t('Rebuilt Patternkit Library Cache with @count libraries.', ['@count' => $count]));
 
     parent::submitForm($form, $form_state);
+  }
+
+  /**
+   * Rebuild pattern and library discovery caches.
+   */
+  protected function rebuildCaches(): void {
+    if ($this->libraryNamespaceResolver instanceof CacheCollectorInterface) {
+      $this->libraryNamespaceResolver->clear();
+    }
+    $this->patternDiscovery->clearCachedDefinitions();
   }
 
 }

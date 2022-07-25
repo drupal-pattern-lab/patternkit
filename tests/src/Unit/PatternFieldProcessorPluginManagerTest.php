@@ -8,7 +8,6 @@ use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Render\BubbleableMetadata;
-use Drupal\patternkit\Asset\LibraryInterface;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Exception\SchemaReferenceException;
 use Drupal\patternkit\PatternFieldProcessorPluginManager;
@@ -77,13 +76,6 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
   protected Json $serializer;
 
   /**
-   * Mocked asset library service for loading assets.
-   *
-   * @var \Drupal\patternkit\Asset\LibraryInterface
-   */
-  protected LibraryInterface $library;
-
-  /**
    * The test service for resolving schema references.
    *
    * @var \Drupal\Tests\patternkit\Unit\Schema\TestPatternkitRefProvider
@@ -144,7 +136,6 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
     $this->cacheDiscovery = $this->createMock(CacheBackendInterface::class);
     $this->moduleHandler = $this->createMock(ModuleHandlerInterface::class);
     $this->serializer = new Json();
-    $this->library = $this->createMock(LibraryInterface::class);
     $this->logger = $this->createMock(LoggerChannelInterface::class);
 
     // Expect no errors to be logged unless overridden in a specific test.
@@ -163,7 +154,6 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
       $this->cacheDiscovery,
       $this->moduleHandler,
       $this->serializer,
-      $this->library,
       $this->schemaWalkerFactory,
       $this->logger,
     );
@@ -246,7 +236,6 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
       $this->cacheDiscovery,
       $this->moduleHandler,
       $this->serializer,
-      $this->library,
       $this->schemaWalkerFactory,
       $errorLogger,
     );
@@ -590,7 +579,7 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
   /**
    * Test property traversal with array properties.
    *
-   * @covers ::processProperties
+   * @covers ::traverseSchema
    * @covers ::applyProcessors
    */
   public function testTraverseSchemaWithArrays() {
@@ -707,7 +696,7 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
   /**
    * Test property traversal with array properties containing references.
    *
-   * @covers ::processProperties
+   * @covers ::traverseSchema
    */
   public function testTraverseSchemaWithArraysWithRefs() {
     // Prepare the schema for the pattern being processed.

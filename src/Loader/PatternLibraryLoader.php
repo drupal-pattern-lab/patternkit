@@ -2,8 +2,8 @@
 
 namespace Drupal\patternkit\Loader;
 
+use Drupal\patternkit\Asset\LibraryNamespaceResolverInterface;
 use Psr\Log\LoggerInterface;
-use Drupal\patternkit\Asset\LibraryInterface;
 use Twig\Loader\FilesystemLoader;
 
 /**
@@ -18,29 +18,34 @@ class PatternLibraryLoader extends FilesystemLoader {
    *   Paths to pass to the Filesystem loader.
    * @param \Psr\Log\LoggerInterface $logger
    *   Logs to the patternkit channel.
-   * @param \Drupal\patternkit\Asset\LibraryInterface $library
+   * @param \Drupal\patternkit\Asset\LibraryNamespaceResolverInterface $libraryNamespaceResolver
    *   Provides library names and paths.
    */
   public function __construct(
     $paths,
     LoggerInterface $logger,
-    LibraryInterface $library
+    LibraryNamespaceResolverInterface $libraryNamespaceResolver
   ) {
     parent::__construct($paths);
 
     $libraries = [];
     try {
-      $libraries = $library->getLibraryDefinitions();
+      $libraries = $libraryNamespaceResolver->getLibraryDefinitions();
     }
     catch (\Exception $exception) {
       $logger->error('Error loading pattern libraries: @message', ['@message' => $exception->getMessage()]);
     }
     foreach ($libraries as $namespace => $pattern_library) {
-      foreach ($pattern_library->getPatternInfo() as $info) {
-        if (!isset($info['data'])) {
-          continue;
+      if (isset($pattern_library['patterns'])) {
+        foreach ($pattern_library['patterns'] as $info) {
+          if (!isset($info['data'])) {
+            continue;
+          }
+
+          // Trim the leading symbol for registered namespaces since they are
+          // trimmed before lookup when loading templates.
+          $this->addPath($info['data'], ltrim($namespace, '@'));
         }
-        $this->addPath($info['data'], $namespace);
       }
     }
   }

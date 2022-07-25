@@ -163,7 +163,7 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
       try {
         $pattern = Pattern::create($pattern_metadata);
       }
-      catch (\Exception $e) {
+      catch (\Exception $exception) {
         $this->logger->error('Error loading patterns for derivative blocks: @message', ['@message' => $exception->getMessage()]);
         continue;
       }

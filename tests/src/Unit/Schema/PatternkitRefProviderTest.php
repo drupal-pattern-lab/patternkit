@@ -229,4 +229,67 @@ JSON;
     return $cases;
   }
 
+  /**
+   * Test parsing of namespaced schema references.
+   *
+   * @covers ::parseNamespacedSchemaReference
+   * @dataProvider providerParseNamespacedSchemaReference
+   */
+  public function testParseNamespacedSchemaReference(string $ref, $expected) {
+    $actual = $this->provider->parseNamespacedSchemaReference($ref);
+
+    $this->assertEquals($expected, $actual);
+  }
+
+  /**
+   * Data provider for testParseNamespacedSchemaReference.
+   */
+  public function providerParseNamespacedSchemaReference(): array {
+    $cases = [];
+
+    $ref = '@patternkit/atoms/example/src/example';
+    $expected = [
+      'asset_id' => '@patternkit/atoms/example/src/example',
+      'path' => '',
+    ];
+    $cases['example'] = [$ref, $expected];
+
+    $ref = '@patternkit/atoms/example_filtered/src/example_filtered';
+    $expected = [
+      'asset_id' => '@patternkit/atoms/example_filtered/src/example_filtered',
+      'path' => '',
+    ];
+    $cases['example_filtered'] = [$ref, $expected];
+
+    $ref = '@patternkit/atoms/example_ref/src/example_ref';
+    $expected = [
+      'asset_id' => '@patternkit/atoms/example_ref/src/example_ref',
+      'path' => '',
+    ];
+    $cases['example_ref'] = [$ref, $expected];
+
+    $ref = '@patternkit/atoms/example/src/example#/properties/text';
+    $expected = [
+      'asset_id' => '@patternkit/atoms/example/src/example',
+      'path' => '/properties/text',
+    ];
+    $cases['property_path'] = [$ref, $expected];
+
+    $ref = '@patternkit/atoms/example_ref/../example/src/example.json';
+    $expected = [
+      'asset_id' => '@patternkit/atoms/example/src/example',
+      'path' => '',
+    ];
+    $cases['relative_ref'] = [$ref, $expected];
+
+    $ref = '@patternkit/atoms/example_ref/../example/src/example.json#/properties/text';
+    $expected = [
+      'asset_id' => '@patternkit/atoms/example/src/example',
+      'path' => '/properties/text',
+    ];
+    $cases['relative_ref_with_path'] = [$ref, $expected];
+
+    return $cases;
+  }
+
 }

@@ -2,9 +2,11 @@
 
 namespace Drupal\Tests\patternkit\Kernel;
 
+use Drupal\Core\Render\RendererInterface;
 use Drupal\filter\Entity\FilterFormat;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\node\Entity\Node;
+use Drupal\patternkit\Asset\PatternDiscoveryInterface;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternFieldProcessorPluginManager;
@@ -15,7 +17,6 @@ use Drupal\patternkit\Plugin\PatternFieldProcessor\WysiwygFieldProcessor;
  * Test pattern field processor plugin manager functionality.
  *
  * @group patternkit
- * @group legacy
  */
 class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
 
@@ -40,6 +41,20 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
   protected $pluginManager;
 
   /**
+   * The pattern discovery service.
+   *
+   * @var \Drupal\patternkit\Asset\PatternDiscoveryInterface
+   */
+  protected PatternDiscoveryInterface $patternDiscovery;
+
+  /**
+   * The renderer service.
+   *
+   * @var \Drupal\Core\Render\RendererInterface
+   */
+  protected RendererInterface $renderer;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp(): void {
@@ -49,11 +64,8 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
     $this->installEntitySchema('node');
 
     $this->pluginManager = $this->container->get('plugin.manager.pattern_field_processor');
-
-    // @todo Remove this once the referenced deprecation is resolved.
-    // @see https://www.drupal.org/node/3000490
-    // @see https://www.drupal.org/project/patternkit/issues/3295521
-    $this->expectDeprecation('ModuleHandlerInterface::implementsHook() is deprecated in drupal:9.4.0 and is removed from drupal:10.0.0. Instead you should use ModuleHandlerInterface::hasImplementations()  with the $modules argument. See https://www.drupal.org/node/3000490');
+    $this->patternDiscovery = $this->container->get('patternkit.pattern.discovery');
+    $this->renderer = $this->container->get('renderer');
   }
 
   /**
@@ -79,12 +91,8 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
    * Test basic rendering of a pattern.
    */
   public function testBasicPatternRender() {
-    /** @var \Drupal\patternkit\Asset\LibraryInterface $library */
-    $library = $this->container->get('patternkit.asset.library');
-    $patterns = $library->getAssets();
-
     $id = '@patternkit/atoms/example/src/example';
-    $example_pattern = Pattern::create($patterns[$id]);
+    $example_pattern = $this->loadPattern($id);
     $this->assertInstanceOf(PatternInterface::class, $example_pattern);
 
     // Prepare a render element for testing.
@@ -99,9 +107,7 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
       ],
     ];
 
-    /** @var \Drupal\Core\Render\RendererInterface $renderer */
-    $renderer = $this->container->get('renderer');
-    $output = $renderer->renderRoot($element);
+    $output = $this->renderer->renderRoot($element);
 
     $this->assertStringContainsString('Sample twig template', $output);
     $this->assertStringContainsString($text, $output);
@@ -112,12 +118,8 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
    * Test rendering of a pattern with references.
    */
   public function testRefPatternRender() {
-    /** @var \Drupal\patternkit\Asset\LibraryInterface $library */
-    $library = $this->container->get('patternkit.asset.library');
-    $patterns = $library->getAssets();
-
     $id = '@patternkit/atoms/example_ref/src/example_ref';
-    $example_pattern = Pattern::create($patterns[$id]);
+    $example_pattern = $this->loadPattern($id);
     $this->assertInstanceOf(PatternInterface::class, $example_pattern);
 
     // Prepare a render element for testing.
@@ -134,9 +136,7 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
       ],
     ];
 
-    /** @var \Drupal\Core\Render\RendererInterface $renderer */
-    $renderer = $this->container->get('renderer');
-    $output = $renderer->renderRoot($element);
+    $output = $this->renderer->renderRoot($element);
 
     $this->assertStringContainsString('Example twig template with include and reference.', $output);
     $this->assertStringContainsString('Sample twig template', $output);
@@ -150,13 +150,9 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
    * @covers \Drupal\patternkit\Plugin\PatternFieldProcessor\TokenProcessor
    */
   public function testTokenReplacementProcessor() {
-    /** @var \Drupal\patternkit\Asset\LibraryInterface $library */
-    $library = $this->container->get('patternkit.asset.library');
-    $patterns = $library->getAssets();
-
     // Load our pattern instance.
     $id = '@patternkit/atoms/example_ref/src/example_ref';
-    $example_pattern = Pattern::create($patterns[$id]);
+    $example_pattern = $this->loadPattern($id);
     $this->assertInstanceOf(PatternInterface::class, $example_pattern);
 
     // Prepare test values for identification in rendered output.
@@ -192,9 +188,7 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
       ],
     ];
 
-    /** @var \Drupal\Core\Render\RendererInterface $renderer */
-    $renderer = $this->container->get('renderer');
-    $output = $renderer->renderRoot($element);
+    $output = $this->renderer->renderRoot($element);
 
     // Confirm raw template content is included.
     $this->assertStringContainsString('Example twig template with include and reference.
@@ -220,13 +214,9 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
    * @covers \Drupal\patternkit\Plugin\PatternFieldProcessor\TokenProcessor::apply
    */
   public function testTokenReplacementProcessorWithInvalidTokens() {
-    /** @var \Drupal\patternkit\Asset\LibraryInterface $library */
-    $library = $this->container->get('patternkit.asset.library');
-    $patterns = $library->getAssets();
-
     // Load our pattern instance.
     $id = '@patternkit/atoms/example/src/example';
-    $example_pattern = Pattern::create($patterns[$id]);
+    $example_pattern = $this->loadPattern($id);
     $this->assertInstanceOf(PatternInterface::class, $example_pattern);
 
     // Prepare test values for identification in rendered output.
@@ -258,9 +248,7 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
       ],
     ];
 
-    /** @var \Drupal\Core\Render\RendererInterface $renderer */
-    $renderer = $this->container->get('renderer');
-    $output = $renderer->renderRoot($element);
+    $output = $this->renderer->renderRoot($element);
 
     // Confirm raw template content is included.
     $this->assertStringContainsString('Sample twig template', $output);
@@ -283,12 +271,8 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
    * @covers \Drupal\patternkit\Plugin\PatternFieldProcessor\WysiwygFieldProcessor
    */
   public function testWysiwygProcessor() {
-    /** @var \Drupal\patternkit\Asset\LibraryInterface $library */
-    $library = $this->container->get('patternkit.asset.library');
-    $patterns = $library->getAssets();
-
     $id = '@patternkit/atoms/example/src/example';
-    $example_pattern = Pattern::create($patterns[$id]);
+    $example_pattern = $this->loadPattern($id);
     $this->assertInstanceOf(PatternInterface::class, $example_pattern);
 
     // Prepare a render element for testing.
@@ -326,9 +310,7 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
     $settings->set('patternkit_json_editor_ckeditor_toolbar', 'escaped_html');
     $settings->save();
 
-    /** @var \Drupal\Core\Render\RendererInterface $renderer */
-    $renderer = $this->container->get('renderer');
-    $output = $renderer->renderRoot($element);
+    $output = $this->renderer->renderRoot($element);
 
     $this->assertStringContainsString('Sample twig template', $output);
     $this->assertStringContainsString($text, $output);
@@ -345,12 +327,8 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
    * @covers \Drupal\patternkit\Plugin\PatternFieldProcessor\WysiwygFieldProcessor
    */
   public function testMultipleProcessors() {
-    /** @var \Drupal\patternkit\Asset\LibraryInterface $library */
-    $library = $this->container->get('patternkit.asset.library');
-    $patterns = $library->getAssets();
-
     $id = '@patternkit/atoms/example/src/example';
-    $example_pattern = Pattern::create($patterns[$id]);
+    $example_pattern = $this->loadPattern($id);
     $this->assertInstanceOf(PatternInterface::class, $example_pattern);
 
     // Prepare test values for identification in rendered output.
@@ -398,9 +376,7 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
     $settings->set('patternkit_json_editor_ckeditor_toolbar', 'escaped_html');
     $settings->save();
 
-    /** @var \Drupal\Core\Render\RendererInterface $renderer */
-    $renderer = $this->container->get('renderer');
-    $output = $renderer->renderRoot($element);
+    $output = $this->renderer->renderRoot($element);
 
     // Confirm output contains raw content in the template.
     $this->assertStringContainsString('Sample twig template', $output);
@@ -413,6 +389,23 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
 
     // Confirm the filter ran and escaped the markup in our text.
     $this->assertStringContainsString(htmlentities($formatted_text), $output);
+  }
+
+  /**
+   * Create a new pattern instance of the specified pattern ID.
+   *
+   * @param string $pattern_id
+   *   The namespaced identifier for the pattern ID to load.
+   *
+   * @return \Drupal\patternkit\Entity\Pattern
+   *   The instantiated pattern entity.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   */
+  protected function loadPattern(string $pattern_id) {
+    $definition = $this->patternDiscovery->getPatternDefinition($pattern_id);
+    return Pattern::create($definition);
   }
 
 }

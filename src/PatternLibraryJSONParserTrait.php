@@ -56,8 +56,7 @@ trait PatternLibraryJSONParserTrait {
   public static function schemaDereference($properties, PatternInterface $pattern) {
     $ext = '.json';
     $ext_len = strlen($ext);
-    /** @var \Drupal\patternkit\Asset\Library $library */
-    $library = \Drupal::service('patternkit.asset.library');
+    $namespace_resolver = \Drupal::service('patternkit.library.namespace_resolver');
     foreach ($properties as $property => $value) {
       if (!is_scalar($value)) {
         $new_value = static::schemaDereference($value, $pattern);
@@ -95,11 +94,10 @@ trait PatternLibraryJSONParserTrait {
       // Since schema paths can be relative, we loop through each possible
       // pattern library path to locate the schema, with overrides allowed.
       if (strpos($path, './') !== FALSE) {
-        $pattern_library = $library->getLibraryDefinitions()[ltrim($library_name, '@')];
-        $library_path = $pattern_library->getExtension()
-          ->getPath();
+        $pattern_library = $namespace_resolver->getLibraryFromNamespace("@$library_name");
+        $library_path = $pattern_library['extensionPath'];
         $realpath = $path;
-        foreach ($pattern_library->getPatternInfo() as $info) {
+        foreach ($pattern_library['patterns'] as $info) {
           if (!isset($info['data'])) {
             continue;
           }
@@ -121,6 +119,7 @@ trait PatternLibraryJSONParserTrait {
         . '?asset=schema'
         . $ref;
     }
+
     return $properties;
   }
 
