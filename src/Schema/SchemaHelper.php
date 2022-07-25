@@ -77,6 +77,7 @@ class SchemaHelper {
       // Get a globally configured execution context for use in schema
       // operations. This will ensure expected options as well as configured
       // remote reference providers and data preprocessors are available.
+      /** @var \Swaggest\JsonSchema\Context $context */
       $context = \Drupal::service('patternkit.schema.schema_factory')->getDefaultContext();
       $validationResult = $schema->in($value, $context);
     }
@@ -122,7 +123,7 @@ class SchemaHelper {
       // Return the first composition schema that matches the given value.
       foreach ($composition as $constraint) {
         try {
-          if ($constraint->in($value)) {
+          if ($constraint->in($value, $context)) {
             return $constraint;
           }
         }
