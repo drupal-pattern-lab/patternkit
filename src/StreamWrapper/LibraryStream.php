@@ -4,6 +4,7 @@ namespace Drupal\patternkit\StreamWrapper;
 
 use Drupal\Core\Asset\AttachedAssets;
 use Drupal\Core\StreamWrapper\PublicStream;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
  * Defines a Drupal library (library://) stream wrapper class.
@@ -11,6 +12,8 @@ use Drupal\Core\StreamWrapper\PublicStream;
  * Provides support for retrieving library files.
  */
 class LibraryStream extends PublicStream {
+
+  use StringTranslationTrait;
 
   /**
    * Override to interpret the uri as the actual library file.
@@ -60,14 +63,14 @@ class LibraryStream extends PublicStream {
    * {@inheritdoc}
    */
   public function getName() {
-    return t('Library files');
+    return $this->t('Library files');
   }
 
   /**
    * {@inheritdoc}
    */
   public function getDescription() {
-    return t('Library files for usage in processing and rendering.');
+    return $this->t('Library files for usage in processing and rendering.');
   }
 
 }

@@ -7,6 +7,7 @@ use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Plugin\Discovery\ContainerDeriverInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Form\PatternkitSettingsForm;
 use Drupal\patternkit\Asset\LibraryInterface;
@@ -16,6 +17,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * A deriver to create block derivatives for all discovered patterns.
  */
 class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
+
+  use StringTranslationTrait;
 
   /**
    * Configuration for the patternkit module.
@@ -174,11 +177,11 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
         continue;
       }
       $this->derivatives[$pattern_id] = [
-        'category' => (string) t('Patternkit:@lib/@category', [
+        'category' => (string) $this->t('Patternkit:@lib/@category', [
           '@lib'      => $lib ?? 'patternkit',
           '@category' => $pattern->getCategory() ?? 'default',
         ]),
-        'admin_label' => t('[Patternkit] @pattern', ['@pattern' => $pattern->label()]),
+        'admin_label' => $this->t('[Patternkit] @pattern', ['@pattern' => $pattern->label()]),
         'pattern' => $pattern,
       ];
       $this->derivatives[$pattern_id] += $base_plugin_definition;

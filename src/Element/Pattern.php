@@ -119,7 +119,7 @@ class Pattern extends RenderElement implements ContainerFactoryPluginInterface {
     // Fail early if a pattern was unable to be loaded.
     if (is_null($pattern)) {
       return [
-        '#markup' => t('Pattern unavailable.'),
+        '#markup' => $this->t('Pattern unavailable.'),
       ];
     }
 

@@ -15,11 +15,14 @@ use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternEditorConfig;
 use Symfony\Component\Finder\Iterator\RecursiveDirectoryIterator;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
  * Base functionality for a pattern library parser.
  */
 abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implements PatternLibraryParserInterface {
+
+  use StringTranslationTrait;
 
   /**
    * Serializes and de-serializes data.
@@ -328,7 +331,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     $dir = "public://patternkit/$subtype/{$config->instance_id}";
     if (!\Drupal::service('file_system')->prepareDirectory($dir, FileSystem::CREATE_DIRECTORY)) {
       \Drupal::service('messenger')->addMessage(
-        t(
+        $this->t(
           'Unable to create folder or save metadata/assets for plugin @plugin',
           ['@plugin' => $subtype]
         ));
@@ -357,7 +360,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
 
     if ($save_result === FALSE) {
       \Drupal::service('messenger')->addMessage(
-        t(
+        $this->t(
           'Unable to save metadata/assets for plugin @plugin',
           ['@plugin' => $subtype]
         ));

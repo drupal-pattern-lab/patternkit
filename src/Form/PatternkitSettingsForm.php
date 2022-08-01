@@ -79,7 +79,7 @@ class PatternkitSettingsForm extends ConfigFormBase {
     }
     catch (\Exception $exception) {
       $this->getLogger('patternkit')->error('Unable to load Patternkit libraries list: @message', ['@message' => $exception->getMessage()]);
-      \Drupal::messenger()->addMessage(t('Unable to load Patternkit libraries list. Check the logs for more information.'), 'error');
+      \Drupal::messenger()->addMessage($this->t('Unable to load Patternkit libraries list. Check the logs for more information.'), 'error');
       return [
         '#markup' => $this->t('Settings are unavailable when Pattern libraries fail to load to prevent config errors.'),
       ];
@@ -103,7 +103,7 @@ class PatternkitSettingsForm extends ConfigFormBase {
       $lib_id = $library['id'];
       $lib_desc = $library['description'] ?? $lib_id;
       $lib_patterns = $patterns[$library['namespace']];
-      $lib_desc = t('@title (@count patterns)', [
+      $lib_desc = $this->t('@title (@count patterns)', [
         '@title' => $lib_desc,
         '@count' => count($lib_patterns),
       ]);
@@ -148,13 +148,13 @@ class PatternkitSettingsForm extends ConfigFormBase {
 
     $form['patternkit_cache_enabled'] = [
       '#type' => 'checkbox',
-      '#title' => t('Use the Patternkit Library Cache'),
+      '#title' => $this->t('Use the Patternkit Library Cache'),
       '#default_value' => $config->get('patternkit_cache_enabled'),
     ];
 
     $form['patternkit_render_cache'] = [
       '#type' => 'checkbox',
-      '#title' => t('Use the Patternkit Disk Render Cache'),
+      '#title' => $this->t('Use the Patternkit Disk Render Cache'),
       '#default_value' => $config->get('patternkit_render_cache'),
     ];
 

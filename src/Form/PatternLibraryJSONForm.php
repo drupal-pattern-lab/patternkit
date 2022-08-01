@@ -120,7 +120,7 @@ class PatternLibraryJSONForm extends ConfigFormBase {
     $themes = array_keys(static::THEMES);
     $form['patternkit_json_editor_theme'] = [
       '#type' => 'select',
-      '#title' => t('Select the JSON Editor Theme'),
+      '#title' => $this->t('Select the JSON Editor Theme'),
       '#options' => array_combine($themes, $themes),
       '#default_value' => $config->get('patternkit_json_editor_theme'),
     ];
@@ -128,29 +128,29 @@ class PatternLibraryJSONForm extends ConfigFormBase {
     $icons = array_keys(static::ICONS);
     $form['patternkit_json_editor_icons'] = [
       '#type' => 'select',
-      '#title' => t('Select the icons to be used with the editor'),
+      '#title' => $this->t('Select the icons to be used with the editor'),
       '#options' => array_combine($icons, $icons),
       '#default_value' => $config->get('patternkit_json_editor_icons'),
     ];
 
     $form['patternkit_json_editor_css'] = [
       '#type' => 'textfield',
-      '#title' => t('Add to the editor theme CSS'),
-      '#description' => t('Enter a comma-separated list of additional CSS to include.'),
+      '#title' => $this->t('Add to the editor theme CSS'),
+      '#description' => $this->t('Enter a comma-separated list of additional CSS to include.'),
       '#default_value' => $config->get('patternkit_json_editor_css'),
     ];
 
     $form['patternkit_json_editor_js'] = [
       '#type' => 'textfield',
-      '#title' => t('Add to the editor theme JS'),
-      '#description' => t('Enter a comma-separated list of additional JS to include.'),
+      '#title' => $this->t('Add to the editor theme JS'),
+      '#description' => $this->t('Enter a comma-separated list of additional JS to include.'),
       '#default_value' => $config->get('patternkit_json_editor_js'),
     ];
 
     $form['patternkit_json_editor_use_shadow_dom'] = [
       '#type' => 'checkbox',
-      '#title' => t('Use the Shadow DOM'),
-      '#description' => t('Select whether to use the Shadow DOM for the JSON
+      '#title' => $this->t('Use the Shadow DOM'),
+      '#description' => $this->t('Select whether to use the Shadow DOM for the JSON
       Editor form. Most themes require the Shadow DOM, but most WYSIWYG editors
       do not work with it.'),
       '#default_value' => $config->get('patternkit_json_editor_use_shadow_dom') ?? TRUE,
@@ -158,21 +158,21 @@ class PatternLibraryJSONForm extends ConfigFormBase {
 
     $form['patternkit_json_editor_disable_properties_buttons'] = [
       '#type' => 'checkbox',
-      '#title' => t('Hide the properties buttons'),
-      '#description' => t('Select whether to hide the property buttons (maps to json-editor option <em>disable_properties</em>).'),
+      '#title' => $this->t('Hide the properties buttons'),
+      '#description' => $this->t('Select whether to hide the property buttons (maps to json-editor option <em>disable_properties</em>).'),
       '#default_value' => $config->get('patternkit_json_editor_disable_properties_buttons') ?? FALSE,
     ];
 
     $form['patternkit_json_editor_disable_edit_json_button'] = [
       '#type' => 'checkbox',
-      '#title' => t('Hide the JSON Edit button'),
-      '#description' => t('Select whether to show the Edit JSON button (maps to json-editor option <em>disable_edit_json</em>).'),
+      '#title' => $this->t('Hide the JSON Edit button'),
+      '#description' => $this->t('Select whether to show the Edit JSON button (maps to json-editor option <em>disable_edit_json</em>).'),
       '#default_value' => $config->get('patternkit_json_editor_disable_edit_json_button') ?? TRUE,
     ];
 
     $form['patternkit_json_editor_wysiwyg'] = [
       '#type' => 'select',
-      '#title' => t('WYSIWYG editor'),
+      '#title' => $this->t('WYSIWYG editor'),
       '#options' => static::EDITORS,
       '#empty_value' => '',
       '#default_value' => $config->get('patternkit_json_editor_wysiwyg') ?: '',
@@ -188,7 +188,7 @@ class PatternLibraryJSONForm extends ConfigFormBase {
 
     $form['patternkit_json_editor_ckeditor_toolbar'] = [
       '#type' => 'select',
-      '#title' => t('CKEditor toolbar'),
+      '#title' => $this->t('CKEditor toolbar'),
       '#options' => $ckeditor_toolbar_options,
       '#empty_value' => '',
       '#default_value' => $config->get('patternkit_json_editor_ckeditor_toolbar') ?: '',

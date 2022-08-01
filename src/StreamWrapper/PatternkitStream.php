@@ -4,6 +4,7 @@ namespace Drupal\patternkit\StreamWrapper;
 
 use Drupal\Core\StreamWrapper\LocalStream;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
 
 /**
@@ -13,6 +14,8 @@ use Drupal\Core\Url;
  * file interface.
  */
 class PatternkitStream extends LocalStream {
+
+  use StringTranslationTrait;
 
   /**
    * {@inheritdoc}
@@ -25,14 +28,14 @@ class PatternkitStream extends LocalStream {
    * {@inheritdoc}
    */
   public function getName() {
-    return t('Patternkit patterns');
+    return $this->t('Patternkit patterns');
   }
 
   /**
    * {@inheritdoc}
    */
   public function getDescription() {
-    return t('Patternkit files for parsing and rendering.');
+    return $this->t('Patternkit files for parsing and rendering.');
   }
 
   /**

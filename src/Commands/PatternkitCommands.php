@@ -408,7 +408,7 @@ class PatternkitCommands extends DrushCommands {
     if ($base_pattern->getHash() === $pattern->getHash()) {
       return FALSE;
     }
-    $logger->notice(t('Updating pattern from @old to @new.',
+    $logger->notice($this->t('Updating pattern from @old to @new.',
       ['@old' => $pattern->getVersion(), '@new' => $base_pattern->getVersion()]));
     $pattern->setNewRevision();
     $pattern->isDefaultRevision(TRUE);

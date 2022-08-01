@@ -27,8 +27,8 @@ class MediaLibrarySettingsForm extends ConfigFormBase {
 
     $form['use_styles'] = [
       '#type' => 'checkbox',
-      '#title' => t('Use bundled styles for the media library modal window'),
-      '#description' => t('If checked, then Patternkit will load some styles for
+      '#title' => $this->t('Use bundled styles for the media library modal window'),
+      '#description' => $this->t('If checked, then Patternkit will load some styles for
         the media library modal window. <br />This feature relies on templates
         provided by <a href="https://www.drupal.org/project/media_library_theme_reset">
         Media Library Theme Reset</a>, so enable that module if you want to use
