@@ -6,6 +6,7 @@ use Drupal\Core\Asset\LibraryDiscoveryInterface;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Cache\CacheCollector;
 use Drupal\Core\Lock\LockBackendInterface;
+use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -55,6 +56,13 @@ class LibraryNamespaceResolver extends CacheCollector implements LibraryNamespac
   protected LibraryDiscoveryInterface $libraryDiscovery;
 
   /**
+   * The stream wrapper manager service.
+   *
+   * @var \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface
+   */
+  protected StreamWrapperManagerInterface $streamWrapperManager;
+
+  /**
    * The collection of loaded extensions to search for libraries.
    *
    * @var \Drupal\Core\Extension\Extension[]
@@ -72,15 +80,19 @@ class LibraryNamespaceResolver extends CacheCollector implements LibraryNamespac
    *   Provide a default cache.
    * @param \Drupal\Core\Lock\LockBackendInterface $lock
    *   Provide the lock backend.
+   * @param \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface $streamWrapperManager
+   *   The stream wrapper manager service.
    */
   public function __construct(
     ContainerInterface $container,
     LibraryDiscoveryInterface $libraryDiscovery,
     CacheBackendInterface $cache,
-    LockBackendInterface $lock
+    LockBackendInterface $lock,
+    StreamWrapperManagerInterface $streamWrapperManager
   ) {
     $this->container = $container;
     $this->libraryDiscovery = $libraryDiscovery;
+    $this->streamWrapperManager = $streamWrapperManager;
 
     parent::__construct(self::PERSISTENT_CACHE_ID, $cache, $lock, self::CACHE_TAGS);
   }
@@ -354,10 +366,8 @@ class LibraryNamespaceResolver extends CacheCollector implements LibraryNamespac
    */
   protected function fileValidUri($uri): bool {
     // Assert that the URI has an allowed scheme. Bare paths are not allowed.
-    /** @var \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface $stream_wrapper_manager */
-    $stream_wrapper_manager = \Drupal::service('stream_wrapper_manager');
-    $uri_scheme = $stream_wrapper_manager::getScheme($uri);
-    if (!$stream_wrapper_manager->isValidScheme($uri_scheme)) {
+    $uri_scheme = $this->streamWrapperManager::getScheme($uri);
+    if (!$this->streamWrapperManager->isValidScheme($uri_scheme)) {
       return FALSE;
     }
     return TRUE;

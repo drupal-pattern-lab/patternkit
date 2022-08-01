@@ -79,7 +79,7 @@ class PatternkitSettingsForm extends ConfigFormBase {
     }
     catch (\Exception $exception) {
       $this->getLogger('patternkit')->error('Unable to load Patternkit libraries list: @message', ['@message' => $exception->getMessage()]);
-      \Drupal::messenger()->addMessage($this->t('Unable to load Patternkit libraries list. Check the logs for more information.'), 'error');
+      $this->messenger()->addMessage($this->t('Unable to load Patternkit libraries list. Check the logs for more information.'), 'error');
       return [
         '#markup' => $this->t('Settings are unavailable when Pattern libraries fail to load to prevent config errors.'),
       ];
@@ -187,7 +187,7 @@ class PatternkitSettingsForm extends ConfigFormBase {
       ->save();
     if ($form_state->getValue('patternkit_cache_enabled')
       && !$config->get('patternkit_cache_enabled')) {
-      $this->library->clearCachedDefinitions();
+      $this->rebuildCaches();
     }
     $libraries = $this->libraryNamespaceResolver->getLibraryDefinitions();
     $count = count($libraries);

@@ -47,12 +47,14 @@ class PatternLibraryFile extends PatternLibraryPluginDefault implements Containe
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): self {
-    $root = $container->getParameter('app.root');
-    /** @var \Drupal\patternkit\Asset\PatternLibraryParserInterface $file_parser */
-    $file_parser = $container->get('patternkit.asset.library.parser.file');
-    /** @var \Drupal\Core\Config\ConfigFactoryInterface $config_factory */
-    $config_factory = $container->get('config.factory');
-    return new static($root, $file_parser, $config_factory, $configuration, $plugin_id, $plugin_definition);
+    return new static(
+      $container->getParameter('app.root'),
+      $container->get('patternkit.asset.library.parser.file'),
+      $container->get('config.factory'),
+      $configuration,
+      $plugin_id,
+      $plugin_definition
+    );
   }
 
   /**

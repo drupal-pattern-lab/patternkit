@@ -9,20 +9,21 @@ use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\ReplaceCommand;
 use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Block\BlockManagerInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Language\LanguageInterface;
+use Drupal\Core\Language\LanguageManagerInterface;
+use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Plugin\Context\ContextHandlerInterface;
 use Drupal\Core\Plugin\Context\ContextRepositoryInterface;
 use Drupal\Core\Template\TwigEnvironment;
 use Drupal\Core\Utility\Token;
-use Drupal\patternkit\Plugin\Derivative\PatternkitBlock as DerivativePatternkitBlock;
-use Drupal\patternkit\Entity\Pattern;
-use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\Asset\LibraryInterface;
+use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternLibraryPluginManager;
+use Drupal\patternkit\Plugin\Derivative\PatternkitBlock as DerivativePatternkitBlock;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\Core\Language\LanguageInterface;
 
 /**
  * Provides a block that will display a Pattern from a Library with context.
@@ -61,11 +62,18 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
   protected ContextRepositoryInterface $contextRepository;
 
   /**
-   * Loads and saves the attached patternkit data content entity.
+   * Entity storage for patternkit_pattern entities.
    *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   * @var \Drupal\Core\Entity\EntityStorageInterface
    */
-  protected EntityTypeManagerInterface $entityTypeManager;
+  protected EntityStorageInterface $patternStorage;
+
+  /**
+   * Entity storage for patternkit_block entities.
+   *
+   * @var \Drupal\Core\Entity\EntityStorageInterface
+   */
+  protected EntityStorageInterface $blockStorage;
 
   /**
    * Loads pattern information.
@@ -103,6 +111,20 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
   protected TwigEnvironment $twig;
 
   /**
+   * The language manager service.
+   *
+   * @var \Drupal\Core\Language\LanguageManagerInterface
+   */
+  protected LanguageManagerInterface $languageManager;
+
+  /**
+   * The patternkit logger channel.
+   *
+   * @var \Drupal\Core\Logger\LoggerChannelInterface
+   */
+  protected LoggerChannelInterface $logger;
+
+  /**
    * {@inheritdoc}
    */
   public static function create(
@@ -111,29 +133,23 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $plugin_id,
     $plugin_definition
   ): self {
-    $block_plugin_manager = $container->get('plugin.manager.block');
-    $context_handler = $container->get('context.handler');
-    $context_repository = $container->get('context.repository');
     $entity_type_manager = $container->get('entity_type.manager');
-    $library = $container->get('patternkit.asset.library');
-    $pattern_plugin_manager = $container->get('plugin.manager.library.pattern');
-    $serializer = $container->get('serialization.json');
-    $token = $container->get('token');
-    $twig = $container->get('twig');
-
     return new static(
-      $block_plugin_manager,
+      $container->get('plugin.manager.block'),
       $configuration,
-      $context_handler,
-      $context_repository,
-      $entity_type_manager,
-      $library,
-      $pattern_plugin_manager,
+      $container->get('context.handler'),
+      $container->get('context.repository'),
+      $entity_type_manager->getStorage('patternkit_pattern'),
+      $entity_type_manager->getStorage('patternkit_block'),
+      $container->get('patternkit.asset.library'),
+      $container->get('plugin.manager.library.pattern'),
       $plugin_id,
       $plugin_definition,
-      $serializer,
-      $token,
-      $twig
+      $container->get('serialization.json'),
+      $container->get('token'),
+      $container->get('twig'),
+      $container->get('language_manager'),
+      $container->get('logger.channel.patternkit')
     );
   }
 
@@ -150,8 +166,10 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    *   The ContextHandler allows mapping provided contexts to definitions.
    * @param \Drupal\Core\Plugin\Context\ContextRepositoryInterface $context_repository
    *   The repository of available contexts for the current route.
-   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
-   *   Entity type manager service.
+   * @param \Drupal\Core\Entity\EntityStorageInterface $patternkit_pattern_storage
+   *   Entity storage for the patternkit_pattern entity.
+   * @param \Drupal\Core\Entity\EntityStorageInterface $patternkit_block_storage
+   *   Entity storage for the patternkit_block entity.
    * @param \Drupal\patternkit\Asset\LibraryInterface $library
    *   Pattern discovery service.
    * @param \Drupal\patternkit\PatternLibraryPluginManager $pattern_plugin_manager
@@ -166,30 +184,40 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    *   Token service.
    * @param \Drupal\Core\Template\TwigEnvironment $twig
    *   The Twig rendering environment wrapper.
+   * @param \Drupal\Core\Language\LanguageManagerInterface $language_manager
+   *   The lanaguage manager service.
+   * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
+   *   The logger channel for logging messages.
    */
   public function __construct(
     BlockManagerInterface $block_manager,
     array $configuration,
     ContextHandlerInterface $context_handler,
     ContextRepositoryInterface $context_repository,
-    EntityTypeManagerInterface $entity_type_manager,
+    EntityStorageInterface $patternkit_pattern_storage,
+    EntityStorageInterface $patternkit_block_storage,
     LibraryInterface $library,
     PatternLibraryPluginManager $pattern_plugin_manager,
     string $plugin_id,
     array $plugin_definition,
     SerializationInterface $serializer,
     Token $token,
-    TwigEnvironment $twig
+    TwigEnvironment $twig,
+    LanguageManagerInterface $language_manager,
+    LoggerChannelInterface $logger
   ) {
     $this->blockManager = $block_manager;
     $this->contextHandler = $context_handler;
     $this->contextRepository = $context_repository;
-    $this->entityTypeManager = $entity_type_manager;
+    $this->patternStorage = $patternkit_pattern_storage;
+    $this->blockStorage = $patternkit_block_storage;
     $this->library = $library;
     $this->patternLibraryPluginManager = $pattern_plugin_manager;
     $this->serializer = $serializer;
     $this->token = $token;
     $this->twig = $twig;
+    $this->languageManager = $language_manager;
+    $this->logger = $logger;
 
     // Assigns contexts based on the convention that token base names are
     // identical to context name root keys.
@@ -237,8 +265,8 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
 
     $configuration = $this->getConfiguration();
     $plugin = $this->getPluginDefinition();
-    /** @var \Drupal\patternkit\entity\PatternInterface $pattern */
     try {
+      /** @var \Drupal\patternkit\entity\PatternInterface $pattern */
       $pattern = $form_state->get('pattern');
     }
     catch (\Exception $exception) {
@@ -246,32 +274,30 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     }
     try {
       if (!$pattern && isset($configuration['pattern'])) {
-        $pattern = \Drupal::entityTypeManager()->getStorage('patternkit_pattern')->loadRevision($configuration['pattern']);
+        $pattern = $this->patternStorage->loadRevision($configuration['pattern']);
       }
       if (!$pattern) {
-        $pattern = is_array($plugin['pattern']) ? Pattern::create($plugin['pattern']) : $plugin['pattern'];
+        $pattern = is_array($plugin['pattern']) ? $this->patternStorage->create($plugin['pattern']) : $plugin['pattern'];
       }
       $pattern_id = $pattern->getAssetId();
     }
     catch (\Exception $exception) {
-      \Drupal::messenger()->addError($this->t('Unable to load the pattern @pattern. Check the logs for more info.', ['@pattern' => $pattern_id ?? $plugin['pattern']]));
+      $this->messenger()->addError($this->t('Unable to load the pattern @pattern. Check the logs for more info.', ['@pattern' => $pattern_id ?? $plugin['pattern']]));
       return ['#markup' => $this->t('Unable to edit a Patternkit block when the pattern fails to load.')];
     }
 
     $form_state->set('pattern', $pattern);
 
-    /** @var \Drupal\Core\Entity\ContentEntityStorageInterface $block_storage */
-    $block_storage = $this->entityTypeManager->getStorage('patternkit_block');
     if (isset($configuration['patternkit_block_id'])
       && (int) $configuration['patternkit_block_id'] > 0) {
       if (isset($configuration['patternkit_block_rid'])
         && (int) $configuration['patternkit_block_rid'] > 0) {
         /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
-        $patternkit_block = $block_storage->loadRevision($configuration['patternkit_block_rid']);
+        $patternkit_block = $this->blockStorage->loadRevision($configuration['patternkit_block_rid']);
       }
       else {
         /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
-        $patternkit_block = $block_storage->load($configuration['patternkit_block_id']);
+        $patternkit_block = $this->blockStorage->load($configuration['patternkit_block_id']);
         $configuration['patternkit_block_rid'] = $patternkit_block->getLoadedRevisionId();
       }
       $configuration['reusable'] = $patternkit_block->isReusable();
@@ -300,7 +326,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       ];
     }
     try {
-      $base_pattern = Pattern::create($this->library->getLibraryAsset($pattern_id));
+      $base_pattern = $this->patternStorage->create($this->library->getLibraryAsset($pattern_id));
       if ($base_pattern->getHash() !== $pattern->getHash()) {
         $form['schema_desc'] = [
           '#markup' => $this->t('Update pattern schema and template from @old_version to @version:', [
@@ -317,9 +343,10 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       }
     }
     catch (\Exception $exception) {
-      /** @var \Drupal\Core\Logger\LoggerChannelInterface $logger */
-      $logger = \Drupal::service('logger.channel.patternkit');
-      $logger->info($this->t('Unable to show update UI for pattern in filesystem: @id', ['@id' => $pattern_id]));
+      $this->logger->info(
+        $this->t('Unable to show update UI for pattern in filesystem: @id',
+          ['@id' => $pattern_id])
+      );
     }
 
     $form['reusable'] = [
@@ -350,14 +377,13 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
 
     $editor_config = NULL;
     if (!empty($configuration['patternkit_block_id'])) {
-      $block_storage = $this->entityTypeManager->getStorage('patternkit_block');
       if (!empty($configuration['patternkit_block_rid'])) {
         /** @var \Drupal\patternkit\Entity\PatternkitBlock $block_entity */
-        $block_entity = $block_storage->loadRevision($configuration['patternkit_block_rid']);
+        $block_entity = $this->blockStorage->loadRevision($configuration['patternkit_block_rid']);
       }
       else {
         /** @var \Drupal\patternkit\Entity\PatternkitBlock $block_entity */
-        $block_entity = $block_storage->load($configuration['patternkit_block_id']);
+        $block_entity = $this->blockStorage->load($configuration['patternkit_block_id']);
       }
       if (!empty($configuration['langcode']) && $block_entity->hasTranslation(($configuration['langcode']))) {
         $block_entity = $block_entity->getTranslation($configuration['langcode']);
@@ -407,21 +433,20 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $configuration = $this->getConfiguration();
     $pattern_id = DerivativePatternkitBlock::derivativeToAssetId($this->getDerivativeId());
 
-    /** @var \Drupal\Core\Entity\ContentEntityStorageInterface $block_storage */
-    $block_storage = $this->entityTypeManager->getStorage('patternkit_block');
     $values = [
       'data' => $form_state->getValue('instance_config'),
       'info' => $form_state->getValue('label'),
       'pattern_id' => $pattern_id,
       'published' => TRUE,
       'reusable' => $form_state->getValue('reusable'),
-      'langcode' => \Drupal::languageManager()->getCurrentLanguage(LanguageInterface::TYPE_CONTENT)->getId(),
+      'langcode' => $this->languageManager
+        ->getCurrentLanguage(LanguageInterface::TYPE_CONTENT)->getId(),
     ];
 
+    /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
     if (isset($configuration['patternkit_block_id'])
       && (int) $configuration['patternkit_block_id'] > 0
-      && $patternkit_block = $block_storage->load($configuration['patternkit_block_id'])) {
-      /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
+      && $patternkit_block = $this->blockStorage->load($configuration['patternkit_block_id'])) {
       $patternkit_block->setPublished();
       foreach (array_keys($patternkit_block->getFields()) as $key) {
         if (isset($values[$key])) {
@@ -430,18 +455,15 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       }
     }
     else {
-      /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
-      $patternkit_block = $block_storage->create($values);
+      $patternkit_block = $this->blockStorage->create($values);
     }
     $patternkit_block->setNewRevision();
     $patternkit_block->isDefaultRevision(TRUE);
     $patternkit_block->save();
 
-    /** @var \Drupal\Core\Entity\ContentEntityStorageInterface $pattern_storage */
-    $pattern_storage = $this->entityTypeManager->getStorage('patternkit_pattern');
     /** @var \Drupal\patternkit\entity\PatternInterface $pattern */
-    $pattern = $form_state->get('pattern') ?? Pattern::create($this->library->getLibraryAsset($pattern_id));
-    $pattern_cache = $pattern_storage->loadByProperties([
+    $pattern = $form_state->get('pattern') ?? $this->patternStorage->create($this->library->getLibraryAsset($pattern_id));
+    $pattern_cache = $this->patternStorage->loadByProperties([
       'library' => $pattern->getLibrary(),
       'path' => $pattern->getPath(),
     ]);
@@ -507,7 +529,6 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    *   If the instance cannot be created, such as if the ID is invalid.
    */
   public function build(): array {
-    $block_storage = $this->entityTypeManager->getStorage('patternkit_block');
     $pattern_id = $this->getDerivativeId();
     $configuration = $this->getConfiguration();
     $context = $this->getContextValues();
@@ -515,12 +536,12 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     // There is no need to store it if we're only using revisions.
     if (empty($configuration['patternkit_block_rid'])) {
       /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
-      $patternkit_block = $block_storage->load($configuration['patternkit_block_id'] ?? '');
+      $patternkit_block = $this->blockStorage->load($configuration['patternkit_block_id'] ?? '');
       $configuration['patternkit_block_rid'] = $patternkit_block->getLoadedRevisionId();
     }
     else {
       /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
-      $patternkit_block = $block_storage->loadRevision($configuration['patternkit_block_rid'] ?? '');
+      $patternkit_block = $this->blockStorage->loadRevision($configuration['patternkit_block_rid'] ?? '');
     }
 
     $base_dependencies = [];
@@ -532,8 +553,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     // Load module specific config.
     /** @var \Drupal\patternkit\entity\PatternInterface $pattern */
     if (!empty($configuration['pattern'])) {
-      $pattern_storage = $this->entityTypeManager->getStorage('patternkit_pattern');
-      $pattern = $pattern_storage->loadRevision($configuration['pattern']);
+      $pattern = $this->patternStorage->loadRevision($configuration['pattern']);
     }
     else {
       $pattern = $this->library->getLibraryAsset($pattern_id);

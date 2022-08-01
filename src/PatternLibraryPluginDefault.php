@@ -70,7 +70,8 @@ abstract class PatternLibraryPluginDefault extends PluginBase implements Configu
    * @param mixed $plugin_definition
    *   Plugin Definition.
    */
-  public function __construct($root,
+  public function __construct(
+    $root,
     PatternLibraryParserInterface $parser,
     ConfigFactoryInterface $config_factory,
     array $configuration,
@@ -80,6 +81,7 @@ abstract class PatternLibraryPluginDefault extends PluginBase implements Configu
     $this->config = $config_factory->get(PatternkitSettingsForm::SETTINGS);
     $this->root = $root;
     $this->parser = $parser;
+
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->setConfiguration($configuration);
   }

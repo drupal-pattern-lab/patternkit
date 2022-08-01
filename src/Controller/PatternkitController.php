@@ -9,7 +9,6 @@ use Drupal\Core\Extension\ThemeHandlerInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Url;
 use Drupal\patternkit\Asset\LibraryInterface;
-use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Plugin\Derivative\PatternkitBlock;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -27,7 +26,14 @@ class PatternkitController extends ControllerBase {
    *
    * @var \Drupal\Core\Entity\EntityStorageInterface
    */
-  protected EntityStorageInterface $patternkitStorage;
+  protected EntityStorageInterface $blockStorage;
+
+  /**
+   * The custom pattern entity storage.
+   *
+   * @var \Drupal\Core\Entity\EntityStorageInterface
+   */
+  protected EntityStorageInterface $patternStorage;
 
   /**
    * The pattern library.
@@ -46,19 +52,23 @@ class PatternkitController extends ControllerBase {
   /**
    * Constructs a Patternkit Controller.
    *
-   * @param \Drupal\Core\Entity\EntityStorageInterface $patternkit_storage
-   *   The Patternkit storage.
+   * @param \Drupal\Core\Entity\EntityStorageInterface $patternkit_block_storage
+   *   The Patternkit block entity storage.
+   * @param \Drupal\Core\Entity\EntityStorageInterface $patternkit_pattern_storage
+   *   The Patternkit pattern entity storage.
    * @param \Drupal\patternkit\Asset\LibraryInterface $library
    *   The Pattern Library.
    * @param \Drupal\Core\Extension\ThemeHandlerInterface $theme_handler
    *   The theme handler.
    */
   public function __construct(
-    EntityStorageInterface $patternkit_storage,
+    EntityStorageInterface $patternkit_block_storage,
+    EntityStorageInterface $patternkit_pattern_storage,
     LibraryInterface $library,
     ThemeHandlerInterface $theme_handler
   ) {
-    $this->patternkitStorage = $patternkit_storage;
+    $this->blockStorage = $patternkit_block_storage;
+    $this->patternStorage = $patternkit_pattern_storage;
     $this->library = $library;
     $this->themeHandler = $theme_handler;
   }
@@ -80,6 +90,7 @@ class PatternkitController extends ControllerBase {
     $theme_handler = $container->get('theme_handler');
     return new static(
       $entity_manager->getStorage('patternkit_block'),
+      $entity_manager->getStorage('patternkit_pattern'),
       $library,
       $theme_handler
     );
@@ -111,7 +122,7 @@ class PatternkitController extends ControllerBase {
     $query = \Drupal::request()->query->all();
     foreach ($types as $pattern_key => $type) {
       try {
-        $pattern = Pattern::create($type);
+        $pattern = $this->patternStorage->create($type);
       }
       catch (\Exception $e) {
         continue;
@@ -150,7 +161,7 @@ class PatternkitController extends ControllerBase {
    */
   public function addForm(string $pattern_id, Request $request): array {
     /** @var \Drupal\patternkit\Entity\PatternkitBlock $block */
-    $block = $this->patternkitStorage->create([]);
+    $block = $this->blockStorage->create([]);
     $block->setPattern($pattern_id);
     if (($theme = $request->query->get('theme'))
       && array_key_exists($theme, $this->themeHandler->listInfo())) {
@@ -212,7 +223,7 @@ class PatternkitController extends ControllerBase {
       if ($pattern_asset === NULL) {
         throw new \RuntimeException("Unable to locate $asset_id schema.");
       }
-      $pattern = Pattern::create($pattern_asset);
+      $pattern = $this->patternStorage->create($pattern_asset);
       $response = json_decode($pattern->getSchema()) ?? [];
     }
     catch (\Exception $exception) {
@@ -242,7 +253,7 @@ class PatternkitController extends ControllerBase {
     if ($pattern_asset === NULL) {
       throw new \RuntimeException("Unable to locate $asset_id.");
     }
-    $pattern = Pattern::create($pattern_asset);
+    $pattern = $this->patternStorage->create($pattern_asset);
     return $this->t('Add %type Patternkit block', ['%type' => $pattern->label()]);
   }
 

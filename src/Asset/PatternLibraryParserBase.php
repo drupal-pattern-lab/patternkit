@@ -5,6 +5,8 @@ namespace Drupal\patternkit\Asset;
 use Drupal\Component\Serialization\SerializationInterface;
 use Drupal\Core\Asset\LibrariesDirectoryFileFinder;
 use Drupal\Core\Asset\LibraryDiscoveryParser;
+use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ExtensionPathResolver;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\File\FileSystem;
@@ -32,6 +34,11 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
   protected SerializationInterface $serializer;
 
   /**
+   * @var \Drupal\Core\Entity\EntityStorageInterface
+   */
+  protected EntityStorageInterface $patternStorage;
+
+  /**
    * Constructor for PatternLibraryParser implementations.
    *
    * @param \Drupal\Component\Serialization\SerializationInterface $serializer
@@ -56,11 +63,13 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     ThemeManagerInterface $theme_manager,
     StreamWrapperManagerInterface $stream_wrapper,
     LibrariesDirectoryFileFinder $libraries_directory_file_finder,
-    ExtensionPathResolver $extension_path_resolver
+    ExtensionPathResolver $extension_path_resolver,
+    EntityTypeManagerInterface $entity_type_manager
   ) {
     parent::__construct($root, $module_handler, $theme_manager, $stream_wrapper, $libraries_directory_file_finder, $extension_path_resolver);
 
     $this->serializer = $serializer;
+    $this->patternStorage = $entity_type_manager->getStorage('patternkit_pattern');
   }
 
   /**
@@ -80,7 +89,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
   public function createPattern(string $name, $data): PatternInterface {
     // Pattern schemas contain values needed for Pattern fields.
     $values = ['name' => $name];
-    return Pattern::create($values + $data);
+    return $this->patternStorage->create($values + $data);
   }
 
   /**
@@ -435,7 +444,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
       }
     }
 
-    return Pattern::create((array) $pk_obj);
+    return $this->patternStorage->create((array) $pk_obj);
   }
 
   /**

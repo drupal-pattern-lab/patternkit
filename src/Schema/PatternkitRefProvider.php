@@ -2,9 +2,10 @@
 
 namespace Drupal\patternkit\Schema;
 
+use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\patternkit\Asset\LibraryNamespaceResolverInterface;
 use Drupal\patternkit\Asset\PatternDiscoveryInterface;
-use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Exception\SchemaReferenceException;
 use Swaggest\JsonSchema\RemoteRefProvider;
 use Webmozart\PathUtil\Path;
@@ -29,16 +30,38 @@ class PatternkitRefProvider implements RemoteRefProvider {
   protected LibraryNamespaceResolverInterface $libraryNamespaceResolver;
 
   /**
+   * The entity type manager service to access pattern entity storage.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected EntityTypeManagerInterface $entityTypeManager;
+
+  /**
+   * The storage handler for patternkit patterns.
+   *
+   * This is lazy loaded to ensure creation doesn't fail when running early in
+   * the request before all entity definitions have been loaded.
+   *
+   * @var \Drupal\Core\Entity\EntityStorageInterface
+   *
+   * @see \Drupal\patternkit\Schema\PatternkitRefProvider::patternStorage()
+   */
+  protected EntityStorageInterface $patternStorage;
+
+  /**
    * Creates a new PatternkitRefProvider instance.
    *
    * @param \Drupal\patternkit\Asset\PatternDiscoveryInterface $patternDiscovery
    *   The pattern discovery service.
    * @param \Drupal\patternkit\Asset\LibraryNamespaceResolverInterface $libraryNamespaceResolver
    *   The library namespace resolver service.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   *   The entity type manager service to load the storage handler for patterns.
    */
-  public function __construct(PatternDiscoveryInterface $patternDiscovery, LibraryNamespaceResolverInterface $libraryNamespaceResolver) {
+  public function __construct(PatternDiscoveryInterface $patternDiscovery, LibraryNamespaceResolverInterface $libraryNamespaceResolver, EntityTypeManagerInterface $entityTypeManager) {
     $this->patternDiscovery = $patternDiscovery;
     $this->libraryNamespaceResolver = $libraryNamespaceResolver;
+    $this->entityTypeManager = $entityTypeManager;
   }
 
   /**
@@ -98,7 +121,7 @@ class PatternkitRefProvider implements RemoteRefProvider {
 
     // Load the pattern to load the schema.
     // @todo Refactor this process to avoid having to instantiate the pattern.
-    $pattern = Pattern::create($asset);
+    $pattern = $this->patternStorage()->create($asset);
     return $pattern->getSchema();
   }
 
@@ -177,6 +200,26 @@ class PatternkitRefProvider implements RemoteRefProvider {
       'asset_id' => "${matches['namespace']}/${matches['path']}",
       'path' => $matches['pointer'] ?? '',
     ];
+  }
+
+  /**
+   * Get the pattern storage handler.
+   *
+   * This is lazy loaded to ensure creation doesn't fail when running early in
+   * the request before all entity definitions have been loaded.
+   *
+   * @return \Drupal\Core\Entity\EntityStorageInterface
+   *   The lazy-loaded pattern storage handler.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   */
+  protected function patternStorage(): EntityStorageInterface {
+    if (!isset($this->patternStorage)) {
+      $this->patternStorage = $this->entityTypeManager->getStorage('patternkit_pattern');
+    }
+
+    return $this->patternStorage;
   }
 
 }

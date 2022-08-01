@@ -12,7 +12,7 @@ services:
     deprecated: 'The "%service_id%" service is deprecated. Use "patternkit.library.namespace_resolver" or "patternkit.pattern.discovery" instead.'
   patternkit.asset.library.parser.base:
     abstract: true
-    arguments: [ '@serialization.json', '%app.root%', '@module_handler', '@theme.manager', '@stream_wrapper_manager', '@library.libraries_directory_file_finder', '@extension.path.resolver' ]
+    arguments: [ '@serialization.json', '%app.root%', '@module_handler', '@theme.manager', '@stream_wrapper_manager', '@library.libraries_directory_file_finder', '@extension.path.resolver', '@entity_type.manager' ]
   patternkit.asset.library.parser.file:
     parent: patternkit.asset.library.parser.base
     class: Drupal\patternkit\Asset\PatternLibraryParser\FilePatternLibraryParser
@@ -24,7 +24,12 @@ services:
     class: Drupal\patternkit\Asset\PatternLibraryParser\TwigPatternLibraryParser
   patternkit.library.namespace_resolver:
     class: Drupal\patternkit\Asset\LibraryNamespaceResolver
-    arguments: [ '@service_container', '@library.discovery', '@cache.discovery', '@lock' ]
+    arguments:
+      - '@service_container'
+      - '@library.discovery'
+      - '@cache.discovery'
+      - '@lock'
+      - '@stream_wrapper_manager'
     tags:
       - { name: needs_destruction }
   patternkit.pattern.discovery:
@@ -76,6 +81,7 @@ services:
     arguments:
       - '@patternkit.pattern.discovery'
       - '@patternkit.library.namespace_resolver'
+      - '@entity_type.manager'
     public: false
   patternkit.schema.schema_walker_factory:
     class: Drupal\patternkit\Schema\SchemaWalkerFactory

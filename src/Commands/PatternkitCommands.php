@@ -11,7 +11,6 @@ use Drupal\Core\Plugin\Context\EntityContext;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay;
 use Drupal\patternkit\Asset\LibraryInterface;
-use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Plugin\Derivative\PatternkitBlock;
 use Drush\Commands\DrushCommands;
 
@@ -160,7 +159,7 @@ class PatternkitCommands extends DrushCommands {
           }
           try {
             /** @var \Drupal\Patternkit\entity\PatternInterface $pattern */
-            $pattern = Pattern::create($pattern_asset);
+            $pattern = $this->patternStorage->create($pattern_asset);
           }
           catch (\Exception $exception) {
             $logger->debug($this->t('Could not create pattern with ID @id.', ['@id' => $pattern_id]));
@@ -401,7 +400,7 @@ class PatternkitCommands extends DrushCommands {
       $logger->error($this->t("Failed to get library asset for @pattern.", ['@pattern' => $pattern_id]));
       return FALSE;
     }
-    $base_pattern = Pattern::create($asset);
+    $base_pattern = $this->patternStorage->create($asset);
     if ($base_pattern === NULL) {
       return FALSE;
     }

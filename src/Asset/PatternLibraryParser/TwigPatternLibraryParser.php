@@ -3,12 +3,11 @@
 namespace Drupal\patternkit\Asset\PatternLibraryParser;
 
 use Drupal\Core\Asset\Exception\InvalidLibraryFileException;
-use Drupal\patternkit\Entity\Pattern;
+use Drupal\patternkit\Asset\PatternLibraryParserBase;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\PatternLibraryJSONParserTrait;
-use Drupal\patternkit\Asset\PatternLibraryParserBase;
 
 /**
  * Parses a Twig pattern library collection into usable metadata.
@@ -34,7 +33,7 @@ class TwigPatternLibraryParser extends PatternLibraryParserBase {
   public function createPattern(string $name, $data): PatternInterface {
     // Pattern schemas contain values needed for Pattern fields.
     $values = ['name' => $data['title'] ?? $name];
-    return Pattern::create($values + $data);
+    return $this->patternStorage->create($values + $data);
   }
 
   /**
