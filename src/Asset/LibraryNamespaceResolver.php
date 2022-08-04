@@ -268,13 +268,13 @@ class LibraryNamespaceResolver extends CacheCollector implements LibraryNamespac
         $options['data'] = $library_definition['extensionPath'] . '/' . $source;
       }
 
-      if (!isset($definition['version'])) {
+      if (!isset($library_definition['version'])) {
         // Fall back to the providing extension's version or the Drupal core
         // version if one is not provided.
         $options['version'] = $this->extensionList[$library_definition['extension']]->info['version'] ?? \Drupal::VERSION;
       }
       else {
-        $options['version'] = $definition['version'];
+        $options['version'] = $library_definition['version'];
       }
 
       // Add the assembled pattern library definition back into the overall

@@ -2,8 +2,15 @@
 
 namespace Drupal\Tests\patternkit\Unit\Asset;
 
+use Drupal\Core\Asset\LibraryDiscoveryInterface;
+use Drupal\Core\Cache\CacheBackendInterface;
+use Drupal\Core\Extension\Extension;
+use Drupal\Core\Lock\LockBackendInterface;
+use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 use Drupal\patternkit\Asset\LibraryNamespaceResolver;
 use Drupal\Tests\UnitTestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Tests for the LibraryNamespaceResolver class.
@@ -12,6 +19,40 @@ use Drupal\Tests\UnitTestCase;
  * @group patternkit
  */
 class LibraryNamespaceResolverTest extends UnitTestCase {
+
+  use ProphecyTrait;
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function setUp(): void {
+    parent::setUp();
+
+    $this->container = $this->prophesize(ContainerInterface::class);
+    $this->libraryDiscovery = $this->prophesize(LibraryDiscoveryInterface::class);
+    $this->cache = $this->prophesize(CacheBackendInterface::class);
+    $this->lock = $this->prophesize(LockBackendInterface::class);
+    $this->streamWrapperManager = $this->prophesize(StreamWrapperManagerInterface::class);
+  }
+
+  /**
+   * A helper function to get the service for testing with mocks injected.
+   *
+   * This is a convenience method to allow for deferral of revealing mocks so
+   * individual tests may configure them before they are created.
+   *
+   * @return \Drupal\patternkit\Asset\LibraryNamespaceResolver
+   *   The test service instance with configured mocks injected.
+   */
+  protected function getLibraryNamespaceResolver(): LibraryNamespaceResolver {
+    return new LibraryNamespaceResolver(
+      $this->container->reveal(),
+      $this->libraryDiscovery->reveal(),
+      $this->cache->reveal(),
+      $this->lock->reveal(),
+      $this->streamWrapperManager->reveal(),
+    );
+  }
 
   /**
    * @covers ::getLibraryFromNamespace
@@ -32,6 +73,70 @@ class LibraryNamespaceResolverTest extends UnitTestCase {
 
     $this->expectDeprecation('The my_module/my_namespace library is deprecated.');
     $namespaceResolver->getLibraryFromNamespace('@my_namespace');
+  }
+
+  /**
+   * Test handling of library definitions without versions defined.
+   *
+   * @covers ::getLibrariesByExtension
+   * @covers ::normalizeLibraryPatternData
+   * @covers ::__construct
+   */
+  public function testNormalizeLibraryPatternDataWithoutVersions() {
+    $library_data = [
+      'my_library' => [
+        'patterns' => [
+          'my/module/path/patterns' => [
+            'plugin' => 'twig',
+            // 'data' => 'my/module/path/patterns',
+          ],
+        ],
+      ],
+    ];
+
+    $this->libraryDiscovery->getLibrariesByExtension('my_module')
+      ->willReturn($library_data);
+
+    $namespaceResolver = $this->getMockBuilder(LibraryNamespaceResolver::class)
+      ->setConstructorArgs([
+        $this->container->reveal(),
+        $this->libraryDiscovery->reveal(),
+        $this->cache->reveal(),
+        $this->lock->reveal(),
+        $this->streamWrapperManager->reveal(),
+      ])
+      ->onlyMethods(['getExtensionList', 'fileValidUri'])
+      ->getMock();
+
+    $extension = $this->prophesize(Extension::class);
+    $extension->getType()->willReturn('module');
+    $extension->getPath()->willReturn('my/module/path');
+
+    $namespaceResolver->method('getExtensionList')
+      ->with()
+      ->willReturn(['my_module' => $extension->reveal()]);
+
+    $namespaceResolver->method('fileValidUri')
+      ->willReturn(TRUE);
+
+    $libraries = $namespaceResolver->getLibrariesByExtension('my_module');
+    $this->assertEquals([
+      '@my_library' => [
+        'patterns' => [
+          'my/module/path/patterns' => [
+            'plugin' => 'twig',
+            'data' => 'my/module/path/patterns',
+            'type' => 'directory',
+            'version' => \Drupal::VERSION,
+          ],
+        ],
+        'id' => 'my_library',
+        'extension' => 'my_module',
+        'extensionType' => 'module',
+        'extensionPath' => 'my/module/path',
+        'namespace' => '@my_library',
+      ],
+    ], $libraries);
   }
 
 }
