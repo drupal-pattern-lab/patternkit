@@ -106,10 +106,10 @@ class LibraryNamespaceResolver extends CacheCollector implements LibraryNamespac
     $library = $this->get($namespace);
 
     // Log a warning for deprecated libraries.
-    if ($library !== NULL && isset($libraries[$namespace]['deprecated'])) {
-      $library_id = $libraries[$namespace]['extension'] . '/' . substr($namespace, 1);
-      // phpcs:ignore
-      @trigger_error(str_replace('%library_id%', $library_id, $libraries[$namespace]['deprecated']), E_USER_DEPRECATED);
+    if ($library !== NULL && isset($library['deprecated'])) {
+      $library_id = $library['extension'] . '/' . substr($namespace, 1);
+      // phpcs:ignore Drupal.Semantics.FunctionTriggerError.TriggerErrorTextLayoutRelaxed
+      @trigger_error(str_replace('%library_id%', $library_id, $library['deprecated']), E_USER_DEPRECATED);
     }
 
     return $library;
