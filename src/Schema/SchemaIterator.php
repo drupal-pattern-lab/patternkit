@@ -147,7 +147,7 @@ class SchemaIterator extends \RecursiveArrayIterator {
   /**
    * {@inheritdoc}
    */
-  public function next() {
+  public function next(): void {
     // Reset the property schema before accessing a new value.
     unset($this->propertySchema);
 
@@ -157,7 +157,7 @@ class SchemaIterator extends \RecursiveArrayIterator {
   /**
    * {@inheritdoc}
    */
-  public function rewind() {
+  public function rewind(): void {
     // Reset the property schema before accessing a new value.
     unset($this->propertySchema);
 
@@ -167,7 +167,7 @@ class SchemaIterator extends \RecursiveArrayIterator {
   /**
    * {@inheritdoc}
    */
-  public function seek($offset) {
+  public function seek($offset): void {
     // Reset the property schema before accessing a new value.
     unset($this->propertySchema);
 
