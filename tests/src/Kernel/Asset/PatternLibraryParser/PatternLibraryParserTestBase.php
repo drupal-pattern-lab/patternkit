@@ -67,6 +67,10 @@ class PatternLibraryParserTestBase extends KernelTestBase {
         [
           'json' => $module_path . '/lib/patternkit/src/atoms/example_filtered/src/example_filtered.json',
         ],
+      'example_filtered_multiple' =>
+        [
+          'json' => $module_path . '/lib/patternkit/src/atoms/example_filtered_multiple/src/example_filtered_multiple.json',
+        ],
       'example_ref' =>
         [
           'json' => $module_path . '/lib/patternkit/src/atoms/example_ref/src/example_ref.json',

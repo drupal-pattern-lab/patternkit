@@ -97,6 +97,10 @@ class JsonPatternLibraryParserTest extends PatternLibraryParserTestBase {
         [
           'json' => $module_path . '/lib/patternkit/src/atoms/example_filtered/src/example_filtered.json',
         ],
+      'example_filtered_multiple' =>
+        [
+          'json' => $module_path . '/lib/patternkit/src/atoms/example_filtered_multiple/src/example_filtered_multiple.json',
+        ],
       'example_ref' =>
         [
           'json' => $module_path . '/lib/patternkit/src/atoms/example_ref/src/example_ref.json',
@@ -131,6 +135,7 @@ class JsonPatternLibraryParserTest extends PatternLibraryParserTestBase {
     $this->assertIsArray($lib_data);
     $this->assertArrayHasKey('atoms/example/src/example', $lib_data);
     $this->assertArrayHasKey('atoms/example_filtered/src/example_filtered', $lib_data);
+    $this->assertArrayHasKey('atoms/example_filtered_multiple/src/example_filtered_multiple', $lib_data);
     $this->assertArrayHasKey('atoms/example_ref/src/example_ref', $lib_data);
   }
 

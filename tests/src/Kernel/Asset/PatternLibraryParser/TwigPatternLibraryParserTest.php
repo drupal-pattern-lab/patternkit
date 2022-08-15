@@ -103,6 +103,11 @@ class TwigPatternLibraryParserTest extends PatternLibraryParserTestBase {
           'json' => $module_path . '/lib/patternkit/src/atoms/example_filtered/src/example_filtered.json',
           'twig' => $module_path . '/lib/patternkit/src/atoms/example_filtered/src/example_filtered.twig',
         ],
+      'example_filtered_multiple' =>
+        [
+          'json' => $module_path . '/lib/patternkit/src/atoms/example_filtered_multiple/src/example_filtered_multiple.json',
+          'twig' => $module_path . '/lib/patternkit/src/atoms/example_filtered_multiple/src/example_filtered_multiple.twig',
+        ],
       'example_ref' =>
         [
           'json' => $module_path . '/lib/patternkit/src/atoms/example_ref/src/example_ref.json',

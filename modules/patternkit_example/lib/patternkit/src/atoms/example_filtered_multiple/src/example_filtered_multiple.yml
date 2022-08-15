@@ -1,0 +1,3 @@
+text: Sample text
+formatted_text_restricted: <strong>Sample</strong> <em>formatted</em> text with <a href="https://www.example.com" title="Example">a link</a>.<br />
+formatted_text_free: <h1>Heading here</h1> <p>This pattern allows all HTML tags.</p>

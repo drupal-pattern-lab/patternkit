@@ -85,6 +85,11 @@ var DrupalCKEditor = /*#__PURE__*/function (_JSONEditor$defaults$) {
         }; // The schema can determine which HTML tags are allowed and disallowed.
         // These settings are passed as-is to CKEditor's ACF (content filtering)
         // system. See https://ckeditor.com/docs/ckeditor4/latest/guide/dev_acf.html.
+        // (Clears existing settings in case they were set previously in this request
+        // by prior schema.)
+
+        delete this.options.ckeditor_config.allowedContent;
+        delete this.options.ckeditor_config.disallowedContent;
 
         if (this.schema.options.allowedContent) {
           this.options.ckeditor_config.allowedContent = this.schema.options.allowedContent;
@@ -1135,9 +1140,9 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         JSONEditor.defaults.options.disable_collapse = false;
         JSONEditor.defaults.options.collapse = false;
         JSONEditor.defaults.options.ajax = true;
-        JSONEditor.defaults.options.disable_properties = settings.patternkitEditor.disablePropertiesButtons;
-        JSONEditor.defaults.languages.en.button_delete_node_warning = 'Are you sure you want to remove this item?'; // Overrides alert message when removing an item.
-        // @todo Loop through all editor plugins and add them at runtime.
+        JSONEditor.defaults.options.disable_properties = settings.patternkitEditor.disablePropertiesButtons; // Overrides alert message when removing an item.
+
+        JSONEditor.defaults.languages.en.button_delete_node_warning = 'Are you sure you want to remove this item?'; // @todo Loop through all editor plugins and add them at runtime.
         // Override how references are resolved.
 
         JSONEditor.prototype._loadExternalRefs = function (schema, callback) {

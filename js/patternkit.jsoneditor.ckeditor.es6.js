@@ -35,6 +35,10 @@ class DrupalCKEditor extends JSONEditor.defaults.editors.string {
       // The schema can determine which HTML tags are allowed and disallowed.
       // These settings are passed as-is to CKEditor's ACF (content filtering)
       // system. See https://ckeditor.com/docs/ckeditor4/latest/guide/dev_acf.html.
+      // (Clears existing settings in case they were set previously in this request
+      // by prior schema.)
+      delete this.options.ckeditor_config.allowedContent;
+      delete this.options.ckeditor_config.disallowedContent;
       if (this.schema.options.allowedContent) {
         this.options.ckeditor_config.allowedContent = this.schema.options.allowedContent;
       }
