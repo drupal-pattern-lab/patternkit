@@ -28,7 +28,7 @@ class LibraryNamespaceResolverTest extends KernelTestBase {
    *
    * @var \Drupal\patternkit\Asset\LibraryNamespaceResolver
    */
-  protected $resolver;
+  protected LibraryNamespaceResolver $resolver;
 
   /**
    * {@inheritdoc}
@@ -72,6 +72,7 @@ class LibraryNamespaceResolverTest extends KernelTestBase {
       $this->assertEquals($relative_path, $library['patterns'][$relative_path]['data']);
       $this->assertEquals('directory', $library['patterns'][$relative_path]['type']);
       // @todo Add testing to confirm the version number is properly assigned.
+      //phpcs:ignore Drupal.Files.LineLength.TooLong
       // $this->assertEquals('', $library['patterns'][$relative_path]['version']);
     }
   }

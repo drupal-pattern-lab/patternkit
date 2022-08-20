@@ -75,9 +75,9 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
    * @param string $root
    *   The application root path.
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
-   *   Allows modules to alter library parsing.
+   *   Allow modules to alter library parsing.
    * @param \Drupal\Core\Theme\ThemeManagerInterface $theme_manager
-   *   Allows themes to alter library parsing.
+   *   Allow themes to alter library parsing.
    * @param \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface $stream_wrapper
    *   The stream wrapper manager.
    * @param \Drupal\Core\Asset\LibrariesDirectoryFileFinder $libraries_directory_file_finder

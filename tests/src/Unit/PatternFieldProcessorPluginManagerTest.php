@@ -245,7 +245,7 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
     // plugin manager for testing since the setup method sets the expectation
     // that no errors should be logged in most cases.
     // @todo Refactor once https://www.drupal.org/project/drupal/issues/2903456 is completed.
-    /** @var \Drupal\Core\Logger\LoggerChannelInterface|\PHPUnit\Framework\MockObject\MockObject errorLogger */
+    /** @var \Drupal\Core\Logger\LoggerChannelInterface|\PHPUnit\Framework\MockObject\MockObject $errorLogger */
     $errorLogger = $this->createMock(LoggerChannelInterface::class);
     $errorLogger->expects($this->exactly(1))
       ->method('error')

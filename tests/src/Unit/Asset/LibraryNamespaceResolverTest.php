@@ -10,6 +10,7 @@ use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 use Drupal\patternkit\Asset\LibraryNamespaceResolver;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
+use Prophecy\Prophecy\ObjectProphecy;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -21,6 +22,48 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class LibraryNamespaceResolverTest extends UnitTestCase {
 
   use ProphecyTrait;
+
+  /**
+   * The dependency container for fetching extension list services.
+   *
+   * @var \Symfony\Component\DependencyInjection\ContainerInterface|\Prophecy\Prophecy\ObjectProphecy
+   */
+  protected ObjectProphecy $container;
+
+  /**
+   * The library discovery service for loading library definitions.
+   *
+   * @var \Drupal\Core\Asset\LibraryDiscoveryInterface|\Prophecy\Prophecy\ObjectProphecy
+   */
+  protected ObjectProphecy $libraryDiscovery;
+
+  /**
+   * The stream wrapper manager service.
+   *
+   * @var \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface|\Prophecy\Prophecy\ObjectProphecy
+   */
+  protected ObjectProphecy $streamWrapperManager;
+
+  /**
+   * The collection of loaded extensions to search for libraries.
+   *
+   * @var \Drupal\Core\Extension\Extension[]
+   */
+  protected array $extensionList;
+
+  /**
+   * The cache backend.
+   *
+   * @var \Drupal\Core\Cache\CacheBackendInterface|\Prophecy\Prophecy\ObjectProphecy
+   */
+  protected ObjectProphecy $cache;
+
+  /**
+   * The lock service.
+   *
+   * @var \Drupal\Core\Lock\LockBackendInterface|\Prophecy\Prophecy\ObjectProphecy
+   */
+  protected ObjectProphecy $lock;
 
   /**
    * {@inheritdoc}
@@ -71,7 +114,8 @@ class LibraryNamespaceResolverTest extends UnitTestCase {
         'deprecated' => 'The %library_id% library is deprecated.',
       ]);
 
-    $this->expectDeprecation('The my_module/my_namespace library is deprecated.');
+    $this->expectDeprecation();
+    $this->expectDeprecationMessage('The my_module/my_namespace library is deprecated.');
     $namespaceResolver->getLibraryFromNamespace('@my_namespace');
   }
 

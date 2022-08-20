@@ -329,7 +329,6 @@ class LibraryNamespaceResolver extends CacheCollector implements LibraryNamespac
       if ($extension_service === NULL) {
         continue;
       }
-      /** @var \Drupal\Core\Extension\Extension[] $extension_list */
       $this->extensionList += $extension_service->getList();
     }
 
