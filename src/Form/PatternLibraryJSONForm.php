@@ -170,6 +170,13 @@ class PatternLibraryJSONForm extends ConfigFormBase {
       '#default_value' => $config->get('patternkit_json_editor_disable_edit_json_button') ?? TRUE,
     ];
 
+    $form['patternkit_json_editor_cache_schemas'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Cache external schema references'),
+      '#description' => t('Select whether JSON Editor should cache schema lookups, which can speed up the editor form (maps to JSON Editor option <em>ajax_cache_responses</em>).'),
+      '#default_value' => $config->get('patternkit_json_editor_cache_schemas') ?? FALSE,
+    );
+
     $form['patternkit_json_editor_wysiwyg'] = [
       '#type' => 'select',
       '#title' => $this->t('WYSIWYG editor'),
@@ -229,6 +236,7 @@ class PatternLibraryJSONForm extends ConfigFormBase {
     $config->set('patternkit_json_editor_use_shadow_dom', (bool) $form_values['patternkit_json_editor_use_shadow_dom']);
     $config->set('patternkit_json_editor_disable_properties_buttons', (bool) $form_values['patternkit_json_editor_disable_properties_buttons']);
     $config->set('patternkit_json_editor_disable_edit_json_button', (bool) $form_values['patternkit_json_editor_disable_edit_json_button']);
+    $config->set('patternkit_json_editor_cache_schemas', (bool) $form_values['patternkit_json_editor_cache_schemas']);
     $config->set('patternkit_json_editor_wysiwyg', $form_values['patternkit_json_editor_wysiwyg']);
     $config->set('patternkit_json_editor_ckeditor_toolbar', $form_values['patternkit_json_editor_ckeditor_toolbar']);
     $config->save();

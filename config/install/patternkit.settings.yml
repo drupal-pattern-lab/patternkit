@@ -9,3 +9,4 @@ patternkit_json_editor_wysiwyg: ""
 patternkit_json_editor_ckeditor_toolbar: ""
 patternkit_json_editor_disable_properties_buttons: false
 patternkit_json_editor_disable_edit_json_button: true
+patternkit_json_editor_cache_schemas: false

@@ -3,7 +3,7 @@
  * * @name JSON Editor
  * * @description JSON Schema Based Editor
  * * This library is the continuation of jdorn's great work (see also https://github.com/jdorn/json-editor/issues/800)
- * * @version "2.7.0"
+ * * @version "2.9.0-beta.0"
  * * @author Jeremy Dorn
  * * @see https://github.com/jdorn/json-editor/
  * * @see https://github.com/json-editor/json-editor
@@ -847,6 +847,49 @@ module.exports = function (object, key, value) {
   if (propertyKey in object) definePropertyModule.f(object, propertyKey, createPropertyDescriptor(0, value));
   else object[propertyKey] = value;
 };
+
+
+/***/ }),
+
+/***/ "./node_modules/core-js/internals/date-to-iso-string.js":
+/*!**************************************************************!*\
+  !*** ./node_modules/core-js/internals/date-to-iso-string.js ***!
+  \**************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var fails = __webpack_require__(/*! ../internals/fails */ "./node_modules/core-js/internals/fails.js");
+var padStart = __webpack_require__(/*! ../internals/string-pad */ "./node_modules/core-js/internals/string-pad.js").start;
+
+var abs = Math.abs;
+var DatePrototype = Date.prototype;
+var getTime = DatePrototype.getTime;
+var nativeDateToISOString = DatePrototype.toISOString;
+
+// `Date.prototype.toISOString` method implementation
+// https://tc39.es/ecma262/#sec-date.prototype.toisostring
+// PhantomJS / old WebKit fails here:
+module.exports = (fails(function () {
+  return nativeDateToISOString.call(new Date(-5e13 - 1)) != '0385-07-25T07:06:39.999Z';
+}) || !fails(function () {
+  nativeDateToISOString.call(new Date(NaN));
+})) ? function toISOString() {
+  if (!isFinite(getTime.call(this))) throw RangeError('Invalid time value');
+  var date = this;
+  var year = date.getUTCFullYear();
+  var milliseconds = date.getUTCMilliseconds();
+  var sign = year < 0 ? '-' : year > 9999 ? '+' : '';
+  return sign + padStart(abs(year), sign ? 6 : 4, 0) +
+    '-' + padStart(date.getUTCMonth() + 1, 2, 0) +
+    '-' + padStart(date.getUTCDate(), 2, 0) +
+    'T' + padStart(date.getUTCHours(), 2, 0) +
+    ':' + padStart(date.getUTCMinutes(), 2, 0) +
+    ':' + padStart(date.getUTCSeconds(), 2, 0) +
+    '.' + padStart(milliseconds, 3, 0) +
+    'Z';
+} : nativeDateToISOString;
 
 
 /***/ }),
@@ -3431,6 +3474,48 @@ module.exports = {
 
 /***/ }),
 
+/***/ "./node_modules/core-js/internals/string-pad.js":
+/*!******************************************************!*\
+  !*** ./node_modules/core-js/internals/string-pad.js ***!
+  \******************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+// https://github.com/tc39/proposal-string-pad-start-end
+var toLength = __webpack_require__(/*! ../internals/to-length */ "./node_modules/core-js/internals/to-length.js");
+var repeat = __webpack_require__(/*! ../internals/string-repeat */ "./node_modules/core-js/internals/string-repeat.js");
+var requireObjectCoercible = __webpack_require__(/*! ../internals/require-object-coercible */ "./node_modules/core-js/internals/require-object-coercible.js");
+
+var ceil = Math.ceil;
+
+// `String.prototype.{ padStart, padEnd }` methods implementation
+var createMethod = function (IS_END) {
+  return function ($this, maxLength, fillString) {
+    var S = String(requireObjectCoercible($this));
+    var stringLength = S.length;
+    var fillStr = fillString === undefined ? ' ' : String(fillString);
+    var intMaxLength = toLength(maxLength);
+    var fillLen, stringFiller;
+    if (intMaxLength <= stringLength || fillStr == '') return S;
+    fillLen = intMaxLength - stringLength;
+    stringFiller = repeat.call(fillStr, ceil(fillLen / fillStr.length));
+    if (stringFiller.length > fillLen) stringFiller = stringFiller.slice(0, fillLen);
+    return IS_END ? S + stringFiller : stringFiller + S;
+  };
+};
+
+module.exports = {
+  // `String.prototype.padStart` method
+  // https://tc39.es/ecma262/#sec-string.prototype.padstart
+  start: createMethod(false),
+  // `String.prototype.padEnd` method
+  // https://tc39.es/ecma262/#sec-string.prototype.padend
+  end: createMethod(true)
+};
+
+
+/***/ }),
+
 /***/ "./node_modules/core-js/internals/string-repeat.js":
 /*!*********************************************************!*\
   !*** ./node_modules/core-js/internals/string-repeat.js ***!
@@ -4555,6 +4640,26 @@ $({ target: 'Date', stat: true }, {
   now: function now() {
     return new Date().getTime();
   }
+});
+
+
+/***/ }),
+
+/***/ "./node_modules/core-js/modules/es.date.to-iso-string.js":
+/*!***************************************************************!*\
+  !*** ./node_modules/core-js/modules/es.date.to-iso-string.js ***!
+  \***************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var $ = __webpack_require__(/*! ../internals/export */ "./node_modules/core-js/internals/export.js");
+var toISOString = __webpack_require__(/*! ../internals/date-to-iso-string */ "./node_modules/core-js/internals/date-to-iso-string.js");
+
+// `Date.prototype.toISOString` method
+// https://tc39.es/ecma262/#sec-date.prototype.toisostring
+// PhantomJS / old WebKit has a broken implementations
+$({ target: 'Date', proto: true, forced: Date.prototype.toISOString !== toISOString }, {
+  toISOString: toISOString
 });
 
 
@@ -8723,6 +8828,7 @@ function translateProperty(text, variables) {
 
 var options = {
   upload: upload,
+  use_name_attributes: true,
   prompt_before_delete: true,
   use_default_values: true,
   max_depth: 0
@@ -12453,7 +12559,10 @@ var CheckboxEditor = /*#__PURE__*/function (_AbstractEditor) {
       _get(_getPrototypeOf(CheckboxEditor.prototype), "register", this).call(this);
 
       if (!this.input) return;
-      this.input.setAttribute('name', this.formname);
+
+      if (this.jsoneditor.options.use_name_attributes) {
+        this.input.setAttribute('name', this.formname);
+      }
     }
   }, {
     key: "unregister",
@@ -13970,7 +14079,10 @@ var HiddenEditor = /*#__PURE__*/function (_AbstractEditor) {
       _get(_getPrototypeOf(HiddenEditor.prototype), "register", this).call(this);
 
       if (!this.input) return;
-      this.input.setAttribute('name', this.formname);
+
+      if (this.jsoneditor.options.use_name_attributes) {
+        this.input.setAttribute('name', this.formname);
+      }
     }
   }, {
     key: "unregister",
@@ -15437,7 +15549,10 @@ var MultiSelectEditor = /*#__PURE__*/function (_AbstractEditor) {
       _get(_getPrototypeOf(MultiSelectEditor.prototype), "register", this).call(this);
 
       if (!this.input) return;
-      this.input.setAttribute('name', this.formname);
+
+      if (this.jsoneditor.options.use_name_attributes) {
+        this.input.setAttribute('name', this.formname);
+      }
     }
   }, {
     key: "unregister",
@@ -17649,32 +17764,35 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var core_js_modules_es_symbol_description_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_symbol_description_js__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var core_js_modules_es_array_concat_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! core-js/modules/es.array.concat.js */ "./node_modules/core-js/modules/es.array.concat.js");
 /* harmony import */ var core_js_modules_es_array_concat_js__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_array_concat_js__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var core_js_modules_es_object_set_prototype_of_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! core-js/modules/es.object.set-prototype-of.js */ "./node_modules/core-js/modules/es.object.set-prototype-of.js");
-/* harmony import */ var core_js_modules_es_object_set_prototype_of_js__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_set_prototype_of_js__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var core_js_modules_es_object_get_prototype_of_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! core-js/modules/es.object.get-prototype-of.js */ "./node_modules/core-js/modules/es.object.get-prototype-of.js");
-/* harmony import */ var core_js_modules_es_object_get_prototype_of_js__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_get_prototype_of_js__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var core_js_modules_es_reflect_construct_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! core-js/modules/es.reflect.construct.js */ "./node_modules/core-js/modules/es.reflect.construct.js");
-/* harmony import */ var core_js_modules_es_reflect_construct_js__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_reflect_construct_js__WEBPACK_IMPORTED_MODULE_5__);
-/* harmony import */ var core_js_modules_es_object_create_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! core-js/modules/es.object.create.js */ "./node_modules/core-js/modules/es.object.create.js");
-/* harmony import */ var core_js_modules_es_object_create_js__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_create_js__WEBPACK_IMPORTED_MODULE_6__);
-/* harmony import */ var core_js_modules_es_reflect_get_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! core-js/modules/es.reflect.get.js */ "./node_modules/core-js/modules/es.reflect.get.js");
-/* harmony import */ var core_js_modules_es_reflect_get_js__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_reflect_get_js__WEBPACK_IMPORTED_MODULE_7__);
-/* harmony import */ var core_js_modules_es_object_get_own_property_descriptor_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! core-js/modules/es.object.get-own-property-descriptor.js */ "./node_modules/core-js/modules/es.object.get-own-property-descriptor.js");
-/* harmony import */ var core_js_modules_es_object_get_own_property_descriptor_js__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_get_own_property_descriptor_js__WEBPACK_IMPORTED_MODULE_8__);
-/* harmony import */ var core_js_modules_es_object_define_property_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! core-js/modules/es.object.define-property.js */ "./node_modules/core-js/modules/es.object.define-property.js");
-/* harmony import */ var core_js_modules_es_object_define_property_js__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_define_property_js__WEBPACK_IMPORTED_MODULE_9__);
-/* harmony import */ var core_js_modules_es_object_to_string_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! core-js/modules/es.object.to-string.js */ "./node_modules/core-js/modules/es.object.to-string.js");
-/* harmony import */ var core_js_modules_es_object_to_string_js__WEBPACK_IMPORTED_MODULE_10___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_to_string_js__WEBPACK_IMPORTED_MODULE_10__);
-/* harmony import */ var core_js_modules_es_symbol_iterator_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! core-js/modules/es.symbol.iterator.js */ "./node_modules/core-js/modules/es.symbol.iterator.js");
-/* harmony import */ var core_js_modules_es_symbol_iterator_js__WEBPACK_IMPORTED_MODULE_11___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_symbol_iterator_js__WEBPACK_IMPORTED_MODULE_11__);
-/* harmony import */ var core_js_modules_es_array_iterator_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! core-js/modules/es.array.iterator.js */ "./node_modules/core-js/modules/es.array.iterator.js");
-/* harmony import */ var core_js_modules_es_array_iterator_js__WEBPACK_IMPORTED_MODULE_12___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_array_iterator_js__WEBPACK_IMPORTED_MODULE_12__);
-/* harmony import */ var core_js_modules_es_string_iterator_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! core-js/modules/es.string.iterator.js */ "./node_modules/core-js/modules/es.string.iterator.js");
-/* harmony import */ var core_js_modules_es_string_iterator_js__WEBPACK_IMPORTED_MODULE_13___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_string_iterator_js__WEBPACK_IMPORTED_MODULE_13__);
-/* harmony import */ var core_js_modules_web_dom_collections_iterator_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! core-js/modules/web.dom-collections.iterator.js */ "./node_modules/core-js/modules/web.dom-collections.iterator.js");
-/* harmony import */ var core_js_modules_web_dom_collections_iterator_js__WEBPACK_IMPORTED_MODULE_14___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_web_dom_collections_iterator_js__WEBPACK_IMPORTED_MODULE_14__);
-/* harmony import */ var _select_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./select.js */ "./src/editors/select.js");
+/* harmony import */ var core_js_modules_es_function_name_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! core-js/modules/es.function.name.js */ "./node_modules/core-js/modules/es.function.name.js");
+/* harmony import */ var core_js_modules_es_function_name_js__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_function_name_js__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var core_js_modules_es_object_set_prototype_of_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! core-js/modules/es.object.set-prototype-of.js */ "./node_modules/core-js/modules/es.object.set-prototype-of.js");
+/* harmony import */ var core_js_modules_es_object_set_prototype_of_js__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_set_prototype_of_js__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var core_js_modules_es_object_get_prototype_of_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! core-js/modules/es.object.get-prototype-of.js */ "./node_modules/core-js/modules/es.object.get-prototype-of.js");
+/* harmony import */ var core_js_modules_es_object_get_prototype_of_js__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_get_prototype_of_js__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var core_js_modules_es_reflect_construct_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! core-js/modules/es.reflect.construct.js */ "./node_modules/core-js/modules/es.reflect.construct.js");
+/* harmony import */ var core_js_modules_es_reflect_construct_js__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_reflect_construct_js__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var core_js_modules_es_object_create_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! core-js/modules/es.object.create.js */ "./node_modules/core-js/modules/es.object.create.js");
+/* harmony import */ var core_js_modules_es_object_create_js__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_create_js__WEBPACK_IMPORTED_MODULE_7__);
+/* harmony import */ var core_js_modules_es_reflect_get_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! core-js/modules/es.reflect.get.js */ "./node_modules/core-js/modules/es.reflect.get.js");
+/* harmony import */ var core_js_modules_es_reflect_get_js__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_reflect_get_js__WEBPACK_IMPORTED_MODULE_8__);
+/* harmony import */ var core_js_modules_es_object_get_own_property_descriptor_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! core-js/modules/es.object.get-own-property-descriptor.js */ "./node_modules/core-js/modules/es.object.get-own-property-descriptor.js");
+/* harmony import */ var core_js_modules_es_object_get_own_property_descriptor_js__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_get_own_property_descriptor_js__WEBPACK_IMPORTED_MODULE_9__);
+/* harmony import */ var core_js_modules_es_object_define_property_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! core-js/modules/es.object.define-property.js */ "./node_modules/core-js/modules/es.object.define-property.js");
+/* harmony import */ var core_js_modules_es_object_define_property_js__WEBPACK_IMPORTED_MODULE_10___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_define_property_js__WEBPACK_IMPORTED_MODULE_10__);
+/* harmony import */ var core_js_modules_es_object_to_string_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! core-js/modules/es.object.to-string.js */ "./node_modules/core-js/modules/es.object.to-string.js");
+/* harmony import */ var core_js_modules_es_object_to_string_js__WEBPACK_IMPORTED_MODULE_11___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_to_string_js__WEBPACK_IMPORTED_MODULE_11__);
+/* harmony import */ var core_js_modules_es_symbol_iterator_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! core-js/modules/es.symbol.iterator.js */ "./node_modules/core-js/modules/es.symbol.iterator.js");
+/* harmony import */ var core_js_modules_es_symbol_iterator_js__WEBPACK_IMPORTED_MODULE_12___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_symbol_iterator_js__WEBPACK_IMPORTED_MODULE_12__);
+/* harmony import */ var core_js_modules_es_array_iterator_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! core-js/modules/es.array.iterator.js */ "./node_modules/core-js/modules/es.array.iterator.js");
+/* harmony import */ var core_js_modules_es_array_iterator_js__WEBPACK_IMPORTED_MODULE_13___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_array_iterator_js__WEBPACK_IMPORTED_MODULE_13__);
+/* harmony import */ var core_js_modules_es_string_iterator_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! core-js/modules/es.string.iterator.js */ "./node_modules/core-js/modules/es.string.iterator.js");
+/* harmony import */ var core_js_modules_es_string_iterator_js__WEBPACK_IMPORTED_MODULE_14___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_string_iterator_js__WEBPACK_IMPORTED_MODULE_14__);
+/* harmony import */ var core_js_modules_web_dom_collections_iterator_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! core-js/modules/web.dom-collections.iterator.js */ "./node_modules/core-js/modules/web.dom-collections.iterator.js");
+/* harmony import */ var core_js_modules_web_dom_collections_iterator_js__WEBPACK_IMPORTED_MODULE_15___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_web_dom_collections_iterator_js__WEBPACK_IMPORTED_MODULE_15__);
+/* harmony import */ var _select_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./select.js */ "./src/editors/select.js");
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
 
 
 
@@ -17760,11 +17878,16 @@ var RadioEditor = /*#__PURE__*/function (_SelectEditor) {
 
       for (var i = 0; i < this.enum_values.length; i++) {
         /* form radio elements */
-        this.input = this.theme.getFormRadio({
-          name: this.formname,
+        var attributes = {
           id: "".concat(this.formname, "[").concat(i, "]"),
           value: this.enum_values[i]
-        });
+        };
+
+        if (this.jsoneditor.options.use_name_attributes) {
+          attributes.name = this.formname;
+        }
+
+        this.input = this.theme.getFormRadio(attributes);
         /* Set custom attributes on input element. Parameter is array of protected keys. Empty array if none. */
 
         this.setInputAttributes(['id', 'value', 'name']);
@@ -17855,7 +17978,7 @@ var RadioEditor = /*#__PURE__*/function (_SelectEditor) {
   }]);
 
   return RadioEditor;
-}(_select_js__WEBPACK_IMPORTED_MODULE_15__["SelectEditor"]);
+}(_select_js__WEBPACK_IMPORTED_MODULE_16__["SelectEditor"]);
 
 /***/ }),
 
@@ -18211,7 +18334,10 @@ var SelectEditor = /*#__PURE__*/function (_AbstractEditor) {
       _get(_getPrototypeOf(SelectEditor.prototype), "register", this).call(this);
 
       if (!this.input) return;
-      this.input.setAttribute('name', this.formname);
+
+      if (this.jsoneditor.options.use_name_attributes) {
+        this.input.setAttribute('name', this.formname);
+      }
     }
   }, {
     key: "unregister",
@@ -19200,7 +19326,11 @@ var SignatureEditor = /*#__PURE__*/function (_StringEditor) {
         /* Create canvas for signature pad */
 
         var canvas = document.createElement('canvas');
-        canvas.setAttribute('name', formname);
+
+        if (this.jsoneditor.options.use_name_attributes) {
+          canvas.setAttribute('name', formname);
+        }
+
         canvas.classList.add('signature');
         signatureContainer.appendChild(canvas);
         this.signaturePad = new window.SignaturePad(canvas, {
@@ -20084,7 +20214,11 @@ var StringEditor = /*#__PURE__*/function (_AbstractEditor) {
       _get(_getPrototypeOf(StringEditor.prototype), "register", this).call(this);
 
       if (!this.input) return;
-      this.input.setAttribute('name', this.formname);
+
+      if (this.jsoneditor.options.use_name_attributes) {
+        this.input.setAttribute('name', this.formname);
+      }
+
       this.input.setAttribute('aria-label', this.formname);
     }
   }, {
@@ -23051,19 +23185,23 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var core_js_modules_es_string_includes_js__WEBPACK_IMPORTED_MODULE_22___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_string_includes_js__WEBPACK_IMPORTED_MODULE_22__);
 /* harmony import */ var core_js_modules_es_array_filter_js__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! core-js/modules/es.array.filter.js */ "./node_modules/core-js/modules/es.array.filter.js");
 /* harmony import */ var core_js_modules_es_array_filter_js__WEBPACK_IMPORTED_MODULE_23___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_array_filter_js__WEBPACK_IMPORTED_MODULE_23__);
-/* harmony import */ var core_js_modules_es_object_define_property_js__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! core-js/modules/es.object.define-property.js */ "./node_modules/core-js/modules/es.object.define-property.js");
-/* harmony import */ var core_js_modules_es_object_define_property_js__WEBPACK_IMPORTED_MODULE_24___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_define_property_js__WEBPACK_IMPORTED_MODULE_24__);
-/* harmony import */ var core_js_modules_es_symbol_js__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! core-js/modules/es.symbol.js */ "./node_modules/core-js/modules/es.symbol.js");
-/* harmony import */ var core_js_modules_es_symbol_js__WEBPACK_IMPORTED_MODULE_25___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_symbol_js__WEBPACK_IMPORTED_MODULE_25__);
-/* harmony import */ var core_js_modules_es_symbol_description_js__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! core-js/modules/es.symbol.description.js */ "./node_modules/core-js/modules/es.symbol.description.js");
-/* harmony import */ var core_js_modules_es_symbol_description_js__WEBPACK_IMPORTED_MODULE_26___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_symbol_description_js__WEBPACK_IMPORTED_MODULE_26__);
-/* harmony import */ var core_js_modules_es_symbol_iterator_js__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! core-js/modules/es.symbol.iterator.js */ "./node_modules/core-js/modules/es.symbol.iterator.js");
-/* harmony import */ var core_js_modules_es_symbol_iterator_js__WEBPACK_IMPORTED_MODULE_27___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_symbol_iterator_js__WEBPACK_IMPORTED_MODULE_27__);
-/* harmony import */ var core_js_modules_es_function_name_js__WEBPACK_IMPORTED_MODULE_28__ = __webpack_require__(/*! core-js/modules/es.function.name.js */ "./node_modules/core-js/modules/es.function.name.js");
-/* harmony import */ var core_js_modules_es_function_name_js__WEBPACK_IMPORTED_MODULE_28___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_function_name_js__WEBPACK_IMPORTED_MODULE_28__);
-/* harmony import */ var core_js_modules_es_array_from_js__WEBPACK_IMPORTED_MODULE_29__ = __webpack_require__(/*! core-js/modules/es.array.from.js */ "./node_modules/core-js/modules/es.array.from.js");
-/* harmony import */ var core_js_modules_es_array_from_js__WEBPACK_IMPORTED_MODULE_29___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_array_from_js__WEBPACK_IMPORTED_MODULE_29__);
-/* harmony import */ var _utilities_js__WEBPACK_IMPORTED_MODULE_30__ = __webpack_require__(/*! ./utilities.js */ "./src/utilities.js");
+/* harmony import */ var core_js_modules_es_date_to_iso_string_js__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! core-js/modules/es.date.to-iso-string.js */ "./node_modules/core-js/modules/es.date.to-iso-string.js");
+/* harmony import */ var core_js_modules_es_date_to_iso_string_js__WEBPACK_IMPORTED_MODULE_24___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_date_to_iso_string_js__WEBPACK_IMPORTED_MODULE_24__);
+/* harmony import */ var core_js_modules_es_date_to_string_js__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! core-js/modules/es.date.to-string.js */ "./node_modules/core-js/modules/es.date.to-string.js");
+/* harmony import */ var core_js_modules_es_date_to_string_js__WEBPACK_IMPORTED_MODULE_25___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_date_to_string_js__WEBPACK_IMPORTED_MODULE_25__);
+/* harmony import */ var core_js_modules_es_object_define_property_js__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! core-js/modules/es.object.define-property.js */ "./node_modules/core-js/modules/es.object.define-property.js");
+/* harmony import */ var core_js_modules_es_object_define_property_js__WEBPACK_IMPORTED_MODULE_26___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_define_property_js__WEBPACK_IMPORTED_MODULE_26__);
+/* harmony import */ var core_js_modules_es_symbol_js__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! core-js/modules/es.symbol.js */ "./node_modules/core-js/modules/es.symbol.js");
+/* harmony import */ var core_js_modules_es_symbol_js__WEBPACK_IMPORTED_MODULE_27___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_symbol_js__WEBPACK_IMPORTED_MODULE_27__);
+/* harmony import */ var core_js_modules_es_symbol_description_js__WEBPACK_IMPORTED_MODULE_28__ = __webpack_require__(/*! core-js/modules/es.symbol.description.js */ "./node_modules/core-js/modules/es.symbol.description.js");
+/* harmony import */ var core_js_modules_es_symbol_description_js__WEBPACK_IMPORTED_MODULE_28___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_symbol_description_js__WEBPACK_IMPORTED_MODULE_28__);
+/* harmony import */ var core_js_modules_es_symbol_iterator_js__WEBPACK_IMPORTED_MODULE_29__ = __webpack_require__(/*! core-js/modules/es.symbol.iterator.js */ "./node_modules/core-js/modules/es.symbol.iterator.js");
+/* harmony import */ var core_js_modules_es_symbol_iterator_js__WEBPACK_IMPORTED_MODULE_29___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_symbol_iterator_js__WEBPACK_IMPORTED_MODULE_29__);
+/* harmony import */ var core_js_modules_es_function_name_js__WEBPACK_IMPORTED_MODULE_30__ = __webpack_require__(/*! core-js/modules/es.function.name.js */ "./node_modules/core-js/modules/es.function.name.js");
+/* harmony import */ var core_js_modules_es_function_name_js__WEBPACK_IMPORTED_MODULE_30___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_function_name_js__WEBPACK_IMPORTED_MODULE_30__);
+/* harmony import */ var core_js_modules_es_array_from_js__WEBPACK_IMPORTED_MODULE_31__ = __webpack_require__(/*! core-js/modules/es.array.from.js */ "./node_modules/core-js/modules/es.array.from.js");
+/* harmony import */ var core_js_modules_es_array_from_js__WEBPACK_IMPORTED_MODULE_31___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_array_from_js__WEBPACK_IMPORTED_MODULE_31__);
+/* harmony import */ var _utilities_js__WEBPACK_IMPORTED_MODULE_32__ = __webpack_require__(/*! ./utilities.js */ "./src/utilities.js");
 
 
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
@@ -23081,6 +23219,8 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 function _iterableToArrayLimit(arr, i) { var _i = arr && (typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]); if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
 
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+
 
 
 
@@ -23225,7 +23365,7 @@ var SchemaLoader = /*#__PURE__*/function () {
       allOf: function allOf(schema, extended) {
         var _this3 = this;
 
-        var _extended = Object(_utilities_js__WEBPACK_IMPORTED_MODULE_30__["extend"])({}, extended);
+        var _extended = Object(_utilities_js__WEBPACK_IMPORTED_MODULE_32__["extend"])({}, extended);
 
         Object.entries(schema.allOf).forEach(function (_ref5) {
           var _ref6 = _slicedToArray(_ref5, 2),
@@ -23264,7 +23404,7 @@ var SchemaLoader = /*#__PURE__*/function () {
       oneOf: function oneOf(schema, extended) {
         var _this5 = this;
 
-        var tmp = Object(_utilities_js__WEBPACK_IMPORTED_MODULE_30__["extend"])({}, extended);
+        var tmp = Object(_utilities_js__WEBPACK_IMPORTED_MODULE_32__["extend"])({}, extended);
         delete tmp.oneOf;
         schema.oneOf.reduce(function (e, s, i) {
           e.oneOf[i] = _this5.extendSchemas(_this5.expandSchema(s), tmp);
@@ -23330,7 +23470,7 @@ var SchemaLoader = /*#__PURE__*/function () {
     value: function expandRefs(schema, recurseAllOf) {
       var _this6 = this;
 
-      var _schema = Object(_utilities_js__WEBPACK_IMPORTED_MODULE_30__["extend"])({}, schema);
+      var _schema = Object(_utilities_js__WEBPACK_IMPORTED_MODULE_32__["extend"])({}, schema);
 
       if (!_schema.$ref) return _schema; // This split the ref to get the Json point if it exists
       // exemple #/counter/1#/definition/address +
@@ -23355,7 +23495,7 @@ var SchemaLoader = /*#__PURE__*/function () {
         /* if reference not found */
         // eslint-disable-next-line no-console
         console.warn("reference:'".concat(ref, "' not found!"));
-      } else if (recurseAllOf && Object(_utilities_js__WEBPACK_IMPORTED_MODULE_30__["hasOwnProperty"])(this.refs[ref], 'allOf')) {
+      } else if (recurseAllOf && Object(_utilities_js__WEBPACK_IMPORTED_MODULE_32__["hasOwnProperty"])(this.refs[ref], 'allOf')) {
         var allOf = this.refs[ref].allOf;
         Object.keys(allOf).forEach(function (key) {
           allOf[key] = _this6.expandRefs(allOf[key], true);
@@ -23413,7 +23553,7 @@ var SchemaLoader = /*#__PURE__*/function () {
           func.call(_this7, schema);
         }
       });
-      var extended = Object(_utilities_js__WEBPACK_IMPORTED_MODULE_30__["extend"])({}, schema);
+      var extended = Object(_utilities_js__WEBPACK_IMPORTED_MODULE_32__["extend"])({}, schema);
       Object.entries(this._subSchema2).forEach(function (_ref9) {
         var _ref10 = _slicedToArray(_ref9, 2),
             key = _ref10[0],
@@ -23609,7 +23749,7 @@ var SchemaLoader = /*#__PURE__*/function () {
                 waiting = 0; // Loop into all schema references
 
                 _loop = /*#__PURE__*/regeneratorRuntime.mark(function _loop() {
-                  var uri, urnResolver, urn, _response, _externalSchema, url, response, externalSchema, newfileBase, pathItems;
+                  var uri, urnResolver, urn, response, _externalSchema, url, externalSchema, schemaFromCache, _response, newfileBase, pathItems;
 
                   return regeneratorRuntime.wrap(function _loop$(_context2) {
                     while (1) {
@@ -23660,9 +23800,9 @@ var SchemaLoader = /*#__PURE__*/function () {
                           return urnResolver(urn);
 
                         case 17:
-                          _response = _context2.sent;
+                          response = _context2.sent;
                           _context2.prev = 18;
-                          _externalSchema = JSON.parse(_response);
+                          _externalSchema = JSON.parse(response);
                           _context2.next = 26;
                           break;
 
@@ -23698,7 +23838,7 @@ var SchemaLoader = /*#__PURE__*/function () {
                           throw new Error("Failed to parse external ref ".concat(urn));
 
                         case 37:
-                          if (!(typeof _response === 'boolean')) {
+                          if (!(typeof response === 'boolean')) {
                             _context2.next = 39;
                             break;
                           }
@@ -23719,7 +23859,22 @@ var SchemaLoader = /*#__PURE__*/function () {
                         case 42:
                           waiting++;
                           url = _this10._joinUrl(uri, fileBase);
-                          _context2.next = 46;
+                          externalSchema = void 0;
+
+                          if (_this10.options.ajax_cache_responses) {
+                            schemaFromCache = _this10.cacheGet(url);
+
+                            if (schemaFromCache) {
+                              externalSchema = schemaFromCache;
+                            }
+                          }
+
+                          if (externalSchema) {
+                            _context2.next = 61;
+                            break;
+                          }
+
+                          _context2.next = 49;
                           return new Promise(function (resolve) {
                             var r = new XMLHttpRequest();
                             if (_this10.options.ajaxCredentials) r.withCredentials = _this10.options.ajaxCredentials;
@@ -23737,39 +23892,43 @@ var SchemaLoader = /*#__PURE__*/function () {
                             r.send();
                           });
 
-                        case 46:
-                          response = _context2.sent;
+                        case 49:
+                          _response = _context2.sent;
 
-                          if (!(typeof response === 'undefined')) {
-                            _context2.next = 49;
+                          if (!(typeof _response === 'undefined')) {
+                            _context2.next = 52;
                             break;
                           }
 
                           throw new Error("Failed to fetch ref via ajax - ".concat(uri));
 
-                        case 49:
-                          externalSchema = void 0;
-                          _context2.prev = 50;
-                          externalSchema = JSON.parse(response.responseText);
-                          _context2.next = 58;
+                        case 52:
+                          _context2.prev = 52;
+                          externalSchema = JSON.parse(_response.responseText);
+
+                          if (_this10.options.ajax_cache_responses) {
+                            _this10.cacheSet(url, externalSchema);
+                          }
+
+                          _context2.next = 61;
                           break;
 
-                        case 54:
-                          _context2.prev = 54;
-                          _context2.t2 = _context2["catch"](50);
+                        case 57:
+                          _context2.prev = 57;
+                          _context2.t2 = _context2["catch"](52);
                           // eslint-disable-next-line no-console
                           console.log(_context2.t2);
                           throw new Error("Failed to parse external ref ".concat(url));
 
-                        case 58:
+                        case 61:
                           if (!(!(typeof externalSchema === 'boolean' || _typeof(externalSchema) === 'object') || externalSchema === null || Array.isArray(externalSchema))) {
-                            _context2.next = 60;
+                            _context2.next = 63;
                             break;
                           }
 
                           throw new Error("External ref does not contain a valid schema - ".concat(url));
 
-                        case 60:
+                        case 63:
                           _this10.refs[uri] = externalSchema;
                           newfileBase = _this10._getFileBaseFromFileLocation(url); // Add leading slash.
 
@@ -23778,15 +23937,15 @@ var SchemaLoader = /*#__PURE__*/function () {
                             url = (uri.substr(0, 1) === '/' ? '/' : '') + pathItems.pop();
                           }
 
-                          _context2.next = 65;
+                          _context2.next = 68;
                           return _this10._asyncloadExternalRefs(externalSchema, url, newfileBase);
 
-                        case 65:
+                        case 68:
                         case "end":
                           return _context2.stop();
                       }
                     }
-                  }, _loop, null, [[14, 33], [18, 22], [50, 54]]);
+                  }, _loop, null, [[14, 33], [18, 22], [52, 57]]);
                 });
                 _i2 = 0, _Object$keys = Object.keys(refs);
 
@@ -23840,8 +23999,8 @@ var SchemaLoader = /*#__PURE__*/function () {
     value: function extendSchemas(obj1, obj2) {
       var _this11 = this;
 
-      obj1 = Object(_utilities_js__WEBPACK_IMPORTED_MODULE_30__["extend"])({}, obj1);
-      obj2 = Object(_utilities_js__WEBPACK_IMPORTED_MODULE_30__["extend"])({}, obj2);
+      obj1 = Object(_utilities_js__WEBPACK_IMPORTED_MODULE_32__["extend"])({}, obj1);
+      obj2 = Object(_utilities_js__WEBPACK_IMPORTED_MODULE_32__["extend"])({}, obj2);
       var extended = {};
 
       var isRequiredOrDefaultProperties = function isRequiredOrDefaultProperties(prop, val) {
@@ -23919,6 +24078,99 @@ var SchemaLoader = /*#__PURE__*/function () {
         }
       });
       return extended;
+    }
+    /**
+     * Gets a cache key namespaced for JSON Editor.
+     *
+     * @param {*} key
+     *   The schema's key, e.g., URL.
+     * @returns {string}
+     *   A namespaced cache key, by prefixing "je-cache::".
+     */
+
+  }, {
+    key: "getCacheKey",
+    value: function getCacheKey(key) {
+      return ['je-cache', key].join('::');
+    }
+    /**
+     * Returns the schema cache buster from JSON Editor settings.
+     *
+     * @returns {string}
+     *   The configured cache buster, if any. Otherwise, returns the current date
+     *   in ISO 8601 simplified format (e.g., 2011-10-05 for October 5, 2011).
+     */
+
+  }, {
+    key: "getCacheBuster",
+    value: function getCacheBuster() {
+      return this.options.ajax_cache_buster || new Date().toISOString().slice(0, 10);
+    }
+    /**
+     * Sets a schema into localStorage cache.
+     *
+     * @param {string} key
+     *   The schema's key, e.g., URL.
+     * @param {mixed} data
+     *   The schema to store. Can be any data type.
+     */
+
+  }, {
+    key: "cacheSet",
+    value: function cacheSet(key, data) {
+      try {
+        window.localStorage.setItem(this.getCacheKey(key), JSON.stringify({
+          cacheBuster: this.getCacheBuster(),
+          schema: data
+        }));
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error(e);
+      }
+    }
+    /**
+     * Fetches a schema from localStorage cache.
+     *
+     * @param {string} key
+     *   The schema's key, e.g., URL.
+     *
+     * @returns {mixed}
+     *   If found, returns the schema.
+     */
+
+  }, {
+    key: "cacheGet",
+    value: function cacheGet(key) {
+      try {
+        var resultRaw = window.localStorage.getItem(this.getCacheKey(key));
+
+        if (resultRaw) {
+          var resultDecoded = JSON.parse(resultRaw);
+
+          if (resultDecoded.cacheBuster && resultDecoded.schema) {
+            if (resultDecoded.cacheBuster === this.getCacheBuster()) {
+              return resultDecoded.schema;
+            }
+          }
+
+          this.cacheDelete(key);
+        }
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error(e);
+      }
+    }
+    /**
+     * Deletes a schema from localStorage cache.
+     *
+     * @param {string} key
+     *   The schema's key, e.g., URL.
+     */
+
+  }, {
+    key: "cacheDelete",
+    value: function cacheDelete(key) {
+      window.localStorage.removeItem(this.getCacheKey(key));
     }
   }]);
 

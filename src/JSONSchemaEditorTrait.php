@@ -107,6 +107,8 @@ trait JSONSchemaEditorTrait {
       'useShadowDom' => $this->config->get('patternkit_json_editor_use_shadow_dom') ?? TRUE,
       'disablePropertiesButtons' => $this->config->get('patternkit_json_editor_disable_properties_buttons') ?? FALSE,
       'disableJsonEditButton' => $this->config->get('patternkit_json_editor_disable_edit_json_button') ?? TRUE,
+      'ajaxCacheResponses' => $this->config->get('patternkit_json_editor_cache_schemas') ?? FALSE,
+      'ajaxCacheBuster' => $this->state->get('system.css_js_query_string') ?: '',
     ];
 
     if (isset(PatternLibraryJSONForm::THEMES[$theme])) {

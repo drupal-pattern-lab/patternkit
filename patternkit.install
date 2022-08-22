@@ -185,3 +185,20 @@ function patternkit_update_8004(&$sandbox) {
     $config_current->save();
   }
 }
+
+/**
+ * Sets default value for new JSON Editor schema caching setting.
+ */
+function patternkit_update_8005(&$sandbox) {
+  $config_key = 'patternkit.settings';
+  $module_file_path = \Drupal::service('extension.list.module')->getPath('patternkit');
+  $source = new FileStorage($module_file_path . '/config/install');
+  $config_install = $source->read($config_key);
+  $config_current = \Drupal::configFactory()->getEditable($config_key);
+
+  $new_key = 'patternkit_json_editor_cache_schemas';
+  if (is_null($config_current->get($new_key))) {
+    $config_current->set($new_key, $config_install[$new_key]);
+    $config_current->save();
+  }
+}

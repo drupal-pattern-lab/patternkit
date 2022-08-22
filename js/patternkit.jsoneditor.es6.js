@@ -111,6 +111,8 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
        JSONEditor.defaults.options.disable_collapse = false;
        JSONEditor.defaults.options.collapse = false;
        JSONEditor.defaults.options.ajax = true;
+       JSONEditor.defaults.options.ajax_cache_responses = settings.patternkitEditor.ajaxCacheResponses;
+       JSONEditor.defaults.options.ajax_cache_buster = settings.patternkitEditor.ajaxCacheBuster;
        JSONEditor.defaults.options.disable_properties = settings.patternkitEditor.disablePropertiesButtons;
        // Overrides alert message when removing an item.
        JSONEditor.defaults.languages.en.button_delete_node_warning = 'Are you sure you want to remove this item?'
