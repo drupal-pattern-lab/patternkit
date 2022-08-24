@@ -1,5 +1,9 @@
 services:
   patternkit.commands:
     class: Drupal\patternkit\Commands\PatternkitCommands
+    arguments:
+      - '@entity_type.manager'
+      - '@patternkit.asset.library'
+      - '@patternkit.pattern.discovery'
     tags:
       - { name: drush.command }

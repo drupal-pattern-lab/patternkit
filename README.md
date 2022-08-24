@@ -176,6 +176,58 @@ Most of the thinking and vernacular used in Patternkit is inspired by conversati
 * **Pattern** A component, widget, or template that can be rendered to an HTML GUI.
 
 
+## Drush commands
+
+The following Drush commands are provided to assist in working with the
+Patternkit module and viewing the data it has discovered. A full and current
+list of the commands provided by the Patternkit module may be viewed using
+the following command:
+
+```bash
+drush list --filter=patternkit
+```
+
+Specific usage instructions and examples for each may also be viewed using
+`drush help <command>`.
+
+### Update all existing patterns
+
+When a new pattern block is placed, the pattern data including the schema
+and template content are saved in the database as a Pattern entity. If the
+pattern schema or template is updated, these cached versions also need to be
+updated to match. This may be done on a per-block basis through the UI by
+editing the pattern block, or it may be done wholesale using this Drush command:
+
+```bash
+drush patternkit:libUpdate
+```
+
+### View all discovered patterns
+
+A list of all discovered patterns may be viewed using the following command:
+
+```bash
+drush patternkit:pattern:list
+```
+
+### View information about a single pattern
+
+Detailed information about a single pattern may be viewed using the
+following command:
+
+```bash
+drush patternkit:pattern:info '@patternkit/atoms/example/src/example'
+```
+
+### View the schema for a single pattern
+
+Oftentimes it can be helpful to view the schema saved for a specific pattern.
+This may be done easily from the commandline using the following command:
+
+```bash
+drush patternkit:pattern:schema '@patternkit/atoms/example/src/example'
+```
+
 ## TODOs
 * Allow this module to close out [this issue](https://github.com/drupal-pattern-lab/roadmap/issues/8).
 * Error handling.

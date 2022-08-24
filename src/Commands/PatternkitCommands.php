@@ -2,15 +2,20 @@
 
 namespace Drupal\patternkit\Commands;
 
+use Consolidation\OutputFormatters\StructuredData\PropertyList;
+use Consolidation\OutputFormatters\StructuredData\RowsOfFields;
 use Drupal\block\BlockInterface;
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Plugin\Context\Context;
 use Drupal\Core\Plugin\Context\ContextDefinition;
 use Drupal\Core\Plugin\Context\EntityContext;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay;
 use Drupal\patternkit\Asset\LibraryInterface;
+use Drupal\patternkit\Asset\PatternDiscoveryInterface;
+use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Plugin\Derivative\PatternkitBlock;
 use Drush\Commands\DrushCommands;
 
@@ -19,6 +24,13 @@ use Drush\Commands\DrushCommands;
  */
 class PatternkitCommands extends DrushCommands {
   use StringTranslationTrait;
+
+  /**
+   * The entity type manager service.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected EntityTypeManagerInterface $entityTypeManager;
 
   /**
    * Block storage manager.
@@ -42,14 +54,27 @@ class PatternkitCommands extends DrushCommands {
   protected EntityStorageInterface $patternStorage;
 
   /**
+   * The pattern discovery service.
+   *
+   * @var \Drupal\patternkit\Asset\PatternDiscoveryInterface
+   */
+  protected PatternDiscoveryInterface $patternDiscovery;
+
+  /**
    * Constructs the Patternkit Drush Commands functionality.
    */
-  public function __construct() {
+  public function __construct(
+    EntityTypeManagerInterface $entityTypeManager,
+    LibraryInterface $library,
+    PatternDiscoveryInterface $patternDiscovery
+  ) {
     parent::__construct();
-    $entity_type_manager = \Drupal::entityTypeManager();
-    $this->blockStorage = $entity_type_manager->getStorage('patternkit_block');
-    $this->patternStorage = $entity_type_manager->getStorage('patternkit_pattern');
-    $this->library = \Drupal::service('patternkit.asset.library');
+
+    $this->entityTypeManager = $entityTypeManager;
+    $this->blockStorage = $entityTypeManager->getStorage('patternkit_block');
+    $this->patternStorage = $entityTypeManager->getStorage('patternkit_pattern');
+    $this->library = $library;
+    $this->patternDiscovery = $patternDiscovery;
   }
 
   /**
@@ -71,7 +96,6 @@ class PatternkitCommands extends DrushCommands {
     $entity_count = 0;
     $block_count = 0;
 
-    $entity_type_manager = \Drupal::entityTypeManager();
     /** @var \Drupal\Core\Block\BlockManager $block_manager */
     $block_manager = \Drupal::service('plugin.manager.block');
     /** @var \Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface $section_storage_manager */
@@ -79,14 +103,11 @@ class PatternkitCommands extends DrushCommands {
     $storage_definitions = $section_storage_manager->getDefinitions();
     /** @var \Drupal\layout_builder\LayoutTempstoreRepositoryInterface $tempstore_repository */
     $tempstore_repository = \Drupal::service('layout_builder.tempstore_repository');
-    $block_storage = $this->blockStorage;
-    $library = $this->library;
-    $pattern_storage = $this->patternStorage;
 
     $section_storages = [];
     // Gather section storages from all entities and entity type layouts.
     /** @var \Drupal\Core\Config\Entity\ConfigEntityStorageInterface $view_mode_storage */
-    $display_storage = $entity_type_manager->getStorage('entity_view_display');
+    $display_storage = $this->entityTypeManager->getStorage('entity_view_display');
     $displays = $display_storage->loadMultiple();
     /** @var \Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay $display */
     foreach ($displays as $display) {
@@ -107,7 +128,7 @@ class PatternkitCommands extends DrushCommands {
         }
 
         // Gathers entity layouts.
-        $entity_storage = $entity_type_manager->getStorage($display->getTargetEntityTypeId());
+        $entity_storage = $this->entityTypeManager->getStorage($display->getTargetEntityTypeId());
         foreach ($entity_storage->loadMultiple() as $entity) {
           $contexts['entity'] = EntityContext::fromEntity($entity);
           $section_storages[] = $section_storage_manager->findByContext($contexts, new CacheableMetadata());
@@ -152,7 +173,7 @@ class PatternkitCommands extends DrushCommands {
             $config['id'] = 'patternkit_block:' . str_replace('.', '_', str_replace('_', '__', substr($plugin_id, strlen('patternkit_block:'))));
           }
           $pattern_id = '@' . str_replace('//', '_', str_replace('_', '/', substr($config['id'], strlen('patternkit_block:'))));
-          $pattern_asset = $library->getLibraryAsset($pattern_id);
+          $pattern_asset = $this->library->getLibraryAsset($pattern_id);
           if ($pattern_asset === NULL) {
             $logger->debug($this->t('Could not find pattern with ID @id.', ['@id' => $pattern_id]));
             continue;
@@ -169,7 +190,7 @@ class PatternkitCommands extends DrushCommands {
             $logger->debug($this->t('Could not finish creating pattern with ID @id.', ['@id' => $pattern_id]));
             continue;
           }
-          $pattern_cache = $pattern_storage->loadByProperties([
+          $pattern_cache = $this->patternStorage->loadByProperties([
             'library' => $pattern->getLibrary(),
             'path' => $pattern->getPath(),
           ]);
@@ -187,7 +208,7 @@ class PatternkitCommands extends DrushCommands {
           $pattern->save();
           $config['pattern'] = $pattern->getRevisionId();
           /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
-          $patternkit_block = $block_storage->load($config['patternkit_block_id']);
+          $patternkit_block = $this->blockStorage->load($config['patternkit_block_id']);
           $config['patternkit_block_rid'] = $patternkit_block->getRevisionId();
           $section_storage
             ->getSection($section_delta)
@@ -203,7 +224,7 @@ class PatternkitCommands extends DrushCommands {
     $logger->info($this->t('Updated @entities entity layouts with @blocks Patternkit blocks.',
       ['@entities' => $entity_count, '@blocks' => $block_count]));
     $block_manager->clearCachedDefinitions();
-    $entity_type_manager->clearCachedDefinitions();
+    $this->entityTypeManager->clearCachedDefinitions();
     $logger->notice($this->t('Successfully ran Patternkit from-dev updates.'));
   }
 
@@ -232,10 +253,8 @@ class PatternkitCommands extends DrushCommands {
     $entity_count = 0;
     $block_count = 0;
 
-    $entity_type_manager = \Drupal::entityTypeManager();
     /** @var \Drupal\Core\Block\BlockManager $block_manager */
     $block_manager = \Drupal::service('plugin.manager.block');
-    $block_storage = $this->blockStorage;
 
     if ($lb_enabled) {
       /** @var \Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface $section_storage_manager */
@@ -246,7 +265,7 @@ class PatternkitCommands extends DrushCommands {
       $section_storages = [];
       // Gather section storages from all entities and entity type layouts.
       /** @var \Drupal\Core\Config\Entity\ConfigEntityStorageInterface $view_mode_storage */
-      $display_storage = $entity_type_manager->getStorage('entity_view_display');
+      $display_storage = $this->entityTypeManager->getStorage('entity_view_display');
       $displays = $display_storage->loadMultiple();
       /** @var \Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay $display */
       foreach ($displays as $display) {
@@ -267,7 +286,7 @@ class PatternkitCommands extends DrushCommands {
           }
 
           // Gathers entity layouts.
-          $entity_storage = $entity_type_manager->getStorage($display->getTargetEntityTypeId());
+          $entity_storage = $this->entityTypeManager->getStorage($display->getTargetEntityTypeId());
           foreach ($entity_storage->loadMultiple() as $entity) {
             $contexts['entity'] = EntityContext::fromEntity($entity);
             $section_storages[] = $section_storage_manager->findByContext($contexts, new CacheableMetadata());
@@ -312,7 +331,7 @@ class PatternkitCommands extends DrushCommands {
       }
     }
     /** @var \Drupal\block\BlockInterface $block */
-    foreach ($block_storage->loadMultiple() as $block) {
+    foreach ($this->blockStorage->loadMultiple() as $block) {
       if (!$block instanceof BlockInterface) {
         continue;
       }
@@ -324,7 +343,7 @@ class PatternkitCommands extends DrushCommands {
     $logger->notice($this->t('Parsed @entities entity layouts with @blocks Patternkit blocks.',
       ['@entities' => $entity_count, '@blocks' => $block_count]));
     $block_manager->clearCachedDefinitions();
-    $entity_type_manager->clearCachedDefinitions();
+    $this->entityTypeManager->clearCachedDefinitions();
     $logger->notice($this->t('Completed running Patternkit library updates.'));
 
     return TRUE;
@@ -348,9 +367,6 @@ class PatternkitCommands extends DrushCommands {
    */
   private function updateBlockComponentPluginPattern($component, ?string $library_name = NULL) {
     $logger = $this->logger();
-    $block_storage = $this->blockStorage;
-    $pattern_storage = $this->patternStorage;
-    $library = $this->library;
 
     $plugin_id = $component->getPluginId();
     if (strpos($plugin_id, 'patternkit') === FALSE) {
@@ -364,13 +380,13 @@ class PatternkitCommands extends DrushCommands {
     /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
     if (isset($configuration['patternkit_block_rid'])
       && (int) $configuration['patternkit_block_rid'] > 0) {
-      $patternkit_block = $block_storage->loadRevision($configuration['patternkit_block_rid']);
+      $patternkit_block = $this->blockStorage->loadRevision($configuration['patternkit_block_rid']);
       if ($patternkit_block === NULL) {
         return FALSE;
       }
     }
     else {
-      $patternkit_block = $block_storage->load($configuration['patternkit_block_id']);
+      $patternkit_block = $this->blockStorage->load($configuration['patternkit_block_id']);
       if ($patternkit_block === NULL) {
         return FALSE;
       }
@@ -383,10 +399,10 @@ class PatternkitCommands extends DrushCommands {
       $pattern_id = PatternkitBlock::derivativeToAssetId($plugin->getDerivativeId());
       /** @var \Drupal\patternkit\entity\PatternInterface $pattern */
       if (!empty($configuration['pattern'])) {
-        $pattern = $pattern_storage->loadRevision($configuration['pattern']);
+        $pattern = $this->patternStorage->loadRevision($configuration['pattern']);
       }
       else {
-        $pattern = $library->getLibraryAsset($pattern_id);
+        $pattern = $this->library->getLibraryAsset($pattern_id);
       }
     }
     catch (\Exception $exception) {
@@ -396,7 +412,7 @@ class PatternkitCommands extends DrushCommands {
     if ($library_name && $pattern->getLibrary() !== $library_name) {
       return FALSE;
     }
-    if (!$asset = $library->getLibraryAsset($pattern_id)) {
+    if (!$asset = $this->library->getLibraryAsset($pattern_id)) {
       $logger->error($this->t("Failed to get library asset for @pattern.", ['@pattern' => $pattern_id]));
       return FALSE;
     }
@@ -417,10 +433,139 @@ class PatternkitCommands extends DrushCommands {
     $pattern->save();
     $configuration['pattern'] = $pattern->getRevisionId();
     /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
-    $patternkit_block = $block_storage->load($configuration['patternkit_block_id']);
+    $patternkit_block = $this->blockStorage->load($configuration['patternkit_block_id']);
     $configuration['patternkit_block_rid'] = $patternkit_block->getRevisionId();
 
     return $configuration;
+  }
+
+  /**
+   * Get pattern info as discovered by the system.
+   *
+   * @param string $pattern_id
+   *   The pattern identifier to view. For example,
+   *   '@patternkit/atoms/example/src/example'.
+   *
+   * @return \Consolidation\OutputFormatters\StructuredData\PropertyList
+   *   The property data for the requested pattern.
+   *
+   * @command patternkit:pattern:info
+   * @aliases pkinfo
+   *
+   * @usage drush pkinfo @patternkit/atoms/example/src/example
+   *   Show pattern information for the example pattern.
+   *
+   * @format table
+   * @field-labels
+   *   id: Pattern ID
+   *   name: Pattern name
+   *   category: Category
+   *   description: Description
+   *   library: Library
+   *   plugin: Library plugin
+   *   path: Path
+   *   version: Version
+   */
+  public function patternInfo(string $pattern_id): PropertyList {
+    $pattern = $this->getPattern($pattern_id);
+
+    $info = [
+      'id' => $pattern->getAssetId(),
+      'name' => $pattern->getName(),
+      'category' => $pattern->getCategory(),
+      'description' => $pattern->getDescription(),
+      'library' => $pattern->getLibrary(),
+      'plugin' => $pattern->getLibraryPluginId(),
+      'path' => $pattern->getPath(),
+      'version' => $pattern->getVersion(),
+      // 'assets' => (string) $pattern->getAssets(),
+    ];
+
+    return new PropertyList($info);
+  }
+
+  /**
+   * List all discovered patterns.
+   *
+   * @return \Consolidation\OutputFormatters\StructuredData\RowsOfFields
+   *   The structured output data.
+   *
+   * @command patternkit:pattern:list
+   * @aliases pklist
+   *
+   * @usage drush pklist --filter=patternkit
+   *   List all patterns in the patternkit library.
+   * @usage drush pklist --filter='plugin=twig'
+   *   List all patterns using the twig plugin.
+   * @usage drush pklist --filter=patternkit --format=sections
+   *   Show all available pattern information for patterns in the patternkit
+   *   library.
+   *
+   * @list-delimiter :
+   * @table-style compact
+   * @field-labels
+   *   id: Pattern ID
+   *   name: Pattern name
+   *   category: Category
+   *   description: Description
+   *   library: Library
+   *   plugin: Library plugin
+   *   path: Path
+   *   version: Version
+   * @default-table-fields id,plugin
+   * @filter-default-field id
+   */
+  public function patternList(): RowsOfFields {
+    $definitions = $this->patternDiscovery->getPatternDefinitions();
+
+    $list = [];
+
+    foreach ($definitions as $namespace => $patterns) {
+      foreach ($patterns as $pattern => $definition) {
+        $list[$pattern] = $this->patternInfo($pattern)->getArrayCopy();
+      }
+    }
+
+    return new RowsOfFields($list);
+  }
+
+  /**
+   * Get the schema discovered for a pattern.
+   *
+   * @param string $pattern_id
+   *   The pattern identifier to view. For example,
+   *   '@patternkit/atoms/example/src/example'.
+   *
+   * @return string
+   *   The schema content for the requested pattern.
+   *
+   * @command patternkit:pattern:schema
+   * @aliases pkschema
+   *
+   * @usage drush pkschema @patternkit/atoms/example/src/example
+   *   Get the JSON schema content for the example pattern.
+   * @usage drush pkschema @patternkit/atoms/example/src/example | jq
+   *   Format and filter a schema with jq.
+   */
+  public function patternSchema(string $pattern_id): string {
+    $pattern = $this->getPattern($pattern_id);
+
+    // Re-encode for formatting.
+    return json_encode(json_decode($pattern->getSchema()), JSON_PRETTY_PRINT);
+  }
+
+  /**
+   * Load a pattern instance.
+   *
+   * @param string $pattern_id
+   *   The namespaced identifier for the pattern to be loaded.
+   *
+   * @return \Drupal\patternkit\Entity\PatternInterface
+   *   The loaded pattern instance.
+   */
+  protected function getPattern(string $pattern_id): PatternInterface {
+    $definition = $this->patternDiscovery->getPatternDefinition($pattern_id);
+    return $this->patternStorage->create($definition);
   }
 
 }

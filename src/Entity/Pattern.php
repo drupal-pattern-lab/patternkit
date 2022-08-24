@@ -171,7 +171,7 @@ class Pattern extends ContentEntityBase implements PatternInterface {
    * {@inheritdoc}
    */
   public function getDescription(): string {
-    return $this->getEntityKey('description');
+    return $this->getEntityKey('description') ?? '';
   }
 
   /**
