@@ -2,12 +2,18 @@
 
 namespace Drupal\patternkit\Asset\PatternLibraryParser;
 
+use Drupal\Component\Plugin\Exception\PluginException;
+use Drupal\Component\Plugin\Exception\PluginNotFoundException;
 use Drupal\Core\Asset\Exception\InvalidLibraryFileException;
 use Drupal\patternkit\Entity\PatternInterface;
+use Drupal\patternkit\Exception\MissingSchemaException;
+use Drupal\patternkit\Exception\PatternAssetException;
+use Drupal\patternkit\Exception\SchemaException;
 use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\PatternLibraryJSONParserTrait;
 use Drupal\patternkit\Asset\PatternLibraryParserBase;
+use Swaggest\JsonSchema\Exception as JsonSchemaException;
 
 /**
  * Parses a Twig pattern library collection into usable metadata.
@@ -18,6 +24,9 @@ class JSONPatternLibraryParser extends PatternLibraryParserBase {
 
   /**
    * {@inheritdoc}
+   *
+   * @throws \Drupal\patternkit\Exception\MissingSchemaException
+   * @throws \Drupal\patternkit\Exception\SchemaException
    */
   public function fetchPatternAssets(
     PatternInterface $pattern,
@@ -25,14 +34,38 @@ class JSONPatternLibraryParser extends PatternLibraryParserBase {
   ): array {
     // @todo Add support for twig lib attachments such as JS and images.
     $assets = parent::fetchPatternAssets($pattern, $config);
+
+    // Test to make sure necessary assets were discovered.
+    if (empty($assets['json'])) {
+      throw new MissingSchemaException(
+        sprintf('Unable to find a suitable schema for pattern "%s"',
+          $pattern->getAssetId()));
+    }
+
     $assets['schema'] = $assets['json'];
-    // Replace any $ref links with relative paths.
-    $schema = $this->serializer::decode($assets['schema']);
-    $schema = static::schemaDereference(
-      $schema,
-      $pattern
-    );
-    $assets['schema'] = $this->serializer::encode($schema);
+
+    try {
+      // Replace any $ref links with relative paths.
+      $assets['schema'] = $this->normalizeSchemaReferences($assets['schema']);
+
+      // Identify and record all pattern reference dependencies.
+      $dependencies = $this->getSchemaDependencies($assets['schema'], $pattern->getAssetId());
+      $pattern->setDependencies($dependencies);
+    }
+    catch (JsonSchemaException $e) {
+      throw new SchemaException(
+        sprintf('Unable to consume the schema for pattern %s: %s', $pattern->getAssetId(), $e->getMessage()),
+        $e->getCode(),
+        $e,
+      );
+    }
+    catch (\JsonException $e) {
+      throw new SchemaException(
+        sprintf('Unable to decode the schema for pattern %s: %s', $pattern->getAssetId(), $e->getMessage()),
+        $e->getCode(),
+        $e,
+      );
+    }
 
     return $assets;
   }
@@ -53,6 +86,8 @@ class JSONPatternLibraryParser extends PatternLibraryParserBase {
     else {
       $relative_path = $path;
     }
+
+    $exceptions = [];
     $pattern_info = $info[$relative_path];
     foreach (self::discoverComponents($path, ['json']) as $name => $data) {
       if (empty($data['json']) || !file_exists($data['json'])) {
@@ -87,12 +122,59 @@ class JSONPatternLibraryParser extends PatternLibraryParserBase {
         // @todo Have this cleverly infer defaults from the template.
         $pattern = $this->createPattern($name, $library_defaults);
       }
+
+      try {
+        // Process assets and capture them in the cached pattern definition.
+        $pattern->fetchAssets();
+      }
+      catch (PluginNotFoundException | PluginException $e) {
+        // Record the exception and don't include the pattern in results.
+        $exceptions[$pattern->getAssetId()] = [
+          $e,
+          'Unable to load plugin "%plugin" for pattern "%pattern": @exception',
+          [
+            '%plugin' => $pattern->getLibraryPluginId(),
+            '%pattern' => $pattern->getAssetId(),
+            '@exception' => $e->getMessage(),
+          ],
+        ];
+        continue;
+      }
+      catch (PatternAssetException | SchemaException $e) {
+        // Record the exception and don't include the pattern in results.
+        $exceptions[$pattern->getAssetId()] = [
+          $e,
+          '@message<br><pre>@trace</pre>',
+          [
+            '@message' => $e->getMessage(),
+            '@trace' => $e->getTraceAsString(),
+          ],
+        ];
+        continue;
+      }
+      catch (\JsonException $e) {
+        // Record the exception and don't include the pattern in results.
+        $exceptions[$pattern->getAssetId()] = [
+          $e,
+          'Unable to parse schema content for "%pattern": @exception',
+          [
+            '%pattern' => $pattern->getAssetId(),
+            '@exception' => $e->getMessage(),
+          ],
+        ];
+        continue;
+      }
+
       $pattern->filename = trim(substr($data['json'], strlen($path)), '/\\');
       // @todo Set $pattern->url to the actual URL of the pattern.
       // @todo Add default of library version fallback to extension version.
       $pattern->version ??= 'VERSION';
 
       $metadata[$pattern->getPath()] = $pattern->toArray();
+    }
+
+    if ($exceptions) {
+      $this->logParserExceptions($library->id(), $exceptions);
     }
 
     return $metadata;

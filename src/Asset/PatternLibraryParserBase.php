@@ -2,6 +2,8 @@
 
 namespace Drupal\patternkit\Asset;
 
+use Drupal\Component\Plugin\Exception\PluginException;
+use Drupal\Component\Plugin\Exception\PluginNotFoundException;
 use Drupal\Component\Serialization\SerializationInterface;
 use Drupal\Core\Asset\LibrariesDirectoryFileFinder;
 use Drupal\Core\Asset\LibraryDiscoveryParser;
@@ -11,13 +13,17 @@ use Drupal\Core\Extension\ExtensionPathResolver;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\File\FileSystem;
 use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
-use Drupal\Core\Theme\ThemeManagerInterface;
-use Drupal\patternkit\Entity\Pattern;
-use Drupal\patternkit\Entity\PatternInterface;
-use Drupal\patternkit\PatternEditorConfig;
-use Symfony\Component\Finder\Iterator\RecursiveDirectoryIterator;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Theme\ThemeManagerInterface;
+use Drupal\patternkit\Entity\PatternInterface;
+use Drupal\patternkit\Exception\PatternAssetException;
+use Drupal\patternkit\Exception\SchemaException;
+use Drupal\patternkit\PatternEditorConfig;
+use Drupal\patternkit\Schema\DataPreProcessorFactory;
+use Symfony\Component\Finder\Iterator\RecursiveDirectoryIterator;
+use Webmozart\Assert\Assert;
 
 /**
  * Base functionality for a pattern library parser.
@@ -34,9 +40,32 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
   protected SerializationInterface $serializer;
 
   /**
+   * The entity storage handler for the patternkit_pattern entity.
+   *
    * @var \Drupal\Core\Entity\EntityStorageInterface
    */
   protected EntityStorageInterface $patternStorage;
+
+  /**
+   * The schema data preprocessor factory service.
+   *
+   * @var \Drupal\patternkit\Schema\DataPreProcessorFactory
+   */
+  protected DataPreProcessorFactory $dataPreProcessorFactory;
+
+  /**
+   * The pattern dependency resolver service.
+   *
+   * @var \Drupal\patternkit\Asset\PatternDependencyResolver
+   */
+  protected PatternDependencyResolver $patternDependencyResolver;
+
+  /**
+   * The patternkit logger channel.
+   *
+   * @var \Drupal\Core\Logger\LoggerChannelInterface
+   */
+  protected LoggerChannelInterface $logger;
 
   /**
    * Constructor for PatternLibraryParser implementations.
@@ -55,6 +84,17 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
    *   The libraries directory file finder service.
    * @param \Drupal\Core\Extension\ExtensionPathResolver $extension_path_resolver
    *   The extension path resolver service.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager service.
+   * @param \Drupal\patternkit\Schema\DataPreProcessorFactory $dataPreProcessorFactory
+   *   The schema data preprocessor factory service.
+   * @param \Drupal\patternkit\Asset\PatternDependencyResolver $patternDependencyResolver
+   *   The pattern dependency resolver service.
+   * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
+   *   The patternkit logger channel.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
   public function __construct(
     SerializationInterface $serializer,
@@ -64,12 +104,18 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     StreamWrapperManagerInterface $stream_wrapper,
     LibrariesDirectoryFileFinder $libraries_directory_file_finder,
     ExtensionPathResolver $extension_path_resolver,
-    EntityTypeManagerInterface $entity_type_manager
+    EntityTypeManagerInterface $entity_type_manager,
+    DataPreProcessorFactory $dataPreProcessorFactory,
+    PatternDependencyResolver $patternDependencyResolver,
+    LoggerChannelInterface $logger
   ) {
     parent::__construct($root, $module_handler, $theme_manager, $stream_wrapper, $libraries_directory_file_finder, $extension_path_resolver);
 
     $this->serializer = $serializer;
     $this->patternStorage = $entity_type_manager->getStorage('patternkit_pattern');
+    $this->dataPreProcessorFactory = $dataPreProcessorFactory;
+    $this->patternDependencyResolver = $patternDependencyResolver;
+    $this->logger = $logger;
   }
 
   /**
@@ -241,7 +287,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
   /**
    * Fetches all assets for a pattern.
    *
-   * @param \Drupal\patternkit\entity\PatternInterface $pattern
+   * @param \Drupal\patternkit\Entity\PatternInterface $pattern
    *   The pattern to use for asset retrieval.
    * @param \Drupal\patternkit\PatternEditorConfig|null $config
    *   The configuration object to use for provisioning the pattern.
@@ -487,6 +533,58 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
       }
     }
     return $ret;
+  }
+
+  /**
+   * Log encountered exceptions during library parsing and discovery.
+   *
+   * @param string $library
+   *   The library being processed.
+   * @param array $exceptions
+   *   An array of exception data keyed by the pattern identifier being
+   *   processed while the exception was encountered. Each entry should be an
+   *   array of the following values:
+   *   - The exception encountered.
+   *   - A message for logging.
+   *   - Any context values for logging.
+   */
+  protected function logParserExceptions(string $library, array $exceptions): void {
+    Assert::allIsArray($exceptions, 'All exception values are expected to be an array.');
+    Assert::allCount($exceptions, 3, 'All exception events are expected to have 3 elements.');
+
+    // @todo Enable debug logging when patternkit supports a flag for debug mode.
+    $debug = FALSE;
+
+    // Log each of the exceptions.
+    foreach ($exceptions as [$exception, $message, $context]) {
+      switch (true) {
+        case $exception instanceof PluginNotFoundException:
+        case $exception instanceof PluginException:
+        case $exception instanceof SchemaException:
+        case $exception instanceof \JsonException:
+          $this->logger->warning($message, $context);
+          break;
+
+        case $exception instanceof PatternAssetException:
+          if ($debug) {
+            $this->logger->debug($message, $context);
+          }
+          break;
+
+        default:
+          $this->logger->warning($message, $context);
+      }
+    }
+
+    if (($count = count($exceptions)) && $debug) {
+      $this->logger->debug('Unable to load @count patterns from library @library: <br/>@patterns',
+        [
+          '@count' => $count,
+          '@library' => $library,
+          '@patterns' => implode(', ', array_keys($exceptions)),
+        ]
+      );
+    }
   }
 
 }

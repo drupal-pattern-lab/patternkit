@@ -12,7 +12,18 @@ services:
     deprecated: 'The "%service_id%" service is deprecated. Use "patternkit.library.namespace_resolver" or "patternkit.pattern.discovery" instead.'
   patternkit.asset.library.parser.base:
     abstract: true
-    arguments: [ '@serialization.json', '%app.root%', '@module_handler', '@theme.manager', '@stream_wrapper_manager', '@library.libraries_directory_file_finder', '@extension.path.resolver', '@entity_type.manager' ]
+    arguments:
+      - '@serialization.json'
+      - '%app.root%'
+      - '@module_handler'
+      - '@theme.manager'
+      - '@stream_wrapper_manager'
+      - '@library.libraries_directory_file_finder'
+      - '@extension.path.resolver'
+      - '@entity_type.manager'
+      - '@patternkit.schema.data_preprocessor.factory'
+      - '@patternkit.pattern.dependency_resolver'
+      - '@logger.channel.patternkit'
   patternkit.asset.library.parser.file:
     parent: patternkit.asset.library.parser.base
     class: Drupal\patternkit\Asset\PatternLibraryParser\FilePatternLibraryParser
@@ -40,6 +51,24 @@ services:
     arguments: [ '@cache.discovery', '@lock', '@patternkit.library.namespace_resolver', '@plugin.manager.library.pattern', '@logger.channel.patternkit']
     tags:
       - { name: needs_destruction }
+  patternkit.pattern.dependency_resolver:
+    class: Drupal\patternkit\Asset\PatternDependencyResolver
+    arguments:
+      - '@patternkit.pattern.discovery'
+      - '@entity_type.manager'
+      - '@patternkit.schema.data_preprocessor.factory'
+      - '@logger.channel.patternkit'
+    calls:
+      - ['setContextBuilder', ['@patternkit.schema.context_builder']]
+  patternkit.pattern.repository:
+    class: Drupal\patternkit\PatternRepository
+    arguments:
+      - '@patternkit.pattern.discovery'
+      - '@patternkit.pattern.dependency_resolver'
+      - '@patternkit.schema.data_preprocessor.factory'
+      - '@entity_type.manager'
+    calls:
+      - ['setContextBuilder', ['@patternkit.schema.context_builder']]
   plugin.manager.library.pattern:
     class: Drupal\patternkit\PatternLibraryPluginManager
     arguments: ['@container.namespaces', '@cache.discovery', '@module_handler', '@theme_handler']
@@ -75,16 +104,54 @@ services:
   patternkit.schema.schema_factory:
     class: Drupal\patternkit\Schema\SchemaFactory
     arguments:
-      - '@patternkit.schema.ref_provider'
+      - '@patternkit.schema.context_builder'
+  patternkit.schema.context_builder:
+    class: Drupal\patternkit\Schema\ContextBuilder
+    calls:
+      - ['setRemoteRefProvider', ['@patternkit.schema.ref_provider']]
+      - ['setDataPreProcessor', ['@patternkit.schema.data_preprocessor.objects']]
+  patternkit.schema.ref_handler:
+    class: Drupal\patternkit\Schema\SchemaRefHandler
   patternkit.schema.ref_provider:
     class: Drupal\patternkit\Schema\PatternkitRefProvider
     arguments:
-      - '@patternkit.pattern.discovery'
-      - '@patternkit.library.namespace_resolver'
-      - '@entity_type.manager'
+      - '@patternkit.schema.ref_handler'
+      - '@logger.channel.patternkit'
     public: false
   patternkit.schema.schema_walker_factory:
     class: Drupal\patternkit\Schema\SchemaWalkerFactory
     arguments:
       - '@patternkit.schema.schema_factory'
+    public: false
+
+  # Define schema data preprocessors used for various operations.
+  patternkit.schema.data_preprocessor.factory:
+    class: Drupal\patternkit\Schema\DataPreProcessorFactory
+    tags:
+      - { name: 'service_collector', tag: 'schema_data_preprocessor', call: 'addPreProcessor' }
+  patternkit.schema.data_preprocessor.objects:
+    class: Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor
+    tags:
+      - { name: 'schema_data_preprocessor', alias: 'objects' }
+    public: false
+  patternkit.schema.data_preprocessor.bundler:
+    class: Drupal\patternkit\Schema\DataPreProcessor\BundleReferenceDataPreProcessor
+    arguments:
+      - '@patternkit.schema.ref_handler'
+    tags:
+      - { name: 'schema_data_preprocessor', alias: 'bundler' }
+    public: false
+  patternkit.schema.data_preprocessor.normalizer:
+    class: Drupal\patternkit\Schema\DataPreProcessor\RefNormalizerDataPreProcessor
+    arguments:
+      - '@patternkit.schema.ref_handler'
+    tags:
+      - { name: 'schema_data_preprocessor', alias: 'normalizer' }
+    public: false
+  patternkit.schema.data_preprocessor.ref_observer:
+    class: Drupal\patternkit\Schema\DataPreProcessor\SchemaRefObserver
+    arguments:
+      - '@patternkit.schema.ref_handler'
+    tags:
+      - { name: 'schema_data_preprocessor', alias: 'ref_observer' }
     public: false

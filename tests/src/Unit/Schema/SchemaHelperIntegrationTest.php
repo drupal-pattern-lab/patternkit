@@ -3,12 +3,13 @@
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
+use Drupal\patternkit\Schema\ContextBuilder;
 use Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor;
-use Drupal\patternkit\Schema\SchemaFactory;
 use Drupal\patternkit\Schema\SchemaHelper;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
-use Drupal\Tests\patternkit\Traits\SchemaHelperTestTrait;
 use Drupal\Tests\UnitTestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
+use Prophecy\Prophecy\ObjectProphecy;
 use Swaggest\JsonSchema\Context;
 use Swaggest\JsonSchema\Schema;
 
@@ -24,7 +25,21 @@ use Swaggest\JsonSchema\Schema;
 class SchemaHelperIntegrationTest extends UnitTestCase {
 
   use JsonDecodeTrait;
-  use SchemaHelperTestTrait;
+  use ProphecyTrait;
+
+  /**
+   * A prophecy mock for the context builder service.
+   *
+   * @var \Drupal\patternkit\Schema\ContextBuilder|\Prophecy\Prophecy\ObjectProphecy
+   */
+  protected ObjectProphecy $contextBuilder;
+
+  /**
+   * A default schema context to use for schema operations.
+   *
+   * @var \Swaggest\JsonSchema\Context
+   */
+  protected Context $context;
 
   /**
    * A basic JSON schema with various property types, but no references.
@@ -125,18 +140,28 @@ class SchemaHelperIntegrationTest extends UnitTestCase {
   public function setUp(): void {
     parent::setUp();
 
-    $this->schemaFactory = $this->prophesize(SchemaFactory::class);
+    $this->contextBuilder = $this->prophesize(ContextBuilder::class);
     // Return a callback to get the currently configured context value, so it
     // may be created and configured independently by each test.
-    $this->schemaFactory->getDefaultContext()->will([$this, 'getContext']);
+    $this->contextBuilder->getDefaultContext()->will([$this, 'getContext']);
 
     $container = new ContainerBuilder();
-    $container->set('patternkit.schema.schema_factory', $this->schemaFactory->reveal());
+    $container->set('patternkit.schema.context_builder', $this->contextBuilder->reveal());
     \Drupal::setContainer($container);
 
     // Initialize to an empty context for tests that don't set anything up
     // explicitly for their use case.
     $this->context = new Context();
+  }
+
+  /**
+   * A helper function to get the context configured for a specific test.
+   *
+   * @return \Swaggest\JsonSchema\Context
+   *   The schema context as configured by the currently executing test.
+   */
+  public function getContext() {
+    return $this->context;
   }
 
   /**

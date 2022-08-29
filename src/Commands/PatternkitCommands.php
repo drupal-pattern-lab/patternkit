@@ -16,6 +16,7 @@ use Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay;
 use Drupal\patternkit\Asset\LibraryInterface;
 use Drupal\patternkit\Asset\PatternDiscoveryInterface;
 use Drupal\patternkit\Entity\PatternInterface;
+use Drupal\patternkit\PatternRepository;
 use Drupal\patternkit\Plugin\Derivative\PatternkitBlock;
 use Drush\Commands\DrushCommands;
 
@@ -61,12 +62,32 @@ class PatternkitCommands extends DrushCommands {
   protected PatternDiscoveryInterface $patternDiscovery;
 
   /**
+   * The pattern repository service.
+   *
+   * @var \Drupal\patternkit\PatternRepository
+   */
+  protected PatternRepository $patternRepository;
+
+  /**
    * Constructs the Patternkit Drush Commands functionality.
+   *
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   *   The entity type manager service.
+   * @param \Drupal\patternkit\Asset\LibraryInterface $library
+   *   The patternkit library service.
+   * @param \Drupal\patternkit\Asset\PatternDiscoveryInterface $patternDiscovery
+   *   The pattern discovery service.
+   * @param \Drupal\patternkit\PatternRepository $patternRepository
+   *   The pattern repository service.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
   public function __construct(
     EntityTypeManagerInterface $entityTypeManager,
     LibraryInterface $library,
-    PatternDiscoveryInterface $patternDiscovery
+    PatternDiscoveryInterface $patternDiscovery,
+    PatternRepository $patternRepository
   ) {
     parent::__construct();
 
@@ -75,6 +96,7 @@ class PatternkitCommands extends DrushCommands {
     $this->patternStorage = $entityTypeManager->getStorage('patternkit_pattern');
     $this->library = $library;
     $this->patternDiscovery = $patternDiscovery;
+    $this->patternRepository = $patternRepository;
   }
 
   /**
@@ -392,34 +414,42 @@ class PatternkitCommands extends DrushCommands {
       }
       $configuration['patternkit_block_rid'] = $patternkit_block->getLoadedRevisionId();
     }
-    $logger->notice($this->t('Updating block plugin with id @plugin:',
+    $logger->notice($this->t('Updating block plugin with id @plugin.',
       ['@plugin' => $plugin_id]));
     try {
       $plugin = $component->getPlugin();
       $pattern_id = PatternkitBlock::derivativeToAssetId($plugin->getDerivativeId());
-      /** @var \Drupal\patternkit\entity\PatternInterface $pattern */
       if (!empty($configuration['pattern'])) {
+        /** @var \Drupal\patternkit\entity\PatternInterface|null $pattern */
         $pattern = $this->patternStorage->loadRevision($configuration['pattern']);
       }
       else {
-        $pattern = $this->library->getLibraryAsset($pattern_id);
+        /** @var \Drupal\patternkit\entity\PatternInterface|null $pattern */
+        $pattern = $this->patternRepository->getPattern($pattern_id);
       }
     }
     catch (\Exception $exception) {
       $logger->error($this->t('Unable to load the pattern @pattern. Check the logs for more info.', ['@pattern' => $pattern_id ?? $plugin->getPluginId()]));
       return FALSE;
     }
+    finally {
+      if (is_null($pattern)) {
+        $logger->error($this->t('Unable to load the pattern @pattern. Check the logs for more info.', ['@pattern' => $pattern_id ?? $plugin->getPluginId()]));
+        return FALSE;
+      }
+    }
     if ($library_name && $pattern->getLibrary() !== $library_name) {
       return FALSE;
     }
-    if (!$asset = $this->library->getLibraryAsset($pattern_id)) {
-      $logger->error($this->t("Failed to get library asset for @pattern.", ['@pattern' => $pattern_id]));
+
+    try {
+      $base_pattern = $this->patternRepository->getPattern($pattern_id, TRUE);
+    }
+    catch (\Exception $exception) {
+      $logger->error($this->t("Failed to load base pattern for @pattern.", ['@pattern' => $pattern_id]));
       return FALSE;
     }
-    $base_pattern = $this->patternStorage->create($asset);
-    if ($base_pattern === NULL) {
-      return FALSE;
-    }
+
     if ($base_pattern->getHash() === $pattern->getHash()) {
       return FALSE;
     }
@@ -516,14 +546,11 @@ class PatternkitCommands extends DrushCommands {
    * @filter-default-field id
    */
   public function patternList(): RowsOfFields {
-    $definitions = $this->patternDiscovery->getPatternDefinitions();
+    $patterns = $this->patternRepository->getAllPatternNames();
 
     $list = [];
-
-    foreach ($definitions as $namespace => $patterns) {
-      foreach ($patterns as $pattern => $definition) {
-        $list[$pattern] = $this->patternInfo($pattern)->getArrayCopy();
-      }
+    foreach ($patterns as $pattern) {
+      $list[$pattern] = $this->patternInfo($pattern)->getArrayCopy();
     }
 
     return new RowsOfFields($list);
@@ -535,6 +562,9 @@ class PatternkitCommands extends DrushCommands {
    * @param string $pattern_id
    *   The pattern identifier to view. For example,
    *   '@patternkit/atoms/example/src/example'.
+   * @param bool $bundled
+   *   (optional) Whether to load the schema with all dependencies bundled.
+   *   Defaults to false and loads the unbundled pattern schema.
    *
    * @return string
    *   The schema content for the requested pattern.
@@ -542,16 +572,21 @@ class PatternkitCommands extends DrushCommands {
    * @command patternkit:pattern:schema
    * @aliases pkschema
    *
+   * @option bundled Whether the bundled schema should be loaded.
+   *
    * @usage drush pkschema @patternkit/atoms/example/src/example
    *   Get the JSON schema content for the example pattern.
    * @usage drush pkschema @patternkit/atoms/example/src/example | jq
    *   Format and filter a schema with jq.
+   * @usage drush pkschema @patternkit/atoms/example/src/example --bundled
+   *   Get the JSON schema content with all dependencies bundled.
    */
-  public function patternSchema(string $pattern_id): string {
-    $pattern = $this->getPattern($pattern_id);
+  public function patternSchema(string $pattern_id, bool $bundled = FALSE): string {
+    $pattern = $this->patternRepository->getPattern($pattern_id, $bundled);
+    $schema = json_decode($pattern->getSchema());
 
     // Re-encode for formatting.
-    return json_encode(json_decode($pattern->getSchema()), JSON_PRETTY_PRINT);
+    return json_encode($schema, JSON_PRETTY_PRINT);
   }
 
   /**
@@ -562,10 +597,12 @@ class PatternkitCommands extends DrushCommands {
    *
    * @return \Drupal\patternkit\Entity\PatternInterface
    *   The loaded pattern instance.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
   protected function getPattern(string $pattern_id): PatternInterface {
-    $definition = $this->patternDiscovery->getPatternDefinition($pattern_id);
-    return $this->patternStorage->create($definition);
+    return $this->patternRepository->getPattern($pattern_id);
   }
 
 }

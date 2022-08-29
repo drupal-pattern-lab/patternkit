@@ -14,6 +14,7 @@ use Drupal\Core\Entity\EntityViewBuilder;
 use Drupal\Core\Entity\Sql\SqlContentEntityStorage;
 use Drupal\Core\Entity\Sql\SqlContentEntityStorageSchema;
 use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\patternkit\Commands\PatternkitCommands;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternRouteProvider;
@@ -201,4 +202,17 @@ function patternkit_update_8005(&$sandbox) {
     $config_current->set($new_key, $config_install[$new_key]);
     $config_current->save();
   }
+}
+
+/**
+ * Adds 'dependencies' field to 'patternkit_pattern' entities.
+ */
+function patternkit_update_9001(&$sandbox) {
+  $field_storage_definition = BaseFieldDefinition::create('string')
+    ->setLabel(t('Dependencies'))
+    ->setDescription(t('A collection of pattern reference dependencies detected within the Pattern.'))
+    ->setCardinality(FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED);
+
+  \Drupal::entityDefinitionUpdateManager()
+    ->installFieldStorageDefinition('dependencies', 'patternkit_pattern', 'patternkit', $field_storage_definition);
 }

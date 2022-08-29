@@ -217,4 +217,3 @@ class LibraryTest extends UnitTestCase {
   }
 
 }
-

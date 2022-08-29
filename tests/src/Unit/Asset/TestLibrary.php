@@ -16,7 +16,7 @@ class TestLibrary extends Library {
    *
    * @see \Drupal\Tests\patternkit\Asset\TestLibrary::drupalGetPath()
    */
-  protected $pathMap = [];
+  protected array $pathMap = [];
 
   /**
    * An override of the parent method to replace the global function call.
@@ -32,10 +32,8 @@ class TestLibrary extends Library {
    *
    * @param array $map
    *   A two-dimensional array of return values keyed by:
-   *   - $type
-   *   - $name
-   *
-   * @return void
+   *   - $type: The extension type.
+   *   - $name: The extension name.
    */
   public function setPathMapping(array $map): void {
     $this->pathMap = $map;

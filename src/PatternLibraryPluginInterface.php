@@ -4,6 +4,7 @@ namespace Drupal\patternkit;
 
 use Drupal\Component\Plugin\PluginInspectionInterface;
 use Drupal\Core\Extension\Extension;
+use Drupal\patternkit\Asset\PatternLibraryParserInterface;
 use Drupal\patternkit\Entity\PatternInterface;
 
 /**
@@ -25,6 +26,9 @@ interface PatternLibraryPluginInterface extends PluginInspectionInterface {
    *     A renderable template string.
    *   - array schema
    *     A PHP Schema for the Pattern.
+   *
+   * @throws \Drupal\patternkit\Exception\PatternAssetException
+   *   Throws an exception if required assets are unavailable.
    */
   public function fetchAssets(PatternInterface $pattern, ?PatternEditorConfig $config = NULL): array;
 
@@ -66,5 +70,13 @@ interface PatternLibraryPluginInterface extends PluginInspectionInterface {
    *   Renderable data or markup.
    */
   public function render(array $assets): array;
+
+  /**
+   * Get the library parser for the library plugin.
+   *
+   * @return \Drupal\patternkit\Asset\PatternLibraryParserInterface
+   *   The library parser used by this plugin.
+   */
+  public function getParser(): PatternLibraryParserInterface;
 
 }

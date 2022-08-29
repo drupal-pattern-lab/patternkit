@@ -7,7 +7,7 @@ use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternLibrary;
 
 /**
- * Test description.
+ * Integration tests for the TwigPatternLibraryParser class.
  *
  * @coversDefaultClass \Drupal\patternkit\Asset\PatternLibraryParser\TwigPatternLibraryParser
  * @group patternkit

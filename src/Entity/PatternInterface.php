@@ -109,6 +109,31 @@ interface PatternInterface extends ContentEntityInterface {
   public function getName(): string;
 
   /**
+   * Get the list of pattern reference dependencies detected within the pattern.
+   *
+   * @return string[]
+   *   An array of namespaced pattern references.
+   */
+  public function getDependencies(): array;
+
+  /**
+   * Test whether a pattern schema has been bundled with dependencies.
+   *
+   * @return bool
+   *   True if the pattern schema has been bundled with all dependencies. False
+   *   otherwise.
+   */
+  public function isBundled(): bool;
+
+  /**
+   * Flag whether a pattern entity has had schema dependencies bundled.
+   *
+   * @param bool $bundled
+   *   (optional) The flag value to set. Defaults to true.
+   */
+  public function setBundled(bool $bundled = TRUE): void;
+
+  /**
    * Set the library plugin ID for this pattern instance.
    *
    * @param string $id
@@ -121,9 +146,9 @@ interface PatternInterface extends ContentEntityInterface {
   /**
    * Set the schema for this pattern instance.
    *
-   * @param string|array $schema
-   *   The schema value for this pattern instance. If provided as an array, it
-   *   will be JSON encoded automatically.
+   * @param string|array|object $schema
+   *   The schema value for this pattern instance. If not provided as a string,
+   *   the value will be JSON encoded automatically.
    *
    * @return static
    *
@@ -161,5 +186,15 @@ interface PatternInterface extends ContentEntityInterface {
    * @return static
    */
   public function setVersion(string $version): self;
+
+  /**
+   * Set the dependencies detected for this pattern instance.
+   *
+   * @param string[] $dependencies
+   *   An array of namespaced pattern identifiers.
+   *
+   * @return static
+   */
+  public function setDependencies(array $dependencies): self;
 
 }

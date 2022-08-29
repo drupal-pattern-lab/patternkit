@@ -2,57 +2,20 @@
 
 namespace Drupal\Tests\patternkit\Functional;
 
-use Drupal\Tests\BrowserTestBase;
-
 /**
  * E2E testing for the Patternkit settings forms.
  *
  * @coversDefaultClass \Drupal\patternkit\Form\PatternkitSettingsForm
  * @group patternkit
  */
-class PatternkitSettingsTest extends BrowserTestBase {
-
-  /**
-   * Modules to install.
-   *
-   * @var array
-   */
-  static protected $modules = [
-    'patternkit',
-    'patternkit_example',
-  ];
-
-  /**
-   * Default Drupal theme for running tests.
-   *
-   * @var string
-   */
-  protected $defaultTheme = 'stable';
-
-  /**
-   * Storage handler for patternkit_block content.
-   *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
-   */
-  protected $patternBlockStorage;
-
-  /**
-   * Storage handler for patternkit_pattern content.
-   *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
-   */
-  protected $patternStorage;
+class PatternkitSettingsTest extends PatternkitBrowserTestBase {
 
   /**
    * {@inheritdoc}
    */
-  public function setUp(): void {
-    parent::setUp();
-
-    $entity_type_manager = $this->container->get('entity_type.manager');
-    $this->patternBlockStorage = $entity_type_manager->getStorage('patternkit_block');
-    $this->patternStorage = $entity_type_manager->getStorage('patternkit_pattern');
-  }
+  static protected $modules = [
+    'patternkit_example',
+  ];
 
   /**
    * Test that the settings form loads as expected.

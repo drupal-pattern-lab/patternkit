@@ -70,7 +70,7 @@ class SchemaHelper {
       // operations. This will ensure expected options as well as configured
       // remote reference providers and data preprocessors are available.
       /** @var \Swaggest\JsonSchema\Context $context */
-      $context = \Drupal::service('patternkit.schema.schema_factory')->getDefaultContext();
+      $context = \Drupal::service('patternkit.schema.context_builder')->getDefaultContext();
       $validationResult = $schema->in($value, $context);
     }
     catch (InvalidValue $exception) {

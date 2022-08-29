@@ -142,4 +142,11 @@ abstract class PatternLibraryPluginDefault extends PluginBase implements Configu
     return $this->parser->parsePatternLibraryInfo($library, $path);
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function getParser(): PatternLibraryParserInterface {
+    return $this->parser;
+  }
+
 }

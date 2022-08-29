@@ -2,8 +2,12 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
+use Drupal\patternkit\Schema\PatternkitRefProvider;
 use Drupal\patternkit\Schema\SchemaWalker;
+use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\UnitTestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
+use Prophecy\Prophecy\ObjectProphecy;
 use Swaggest\JsonSchema\Context;
 use Swaggest\JsonSchema\Schema;
 
@@ -15,12 +19,15 @@ use Swaggest\JsonSchema\Schema;
  */
 class SchemaWalkerTest extends UnitTestCase {
 
+  use JsonDecodeTrait;
+  use ProphecyTrait;
+
   /**
-   * A reference provider for loading schemas from.
+   * A mocked reference provider for loading schemas from.
    *
-   * @var \Drupal\Tests\patternkit\Unit\Schema\TestPatternkitRefProvider
+   * @var \Drupal\patternkit\Schema\PatternkitRefProvider|\Prophecy\Prophecy\ObjectProphecy
    */
-  protected TestPatternkitRefProvider $refProvider;
+  protected ObjectProphecy $refProvider;
 
   /**
    * A testing schema with a single reference property.
@@ -255,12 +262,15 @@ JSON;
    * Test iteration with referenced schemas.
    */
   public function testIteratingReferences() {
-    $this->refProvider = new TestPatternkitRefProvider();
+    $this->refProvider = $this->prophesize(PatternkitRefProvider::class);
 
     // Register simple schemas for references.
-    $this->refProvider->registerPatternSchema('@patternkit/refs/text', $this->simpleTextSchemaJson);
-    $this->refProvider->registerPatternSchema('@patternkit/refs/number', $this->simpleNumberSchemaJson);
-    $this->refProvider->registerPatternSchema('@patternkit/refs/object', $this->simpleObjectSchemaJson);
+    $this->refProvider->getSchemaData('/api/patternkit/patternkit/refs/text?asset=schema')
+      ->willReturn($this->decodeJson($this->simpleTextSchemaJson));
+    $this->refProvider->getSchemaData('/api/patternkit/patternkit/refs/number?asset=schema')
+      ->willReturn($this->decodeJson($this->simpleNumberSchemaJson));
+    $this->refProvider->getSchemaData('/api/patternkit/patternkit/refs/object?asset=schema')
+      ->willReturn($this->decodeJson($this->simpleObjectSchemaJson));
 
     $values = [
       'text_reference' => $this->getRandomGenerator()->string(),
@@ -282,7 +292,7 @@ JSON;
     ];
 
     // Prepare a context using the test reference provider.
-    $context = new Context($this->refProvider);
+    $context = new Context($this->refProvider->reveal());
     $schema = Schema::import(json_decode($this->expandedRefSchemaJson), $context);
     $walker = new SchemaWalker($schema, $values);
 

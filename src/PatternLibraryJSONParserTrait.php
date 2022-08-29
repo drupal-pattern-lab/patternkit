@@ -3,12 +3,18 @@
 namespace Drupal\patternkit;
 
 use Drupal\Component\Serialization\SerializationInterface;
+use Drupal\patternkit\Asset\PatternDependencyResolver;
 use Drupal\patternkit\Entity\PatternInterface;
+use Drupal\patternkit\Schema\ContextBuilderTrait;
+use Drupal\patternkit\Schema\DataPreProcessorFactory;
+use Drupal\patternkit\Schema\UnresolvedSchema;
 
 /**
  * Provides methods for parsing JSON schema.
  */
 trait PatternLibraryJSONParserTrait {
+
+  use ContextBuilderTrait;
 
   /**
    * Serializes and de-serializes data.
@@ -16,6 +22,20 @@ trait PatternLibraryJSONParserTrait {
    * @var \Drupal\Component\Serialization\SerializationInterface
    */
   protected SerializationInterface $serializer;
+
+  /**
+   * The schema data preprocessor factory service.
+   *
+   * @var \Drupal\patternkit\Schema\DataPreProcessorFactory
+   */
+  protected DataPreProcessorFactory $dataPreProcessorFactory;
+
+  /**
+   * The pattern dependency resolver service.
+   *
+   * @var \Drupal\patternkit\Asset\PatternDependencyResolver
+   */
+  protected PatternDependencyResolver $patternDependencyResolver;
 
   /**
    * Fetches a JSON Schema from a file URI.
@@ -52,8 +72,16 @@ trait PatternLibraryJSONParserTrait {
    *   - ... and a combination of some of the above.
    *   - "@mylibrary/category/example.json#/definitions/example"
    *   - "./../../../test.json"
+   *
+   * @deprecated in patternkit:1.0.0-beta5 and is removed from patternkit:1.0.0.
+   *   Use \Drupal\patternkit\PatternLibraryJSONParserTrait::normalizeSchemaReferences
+   *   instead.
+   * @see https://www.drupal.org/node/3295843
+   * @see \Drupal\patternkit\PatternLibraryJSONParserTrait::normalizeSchemaReferences
    */
   public static function schemaDereference($properties, PatternInterface $pattern) {
+    @trigger_error(__METHOD__ . ' is deprecated in patternkit:1.0.0-beta5 and is removed from patternkit:1.0.0. Use \Drupal\patternkit\PatternLibraryJSONParserTrait::normalizeSchemaReferences instead. See https://www.drupal.org/node/3295843', E_USER_DEPRECATED);
+
     $ext = '.json';
     $ext_len = strlen($ext);
     $namespace_resolver = \Drupal::service('patternkit.library.namespace_resolver');
@@ -121,6 +149,58 @@ trait PatternLibraryJSONParserTrait {
     }
 
     return $properties;
+  }
+
+  /**
+   * Process schema content to normalize reference links.
+   *
+   * This method normalizes reference links for consistency to replace all
+   * namespace references with a URL routing through the Patternkit API
+   * controller.
+   *
+   * @param string $schema_json
+   *   The raw schema content for normalization.
+   *
+   * @return string
+   *   The schema content after all references have been normalized.
+   *
+   * @throws \JsonException
+   * @throws \Swaggest\JsonSchema\Exception
+   * @throws \Swaggest\JsonSchema\InvalidValue
+   */
+  public function normalizeSchemaReferences(string $schema_json): string {
+    $preprocessor = $this->dataPreProcessorFactory->getPreProcessor('normalizer');
+    $context_options = [
+      'dataPreProcessor' => $preprocessor,
+    ];
+
+    // Prepare the context.
+    $context = $this->contextBuilder()->getConfiguredContext($context_options);
+
+    // @todo Consolidate this call with other serialization operations.
+    $schema_data = json_decode($schema_json, FALSE, 512, JSON_THROW_ON_ERROR);
+    $schema = UnresolvedSchema::import($schema_data, $context);
+
+    return json_encode($schema, JSON_THROW_ON_ERROR);
+  }
+
+  /**
+   * Identify all external dependencies referenced in a schema.
+   *
+   * @param string $schema_json
+   *   The JSON content of the schema to be parsed.
+   * @param string $pattern_id
+   *   The namespaced identifier for the pattern being parsed.
+   *
+   * @return string[]
+   *   An array of namespaced pattern references referenced within the schema
+   *   content.
+   *
+   * @throws \Swaggest\JsonSchema\Exception
+   * @throws \Swaggest\JsonSchema\InvalidValue
+   */
+  public function getSchemaDependencies(string $schema_json, string $pattern_id): array {
+    return $this->patternDependencyResolver->getSchemaDependencies($schema_json, $pattern_id);
   }
 
 }

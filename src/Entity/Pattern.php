@@ -7,6 +7,7 @@ use Drupal\Component\Plugin\Exception\PluginNotFoundException;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\Core\Field\FieldStorageDefinitionInterface;
 
 /**
  * Defines the Pattern entity type which stores pattern metadata in Drupal.
@@ -66,6 +67,13 @@ use Drupal\Core\Field\BaseFieldDefinition;
  * @package Drupal\patternkit\Entity
  */
 class Pattern extends ContentEntityBase implements PatternInterface {
+
+  /**
+   * A flag tracking whether schema dependencies have been bundled.
+   *
+   * @var bool
+   */
+  protected bool $bundled = FALSE;
 
   /**
    * Constructs a new Pattern object, without permanently saving it.
@@ -133,6 +141,11 @@ class Pattern extends ContentEntityBase implements PatternInterface {
     $fields['version'] = BaseFieldDefinition::create('string')
       ->setLabel(t('Version'))
       ->setCardinality(1);
+    $fields['dependencies'] = BaseFieldDefinition::create('string')
+      ->setLabel(t('Dependencies'))
+      ->setDescription(t('A collection of pattern reference dependencies detected within the Pattern.'))
+      ->setCardinality(FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED);
+
     return $fields;
   }
 
@@ -240,6 +253,13 @@ class Pattern extends ContentEntityBase implements PatternInterface {
 
   /**
    * {@inheritdoc}
+   */
+  public function getDependencies(): array {
+    return $this->get('dependencies')->getValue();
+  }
+
+  /**
+   * {@inheritdoc}
    *
    * @todo Should be a way to hook into ContentEntity lazy loading instead.
    */
@@ -247,6 +267,20 @@ class Pattern extends ContentEntityBase implements PatternInterface {
     $this->toArray();
     $this->computeHash();
     return parent::save();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function isBundled(): bool {
+    return $this->bundled;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setBundled(bool $bundled = TRUE): void {
+    $this->bundled = $bundled;
   }
 
   /**
@@ -267,10 +301,10 @@ class Pattern extends ContentEntityBase implements PatternInterface {
    * {@inheritdoc}
    */
   public function setSchema($schema): self {
-    assert(is_string($schema) || is_array($schema), 'The schema value is expected to be either a serialized JSON string or an array for serialization.');
+    assert(is_string($schema) || is_array($schema) || is_object($schema), 'The schema value is expected to be either a serialized JSON string or serializable array or object.');
 
     // Serialize the schema value if we were provided with an array.
-    if (is_array($schema)) {
+    if (!is_string($schema)) {
       // Encode the provided schema value and throw an exception if it fails for
       // any reason.
       $schema = json_encode($schema, JSON_THROW_ON_ERROR);
@@ -294,6 +328,13 @@ class Pattern extends ContentEntityBase implements PatternInterface {
    */
   public function setVersion(string $version): self {
     return $this->set('version', $version);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setDependencies(array $dependencies): self {
+    return $this->set('dependencies', $dependencies);
   }
 
   /**
@@ -332,8 +373,13 @@ class Pattern extends ContentEntityBase implements PatternInterface {
    *
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   * @throws \Drupal\patternkit\Exception\PatternAssetException
+   * @throws \JsonException
+   *
+   * NOTE: This method is not supported for external use or backward-
+   * compatibility commitments.
    */
-  protected function fetchAssets(): array {
+  public function fetchAssets(): array {
     $plugin_id = $this->getLibraryPluginId();
     /** @var \Drupal\patternkit\PatternLibraryPluginManager $plugin_manager */
     $plugin_manager = \Drupal::service('plugin.manager.library.pattern');

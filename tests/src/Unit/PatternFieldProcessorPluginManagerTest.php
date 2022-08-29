@@ -14,13 +14,16 @@ use Drupal\patternkit\PatternFieldProcessorPluginManager;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\patternkit\Plugin\PatternFieldProcessor\PatternFieldProcessorInterface;
+use Drupal\patternkit\Schema\ContextBuilder;
 use Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor;
+use Drupal\patternkit\Schema\PatternkitRefProvider;
 use Drupal\patternkit\Schema\SchemaFactory;
 use Drupal\patternkit\Schema\SchemaWalkerFactory;
-use Drupal\Tests\patternkit\Unit\Schema\TestPatternkitRefProvider;
+use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\UnitTestCase;
 use PHPUnit\Framework\Constraint\IsType;
 use PHPUnit\Framework\MockObject\MockObject;
+use Swaggest\JsonSchema\Context;
 use Swaggest\JsonSchema\DataPreProcessor;
 use Swaggest\JsonSchema\SchemaContract;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -32,6 +35,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @group patternkit
  */
 class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
+
+  use JsonDecodeTrait;
 
   /**
    * The mocked pattern library plugin manager.
@@ -78,9 +83,9 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
   /**
    * The test service for resolving schema references.
    *
-   * @var \Drupal\Tests\patternkit\Unit\Schema\TestPatternkitRefProvider
+   * @var \Drupal\patternkit\Schema\PatternkitRefProvider
    */
-  protected TestPatternkitRefProvider $refProvider;
+  protected PatternkitRefProvider $refProvider;
 
   /**
    * A data preprocessor to register for schema operations.
@@ -118,6 +123,20 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
   protected ContainerInterface $container;
 
   /**
+   * An iterator argument for the plugin manager.
+   *
+   * @var \ArrayIterator
+   */
+  protected \ArrayIterator $containerNamespaces;
+
+  /**
+   * The mocked context builder service.
+   *
+   * @var \Drupal\patternkit\Schema\ContextBuilder
+   */
+  protected ContextBuilder $contextBuilder;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp(): void {
@@ -141,12 +160,19 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
     // Expect no errors to be logged unless overridden in a specific test.
     $this->logger->expects($this->never())->method('error');
 
+    $this->contextBuilder = $this->createMock(ContextBuilder::class);
+
     // Create a SchemaWalkerFactory with a mocked ref provider for loading
     // references within schemas.
-    $this->refProvider = new TestPatternkitRefProvider();
+    $this->refProvider = $this->createMock(PatternkitRefProvider::class);
     $this->dataPreProcessor = new ObjectCoercionDataPreProcessor();
-    $this->schemaFactory = new SchemaFactory($this->refProvider, $this->dataPreProcessor);
+    $this->schemaFactory = new SchemaFactory($this->contextBuilder);
     $this->schemaWalkerFactory = new SchemaWalkerFactory($this->schemaFactory);
+
+    $defaultContext = new Context($this->refProvider);
+    $defaultContext->setDataPreProcessor($this->dataPreProcessor);
+    $this->contextBuilder->method('getDefaultContext')
+      ->willReturn($defaultContext);
 
     // Instantiate the plugin manager for testing with our mocked services.
     $this->pluginManager = new PatternFieldProcessorPluginManager(
@@ -160,6 +186,7 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
 
     $this->container = new ContainerBuilder();
     $this->container->set('patternkit.schema.schema_factory', $this->schemaFactory);
+    $this->container->set('patternkit.schema.context_builder', $this->contextBuilder);
 
     \Drupal::setContainer($this->container);
   }
@@ -749,9 +776,22 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
         }
       }
       JSON;
-    $this->registerRefSchema($text_schema, '@patternkit/refs/text');
-    $this->registerRefSchema($number_schema, '@patternkit/refs/number');
-    $this->registerRefSchema($object_schema, '@patternkit/refs/object');
+
+    $this->refProvider->method('getSchemaData')
+      ->willReturnMap([
+        [
+          '/api/patternkit/patternkit/refs/text?asset=schema',
+          $this->decodeJson($text_schema),
+        ],
+        [
+          '/api/patternkit/patternkit/refs/number?asset=schema',
+          $this->decodeJson($number_schema),
+        ],
+        [
+          '/api/patternkit/patternkit/refs/object?asset=schema',
+          $this->decodeJson($object_schema),
+        ],
+      ]);
 
     // Prepare the configuration values for testing.
     $values = [
@@ -839,18 +879,6 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
         ],
       ],
     ], $processed_values);
-  }
-
-  /**
-   * Prepare mocking for loading a reference schema.
-   *
-   * @param string $schema_json
-   *   The JSON content to be loaded for the schema reference.
-   * @param string $schema_ref
-   *   The schema reference identifier that will be looked up.
-   */
-  protected function registerRefSchema(string $schema_json, string $schema_ref): void {
-    $this->refProvider->registerPatternSchema($schema_ref, $schema_json);
   }
 
   /**

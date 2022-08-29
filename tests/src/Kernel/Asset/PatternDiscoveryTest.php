@@ -42,31 +42,41 @@ class PatternDiscoveryTest extends KernelTestBase {
    * @covers ::getPatternsByNamespace
    */
   public function testGetPatternsByNamespace() {
+    $expected_patterns = [
+      '@patternkit/atoms/example/src/example',
+      '@patternkit/atoms/example_filtered/src/example_filtered',
+      '@patternkit/atoms/example_ref/src/example_ref',
+      '@patternkit/atoms/example_filtered_multiple/src/example_filtered_multiple',
+    ];
+
     $definitions = $this->discovery->getPatternsByNamespace('@patternkit');
 
     $this->assertIsArray($definitions);
-    $this->assertCount(3, $definitions);
-    $this->assertArrayHasKey('@patternkit/atoms/example/src/example', $definitions);
-    $this->assertArrayHasKey('@patternkit/atoms/example_filtered/src/example_filtered', $definitions);
-    $this->assertArrayHasKey('@patternkit/atoms/example_ref/src/example_ref', $definitions);
+    $this->assertCount(count($expected_patterns), $definitions);
+    $this->assertEqualsCanonicalizing($expected_patterns, array_keys($definitions));
   }
 
   /**
    * @covers ::getPatternDefinitions
    */
   public function testGetPatternDefinitions() {
+    $expected_patterns = [
+      '@patternkit/atoms/example/src/example',
+      '@patternkit/atoms/example_filtered/src/example_filtered',
+      '@patternkit/atoms/example_ref/src/example_ref',
+      '@patternkit/atoms/example_filtered_multiple/src/example_filtered_multiple',
+    ];
+
     $definitions = $this->discovery->getPatternDefinitions();
 
     $this->assertIsArray($definitions);
 
     // With these enabled modules, there should only be one namespace defined.
-    $this->assertCount(1, $definitions);
-    $this->assertArrayHasKey('@patternkit', $definitions);
+    $this->assertEquals(['@patternkit'], array_keys($definitions));
 
-    // Within the @patternkit namespace there should be 3 definitions.
-    $this->assertArrayHasKey('@patternkit/atoms/example/src/example', $definitions['@patternkit']);
-    $this->assertArrayHasKey('@patternkit/atoms/example_filtered/src/example_filtered', $definitions['@patternkit']);
-    $this->assertArrayHasKey('@patternkit/atoms/example_ref/src/example_ref', $definitions['@patternkit']);
+    // Within the '@patternkit' namespace there should be a known list of
+    // discovered definitions.
+    $this->assertEqualsCanonicalizing($expected_patterns, array_keys($definitions['@patternkit']));
   }
 
   /**

@@ -4,6 +4,8 @@ namespace Drupal\Tests\patternkit\Unit;
 
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\patternkit\Exception\SchemaValidationException;
+use Drupal\patternkit\Exception\UnknownPatternException;
+use Drupal\patternkit\PatternRepository;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\patternkit\Element\Pattern;
 use Drupal\patternkit\Entity\PatternInterface;
@@ -16,6 +18,8 @@ use Drupal\Tests\Core\Render\RendererTestBase;
  * Test functionality for the Pattern render element.
  *
  * @coversDefaultClass \Drupal\patternkit\Element\Pattern
+ * @covers ::__construct
+ * @covers ::create
  * @group patternkit
  */
 class PatternElementTest extends RendererTestBase {
@@ -40,6 +44,13 @@ class PatternElementTest extends RendererTestBase {
    * @var \Drupal\patternkit\PatternLibraryPluginInterface|null
    */
   protected ?PatternLibraryPluginInterface $libraryPlugin;
+
+  /**
+   * A mocked pattern repository service.
+   *
+   * @var \Drupal\patternkit\PatternRepository|null
+   */
+  protected ?PatternRepository $patternRepository;
 
   /**
    * The string translation service.
@@ -78,6 +89,8 @@ class PatternElementTest extends RendererTestBase {
 
     $this->patternFieldProcessorPluginManager = $this->createMock(PatternFieldProcessorPluginManager::class);
 
+    $this->patternRepository = $this->createMock(PatternRepository::class);
+
     // Mock the string translation service.
     $this->translation = $this->getStringTranslationStub();
 
@@ -85,6 +98,7 @@ class PatternElementTest extends RendererTestBase {
     $this->container = \Drupal::getContainer();
     $this->container->set('plugin.manager.library.pattern', $this->patternLibraryPluginManager);
     $this->container->set('plugin.manager.pattern_field_processor', $this->patternFieldProcessorPluginManager);
+    $this->container->set('patternkit.pattern.repository', $this->patternRepository);
     $this->container->set('string_translation', $this->translation);
 
     $this->patternElement = Pattern::create($this->container, [], 'pattern', []);
@@ -103,7 +117,46 @@ class PatternElementTest extends RendererTestBase {
   }
 
   /**
+   * @covers ::loadPattern
+   */
+  public function testLoadPattern() {
+    $patternMock = $this->createMock(PatternInterface::class);
+    $element = [
+      '#type' => 'pattern',
+      '#pattern' => $patternMock,
+    ];
+
+    $this->patternRepository->method('getPattern')
+      ->with('@my/pattern')
+      ->willReturn($patternMock);
+
+    $this->assertEquals($element, $this->patternElement->loadPattern([
+      '#type' => 'pattern',
+      '#pattern' => '@my/pattern',
+    ]));
+
+    $exception = new UnknownPatternException('My expected exception');
+    $this->patternRepository->method('getPattern')
+      ->with('@unknown/pattern')
+      ->willThrowException($exception);
+
+    $this->assertEquals([
+      'error' => [
+        '#type' => 'pattern_error',
+        '#pattern' => '@unknown/pattern',
+        '#config' => [],
+        '#context' => [],
+        '#exception' => $exception,
+      ],
+    ], $this->patternElement->loadPattern([
+      '#type' => 'pattern',
+      '#pattern' => '@unknown/pattern',
+    ]));
+  }
+
+  /**
    * @covers ::preRenderPatternElement
+   * @covers ::getPatternLibraryPlugin
    */
   public function testPreRenderPatternElement() {
     $patternMock = $this->createMock(PatternInterface::class);
@@ -138,6 +191,7 @@ class PatternElementTest extends RendererTestBase {
    * Test that config values are passed for plugin processing.
    *
    * @covers ::preRenderPatternElement
+   * @covers ::getPatternLibraryPlugin
    * @doesNotPerformAssertions
    */
   public function testPreRenderProcessesConfigValues() {

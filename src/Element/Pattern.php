@@ -2,6 +2,7 @@
 
 namespace Drupal\patternkit\Element;
 
+use Drupal\patternkit\Exception\UnknownPatternException;
 use Drupal\patternkit\PatternFieldProcessorPluginManager;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Render\BubbleableMetadata;
@@ -10,13 +11,14 @@ use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Exception\SchemaException;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
+use Drupal\patternkit\PatternRepository;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Provides a render element to display a pattern.
  *
  * Properties:
- * - '#pattern': The loaded Pattern entity to be rendered.
+ * - '#pattern': The id of the pattern to be rendered.
  * - '#config': Configuration to be passed to the pattern for rendering.
  * - '#context': Context values for rendering the pattern.
  *
@@ -24,7 +26,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @code
  * $build['example_pattern'] = [
  *   '#type' => 'pattern',
- *   '#pattern' => Pattern,
+ *   '#pattern' => '@my/pattern/name',
  *   '#config' => [
  *     'text' => '[node:title]',
  *     'formatted_text' => '<p><strong>My formatted text</strong></p>',
@@ -54,11 +56,19 @@ class Pattern extends RenderElement implements ContainerFactoryPluginInterface {
   protected PatternLibraryPluginManager $libraryPluginManager;
 
   /**
+   * The pattern repository service for loading patterns.
+   *
+   * @var \Drupal\patternkit\PatternRepository
+   */
+  protected PatternRepository $patternRepository;
+
+  /**
    * {@inheritdoc}
    */
   public function getInfo(): array {
     return [
       '#pre_render' => [
+        [$this, 'loadPattern'],
         [$this, 'preRenderPatternElement'],
       ],
       '#pattern' => NULL,
@@ -80,12 +90,22 @@ class Pattern extends RenderElement implements ContainerFactoryPluginInterface {
    *   The field processor plugin manager service.
    * @param \Drupal\patternkit\PatternLibraryPluginManager $libraryPluginManager
    *   The pattern library parser plugin manager service.
+   * @param \Drupal\patternkit\PatternRepository $patternRepository
+   *   The pattern repository service.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, PatternFieldProcessorPluginManager $fieldProcessorPluginManager, PatternLibraryPluginManager $libraryPluginManager) {
+  public function __construct(
+    array $configuration,
+    $plugin_id,
+    $plugin_definition,
+    PatternFieldProcessorPluginManager $fieldProcessorPluginManager,
+    PatternLibraryPluginManager $libraryPluginManager,
+    PatternRepository $patternRepository
+  ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
     $this->fieldProcessorPluginManager = $fieldProcessorPluginManager;
     $this->libraryPluginManager = $libraryPluginManager;
+    $this->patternRepository = $patternRepository;
   }
 
   /**
@@ -98,7 +118,44 @@ class Pattern extends RenderElement implements ContainerFactoryPluginInterface {
       $plugin_definition,
       $container->get('plugin.manager.pattern_field_processor'),
       $container->get('plugin.manager.library.pattern'),
+      $container->get('patternkit.pattern.repository'),
     );
+  }
+
+  /**
+   * Preload the pattern entity if not available yet.
+   *
+   * @param array $element
+   *   An associative array containing the properties of the pattern element.
+   *
+   * @return array
+   *   The modified element.
+   */
+  public function loadPattern(array $element): array {
+    if (isset($element['#pattern']) && is_string($element['#pattern'])) {
+      $pattern_id = $element['#pattern'];
+
+      try {
+        $element['#pattern'] = $this->patternRepository->getPattern($pattern_id);
+      }
+      catch (UnknownPatternException $exception) {
+        // Replace the pattern output with an error element for more
+        // sophisticated output handling.
+        // @see \Drupal\patternkit\Element\PatternError
+        $elements = [];
+        $elements['error'] = [
+          '#type' => 'pattern_error',
+          '#pattern' => $element['#pattern'],
+          '#config' => $element['#config'] ?? [],
+          '#context' => $element['#context'] ?? [],
+          '#exception' => $exception,
+        ];
+
+        return $elements;
+      }
+    }
+
+    return $element;
   }
 
   /**

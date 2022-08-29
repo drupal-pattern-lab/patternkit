@@ -3,11 +3,13 @@
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
+use Drupal\patternkit\Schema\ContextBuilder;
 use Drupal\patternkit\Schema\SchemaIterator;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\patternkit\Traits\SchemaFixtureTrait;
-use Drupal\Tests\patternkit\Traits\SchemaHelperTestTrait;
 use Drupal\Tests\UnitTestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
+use Prophecy\Prophecy\ObjectProphecy;
 use Swaggest\JsonSchema\Context;
 use Swaggest\JsonSchema\Schema;
 
@@ -21,8 +23,22 @@ use Swaggest\JsonSchema\Schema;
 class SchemaIteratorTest extends UnitTestCase {
 
   use JsonDecodeTrait;
-  use SchemaHelperTestTrait;
+  use ProphecyTrait;
   use SchemaFixtureTrait;
+
+  /**
+   * A prophecy mock for the context builder service.
+   *
+   * @var \Drupal\patternkit\Schema\ContextBuilder|\Prophecy\Prophecy\ObjectProphecy
+   */
+  protected ObjectProphecy $contextBuilder;
+
+  /**
+   * A default schema context to use for schema operations.
+   *
+   * @var \Swaggest\JsonSchema\Context
+   */
+  protected Context $context;
 
   /**
    * A basic JSON schema with various property types, but no references.
@@ -111,8 +127,13 @@ class SchemaIteratorTest extends UnitTestCase {
   public function setUp(): void {
     parent::setUp();
 
+    $this->context = new Context();
+
+    $this->contextBuilder = $this->prophesize(ContextBuilder::class);
+    $this->contextBuilder->getDefaultContext()->willReturn($this->context);
+
     $container = new ContainerBuilder();
-    $this->setUpSchemaFactory($container);
+    $container->set('patternkit.schema.context_builder', $this->contextBuilder->reveal());
     \Drupal::setContainer($container);
 
     $this->context = new Context();

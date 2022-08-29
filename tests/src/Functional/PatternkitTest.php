@@ -2,60 +2,28 @@
 
 namespace Drupal\Tests\patternkit\Functional;
 
-use Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay;
 use Drupal\node\Entity\Node;
 use Drupal\patternkit\Element\PatternError;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Plugin\Derivative\PatternkitBlock;
-use Drupal\Tests\BrowserTestBase;
-use Drupal\Tests\patternkit\Traits\PatternkitBlockHelperTrait;
 
 /**
  * Basic E2E testing for Patternkit.
  *
  * @group legacy
- *
- * @ingroup patternkit
+ * @group patternkit
  *
  * @todo Remove legacy group on 1.0 release and fix any deprecations.
  */
-class PatternkitTest extends BrowserTestBase {
-
-  use PatternkitBlockHelperTrait;
+class PatternkitTest extends PatternkitBrowserTestBase {
 
   /**
-   * Modules to install.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   static protected $modules = [
-    'patternkit',
     'patternkit_example',
     'patternkit_test',
-    'layout_builder',
-    'node',
   ];
-
-  /**
-   * Default Drupal theme for running tests.
-   *
-   * @var string
-   */
-  protected $defaultTheme = 'stable';
-
-  /**
-   * Storage handler for patternkit_block content.
-   *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
-   */
-  protected $patternBlockStorage;
-
-  /**
-   * Storage handler for patternkit_pattern content.
-   *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
-   */
-  protected $patternStorage;
 
   /**
    * The patternkit library service.
@@ -70,31 +38,7 @@ class PatternkitTest extends BrowserTestBase {
   public function setUp(): void {
     parent::setUp();
 
-    $entity_type_manager = $this->container->get('entity_type.manager');
-    $this->patternBlockStorage = $entity_type_manager->getStorage('patternkit_block');
-    $this->patternStorage = $entity_type_manager->getStorage('patternkit_pattern');
     $this->library = $this->container->get('patternkit.asset.library');
-
-    // Create a bundle type and node we'll enable layout builder for.
-    $this->drupalCreateContentType([
-      'type' => 'bundle_with_layout_enabled',
-      'name' => 'Bundle with layout enabled',
-    ]);
-    $this->drupalCreateNode([
-      'type' => 'bundle_with_layout_enabled',
-      'title' => 'Test node title',
-      'body' => [
-        [
-          'value' => 'Test node body.',
-        ],
-      ],
-    ]);
-
-    // Enable layout builder for the test bundle.
-    LayoutBuilderEntityViewDisplay::load('node.bundle_with_layout_enabled.default')
-      ->enableLayoutBuilder()
-      ->setOverridable()
-      ->save();
   }
 
   /**

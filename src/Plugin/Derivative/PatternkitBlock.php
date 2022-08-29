@@ -8,8 +8,8 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Plugin\Discovery\ContainerDeriverInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\patternkit\Asset\LibraryInterface;
 use Drupal\patternkit\Form\PatternkitSettingsForm;
+use Drupal\patternkit\PatternRepository;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -47,13 +47,12 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
    */
   protected EntityStorageInterface $blockStorage;
 
-
   /**
-   * The patternkit library service.
+   * The patternkit repository service.
    *
-   * @var \Drupal\patternkit\Asset\LibraryInterface
+   * @var \Drupal\patternkit\PatternRepository
    */
-  protected LibraryInterface $library;
+  protected PatternRepository $patternRepository;
 
   /**
    * Used to populate all the types of Patternkit blocks based on libraries.
@@ -62,8 +61,8 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
    *   Provides patternkit configurable settings.
    * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
    *   Generates and provides log channels.
-   * @param \Drupal\patternkit\Asset\LibraryInterface $library
-   *   Provides a list of pattern libraries with metadata.
+   * @param \Drupal\patternkit\PatternRepository $pattern_repository
+   *   Provides a list of discovered pattern metadata and instantiates patterns.
    * @param \Drupal\Core\Entity\EntityStorageInterface $pattern_storage
    *   Loads and saves patternkit pattern entities to storage.
    * @param \Drupal\Core\Entity\EntityStorageInterface $block_storage
@@ -72,13 +71,13 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
   public function __construct(
     ImmutableConfig $config,
     LoggerChannelInterface $logger,
-    LibraryInterface $library,
+    PatternRepository $pattern_repository,
     EntityStorageInterface $pattern_storage,
     EntityStorageInterface $block_storage
   ) {
     $this->config = $config;
     $this->logger = $logger;
-    $this->library = $library;
+    $this->patternRepository = $pattern_repository;
     $this->patternStorage = $pattern_storage;
     $this->blockStorage = $block_storage;
   }
@@ -98,9 +97,9 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
     return new static(
       $config_factory->get(PatternkitSettingsForm::SETTINGS),
       $container->get('logger.channel.patternkit'),
-      $container->get('patternkit.asset.library'),
+      $container->get('patternkit.pattern.repository'),
       $entity_manager->getStorage('patternkit_pattern'),
-      $entity_manager->getStorage('patternkit_block')
+      $entity_manager->getStorage('patternkit_block'),
     );
   }
 
@@ -160,22 +159,22 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
     $this->derivatives = [];
     $patterns = [];
     try {
-      $patterns = $this->library->getAssets();
+      $patterns = $this->patternRepository->getAllPatternNames();
     }
     catch (\Exception $exception) {
       $this->logger->error('Error loading patterns for derivative blocks: @message', ['@message' => $exception->getMessage()]);
     }
 
     $libraries_config = $this->config->get('patternkit_libraries');
-    foreach ($patterns as $pattern_key => $pattern_metadata) {
+    foreach ($patterns as $pattern_name) {
       try {
-        $pattern = $this->patternStorage->create($pattern_metadata);
+        $pattern = $this->patternRepository->getPattern($pattern_name);
       }
       catch (\Exception $exception) {
         $this->logger->error('Error loading patterns for derivative blocks: @message', ['@message' => $exception->getMessage()]);
         continue;
       }
-      $pattern_id = $this->assetToDerivativeId($pattern_key);
+      $pattern_id = $this->assetToDerivativeId($pattern_name);
       $lib = $pattern->getLibrary();
       if (isset($libraries_config[$lib])
         && ($libraries_config[$lib]['enabled'] === 0 || $libraries_config[$lib]['visible'] === 0)) {
@@ -183,7 +182,7 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
       }
       $this->derivatives[$pattern_id] = [
         'category' => (string) $this->t('Patternkit:@lib/@category', [
-          '@lib'      => $lib ?? 'patternkit',
+          '@lib' => $lib ?? 'patternkit',
           '@category' => $pattern->getCategory() ?? 'default',
         ]),
         'admin_label' => $this->t('[Patternkit] @pattern', ['@pattern' => $pattern->label()]),
@@ -192,6 +191,7 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
       $this->derivatives[$pattern_id] += $base_plugin_definition;
     }
 
+    // @todo Load from pattern repository and handle missing patterns.
     $patternkit_blocks = $this->blockStorage->loadByProperties(['reusable' => TRUE]);
     foreach ($patternkit_blocks as $patternkit_block) {
       $pkb_uuid = $patternkit_block->uuid();

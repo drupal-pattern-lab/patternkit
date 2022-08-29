@@ -5,12 +5,9 @@ namespace Drupal\patternkit\Schema;
 use Drupal\patternkit\Exception\SchemaException;
 use Drupal\patternkit\Exception\SchemaReferenceException;
 use Drupal\patternkit\Exception\SchemaValidationException;
-use Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor;
 use Swaggest\JsonSchema\Context;
-use Swaggest\JsonSchema\DataPreProcessor;
-use Swaggest\JsonSchema\Exception;
+use Swaggest\JsonSchema\Exception as JsonSchemaException;
 use Swaggest\JsonSchema\InvalidValue;
-use Swaggest\JsonSchema\RemoteRefProvider;
 use Swaggest\JsonSchema\Schema;
 use Swaggest\JsonSchema\SchemaContract;
 
@@ -24,43 +21,20 @@ use Swaggest\JsonSchema\SchemaContract;
 class SchemaFactory {
 
   /**
-   * The reference provider to be used for loading schema references.
+   * The context builder service for preparing schema contexts.
    *
-   * @var \Swaggest\JsonSchema\RemoteRefProvider
+   * @var \Drupal\patternkit\Schema\ContextBuilder
    */
-  protected RemoteRefProvider $refProvider;
+  protected ContextBuilder $contextBuilder;
 
   /**
-   * A data preprocessor to configure on all schema instances.
+   * Create a new SchemaFactory instance.
    *
-   * @var \Swaggest\JsonSchema\DataPreProcessor
+   * @param \Drupal\patternkit\Schema\ContextBuilder $contextBuilder
+   *   The context builder service.
    */
-  protected DataPreProcessor $dataPreProcessor;
-
-  /**
-   * The default context to use for schema operations.
-   *
-   * @var \Swaggest\JsonSchema\Context
-   */
-  protected Context $defaultContext;
-
-  /**
-   * Create a new Schema instance.
-   *
-   * @param \Swaggest\JsonSchema\RemoteRefProvider $refProvider
-   *   The ref provider for loading schema references.
-   * @param \Swaggest\JsonSchema\DataPreProcessor|null $dataPreProcessor
-   *   (Optional) A data preprocessor to use on all Schema instances. Defaults
-   *   to an ObjectCoercionDataPreProcessor if none is provided.
-   *
-   * @see \Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor
-   */
-  public function __construct(RemoteRefProvider $refProvider, ?DataPreProcessor $dataPreProcessor = NULL) {
-    $this->refProvider = $refProvider;
-    $this->dataPreProcessor = $dataPreProcessor ?? new ObjectCoercionDataPreProcessor();
-
-    $this->defaultContext = new Context($refProvider);
-    $this->defaultContext->setDataPreProcessor($this->dataPreProcessor);
+  public function __construct(ContextBuilder $contextBuilder) {
+    $this->contextBuilder = $contextBuilder;
   }
 
   /**
@@ -86,20 +60,10 @@ class SchemaFactory {
   public function createInstance(string $schema, ?Context $context = NULL): SchemaContract {
     // Configure defaults on the provided context options if one is provided.
     if ($context !== NULL) {
-      // Don't override the remote ref provider if one is already configured
-      // for use.
-      if ($context->getRemoteRefProvider() === NULL) {
-        $context->setRemoteRefProvider($this->refProvider);
-      }
-
-      // Don't override the data preprocessor if one is already configured
-      // for use.
-      if ($context->getDataPreProcessor() === NULL) {
-        $context->setDataPreProcessor($this->dataPreProcessor);
-      }
+      $context = $this->contextBuilder->configureContextDefaults($context);
     }
     else {
-      $context = $this->getDefaultContext();
+      $context = $this->contextBuilder->getDefaultContext();
     }
 
     try {
@@ -109,7 +73,7 @@ class SchemaFactory {
       // Wrap the exception in our own class for abstraction.
       throw new SchemaValidationException($invalidValueException->getMessage(), $invalidValueException->getCode(), $invalidValueException);
     }
-    catch (Exception $jsonSchemaException) {
+    catch (JsonSchemaException $jsonSchemaException) {
       // Re-cast as a more specific exception if we can identify the cause.
       $message = $jsonSchemaException->getMessage();
       if (strpos($message, 'Failed to decode content from') === 0) {
@@ -123,18 +87,6 @@ class SchemaFactory {
       // Wrap the exception in our own class for abstraction.
       throw new SchemaException($exception->getMessage(), $exception->getCode(), $exception);
     }
-  }
-
-  /**
-   * Get a configured default context for use in schema operations.
-   *
-   * @return \Swaggest\JsonSchema\Context
-   *   A configured default context for schema operations.
-   */
-  public function getDefaultContext(): Context {
-    // Clone the default context to avoid capturing processing state data during
-    // usage of the returned instance in schema operations.
-    return clone($this->defaultContext);
   }
 
   /**
