@@ -107,9 +107,9 @@ services:
       - '@patternkit.schema.context_builder'
   patternkit.schema.context_builder:
     class: Drupal\patternkit\Schema\ContextBuilder
-    calls:
-      - ['setRemoteRefProvider', ['@patternkit.schema.ref_provider']]
-      - ['setDataPreProcessor', ['@patternkit.schema.data_preprocessor.objects']]
+    arguments:
+      - '@patternkit.schema.ref_provider'
+      - '@patternkit.schema.data_preprocessor.defaults'
   patternkit.schema.ref_handler:
     class: Drupal\patternkit\Schema\SchemaRefHandler
   patternkit.schema.ref_provider:
@@ -124,6 +124,12 @@ services:
       - '@patternkit.schema.schema_factory'
     public: false
 
+  # Collect default data preprocessors for general usage.
+  patternkit.schema.data_preprocessor.defaults:
+    class: Drupal\patternkit\Schema\DataPreProcessor\DataPreProcessorCollection
+    tags:
+      - { name: 'service_collector', tag: 'default_schema_data_preprocessor', call: 'addPreProcessor'}
+
   # Define schema data preprocessors used for various operations.
   patternkit.schema.data_preprocessor.factory:
     class: Drupal\patternkit\Schema\DataPreProcessorFactory
@@ -133,6 +139,15 @@ services:
     class: Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor
     tags:
       - { name: 'schema_data_preprocessor', alias: 'objects' }
+      - { name: 'default_schema_data_preprocessor' }
+    public: false
+  patternkit.schema.data_preprocessor.tokens:
+    class: Drupal\patternkit\Schema\DataPreProcessor\TokenValidationDataPreProcessor
+    arguments:
+      - '@token'
+    tags:
+      - { name: 'schema_data_preprocessor', alias: 'tokens' }
+      - { name: 'default_schema_data_preprocessor' }
     public: false
   patternkit.schema.data_preprocessor.bundler:
     class: Drupal\patternkit\Schema\DataPreProcessor\BundleReferenceDataPreProcessor

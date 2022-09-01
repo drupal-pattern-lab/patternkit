@@ -31,6 +31,9 @@ class ContextBuilder {
   /**
    * A data preprocessor to configure on all schema contexts.
    *
+   * A default collection of data preprocessors for usage are assembled using
+   * the 'patternkit.schema.data_preprocessor.defaults' data collector service.
+   *
    * @var \Swaggest\JsonSchema\DataPreProcessor|null
    */
   protected ?DataPreProcessor $dataPreProcessor = NULL;
