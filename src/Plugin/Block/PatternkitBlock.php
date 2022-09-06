@@ -733,11 +733,20 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
         'children' => [],
       ];
       foreach ($tokens as $name => $info) {
-        $description = $info['description'] ?? '';
-        $example = $this->token->replace("[$type:$name]", $this->getContextValues());
-        $item['children'][$name] = "[$type:$name]" . ' - ' . $info['name'] . ': '
-          . $description
-          . " \"" . Xss::filter(substr($example, 0, 255)) . "\"";
+        try {
+          $example = $this->token->replace("[$type:$name]", $this->getContextValues());
+        }
+        catch (\Exception $ignored) {
+          // Ignore this exception and skip displaying an example for this
+          // token.
+          $example = '';
+        }
+
+        $label = sprintf('[%s:%s] - %s: %s', $type, $name, $info['name'], $info['description'] ?? '');
+        if ($example !== '') {
+          $label .= ' "' . Xss::filter(substr($example, 0, 255)) . '"';
+        }
+        $item['children'][$name] = $label;
       }
 
       $token_items[$type] = $item;
