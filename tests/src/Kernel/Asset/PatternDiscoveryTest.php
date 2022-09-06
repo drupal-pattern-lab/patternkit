@@ -23,6 +23,20 @@ class PatternDiscoveryTest extends KernelTestBase {
   ];
 
   /**
+   * An array containing expected definitions to be discovered.
+   *
+   * @var array|\string[][]
+   */
+  protected array $expectedDefinitions = [
+    '@patternkit' => [
+      '@patternkit/atoms/example/src/example',
+      '@patternkit/atoms/example_filtered/src/example_filtered',
+      '@patternkit/atoms/example_filtered_multiple/src/example_filtered_multiple',
+      '@patternkit/atoms/example_ref/src/example_ref',
+    ],
+  ];
+
+  /**
    * The pattern discovery service being tested.
    *
    * @var \Drupal\patternkit\Asset\PatternDiscoveryInterface|null
@@ -42,31 +56,17 @@ class PatternDiscoveryTest extends KernelTestBase {
    * @covers ::getPatternsByNamespace
    */
   public function testGetPatternsByNamespace() {
-    $expected_patterns = [
-      '@patternkit/atoms/example/src/example',
-      '@patternkit/atoms/example_filtered/src/example_filtered',
-      '@patternkit/atoms/example_ref/src/example_ref',
-      '@patternkit/atoms/example_filtered_multiple/src/example_filtered_multiple',
-    ];
-
     $definitions = $this->discovery->getPatternsByNamespace('@patternkit');
 
     $this->assertIsArray($definitions);
-    $this->assertCount(count($expected_patterns), $definitions);
-    $this->assertEqualsCanonicalizing($expected_patterns, array_keys($definitions));
+    $this->assertCount(count($this->expectedDefinitions['@patternkit']), $definitions);
+    $this->assertEqualsCanonicalizing($this->expectedDefinitions['@patternkit'], array_keys($definitions));
   }
 
   /**
    * @covers ::getPatternDefinitions
    */
   public function testGetPatternDefinitions() {
-    $expected_patterns = [
-      '@patternkit/atoms/example/src/example',
-      '@patternkit/atoms/example_filtered/src/example_filtered',
-      '@patternkit/atoms/example_ref/src/example_ref',
-      '@patternkit/atoms/example_filtered_multiple/src/example_filtered_multiple',
-    ];
-
     $definitions = $this->discovery->getPatternDefinitions();
 
     $this->assertIsArray($definitions);
@@ -74,9 +74,8 @@ class PatternDiscoveryTest extends KernelTestBase {
     // With these enabled modules, there should only be one namespace defined.
     $this->assertEquals(['@patternkit'], array_keys($definitions));
 
-    // Within the '@patternkit' namespace there should be a known list of
-    // discovered definitions.
-    $this->assertEqualsCanonicalizing($expected_patterns, array_keys($definitions['@patternkit']));
+    // Within the @patternkit namespace we should know the definitions found.
+    $this->assertEqualsCanonicalizing($this->expectedDefinitions['@patternkit'], array_keys($definitions['@patternkit']));
   }
 
   /**
@@ -89,7 +88,7 @@ class PatternDiscoveryTest extends KernelTestBase {
     $cacheEntry = $cache->get($collector::PERSISTENT_CACHE_ID);
     $this->assertFalse($cacheEntry, 'Expected the pattern discovery cache to be empty initially.');
 
-    $definitions = $this->discovery->getPatternDefinitions();
+    $this->discovery->getPatternDefinitions();
 
     // Trigger end of request destruction to persist data for testing.
     $collector->destruct();

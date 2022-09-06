@@ -173,6 +173,12 @@ class Pattern extends RenderElement implements ContainerFactoryPluginInterface {
     /** @var \Drupal\patternkit\Entity\PatternInterface $pattern */
     $pattern = $element['#pattern'];
 
+    // Capture base bubbleable metadata.
+    $metadata = BubbleableMetadata::createFromRenderArray($element);
+
+    // Ensure the metadata from the pattern is present.
+    $metadata->addCacheableDependency($pattern);
+
     // Fail early if a pattern was unable to be loaded.
     if (is_null($pattern)) {
       return [
@@ -184,14 +190,10 @@ class Pattern extends RenderElement implements ContainerFactoryPluginInterface {
     $pattern->context = $element['#context'];
 
     try {
-      $bubbleableMetadata = new BubbleableMetadata();
-      $this->fieldProcessorPluginManager->processSchemaValues($pattern, $pattern->config, $pattern->context, $bubbleableMetadata);
+      $this->fieldProcessorPluginManager->processSchemaValues($pattern, $pattern->config, $pattern->context, $metadata);
 
       $library_plugin = $this->getPatternLibraryPlugin($pattern);
       $elements = $library_plugin->render([$pattern]);
-
-      // Apply all bubbleable metadata from preprocessing.
-      $bubbleableMetadata->applyTo($elements);
     }
     catch (SchemaException $exception) {
       // Replace the pattern output with an error element for more sophisticated
@@ -206,6 +208,9 @@ class Pattern extends RenderElement implements ContainerFactoryPluginInterface {
         '#exception' => $exception,
       ];
     }
+
+    // Ensure all metadata persists to the result.
+    $metadata->applyTo($elements);
 
     return $elements;
   }
@@ -225,7 +230,7 @@ class Pattern extends RenderElement implements ContainerFactoryPluginInterface {
     $pattern_plugin = $pattern->getLibraryPluginId();
     $library_plugin_id = !empty($pattern_plugin) ? $pattern_plugin : 'twig';
 
-    /** @var \Drupal\patternkit\PatternLibraryPluginInterface */
+    /** @var \Drupal\patternkit\PatternLibraryPluginInterface $plugin */
     $plugin = $this->libraryPluginManager->createInstance($library_plugin_id);
     return $plugin;
   }

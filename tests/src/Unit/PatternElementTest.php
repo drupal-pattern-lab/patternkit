@@ -159,7 +159,7 @@ class PatternElementTest extends RendererTestBase {
    * @covers ::getPatternLibraryPlugin
    */
   public function testPreRenderPatternElement() {
-    $patternMock = $this->createMock(PatternInterface::class);
+    $patternMock = $this->getPatternMock();
     $element = [
       '#type' => 'pattern',
       '#pattern' => $patternMock,
@@ -201,7 +201,7 @@ class PatternElementTest extends RendererTestBase {
     ];
 
     // Mock a pattern for rendering.
-    $patternMock = $this->createMock(PatternInterface::class);
+    $patternMock = $this->getPatternMock();
     $pattern = [
       '#type' => 'pattern',
       '#pattern' => $patternMock,
@@ -252,7 +252,7 @@ class PatternElementTest extends RendererTestBase {
       ->willThrowException($exception);
 
     // Mock a pattern for rendering.
-    $patternMock = $this->createMock(PatternInterface::class);
+    $patternMock = $this->getPatternMock();
     $config = [
       'config_value' => $this->getRandomGenerator()->string(),
     ];
@@ -275,6 +275,27 @@ class PatternElementTest extends RendererTestBase {
     $this->assertEquals($config, $output['error']['#config']);
     $this->assertEquals($context, $output['error']['#context']);
     $this->assertEquals($exception, $output['error']['#exception']);
+  }
+
+  /**
+   * Get a mocked pattern entity for testing.
+   *
+   * @return \Drupal\patternkit\Entity\PatternInterface
+   *   A mocked pattern entity for testing.
+   */
+  protected function getPatternMock(): PatternInterface {
+    $patternMock = $this->createMock(PatternInterface::class);
+    $patternMock->expects($this->once())
+      ->method('getCacheTags')
+      ->willReturn([]);
+    $patternMock->expects($this->once())
+      ->method('getCacheMaxAge')
+      ->willReturn([]);
+    $patternMock->expects($this->once())
+      ->method('getCacheContexts')
+      ->willReturn([]);
+
+    return $patternMock;
   }
 
 }

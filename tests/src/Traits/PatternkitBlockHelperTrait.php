@@ -86,8 +86,9 @@ trait PatternkitBlockHelperTrait {
     $section = $storage->getSection(0);
 
     $config = $block->getConfiguration();
+    $uuid = $config['instance_uuid'];
     unset($config['instance_uuid']);
-    $component = new SectionComponent($entity->uuid(), 'content', $config);
+    $component = new SectionComponent($uuid, 'content', $config);
     $section->appendComponent($component);
 
     $storage->save();

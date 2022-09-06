@@ -12,6 +12,7 @@ use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternFieldProcessorPluginManager;
 use Drupal\patternkit\Plugin\PatternFieldProcessor\TokenProcessor;
 use Drupal\patternkit\Plugin\PatternFieldProcessor\WysiwygFieldProcessor;
+use Drupal\Tests\patternkit\Traits\MetadataTestTrait;
 
 /**
  * Test pattern field processor plugin manager functionality.
@@ -19,6 +20,8 @@ use Drupal\patternkit\Plugin\PatternFieldProcessor\WysiwygFieldProcessor;
  * @group patternkit
  */
 class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
+
+  use MetadataTestTrait;
 
   /**
    * {@inheritdoc}
@@ -112,6 +115,10 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
     $this->assertStringContainsString('Sample twig template', $output);
     $this->assertStringContainsString($text, $output);
     $this->assertStringContainsString($formatted_text, $output);
+
+    $this->assertBubbleableMetadata($element, [
+      'tags' => ['pattern:' . $id],
+    ]);
   }
 
   /**
@@ -141,6 +148,10 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
     $this->assertStringContainsString('Example twig template with include and reference.', $output);
     $this->assertStringContainsString('Sample twig template', $output);
     $this->assertStringContainsString($text, $output);
+
+    $this->assertBubbleableMetadata($element, [
+      'tags' => ['pattern:' . $id],
+    ]);
   }
 
   /**
@@ -205,6 +216,13 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
     // Confirm token replacement text is included as expected.
     $this->assertStringContainsString($title, $output, 'Title text was not replaced into token placement.');
     $this->assertStringContainsString($expected_body_text, $output, 'Body content was not replaced with tokenized values.');
+
+    $this->assertBubbleableMetadata($element, [
+      'tags' => array_merge(
+        ['pattern:' . $id],
+        $node->getCacheTags(),
+      ),
+    ]);
   }
 
   /**
@@ -262,6 +280,13 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
     // Confirm token replacement text is included as expected.
     $this->assertStringContainsString($title, $output, 'Title text was not replaced into token placement.');
     $this->assertStringContainsString($body_text, $output, 'Body content was not output.');
+
+    $this->assertBubbleableMetadata($element, [
+      'tags' => array_merge(
+        ['pattern:' . $id],
+        $node->getCacheTags(),
+      ),
+    ]);
   }
 
   /**
@@ -317,6 +342,13 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
 
     // Confirm the filter ran and escaped the markup in our text.
     $this->assertStringContainsString(htmlentities($formatted_text), $output);
+
+    $this->assertBubbleableMetadata($element, [
+      'tags' => array_merge(
+        ['pattern:' . $id],
+        $filtered_html_format->getCacheTags(),
+      ),
+    ]);
   }
 
   /**
@@ -389,6 +421,14 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
 
     // Confirm the filter ran and escaped the markup in our text.
     $this->assertStringContainsString(htmlentities($formatted_text), $output);
+
+    $this->assertBubbleableMetadata($element, [
+      'tags' => array_merge(
+        ['pattern:' . $id],
+        $node->getCacheTags(),
+        $filtered_html_format->getCacheTags(),
+      ),
+    ]);
   }
 
   /**

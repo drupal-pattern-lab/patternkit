@@ -17,6 +17,7 @@ use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Plugin\Context\ContextHandlerInterface;
 use Drupal\Core\Plugin\Context\ContextRepositoryInterface;
+use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Template\TwigEnvironment;
 use Drupal\Core\Utility\Token;
 use Drupal\patternkit\Entity\PatternInterface;
@@ -583,12 +584,20 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       $config = $this->serializer::decode(reset($data)['value']);
     }
 
-    return [
+    $element = [
       '#type' => 'pattern',
       '#pattern' => $pattern,
       '#config' => $config,
       '#context' => $context,
     ];
+
+    // Capture cacheable metadata from dependencies.
+    $metadata = new BubbleableMetadata();
+    $metadata->addCacheableDependency($pattern);
+    $metadata->addCacheableDependency($patternkit_block);
+    $metadata->applyTo($element);
+
+    return $element;
   }
 
   /**
