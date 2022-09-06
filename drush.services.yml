@@ -6,5 +6,6 @@ services:
       - '@patternkit.asset.library'
       - '@patternkit.pattern.discovery'
       - '@patternkit.pattern.repository'
+      - '@cache_tags.invalidator'
     tags:
       - { name: drush.command }

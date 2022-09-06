@@ -251,5 +251,53 @@ drush patternkit:pattern:schema '@patternkit/atoms/example/src/example'
 * PatternKit provides library + RESTful endpoints
 * PKPlugins provides Drupal endpoint consumer
 
+## Development and Debugging
+
+When working with patterns and Patternkit, having more tools available for
+debugging and testing can always make your life easier. To this end, the
+[Patternkit Development Tools module](https://www.drupal.org/project/patternkit_devel)
+can be helpful to add insight and testing tools that may prove valuable.
+
+Aside from the supporting module, there is also some debugging functionality
+built directly into the Patternkit module that may be enabled on an
+environment-specific basis. Very similar to the way [debugging for Twig](https://www.drupal.org/docs/theming-drupal/twig-in-drupal/debugging-twig-templates#s-enable-debugging)
+may be enabled, some configuration options are available through service
+parameters for Patternkit as well. An overall debug mode for the module may be
+enabled by adding the following to your `sites/default/services.yml` or
+`sites/development.services.yml` file directly:
+
+```yaml
+parameters:
+  patternkit.config:
+    debug: true
+```
+
+Additionally, specific features may be enabled as seen below:
+
+```yaml
+parameters:
+  # Configuration options to influence behavior of the Patternkit modules.
+  patternkit.config:
+
+    # This may be enabled to toggle debug features in the module.
+    debug: true
+
+    # Various operational features of the module may be toggled here.
+    features:
+
+      # Enable this to bypass cache loading of pattern definitions and
+      # rediscover patterns during every request.
+      bypass_pattern_cache: true
+
+      # Enable this to bypass loading of pattern schemas and templates
+      # from saved pattern entities in the database. When enabled, each
+      # block will ignore the referenced database Pattern entity and load
+      # the pattern directly from the available parser definition instead.
+      bypass_database_cache: true
+```
+
+A complete list of available features to toggle may be always be found in the
+module's [`patternkit.services.yml`](patternkit.services.yml) file.
+
 ## Contributing
 See [CONTRIBUTING.MD](CONTRIBUTING.md)

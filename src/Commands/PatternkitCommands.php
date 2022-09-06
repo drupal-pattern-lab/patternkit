@@ -6,6 +6,7 @@ use Consolidation\OutputFormatters\StructuredData\PropertyList;
 use Consolidation\OutputFormatters\StructuredData\RowsOfFields;
 use Drupal\block\BlockInterface;
 use Drupal\Core\Cache\CacheableMetadata;
+use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Plugin\Context\Context;
@@ -24,6 +25,7 @@ use Drush\Commands\DrushCommands;
  * Commands for working with the dev branch of Patternkit.
  */
 class PatternkitCommands extends DrushCommands {
+
   use StringTranslationTrait;
 
   /**
@@ -69,6 +71,13 @@ class PatternkitCommands extends DrushCommands {
   protected PatternRepository $patternRepository;
 
   /**
+   * The cache tags invalidator service.
+   *
+   * @var \Drupal\Core\Cache\CacheTagsInvalidatorInterface
+   */
+  protected CacheTagsInvalidatorInterface $cacheTagsInvalidator;
+
+  /**
    * Constructs the Patternkit Drush Commands functionality.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
@@ -79,6 +88,8 @@ class PatternkitCommands extends DrushCommands {
    *   The pattern discovery service.
    * @param \Drupal\patternkit\PatternRepository $patternRepository
    *   The pattern repository service.
+   * @param \Drupal\Core\Cache\CacheTagsInvalidatorInterface $cacheTagsInvalidator
+   *   The cache tags invalidator service.
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
@@ -87,7 +98,8 @@ class PatternkitCommands extends DrushCommands {
     EntityTypeManagerInterface $entityTypeManager,
     LibraryInterface $library,
     PatternDiscoveryInterface $patternDiscovery,
-    PatternRepository $patternRepository
+    PatternRepository $patternRepository,
+    CacheTagsInvalidatorInterface $cacheTagsInvalidator
   ) {
     parent::__construct();
 
@@ -97,6 +109,7 @@ class PatternkitCommands extends DrushCommands {
     $this->library = $library;
     $this->patternDiscovery = $patternDiscovery;
     $this->patternRepository = $patternRepository;
+    $this->cacheTagsInvalidator = $cacheTagsInvalidator;
   }
 
   /**
@@ -587,6 +600,25 @@ class PatternkitCommands extends DrushCommands {
 
     // Re-encode for formatting.
     return json_encode($schema, JSON_PRETTY_PRINT);
+  }
+
+  /**
+   * Invalidate caches for patternkit cache data.
+   *
+   * @return string|\Drupal\Core\StringTranslation\TranslatableMarkup
+   *   A status message for Drush to display.
+   *
+   * @command patternkit:cache:clear
+   * @aliases pkcc
+   *
+   * @format string
+   */
+  public function clearCache(): string {
+    $tags = ['patternkit_patterns', 'patternkit_libraries'];
+
+    $this->cacheTagsInvalidator->invalidateTags($tags);
+
+    return $this->t('Invalidated all patternkit pattern and library cache entries.');
   }
 
   /**

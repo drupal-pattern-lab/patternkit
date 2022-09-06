@@ -170,7 +170,7 @@ class Pattern extends RenderElement implements ContainerFactoryPluginInterface {
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    */
   public function preRenderPatternElement(array $element): array {
-    /** @var \Drupal\patternkit\Entity\Pattern $pattern */
+    /** @var \Drupal\patternkit\Entity\PatternInterface $pattern */
     $pattern = $element['#pattern'];
 
     // Fail early if a pattern was unable to be loaded.

@@ -1,3 +1,23 @@
+parameters:
+  # Configuration options to influence behavior of the Patternkit modules.
+  patternkit.config:
+
+    # This may be enabled to toggle debug features in the module.
+    debug: false
+
+    # Various operational features of the module may be toggled here.
+    features:
+
+      # Enable this to bypass cache loading of pattern definitions and
+      # rediscover patterns during every request.
+      bypass_pattern_cache: false
+
+      # Enable this to bypass loading of pattern schemas and templates
+      # from saved pattern entities in the database. When enabled, each
+      # block will ignore the referenced database Pattern entity and load
+      # the pattern directly from the available parser definition instead.
+      bypass_database_cache: false
+
 services:
   logger.channel.patternkit:
     parent: logger.channel_base
@@ -49,6 +69,8 @@ services:
   patternkit.pattern.discovery.collector:
     class: Drupal\patternkit\Asset\PatternDiscoveryCollector
     arguments: [ '@cache.discovery', '@lock', '@patternkit.library.namespace_resolver', '@plugin.manager.library.pattern', '@logger.channel.patternkit']
+    calls:
+      - ['setPatternkitEnvironment', ['@patternkit.environment'] ]
     tags:
       - { name: needs_destruction }
   patternkit.pattern.dependency_resolver:
@@ -92,6 +114,9 @@ services:
     class: Drupal\patternkit\Routing\PatternkitTranslateBlockFormRouteSubscriber
     tags:
       - { name: event_subscriber }
+  patternkit.environment:
+      class: Drupal\patternkit\PatternkitEnvironment
+      arguments: ['%patternkit.config%']
   plugin.manager.pattern_field_processor:
     class: Drupal\patternkit\PatternFieldProcessorPluginManager
     arguments:

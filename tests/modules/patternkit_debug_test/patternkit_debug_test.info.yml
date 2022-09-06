@@ -1,0 +1,5 @@
+name: 'Patternkit debug tests'
+type: module
+description: 'Support module for testing patternkit debug mode behaviors.'
+package: Testing
+version: VERSION

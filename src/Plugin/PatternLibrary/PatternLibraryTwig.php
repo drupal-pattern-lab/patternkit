@@ -98,7 +98,7 @@ class PatternLibraryTwig extends PatternLibraryJSON {
    *
    * Since this plugin is loaded from the patternkit twig loader
    * ('@twig.loader.patternlibrary'), a circular dependency on the twig
-   * environment is created. To resolve this, the twig enviornment is only
+   * environment is created. To resolve this, the twig environment is only
    * needed at render time for this plugin, so it is lazy loaded from the
    * container at that time.
    *

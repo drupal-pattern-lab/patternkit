@@ -12,12 +12,14 @@ use Drupal\Core\Extension\ExtensionList;
 use Drupal\Core\Lock\LockBackendInterface;
 use Drupal\patternkit\Asset\LibraryNamespaceResolverInterface;
 use Drupal\patternkit\Asset\PatternDiscoveryCollector;
+use Drupal\patternkit\PatternkitEnvironment;
 use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
+use Prophecy\Prophecy\ObjectProphecy;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Serializer\Serializer;
 
@@ -36,42 +38,49 @@ class PatternDiscoveryCollectorTest extends UnitTestCase {
    *
    * @var \Drupal\Core\Cache\CacheBackendInterface|\Prophecy\Prophecy\ObjectProphecy
    */
-  protected $cache;
+  protected ObjectProphecy $cache;
 
   /**
    * A lock backend mock.
    *
    * @var \Drupal\Core\Lock\LockBackendInterface|\Prophecy\Prophecy\ObjectProphecy
    */
-  protected $lock;
+  protected ObjectProphecy $lock;
 
   /**
    * A mock library namespace resolver.
    *
    * @var \Drupal\patternkit\Asset\LibraryNamespaceResolverInterface|\Prophecy\Prophecy\ObjectProphecy
    */
-  protected $libraryNamespaceResolver;
+  protected ObjectProphecy $libraryNamespaceResolver;
 
   /**
    * A mock pattern library plugin manager.
    *
    * @var \Drupal\patternkit\PatternLibraryPluginManager|\Prophecy\Prophecy\ObjectProphecy
    */
-  protected $patternLibraryPluginManager;
+  protected ObjectProphecy $patternLibraryPluginManager;
 
   /**
    * A mock logger.
    *
    * @var \Psr\Log\LoggerInterface|\Prophecy\Prophecy\ObjectProphecy
    */
-  protected $logger;
+  protected ObjectProphecy $logger;
 
   /**
    * A mock serializer.
    *
    * @var \Symfony\Component\Serializer\SerializerInterface|\Prophecy\Prophecy\ObjectProphecy
    */
-  protected $serializer;
+  protected ObjectProphecy $serializer;
+
+  /**
+   * A mock patternkit environment.
+   *
+   * @var \Drupal\patternkit\PatternkitEnvironment|\Prophecy\Prophecy\ObjectProphecy
+   */
+  protected ObjectProphecy $patternkitEnvironment;
 
   /**
    * A boilerplate library definition for use in tests.
@@ -129,6 +138,7 @@ class PatternDiscoveryCollectorTest extends UnitTestCase {
     $this->patternLibraryPluginManager = $this->prophesize(PatternLibraryPluginManager::class);
     $this->logger = $this->prophesize(LoggerInterface::class);
     $this->serializer = $this->prophesize(Serializer::class);
+    $this->patternkitEnvironment = $this->prophesize(PatternkitEnvironment::class);
 
     $extension = $this->prophesize(Extension::class);
     $extensionList = $this->prophesize(ExtensionList::class);
@@ -146,7 +156,7 @@ class PatternDiscoveryCollectorTest extends UnitTestCase {
    *   The collector instance for testing with configured mocks injected.
    */
   protected function getCollector(): PatternDiscoveryCollector {
-    return new PatternDiscoveryCollector(
+    $collector = new PatternDiscoveryCollector(
       $this->cache->reveal(),
       $this->lock->reveal(),
       $this->libraryNamespaceResolver->reveal(),
@@ -154,6 +164,10 @@ class PatternDiscoveryCollectorTest extends UnitTestCase {
       $this->logger->reveal(),
       $this->serializer->reveal(),
     );
+
+    $collector->setPatternkitEnvironment($this->patternkitEnvironment->reveal());
+
+    return $collector;
   }
 
   /**
@@ -460,6 +474,59 @@ class PatternDiscoveryCollectorTest extends UnitTestCase {
     $this->assertEquals($this->mockPatternDiscovery, $actual);
 
     // Trigger the cache update.
+    $collector->destruct();
+  }
+
+  /**
+   * Test cache handling with the bypass option enabled.
+   *
+   * @covers ::lazyLoadCache
+   * @covers ::updateCache
+   */
+  public function testCacheBypass() {
+    $this->setDefaultExpectations();
+
+    $this->patternkitEnvironment->getFeatureOption('bypass_pattern_cache', FALSE)
+      ->willReturn(TRUE)
+      ->shouldBeCalledTimes(2);
+
+    $this->cache->get(Argument::cetera())->shouldNotBeCalled();
+    $this->cache->set(Argument::cetera())->shouldNotBeCalled();
+
+    $collector = $this->getCollector();
+
+    // Fetch a value which should trigger a cache load.
+    $collector->get('@example');
+
+    // Trigger destruction which should case a cache update.
+    $collector->destruct();
+  }
+
+  /**
+   * Test cache handling with the bypass option disabled.
+   *
+   * @covers ::lazyLoadCache
+   * @covers ::updateCache
+   */
+  public function testCacheBypassDisabled() {
+    $this->setDefaultExpectations();
+
+    $this->patternkitEnvironment->getFeatureOption('bypass_pattern_cache', FALSE)
+      ->willReturn(FALSE)
+      ->shouldBeCalledTimes(2);
+
+    $this->cache->get(Argument::cetera())->shouldBeCalled();
+    $this->cache->set(Argument::cetera())->shouldBeCalled();
+
+    $this->lock->acquire(Argument::cetera())->willReturn(TRUE);
+    $this->lock->release(Argument::cetera())->willReturn(TRUE);
+
+    $collector = $this->getCollector();
+
+    // Fetch a value which should trigger a cache load.
+    $collector->get('@example');
+
+    // Trigger destruction which should case a cache update.
     $collector->destruct();
   }
 

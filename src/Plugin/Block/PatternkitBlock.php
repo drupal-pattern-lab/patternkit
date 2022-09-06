@@ -22,6 +22,8 @@ use Drupal\Core\Utility\Token;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Entity\PatternkitBlock as EntityPatternkitBlock;
 use Drupal\patternkit\PatternEditorConfig;
+use Drupal\patternkit\PatternkitEnvironmentAwareInterface;
+use Drupal\patternkit\PatternkitEnvironmentAwareTrait;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\patternkit\PatternRepository;
 use Drupal\patternkit\Plugin\Derivative\PatternkitBlock as DerivativePatternkitBlock;
@@ -40,7 +42,9 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @todo Remove JSON Serializer dependencies from this class.
  * ...so that the Editor operates off of the pattern library plugin instead.
  */
-class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterface {
+class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterface, PatternkitEnvironmentAwareInterface {
+
+  use PatternkitEnvironmentAwareTrait;
 
   /**
    * Controls the block cache.
@@ -136,7 +140,8 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $plugin_definition
   ): self {
     $entity_type_manager = $container->get('entity_type.manager');
-    return new static(
+
+    $plugin = new static(
       $container->get('plugin.manager.block'),
       $configuration,
       $container->get('context.handler'),
@@ -153,6 +158,10 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       $container->get('language_manager'),
       $container->get('logger.channel.patternkit'),
     );
+
+    $plugin->setPatternkitEnvironment($container->get('patternkit.environment'));
+
+    return $plugin;
   }
 
   /**
@@ -530,7 +539,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $instance_id = $configuration['instance_uuid'] ?? $pattern_id;
 
     // Load module-specific config.
-    if (!empty($configuration['pattern'])) {
+    if (!empty($configuration['pattern']) && !$this->getEnvironmentFeature('bypass_database_cache', FALSE)) {
       /** @var \Drupal\patternkit\entity\PatternInterface $pattern */
       $pattern = $this->patternStorage->loadRevision($configuration['pattern']);
     }

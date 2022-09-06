@@ -7,6 +7,8 @@ use Drupal\Core\Asset\Exception\InvalidLibraryFileException;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Cache\CacheCollector;
 use Drupal\Core\Lock\LockBackendInterface;
+use Drupal\patternkit\PatternkitEnvironmentAwareInterface;
+use Drupal\patternkit\PatternkitEnvironmentAwareTrait;
 use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
@@ -18,7 +20,9 @@ use Symfony\Component\Serializer\SerializerInterface;
 /**
  * A cache collector implementation to load and cache pattern definitions.
  */
-class PatternDiscoveryCollector extends CacheCollector {
+class PatternDiscoveryCollector extends CacheCollector implements PatternkitEnvironmentAwareInterface {
+
+  use PatternkitEnvironmentAwareTrait;
 
   /**
    * The default library parser plugin to be used if not explicitly specified.
@@ -92,7 +96,7 @@ class PatternDiscoveryCollector extends CacheCollector {
    *   The pattern library plugin manager service.
    * @param \Psr\Log\LoggerInterface $logger
    *   A logger for message output.
-   * @param \Symfony\Component\Serializer\SerializerInterface $serializer
+   * @param \Symfony\Component\Serializer\SerializerInterface|null $serializer
    *   (optional) A serializer for normalizing pattern library properties.
    */
   public function __construct(
@@ -271,6 +275,30 @@ class PatternDiscoveryCollector extends CacheCollector {
     $library = $this->serializer->denormalize($library_info, PatternLibrary::class);
 
     return $library;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function lazyLoadCache() {
+    if ($this->patternkitEnvironment()->getFeatureOption('bypass_pattern_cache', FALSE)) {
+      // Mark the cache as loaded, so it doesn't get loaded again.
+      $this->cacheLoaded = TRUE;
+    }
+
+    parent::lazyLoadCache();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function updateCache($lock = TRUE) {
+    if ($this->patternkitEnvironment()->getFeatureOption('bypass_pattern_cache', FALSE)) {
+      // Skip updating the cache.
+      return;
+    }
+
+    parent::updateCache($lock);
   }
 
 }

@@ -1,0 +1,15 @@
+parameters:
+  # Configuration options to influence behavior of the Patternkit modules.
+  patternkit.config:
+
+    # This may be enabled to toggle debug features in the module.
+    debug: true
+
+    # Various operational features of the module may be toggled here.
+    features:
+
+      # Disable caching of pattern definitions for each request.
+      bypass_pattern_cache: true
+
+      # Ignore caching of patterns in database entities for blocks.
+      bypass_database_cache: true
