@@ -114,8 +114,7 @@ class LibraryNamespaceResolverTest extends UnitTestCase {
         'deprecated' => 'The %library_id% library is deprecated.',
       ]);
 
-    $this->expectDeprecation();
-    $this->expectDeprecationMessage('The my_module/my_namespace library is deprecated.');
+    $this->expectDeprecation('The my_module/my_namespace library is deprecated.');
     $namespaceResolver->getLibraryFromNamespace('@my_namespace');
   }
 
