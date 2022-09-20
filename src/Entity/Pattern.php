@@ -8,6 +8,7 @@ use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
+use Drupal\patternkit\Exception\PatternMismatchException;
 
 /**
  * Defines the Pattern entity type which stores pattern metadata in Drupal.
@@ -16,18 +17,17 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
  *   id = "patternkit_pattern",
  *   label = @Translation("Pattern"),
  *   label_collection = @Translation("Pattern Libraries"),
- *   label_plural =@Translation("Patterns"),
+ *   label_plural = @Translation("Patterns"),
  *   label_singular = @Translation("Pattern"),
  *   label_count = @PluralTranslation(
- *     singular = "@count patterns",
- *     plural = "@count custom blocks"
+ *     singular = "@count pattern",
+ *     plural = "@count patterns"
  *   ),
  *   admin_permission = "administer blocks",
  *   base_table = "pattern",
  *   revision_table = "pattern_revision",
  *   entity_keys = {
  *     "id" = "id",
- *     "hash" = "hash",
  *     "assets" = "assets",
  *     "category" = "category",
  *     "label" = "name",
@@ -35,13 +35,10 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
  *     "libraryPluginId" = "libraryPluginId",
  *     "path" = "path",
  *     "revision" = "revision",
- *     "schema" = "schema",
- *     "template" = "template",
  *     "uuid" = "uuid",
- *     "version" = "version",
  *   },
  *   revision_metadata_keys = {
- *    "revision_default" = "revision_default",
+ *     "revision_default" = "revision_default",
  *     "revision_user" = "revision_user",
  *     "revision_created" = "revision_created",
  *     "revision_log_message" = "revision_log_message",
@@ -61,7 +58,7 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
  *     "canonical" = "/patternkit/{patternkit_pattern}",
  *     "collection" = "/admin/structure/block/patternkit",
  *   },
- *   translatable = FALSE
+ *   translatable = FALSE,
  * )
  *
  * @package Drupal\patternkit\Entity
@@ -108,7 +105,8 @@ class Pattern extends ContentEntityBase implements PatternInterface {
 
     $fields['hash'] = BaseFieldDefinition::create('string')
       ->setLabel(t('Hash'))
-      ->setCardinality(1);
+      ->setCardinality(1)
+      ->setRevisionable(TRUE);
     $fields['name'] = BaseFieldDefinition::create('text')
       ->setLabel(t('Name'))
       ->setCardinality(1);
@@ -134,13 +132,16 @@ class Pattern extends ContentEntityBase implements PatternInterface {
       ->setCardinality(1);
     $fields['schema'] = BaseFieldDefinition::create('string_long')
       ->setLabel(t('Schema'))
-      ->setCardinality(1);
+      ->setCardinality(1)
+      ->setRevisionable(TRUE);
     $fields['template'] = BaseFieldDefinition::create('string_long')
       ->setLabel(t('Template'))
-      ->setCardinality(1);
+      ->setCardinality(1)
+      ->setRevisionable(TRUE);
     $fields['version'] = BaseFieldDefinition::create('string')
       ->setLabel(t('Version'))
-      ->setCardinality(1);
+      ->setCardinality(1)
+      ->setRevisionable(TRUE);
     $fields['dependencies'] = BaseFieldDefinition::create('string')
       ->setLabel(t('Dependencies'))
       ->setDescription(t('A collection of pattern reference dependencies detected within the Pattern.'))
@@ -191,7 +192,8 @@ class Pattern extends ContentEntityBase implements PatternInterface {
    * {@inheritdoc}
    */
   public function getHash(): string {
-    return $this->getEntityKey('hash') ?? $this->computeHash();
+    $item = $this->get('hash')->first();
+    return isset($item) ? $item->getValue()['value'] : $this->computeHash();
   }
 
   /**
@@ -226,29 +228,32 @@ class Pattern extends ContentEntityBase implements PatternInterface {
    * {@inheritdoc}
    */
   public function getSchema(): string {
-    $schema = $this->getEntityKey('schema');
+    $schema = $this->get('schema');
     if (!isset($schema)) {
       $this->fetchAssets();
     }
-    return $this->getEntityKey('schema');
+    $item = $this->get('schema')->first();
+    return $item ? $item->getValue()['value'] : '';
   }
 
   /**
    * {@inheritdoc}
    */
   public function getTemplate(): string {
-    $template = $this->getEntityKey('template');
+    $template = $this->get('template');
     if (!isset($template)) {
       $this->fetchAssets();
     }
-    return $this->getEntityKey('template');
+    $item = $this->get('template')->first();
+    return $item ? $item->getValue()['value'] : '';
   }
 
   /**
    * {@inheritdoc}
    */
   public function getVersion(): string {
-    return $this->getEntityKey('version');
+    $item = $this->get('version')->first();
+    return $item ? $item->getValue()['value'] : '';
   }
 
   /**
@@ -335,6 +340,26 @@ class Pattern extends ContentEntityBase implements PatternInterface {
    */
   public function setDependencies(array $dependencies): self {
     return $this->set('dependencies', $dependencies);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function updateFromPattern(PatternInterface $pattern): self {
+    if ($this->getAssetId() !== $pattern->getAssetId()) {
+      $message = sprintf('Unable to update pattern %s with values from pattern %s.',
+        $this->getAssetId(), $pattern->getAssetId());
+      throw new PatternMismatchException($message);
+    }
+
+    // Set values from the source pattern.
+    $this->setSchema($pattern->getSchema());
+    $this->setTemplate($pattern->getTemplate());
+    $this->setVersion($pattern->getVersion());
+    $this->setDependencies($pattern->getDependencies());
+    $this->setBundled($pattern->isBundled());
+
+    return $this;
   }
 
   /**

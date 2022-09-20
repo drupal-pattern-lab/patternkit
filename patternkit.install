@@ -216,3 +216,74 @@ function patternkit_update_9001(&$sandbox) {
   \Drupal::entityDefinitionUpdateManager()
     ->installFieldStorageDefinition('dependencies', 'patternkit_pattern', 'patternkit', $field_storage_definition);
 }
+
+/**
+ * Update Pattern entity properties to be revisionable fields.
+ */
+function patternkit_update_9002(&$sandbox) {
+  $database = \Drupal::database();
+  $transaction = $database->startTransaction();
+
+  $entity_type_manager = \Drupal::entityTypeManager();
+  $definition_manager = \Drupal::entityDefinitionUpdateManager();
+
+  $storage = $entity_type_manager->getStorage('patternkit_pattern');
+  $entity_definition = $entity_type_manager->getDefinition('patternkit_pattern');
+  $revision_id_key = $entity_definition->getKey('revision');
+
+  // If there is no data table defined then use the base table.
+  $table_name = $storage->getDataTable() ?: $storage->getBaseTable();
+  $revision_table_name = $storage->getRevisionDataTable() ?: $storage->getRevisionTable();
+
+  $keys = $entity_definition->getKeys();
+  unset($keys['hash']);
+  unset($keys['schema']);
+  unset($keys['template']);
+  unset($keys['version']);
+  $entity_definition->set('entity_keys', $keys);
+
+  $definition_manager->updateEntityType($entity_definition);
+
+  $fields = [];
+  $fields['hash'] = BaseFieldDefinition::create('string')
+    ->setLabel(t('Hash'))
+    ->setCardinality(1)
+    ->setRevisionable(TRUE);
+  $fields['schema'] = BaseFieldDefinition::create('string_long')
+    ->setLabel(t('Schema'))
+    ->setCardinality(1)
+    ->setRevisionable(TRUE);
+  $fields['template'] = BaseFieldDefinition::create('string_long')
+    ->setLabel(t('Template'))
+    ->setCardinality(1)
+    ->setRevisionable(TRUE);
+  $fields['version'] = BaseFieldDefinition::create('string')
+    ->setLabel(t('Version'))
+    ->setCardinality(1)
+    ->setRevisionable(TRUE);
+
+  $original_values = $database->select($table_name)
+    ->fields($table_name, [$revision_id_key, 'hash', 'schema', 'template', 'version'])
+    ->execute()
+    ->fetchAllAssoc($revision_id_key);
+
+  foreach ($fields as $name => $definition) {
+    // Install the new definition.
+    $definition_manager->installFieldStorageDefinition($name, 'patternkit_pattern', 'patternkit', $definition);
+  }
+
+  // Map the original values into the revisions table.
+  foreach ($original_values as $id => $values) {
+    $database->update($revision_table_name)
+      ->fields([
+        'hash' => $values->hash,
+        'schema' => $values->schema,
+        'template' => $values->template,
+        'version' => $values->version,
+      ])
+      ->condition($revision_id_key, $id)
+      ->execute();
+  }
+
+  unset($transaction);
+}

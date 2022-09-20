@@ -483,7 +483,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     // Save the pattern data into the database for caching.
     /** @var \Drupal\patternkit\entity\PatternInterface $pattern */
     $pattern = $form_state->get('pattern') ?? $this->patternRepository->getPattern($pattern_id);
-    $this->cachePatternEntity($pattern);
+    $pattern = $this->cachePatternEntity($pattern);
 
     // We shouldn't save the preset context, which is from a bug caused by a
     // redundant set in \Drupal\Core\Block\BlockBase::setConfiguration.
@@ -787,10 +787,13 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    * @param \Drupal\patternkit\Entity\PatternInterface $pattern
    *   The pattern instance to be cached.
    *
+   * @return \Drupal\patternkit\Entity\PatternInterface
+   *   The saved pattern entity revision.
+   *
    * @throws \Drupal\Core\Entity\EntityStorageException
    *   Thrown on failure to save.
    */
-  protected function cachePatternEntity(PatternInterface $pattern): void {
+  protected function cachePatternEntity(PatternInterface $pattern): PatternInterface {
     $pattern_cache = $this->patternStorage->loadByProperties([
       'library' => $pattern->getLibrary(),
       'path' => $pattern->getPath(),
@@ -799,14 +802,18 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $pattern_loaded = $pattern_cache ? end($pattern_cache) : NULL;
     if ($pattern_loaded !== NULL) {
       if ($pattern_loaded->getHash() !== $pattern->getHash()) {
-        $pattern->setNewRevision();
-        $pattern->isDefaultRevision(TRUE);
+        // Update values on the loaded pattern for saving.
+        $pattern_loaded->updateFromPattern($pattern);
+        $pattern_loaded->setNewRevision();
+        $pattern_loaded->isDefaultRevision(TRUE);
       }
-      else {
-        $pattern = $pattern_loaded;
-      }
+
+      $pattern = $pattern_loaded;
     }
+
     $pattern->save();
+
+    return $pattern;
   }
 
   /**

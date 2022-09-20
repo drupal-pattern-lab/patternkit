@@ -197,4 +197,17 @@ interface PatternInterface extends ContentEntityInterface {
    */
   public function setDependencies(array $dependencies): self;
 
+  /**
+   * Update a pattern instance with values from a source pattern instance.
+   *
+   * @param \Drupal\patternkit\Entity\PatternInterface $pattern
+   *   The source pattern to assign values from.
+   *
+   * @return static
+   *
+   * @throws \Drupal\patternkit\Exception\PatternMismatchException
+   *   Thrown if a different pattern type is given for updating.
+   */
+  public function updateFromPattern(PatternInterface $pattern): self;
+
 }
