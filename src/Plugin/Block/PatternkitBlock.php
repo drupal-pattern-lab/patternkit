@@ -292,8 +292,24 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
 
       // Fall back to the plugin pattern definition if necessary.
       if (!$pattern) {
-        $pattern = is_array($plugin['pattern']) ? $this->patternStorage->create($plugin['pattern']) : $plugin['pattern'];
+        if (is_array($plugin['pattern'])) {
+          $pattern = $this->patternStorage->create($plugin['pattern']);
+        }
+        elseif ($plugin['pattern'] instanceof PatternInterface) {
+          $pattern = $plugin['pattern'];
+        }
+        else {
+          $pattern_id = DerivativePatternkitBlock::derivativeToAssetId($this->getDerivativeId());
+          $pattern = $this->patternRepository->getPattern($pattern_id, TRUE);
+        }
+
+        // Since this wasn't loaded from a targeted revision, ensure the bundled
+        // schema is loaded.
+        if (!$pattern->isBundled()) {
+          $pattern = $this->patternRepository->getPattern($pattern->getAssetId(), TRUE);
+        }
       }
+
       $pattern_id = $pattern->getAssetId();
     }
     catch (\Exception $exception) {

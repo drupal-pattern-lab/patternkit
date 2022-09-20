@@ -63,6 +63,8 @@ class SchemaUpdateTest extends PatternkitBrowserTestBase {
     $assert = $this->assertSession();
     $page = $this->getSession()->getPage();
 
+    $pattern_name = '[Patternkit] Example with Reference';
+
     $account = $this->drupalCreateUser([
       'access administration pages',
       'configure any layout',
@@ -73,16 +75,20 @@ class SchemaUpdateTest extends PatternkitBrowserTestBase {
     // Override the Node layout and place a patternkit block.
     $this->drupalGet('node/1/layout');
     $page->clickLink('Add block');
-    $assert->linkExists('[Patternkit] Example');
-    $page->clickLink('[Patternkit] Example');
+    $assert->linkExists($pattern_name);
+    $page->clickLink($pattern_name);
+    // Confirm the block doesn't initially prompt for updating.
+    $assert->pageTextNotContains('Update pattern schema and template from');
     // Fill in the hidden fields manually since fillField() won't find hidden
     // fields.
     $page->find('css', '#schema_instance_config')
       ->setValue(json_encode([
         'text' => 'Pattern block title',
-        'formatted_text' => 'Pattern block body',
-        'image_url' => '',
-        'hidden' => 'Hidden text',
+        'nested_reference' => [
+          'formatted_text' => 'Pattern block body',
+          'image_url' => '',
+          'hidden' => 'Hidden text',
+        ],
       ]));
     $page->pressButton('Add block');
     $page->pressButton('Save layout');
