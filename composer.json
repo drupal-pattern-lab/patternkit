@@ -18,16 +18,16 @@
         "ext-json": "*",
         "marcj/topsort": "^2.0.0",
         "swaggest/json-schema": "^0.12",
-        "symfony/finder": "^3.4 || ^4.0",
+        "symfony/finder": "^3.4 || ^4 || ^6",
         "symfony/polyfill-php80": "^1",
         "symfony/polyfill-php81": "^1",
-        "symfony/yaml": "^3.4 || ^4.0",
+        "symfony/yaml": "^3.4 || ^4 || ^6",
         "webmozart/assert": "^1.0",
         "webmozart/path-util": "^2.1.0"
     },
     "require-dev": {
-        "drupal/core-recommended": "^9",
-        "drupal/core-dev": "^9",
+        "drupal/core-recommended": "^9 || ^10",
+        "drupal/core-dev": "^9 || ^10",
         "drupal/devel": "^4.1"
     },
     "extra": {
@@ -37,7 +37,6 @@
             }
         }
     },
-    "repositories": [],
     "scripts": {
         "post-autoload-dump": [
             "wget -Oq -P js/ --no-check-certificate https://raw.github.com/jdorn/json-editor/master/dist/jsoneditor.min.js",
