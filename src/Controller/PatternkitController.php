@@ -29,6 +29,13 @@ class PatternkitController extends ControllerBase {
   protected EntityStorageInterface $blockStorage;
 
   /**
+   * Object request.
+   *
+   * @var \Symfony\Component\HttpFoundation\Request
+   */
+  protected $request;
+
+  /**
    * The custom pattern entity storage.
    *
    * @var \Drupal\Core\Entity\EntityStorageInterface
@@ -65,12 +72,14 @@ class PatternkitController extends ControllerBase {
     EntityStorageInterface $patternkit_block_storage,
     EntityStorageInterface $patternkit_pattern_storage,
     LibraryInterface $library,
-    ThemeHandlerInterface $theme_handler
+    ThemeHandlerInterface $theme_handler,
+    Request $request
   ) {
     $this->blockStorage = $patternkit_block_storage;
     $this->patternStorage = $patternkit_pattern_storage;
     $this->library = $library;
     $this->themeHandler = $theme_handler;
+    $this->request = $request;
   }
 
   /**
@@ -92,7 +101,8 @@ class PatternkitController extends ControllerBase {
       $entity_manager->getStorage('patternkit_block'),
       $entity_manager->getStorage('patternkit_pattern'),
       $library,
-      $theme_handler
+      $theme_handler,
+      $container->get('request_stack')
     );
   }
 
@@ -119,7 +129,7 @@ class PatternkitController extends ControllerBase {
       ];
     }
     $content['types'] = [];
-    $query = \Drupal::request()->query->all();
+    $query = $this->request->query->all();
     foreach ($types as $pattern_key => $type) {
       try {
         $pattern = $this->patternStorage->create($type);

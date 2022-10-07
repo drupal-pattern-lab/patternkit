@@ -170,12 +170,12 @@ class PatternLibraryJSONForm extends ConfigFormBase {
       '#default_value' => $config->get('patternkit_json_editor_disable_edit_json_button') ?? TRUE,
     ];
 
-    $form['patternkit_json_editor_cache_schemas'] = array(
+    $form['patternkit_json_editor_cache_schemas'] = [
       '#type' => 'checkbox',
-      '#title' => t('Cache external schema references'),
-      '#description' => t('Select whether JSON Editor should cache schema lookups, which can speed up the editor form (maps to JSON Editor option <em>ajax_cache_responses</em>).'),
+      '#title' => $this->t('Cache external schema references'),
+      '#description' => $this->t('Select whether JSON Editor should cache schema lookups, which can speed up the editor form (maps to JSON Editor option <em>ajax_cache_responses</em>).'),
       '#default_value' => $config->get('patternkit_json_editor_cache_schemas') ?? FALSE,
-    );
+    ];
 
     $form['patternkit_json_editor_wysiwyg'] = [
       '#type' => 'select',
