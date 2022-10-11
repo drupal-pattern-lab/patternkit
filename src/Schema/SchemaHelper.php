@@ -120,7 +120,7 @@ class SchemaHelper {
 
     // Load the matching schema rule from the original schema object in order
     // to ensure the full schema is loaded in the case of ref values.
-    return $schema->$rule[$index];
+    return ($schema->$rule)[$index];
   }
 
   /**
