@@ -14,7 +14,7 @@ use Drupal\user\UserInterface;
 /**
  * End-to-end testing for patternkit block placement in layout builder layouts.
  */
-class PatternkitBrowserTestBase extends WebDriverTestBase {
+abstract class PatternkitBrowserTestBase extends WebDriverTestBase {
 
   use SchemaFixtureTrait;
   use JsonDecodeTrait;

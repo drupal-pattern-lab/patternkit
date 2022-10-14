@@ -6,6 +6,8 @@ use Drupal\node\Entity\Node;
 
 /**
  * End-to-end testing for patternkit block placement in layout builder layouts.
+ *
+ * @group patternkit
  */
 class LayoutBuilderBlockTest extends PatternkitBrowserTestBase {
 
