@@ -1054,7 +1054,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 (0, _patternkitJsoneditorEditorObject.patternkitEditorObject)(jQuery, Drupal, JSONEditor);
 (0, _patternkitJsoneditorEditorArray.patternkitEditorArray)(jQuery, Drupal, JSONEditor);
 
-(function ($, Drupal, JSONEditor) {
+(function ($, Drupal, JSONEditor, once) {
   'use strict';
 
   Drupal.behaviors.patternkitEditor = {
@@ -1077,7 +1077,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
       };
 
       var $target = $('#patternkit-editor-target', context);
-      $target.once('patternkit-editor').each(function () {
+      $(once('patternkit-editor', $target)).each(function () {
         var loadingIndicatorClass = 'js-patternkit-loading__on';
         $target.before("<div class=\"".concat(loadingIndicatorClass, "\"></div>"));
         var theme_js = settings.patternkitEditor.themeJS;
@@ -1269,14 +1269,15 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
               };
               window.patternkitEditor.destroy();
               delete window.patternkitEditor;
-              $target.removeOnce('patternkit-editor');
+              $(once.remove('patternkit-editor', $target));
             }
           }
 
           parent_call.call(this, formValues, elementSettings, options);
         };
 
-        $('[data-drupal-selector="edit-actions-submit"]').parent('form').once().each(function () {
+        var $form = $('[data-drupal-selector="edit-actions-submit"]').parent('form');
+        $(once('json-editor-processed', $form, context)).each(function () {
           var _this2 = this;
 
           $(this).on('submit', function (e) {
@@ -1284,7 +1285,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
             saveSchema();
             window.patternkitEditor.destroy();
             delete window.patternkitEditor;
-            $target.removeOnce('patternkit-editor');
+            $(once.remove('patternkit-editor', $target));
             $(_this2).off('submit');
           });
         });
@@ -1292,7 +1293,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
       // up Patternkit (and, in turn) CKEditor instance.  Code stolen from
       // `Drupal.behaviors.offCanvasEvents`.
 
-      $(window).once('patternkit-jsoneditor-off-canvas').on('dialog:beforeclose', function (event, dialog, $element) {
+      $(once('patternkit-jsoneditor-off-canvas', window)).on('dialog:beforeclose', function (event, dialog, $element) {
         // The editor may have already been destroyed if its form was
         // submitted. The following code only destroys the editor if the modal
         // gets closed without submitting the form.
@@ -1311,7 +1312,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
   // `headerTemplate` property in schemas.
 
   JSONEditor.defaults.options.template = 'handlebars';
-})(jQuery, Drupal, JSONEditor);
+})(jQuery, Drupal, JSONEditor, once);
 
 },{"./patternkit.jsoneditor.ckeditor.es6":1,"./patternkit.jsoneditor.cygnet.es6.js":2,"./patternkit.jsoneditor.editor.array.es6":3,"./patternkit.jsoneditor.editor.object.es6":4,"./patternkit.jsoneditor.prosemirror.es6":6,"./patternkit.jsoneditor.quill.es6.js":7}],6:[function(require,module,exports){
 "use strict";

@@ -115,8 +115,7 @@
           "version": "3.0.0",
           "resolved": "https://registry.npmjs.org/normalize-path/-/normalize-path-3.0.0.tgz",
           "integrity": "sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==",
-          "dev": true,
-          "optional": true
+          "dev": true
         },
         "readdirp": {
           "version": "3.5.0",
@@ -1166,9 +1165,9 @@
       }
     },
     "@json-editor/json-editor": {
-      "version": "2.7.0",
-      "resolved": "https://repository.engineering.redhat.com/nexus/repository/registry.npmjs.org/@json-editor/json-editor/-/json-editor-2.7.0.tgz",
-      "integrity": "sha512-wFizbCCiH02kDPfndcrD9xif8ymSiIelDw299Di2lAO6RJsobfF1NcnsWIbVYHT9npL/1KLH9x6NNrfnmRS63w==",
+      "version": "2.9.0-beta.0",
+      "resolved": "https://repository.engineering.redhat.com/nexus/repository/registry.npmjs.org/@json-editor/json-editor/-/json-editor-2.9.0-beta.0.tgz",
+      "integrity": "sha512-lxHff4g/3XP4wX2qrGXdNBoeir0euX2MVyDs8BdsySFRFWD7FutPRenK8f1xVkgjHeofJaApYEab5K8+gerAqw==",
       "dev": true,
       "requires": {
         "core-js": "^3.12.1"
@@ -2270,9 +2269,9 @@
       }
     },
     "core-js": {
-      "version": "3.22.2",
-      "resolved": "https://repository.engineering.redhat.com/nexus/repository/registry.npmjs.org/core-js/-/core-js-3.22.2.tgz",
-      "integrity": "sha512-Z5I2vzDnEIqO2YhELVMFcL1An2CIsFe9Q7byZhs8c/QxummxZlAHw33TUHbIte987LkisOgL0LwQ1P9D6VISnA==",
+      "version": "3.25.3",
+      "resolved": "https://repository.engineering.redhat.com/nexus/repository/registry.npmjs.org/core-js/-/core-js-3.25.3.tgz",
+      "integrity": "sha512-y1hvKXmPHvm5B7w4ln1S4uc9eV/O5+iFExSRUimnvIph11uaizFR8LFMdONN8hG3P2pipUfX4Y/fR8rAEtcHcQ==",
       "dev": true
     },
     "core-js-compat": {
@@ -5041,8 +5040,7 @@
       "version": "2.2.2",
       "resolved": "https://registry.npmjs.org/picomatch/-/picomatch-2.2.2.tgz",
       "integrity": "sha512-q0M/9eZHzmr0AulXyPwNfZjtwZ/RBZlbN3K3CErVrk50T2ASYI7Bye0EvekFY3IP1Nt2DHu0re+V2ZHIpMkuWg==",
-      "dev": true,
-      "optional": true
+      "dev": true
     },
     "pify": {
       "version": "2.3.0",

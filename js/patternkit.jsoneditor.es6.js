@@ -2,6 +2,7 @@
 /*globals Drupal:false */
 /*globals jQuery:false */
 /*globals JSONEditor:false */
+/*globals once:false */
 /**
  * @file
  * Provides Twig Pattern Library Editing Functionality.
@@ -11,6 +12,8 @@
  * @external jQuery
  *
  * @external JSONEditor
+ *
+ * @external once
  *
  * @todo .patternkit-editor-target .card all: initial
  */
@@ -34,7 +37,7 @@ patternkitEditorProseMirror(jQuery, Drupal, JSONEditor);
 patternkitEditorObject(jQuery, Drupal, JSONEditor);
 patternkitEditorArray(jQuery, Drupal, JSONEditor);
 
-(function ($, Drupal, JSONEditor) {
+(function ($, Drupal, JSONEditor, once) {
  'use strict';
  Drupal.behaviors.patternkitEditor = {
    attach: function (context, settings) {
@@ -52,7 +55,7 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
        }
      };
      let $target = $('#patternkit-editor-target', context);
-     $target.once('patternkit-editor').each(function () {
+     $(once('patternkit-editor', $target)).each(function () {
        var loadingIndicatorClass = 'js-patternkit-loading__on';
 
        $target.before(`<div class="${loadingIndicatorClass}"></div>`);
@@ -225,18 +228,19 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
              };
              window.patternkitEditor.destroy();
              delete window.patternkitEditor;
-             $target.removeOnce('patternkit-editor');
+             $(once.remove('patternkit-editor', $target));
            }
          }
          parent_call.call(this, formValues, elementSettings, options);
        };
-       $('[data-drupal-selector="edit-actions-submit"]').parent('form').once().each(function () {
+       let $form = $('[data-drupal-selector="edit-actions-submit"]').parent('form');
+       $(once('json-editor-processed', $form, context)).each(function () {
          $(this).on('submit', (e) => {
            window.patternkitEditor.disable();
            saveSchema();
            window.patternkitEditor.destroy();
            delete window.patternkitEditor;
-           $target.removeOnce('patternkit-editor');
+           $(once.remove('patternkit-editor', $target));
            $(this).off('submit');
          });
        });
@@ -245,7 +249,7 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
      // If user closes the Layout Builder dialog without saving, this cleans
      // up Patternkit (and, in turn) CKEditor instance.  Code stolen from
      // `Drupal.behaviors.offCanvasEvents`.
-     $(window).once('patternkit-jsoneditor-off-canvas').on('dialog:beforeclose', (event, dialog, $element) => {
+     $(once('patternkit-jsoneditor-off-canvas', window)).on('dialog:beforeclose', (event, dialog, $element) => {
        // The editor may have already been destroyed if its form was
        // submitted. The following code only destroys the editor if the modal
        // gets closed without submitting the form.
@@ -265,4 +269,4 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
  // `headerTemplate` property in schemas.
  JSONEditor.defaults.options.template = 'handlebars';
 
-})(jQuery, Drupal, JSONEditor);
+})(jQuery, Drupal, JSONEditor, once);
