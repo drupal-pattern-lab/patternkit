@@ -69,10 +69,49 @@ var DrupalCKEditor = /*#__PURE__*/function (_JSONEditor$defaults$) {
       this.input_type = this.schema.format;
       this.input.setAttribute('data-schemaformat', this.input_type);
     }
+    /**
+     * Post-load after CKEditor has created a successful instance.
+     */
+
+  }, {
+    key: "ckeditorPostLoad",
+    value: function ckeditorPostLoad() {
+      var _this = this;
+
+      this.ckeditor_instance.setData(this.getValue());
+
+      if (this.schema.readOnly || this.schema.readonly || this.schema.template) {
+        this.ckeditor_instance.setReadOnly(true);
+      }
+
+      var saveEditorContent = Drupal.debounce(function () {
+        _this.input.value = _this.ckeditor_instance.getData();
+
+        _this.refreshValue(); // Dirty means display cache is invalidated for string editors.
+
+
+        _this.is_dirty = true;
+
+        _this.onChange(true);
+      }, 400);
+      this.ckeditor_instance.on('change', saveEditorContent); // In "source" mode (e.g., by clicking the "Source" button), CKEditor's
+      // "change" event does not fire, so we need to listen on the "input"
+      // event.
+      // See https://ckeditor.com/docs/ckeditor4/latest/api/CKEDITOR_editor.html#event-change
+
+      this.ckeditor_instance.on('mode', function () {
+        if (_this.ckeditor_instance.mode === 'source') {
+          var editable = _this.ckeditor_instance.editable();
+
+          editable.attachListener(editable, 'input', saveEditorContent);
+        }
+      });
+      this.theme.afterInputReady(this.input);
+    }
   }, {
     key: "afterInputReady",
     value: function afterInputReady() {
-      var _this = this;
+      var _this2 = this;
 
       if (window.CKEDITOR) {
         // Editor options.
@@ -113,37 +152,31 @@ var DrupalCKEditor = /*#__PURE__*/function (_JSONEditor$defaults$) {
         this.ckeditor_container.style.width = '100%';
         this.ckeditor_container.style.position = 'relative';
         this.input.style.display = 'none';
-        this.input.parentNode.insertBefore(this.ckeditor_container, this.input);
-        this.ckeditor_instance = window.CKEDITOR.replace(this.ckeditor_container, this.options.ckeditor_config);
-        this.ckeditor_instance.setData(this.getValue());
+        this.input.parentNode.insertBefore(this.ckeditor_container, this.input); // Using the delay if delayIfDetached and delayIfDetached_callback,
+        // was getting an error code: editor-delayed-creation-success, and still
+        // needed to be in the timeout to work.
 
-        if (this.schema.readOnly || this.schema.readonly || this.schema.template) {
-          this.ckeditor_instance.setReadOnly(true);
-        }
+        setTimeout(function () {
+          // The input element may be removed due to changes made via the
+          // jsoneditor properties selections.
+          if (_this2.jsoneditor.editors[_this2.path]) {
+            _this2.ckeditor_instance = window.CKEDITOR.replace(_this2.ckeditor_container, _this2.options.ckeditor_config);
 
-        var saveEditorContent = Drupal.debounce(function () {
-          _this.input.value = _this.ckeditor_instance.getData();
+            _this2.ckeditorPostLoad();
+          } else {
+            // Store any unloaded textarea that doesn't have a CKEditor instance
+            // loaded yet.
+            if (typeof window.DrupalCKEditors == 'undefined') {
+              window.DrupalCKEditors = {};
+            }
 
-          _this.refreshValue(); // Dirty means display cache is invalidated for string editors.
-
-
-          _this.is_dirty = true;
-
-          _this.onChange(true);
-        }, 400);
-        this.ckeditor_instance.on('change', saveEditorContent); // In "source" mode (e.g., by clicking the "Source" button), CKEditor's
-        // "change" event does not fire, so we need to listen on the "input"
-        // event.
-        // See https://ckeditor.com/docs/ckeditor4/latest/api/CKEDITOR_editor.html#event-change
-
-        this.ckeditor_instance.on('mode', function () {
-          if (_this.ckeditor_instance.mode === 'source') {
-            var editable = _this.ckeditor_instance.editable();
-
-            editable.attachListener(editable, 'input', saveEditorContent);
+            window.DrupalCKEditors[_this2.path] = {
+              ckeditor_container: _this2.ckeditor_container,
+              ckeditor_config: _this2.options.ckeditor_config
+            };
+            _this2.input.style.display = 'block';
           }
-        });
-        this.theme.afterInputReady(this.input);
+        }, 1000);
       } else {
         _get(_getPrototypeOf(DrupalCKEditor.prototype), "afterInputReady", this).call(this);
       }
@@ -155,6 +188,10 @@ var DrupalCKEditor = /*#__PURE__*/function (_JSONEditor$defaults$) {
         this.ckeditor_instance.destroy(true);
         window.CKEDITOR.remove(this.ckeditor_instance);
         this.ckeditor_instance = null;
+      }
+
+      if (window.DrupalCKEditors) {
+        delete window.DrupalCKEditors;
       }
 
       _get(_getPrototypeOf(DrupalCKEditor.prototype), "destroy", this).call(this);
@@ -177,12 +214,20 @@ var DrupalCKEditor = /*#__PURE__*/function (_JSONEditor$defaults$) {
     value: function enable() {
       if (this.always_disabled) {
         return;
-      } // @TODO Fix this because, when the form is initially loaded, this throws a
-      // JS error.
-
+      }
 
       if (this.ckeditor_instance) {
         this.ckeditor_instance.setReadOnly(false);
+      } // Hande cases where the Ckeditor instance is removed before binding. Once
+      // enabled by properties it will run only once. After being able to bind to
+      // a DOM element it should be fine since it now has the instance created.
+
+
+      if (window.DrupalCKEditors && window.DrupalCKEditors[this.path] && !this.ckeditor_instance) {
+        var editor_config = window.DrupalCKEditors[this.path];
+        this.ckeditor_instance = window.CKEDITOR.replace(editor_config.ckeditor_container, editor_config.ckeditor_config);
+        this.ckeditorPostLoad();
+        this.input.style.display = 'none';
       }
 
       _get(_getPrototypeOf(DrupalCKEditor.prototype), "enable", this).call(this);

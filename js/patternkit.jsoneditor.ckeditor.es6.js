@@ -20,6 +20,37 @@ class DrupalCKEditor extends JSONEditor.defaults.editors.string {
     this.input.setAttribute('data-schemaformat', this.input_type);
   }
 
+  /**
+   * Post-load after CKEditor has created a successful instance.
+   */
+  ckeditorPostLoad() {
+    this.ckeditor_instance.setData(this.getValue());
+    if (this.schema.readOnly || this.schema.readonly || this.schema.template) {
+      this.ckeditor_instance.setReadOnly(true);
+    }
+
+    const saveEditorContent = Drupal.debounce(() => {
+      this.input.value = this.ckeditor_instance.getData();
+      this.refreshValue();
+      // Dirty means display cache is invalidated for string editors.
+      this.is_dirty = true;
+      this.onChange(true);
+    }, 400);
+
+    this.ckeditor_instance.on('change', saveEditorContent);
+    // In "source" mode (e.g., by clicking the "Source" button), CKEditor's
+    // "change" event does not fire, so we need to listen on the "input"
+    // event.
+    // See https://ckeditor.com/docs/ckeditor4/latest/api/CKEDITOR_editor.html#event-change
+    this.ckeditor_instance.on('mode', () => {
+      if (this.ckeditor_instance.mode === 'source') {
+        const editable = this.ckeditor_instance.editable();
+        editable.attachListener(editable, 'input', saveEditorContent);
+      }
+    });
+    this.theme.afterInputReady(this.input);
+  }
+
   afterInputReady() {
     if (window.CKEDITOR) {
       // Editor options.
@@ -45,7 +76,6 @@ class DrupalCKEditor extends JSONEditor.defaults.editors.string {
       if (this.schema.options.disallowedContent) {
         this.options.ckeditor_config.disallowedContent = this.schema.options.disallowedContent;
       }
-
       // @see Drupal.editors.ckeditor._loadExternalPlugins
       const externalPlugins = this.options.ckeditor_config.drupalExternalPlugins;
       if (externalPlugins) {
@@ -62,38 +92,32 @@ class DrupalCKEditor extends JSONEditor.defaults.editors.string {
       this.ckeditor_container = document.createElement('div');
       this.ckeditor_container.style.width = '100%';
       this.ckeditor_container.style.position = 'relative';
-
       this.input.style.display = 'none';
-
       this.input.parentNode.insertBefore(this.ckeditor_container, this.input);
-
-      this.ckeditor_instance = window.CKEDITOR.replace(this.ckeditor_container, this.options.ckeditor_config);
-      this.ckeditor_instance.setData(this.getValue());
-      if (this.schema.readOnly || this.schema.readonly || this.schema.template) {
-        this.ckeditor_instance.setReadOnly(true);
-      }
-
-      const saveEditorContent = Drupal.debounce(() => {
-        this.input.value = this.ckeditor_instance.getData();
-        this.refreshValue();
-        // Dirty means display cache is invalidated for string editors.
-        this.is_dirty = true;
-        this.onChange(true);
-      }, 400);
-
-      this.ckeditor_instance.on('change', saveEditorContent);
-      // In "source" mode (e.g., by clicking the "Source" button), CKEditor's
-      // "change" event does not fire, so we need to listen on the "input"
-      // event.
-      // See https://ckeditor.com/docs/ckeditor4/latest/api/CKEDITOR_editor.html#event-change
-      this.ckeditor_instance.on('mode', () => {
-        if (this.ckeditor_instance.mode === 'source') {
-          const editable = this.ckeditor_instance.editable();
-          editable.attachListener(editable, 'input', saveEditorContent);
+      // Using the delay if delayIfDetached and delayIfDetached_callback,
+      // was getting an error code: editor-delayed-creation-success, and still
+      // needed to be in the timeout to work.
+      setTimeout(() => {
+        // The input element may be removed due to changes made via the
+        // jsoneditor properties selections.
+        if (this.jsoneditor.editors[this.path]) {
+          this.ckeditor_instance = window.CKEDITOR.replace(this.ckeditor_container, this.options.ckeditor_config);
+          this.ckeditorPostLoad();
         }
-      });
+        else {
+          // Store any unloaded textarea that doesn't have a CKEditor instance
+          // loaded yet.
+          if (typeof window.DrupalCKEditors == 'undefined' ) {
+            window.DrupalCKEditors = {};
+          }
+          window.DrupalCKEditors[this.path] = {
+            ckeditor_container: this.ckeditor_container,
+            ckeditor_config: this.options.ckeditor_config,
+          }
+          this.input.style.display = 'block';
+        }
 
-      this.theme.afterInputReady(this.input);
+      }, 1000);
     }
     else {
       super.afterInputReady();
@@ -101,10 +125,13 @@ class DrupalCKEditor extends JSONEditor.defaults.editors.string {
   }
 
   destroy() {
-    if(this.ckeditor_instance) {
+    if (this.ckeditor_instance) {
       this.ckeditor_instance.destroy(true);
       window.CKEDITOR.remove(this.ckeditor_instance);
       this.ckeditor_instance = null;
+    }
+    if (window.DrupalCKEditors) {
+      delete window.DrupalCKEditors;
     }
     super.destroy();
   }
@@ -123,10 +150,19 @@ class DrupalCKEditor extends JSONEditor.defaults.editors.string {
     if (this.always_disabled) {
       return;
     }
-    // @TODO Fix this because, when the form is initially loaded, this throws a
-    // JS error.
+
     if (this.ckeditor_instance) {
       this.ckeditor_instance.setReadOnly(false);
+    }
+
+    // Hande cases where the Ckeditor instance is removed before binding. Once
+    // enabled by properties it will run only once. After being able to bind to
+    // a DOM element it should be fine since it now has the instance created.
+    if (window.DrupalCKEditors && window.DrupalCKEditors[this.path] && !this.ckeditor_instance) {
+      const editor_config = window.DrupalCKEditors[this.path];
+      this.ckeditor_instance = window.CKEDITOR.replace(editor_config.ckeditor_container, editor_config.ckeditor_config);
+      this.ckeditorPostLoad();
+      this.input.style.display = 'none';
     }
     super.enable();
   }
