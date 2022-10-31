@@ -110,6 +110,23 @@ services:
     arguments: ['.', '@logger.channel.patternkit', '@patternkit.library.namespace_resolver']
     tags:
       - { name: twig.loader, priority: 100 }
+  patternkit.helper.update:
+    class: Drupal\patternkit\UpdateHelper
+    arguments:
+      - '@entity_type.manager'
+      - '@patternkit.pattern.repository'
+      - '@keyvalue.expirable'
+      - '@module_handler'
+      - '@logger.channel.patternkit'
+  patternkit.helper.layout:
+    class: Drupal\patternkit\LayoutHelper
+    arguments:
+      - '@entity_type.manager'
+      - '@keyvalue.expirable'
+      - '@patternkit.pattern.repository'
+      - '@logger.channel.patternkit'
+      - '@?layout_builder.tempstore_repository'
+      - '@?plugin.manager.layout_builder.section_storage'
   patternkit.translate_layout_builder_block:
     class: Drupal\patternkit\Routing\PatternkitTranslateBlockFormRouteSubscriber
     tags:

@@ -3,9 +3,9 @@ services:
     class: Drupal\patternkit\Commands\PatternkitCommands
     arguments:
       - '@entity_type.manager'
-      - '@patternkit.asset.library'
       - '@patternkit.pattern.discovery'
       - '@patternkit.pattern.repository'
       - '@cache_tags.invalidator'
+      - '@patternkit.helper.update'
     tags:
       - { name: drush.command }
