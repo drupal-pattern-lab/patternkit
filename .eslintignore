@@ -1,0 +1,5 @@
+/js/*.js
+!/js/*.es6.js
+/js/nonmin/*
+/modules/patternkit_media_library/js/*.js
+!/modules/patternkit_media_library/js/*.es6.js
