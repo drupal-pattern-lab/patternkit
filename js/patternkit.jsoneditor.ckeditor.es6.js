@@ -48,6 +48,11 @@ class DrupalCKEditor extends JSONEditor.defaults.editors.string {
         editable.attachListener(editable, 'input', saveEditorContent);
       }
     });
+    this.ckeditor_instance.on('blur', () => {
+      if (this.ckeditor_instance.mode === 'wysiwyg') {
+        saveEditorContent();
+      }
+    });
     this.theme.afterInputReady(this.input);
   }
 
@@ -68,14 +73,24 @@ class DrupalCKEditor extends JSONEditor.defaults.editors.string {
       // system. See https://ckeditor.com/docs/ckeditor4/latest/guide/dev_acf.html.
       // (Clears existing settings in case they were set previously in this request
       // by prior schema.)
+      const allowedContent = this.options.ckeditor_config.allowedContent || null;
+      const disallowedContent = this.options.ckeditor_config.disallowedContent || null;
       delete this.options.ckeditor_config.allowedContent;
       delete this.options.ckeditor_config.disallowedContent;
       if (this.schema.options.allowedContent) {
         this.options.ckeditor_config.allowedContent = this.schema.options.allowedContent;
       }
+      else if (allowedContent) {
+        this.options.ckeditor_config.allowedContent = allowedContent;
+      }
+
       if (this.schema.options.disallowedContent) {
         this.options.ckeditor_config.disallowedContent = this.schema.options.disallowedContent;
       }
+      else if (disallowedContent) {
+        this.options.ckeditor_config.disallowedContent = disallowedContent;
+      }
+
       // @see Drupal.editors.ckeditor._loadExternalPlugins
       const externalPlugins = this.options.ckeditor_config.drupalExternalPlugins;
       if (externalPlugins) {
@@ -116,7 +131,6 @@ class DrupalCKEditor extends JSONEditor.defaults.editors.string {
           }
           this.input.style.display = 'block';
         }
-
       }, 1000);
     }
     else {

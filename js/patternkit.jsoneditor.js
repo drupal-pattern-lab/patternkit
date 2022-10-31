@@ -106,6 +106,11 @@ var DrupalCKEditor = /*#__PURE__*/function (_JSONEditor$defaults$) {
           editable.attachListener(editable, 'input', saveEditorContent);
         }
       });
+      this.ckeditor_instance.on('blur', function () {
+        if (_this.ckeditor_instance.mode === 'wysiwyg') {
+          saveEditorContent();
+        }
+      });
       this.theme.afterInputReady(this.input);
     }
   }, {
@@ -127,15 +132,21 @@ var DrupalCKEditor = /*#__PURE__*/function (_JSONEditor$defaults$) {
         // (Clears existing settings in case they were set previously in this request
         // by prior schema.)
 
+        var allowedContent = this.options.ckeditor_config.allowedContent || null;
+        var disallowedContent = this.options.ckeditor_config.disallowedContent || null;
         delete this.options.ckeditor_config.allowedContent;
         delete this.options.ckeditor_config.disallowedContent;
 
         if (this.schema.options.allowedContent) {
           this.options.ckeditor_config.allowedContent = this.schema.options.allowedContent;
+        } else if (allowedContent) {
+          this.options.ckeditor_config.allowedContent = allowedContent;
         }
 
         if (this.schema.options.disallowedContent) {
           this.options.ckeditor_config.disallowedContent = this.schema.options.disallowedContent;
+        } else if (disallowedContent) {
+          this.options.ckeditor_config.disallowedContent = disallowedContent;
         } // @see Drupal.editors.ckeditor._loadExternalPlugins
 
 
