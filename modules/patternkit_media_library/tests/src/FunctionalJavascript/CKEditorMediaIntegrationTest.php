@@ -13,6 +13,7 @@ use Drupal\Tests\patternkit\Traits\CKEditorIntegrationTestTrait;
  *
  * @group patternkit
  * @group patternkit_media_library
+ * @group legacy
  */
 class CKEditorMediaIntegrationTest extends PatternkitMediaLibraryBrowserTestBase {
 
