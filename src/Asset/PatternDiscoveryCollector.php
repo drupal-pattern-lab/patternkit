@@ -7,6 +7,7 @@ use Drupal\Core\Asset\Exception\InvalidLibraryFileException;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Cache\CacheCollector;
 use Drupal\Core\Lock\LockBackendInterface;
+use Drupal\patternkit\Exception\UnknownPatternException;
 use Drupal\patternkit\PatternkitEnvironmentAwareInterface;
 use Drupal\patternkit\PatternkitEnvironmentAwareTrait;
 use Drupal\patternkit\PatternLibrary;
@@ -137,15 +138,20 @@ class PatternDiscoveryCollector extends CacheCollector implements PatternkitEnvi
    *
    * @throws \Symfony\Component\Serializer\Exception\ExceptionInterface
    * @throws \Drupal\Core\Asset\Exception\InvalidLibraryFileException
+   * @throws \Drupal\patternkit\Exception\UnknownPatternException
+   *   Throws an exception if the requested namespace cannot be found.
    *
    * @see \Drupal\patternkit\Asset\LibraryNamespaceResolver::getLibraryDefinitions()
    */
   protected function getPatternsByNamespace(string $library): array {
     $namespace = $library[0] === '@' ? $library : "@$library";
 
-    // @todo Handle failures to load a library definition.
     $library_definition = $this->namespaceResolver->getLibraryFromNamespace($namespace);
     $pattern_info = $library_definition['patterns'] ?? [];
+
+    if ($library_definition === NULL) {
+      throw new UnknownPatternException('Unable to load "' . $namespace . '" namespace.');
+    }
 
     // @todo Remove usage of the PatternLibrary object.
     $libraryObj = $this->getLibraryObject($library_definition);

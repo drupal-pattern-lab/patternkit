@@ -2,14 +2,15 @@
 
 namespace Drupal\patternkit\Controller;
 
-use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Extension\ThemeHandlerInterface;
 use Drupal\Core\Link;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
-use Drupal\patternkit\Asset\LibraryInterface;
 use Drupal\patternkit\Entity\PatternInterface;
+use Drupal\patternkit\Exception\UnknownPatternException;
+use Drupal\patternkit\PatternRepository;
 use Drupal\patternkit\Plugin\Derivative\PatternkitBlock;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -29,25 +30,11 @@ class PatternkitController extends ControllerBase {
   protected EntityStorageInterface $blockStorage;
 
   /**
-   * Object request.
+   * The current request object.
    *
    * @var \Symfony\Component\HttpFoundation\Request
    */
-  protected $request;
-
-  /**
-   * The custom pattern entity storage.
-   *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
-   */
-  protected EntityStorageInterface $patternStorage;
-
-  /**
-   * The pattern library.
-   *
-   * @var \Drupal\patternkit\Asset\LibraryInterface
-   */
-  protected LibraryInterface $library;
+  protected Request $request;
 
   /**
    * The theme handler.
@@ -57,27 +44,32 @@ class PatternkitController extends ControllerBase {
   protected ThemeHandlerInterface $themeHandler;
 
   /**
+   * The pattern repository service.
+   *
+   * @var \Drupal\patternkit\PatternRepository
+   */
+  protected PatternRepository $patternRepository;
+
+  /**
    * Constructs a Patternkit Controller.
    *
    * @param \Drupal\Core\Entity\EntityStorageInterface $patternkit_block_storage
    *   The Patternkit block entity storage.
-   * @param \Drupal\Core\Entity\EntityStorageInterface $patternkit_pattern_storage
-   *   The Patternkit pattern entity storage.
-   * @param \Drupal\patternkit\Asset\LibraryInterface $library
-   *   The Pattern Library.
+   * @param \Drupal\patternkit\PatternRepository $pattern_repository
+   *   The pattern repository service.
    * @param \Drupal\Core\Extension\ThemeHandlerInterface $theme_handler
    *   The theme handler.
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The current request object.
    */
   public function __construct(
     EntityStorageInterface $patternkit_block_storage,
-    EntityStorageInterface $patternkit_pattern_storage,
-    LibraryInterface $library,
+    PatternRepository $pattern_repository,
     ThemeHandlerInterface $theme_handler,
     Request $request
   ) {
     $this->blockStorage = $patternkit_block_storage;
-    $this->patternStorage = $patternkit_pattern_storage;
-    $this->library = $library;
+    $this->patternRepository = $pattern_repository;
     $this->themeHandler = $theme_handler;
     $this->request = $request;
   }
@@ -93,16 +85,11 @@ class PatternkitController extends ControllerBase {
   public static function create(ContainerInterface $container): self {
     /** @var \Drupal\Core\Entity\EntityTypeManagerInterface $entity_manager */
     $entity_manager = $container->get('entity_type.manager');
-    /** @var \Drupal\patternkit\Asset\LibraryInterface $library */
-    $library = $container->get('patternkit.asset.library');
-    /** @var \Drupal\Core\Extension\ThemeHandlerInterface $theme_handler */
-    $theme_handler = $container->get('theme_handler');
     return new static(
       $entity_manager->getStorage('patternkit_block'),
-      $entity_manager->getStorage('patternkit_pattern'),
-      $library,
-      $theme_handler,
-      $container->get('request_stack')
+      $container->get('patternkit.pattern.repository'),
+      $container->get('theme_handler'),
+      $container->get('request_stack')->getCurrentRequest()
     );
   }
 
@@ -115,7 +102,7 @@ class PatternkitController extends ControllerBase {
    */
   public function add(): array {
     try {
-      $types = $this->library->getAssets();
+      $patterns = $this->patternRepository->getAllPatternNames();
     }
     catch (\Exception $exception) {
       $this->getLogger('patternkit')->error('Error loading pattern library assets: ', ['@message' => $exception->getMessage()]);
@@ -123,24 +110,24 @@ class PatternkitController extends ControllerBase {
         '#markup' => $this->t('Error loading pattern library assets - check the log or the format of your libraries.yml.'),
       ];
     }
-    if (count($types) === 0) {
+    if (count($patterns) === 0) {
       return [
         '#markup' => $this->t('Could not find any patterns to load. Did you add a theme or module that includes a patterns definition in the libraries.yml?'),
       ];
     }
     $content['types'] = [];
     $query = $this->request->query->all();
-    foreach ($types as $pattern_key => $type) {
+    foreach ($patterns as $asset_id) {
       try {
-        $pattern = $this->patternStorage->create($type);
+        $pattern = $this->patternRepository->getPattern($asset_id);
       }
       catch (\Exception $e) {
         continue;
       }
-      $pattern_id = PatternkitBlock::assetToDerivativeId($pattern->getAssetId());
+      $derivative_id = PatternkitBlock::assetToDerivativeId($asset_id);
       $label = $pattern->label();
-      $content['types'][$pattern_id] = [
-        'link' => Link::fromTextAndUrl($label, Url::fromRoute('patternkit.add_form', ['pattern_id' => $pattern_id], ['query' => $query])),
+      $content['types'][$derivative_id] = [
+        'link' => Link::fromTextAndUrl($label, Url::fromRoute('patternkit.add_form', ['pattern_id' => $derivative_id], ['query' => $query])),
         'description' => [
           '#markup' => $pattern->getDescription(),
         ],
@@ -195,26 +182,31 @@ class PatternkitController extends ControllerBase {
    *   The schema response.
    */
   public function apiPattern(Request $request, ?string $pattern_id = NULL): Response {
-    $pattern = $request->query->get('pattern') ?? $pattern_id;
-    $pattern = urldecode($pattern);
-    if (!$pattern) {
+    $pattern_id = $request->query->get('pattern') ?? $pattern_id;
+    $pattern_id = urldecode($pattern_id);
+    if (!$pattern_id) {
       return new Response();
     }
     if ($request->query->get('asset') === 'schema') {
-      return $this->apiPatternSchema($pattern);
+      return $this->apiPatternSchema($pattern_id);
     }
-    $asset_id = '@' . $pattern;
+    $asset_id = '@' . $pattern_id;
     try {
-      $response = $this->library->getLibraryAsset($asset_id);
-      if ($response === NULL) {
-        throw new \RuntimeException("Unable to locate $asset_id.");
-      }
+      $pattern = $this->patternRepository->getPattern($asset_id);
+    }
+    catch (UnknownPatternException $exception) {
+      $response = [
+        'error' => $exception->getMessage(),
+        'patterns' => implode(', ', $this->patternRepository->getAllPatternNames()),
+      ];
+      return new JsonResponse($response, 404);
     }
     catch (\Exception $exception) {
       $response = ['error' => $exception->getMessage()];
+      return new JsonResponse($response, 500);
     }
 
-    return new JsonResponse($response);
+    return new JsonResponse($pattern);
   }
 
   /**
@@ -229,19 +221,21 @@ class PatternkitController extends ControllerBase {
   public function apiPatternSchema(string $pattern_id): JsonResponse {
     $asset_id = '@' . urldecode($pattern_id);
     try {
-      $pattern_asset = $this->library->getLibraryAsset($asset_id);
-      if ($pattern_asset === NULL) {
-        throw new \RuntimeException("Unable to locate $asset_id schema.");
-      }
-      $pattern = $this->patternStorage->create($pattern_asset);
+      $pattern = $this->patternRepository->getPattern($asset_id);
       $response = json_decode($pattern->getSchema()) ?? [];
     }
-    catch (\Exception $exception) {
+    catch (UnknownPatternException $exception) {
       $response = [
         'error' => $exception->getMessage(),
-        'patterns' => implode(', ', array_keys($this->library->getAssets())),
+        'patterns' => implode(', ', $this->patternRepository->getAllPatternNames()),
       ];
+      return new JsonResponse($response, 404);
     }
+    catch (\Exception $exception) {
+      $response = ['error' => $exception->getMessage()];
+      return new JsonResponse($response, 500);
+    }
+
     return new JsonResponse($response);
   }
 
@@ -249,21 +243,18 @@ class PatternkitController extends ControllerBase {
    * Provides the page title for this controller.
    *
    * @param string $pattern_id
-   *   The pattern being added.
+   *   The pattern block derivative ID for the pattern being added.
    *
    * @return \Drupal\Core\StringTranslation\TranslatableMarkup
    *   The page title.
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   * @throws \Drupal\patternkit\Exception\UnknownPatternException
    */
   public function getAddFormTitle(string $pattern_id): TranslatableMarkup {
     $asset_id = PatternkitBlock::derivativeToAssetId(urldecode($pattern_id));
-    $pattern_asset = $this->library->getLibraryAsset($asset_id);
-    if ($pattern_asset === NULL) {
-      throw new \RuntimeException("Unable to locate $asset_id.");
-    }
-    $pattern = $this->patternStorage->create($pattern_asset);
+    $pattern = $this->patternRepository->getPattern($asset_id);
     return $this->t('Add %type Patternkit block', ['%type' => $pattern->label()]);
   }
 

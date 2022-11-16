@@ -4,16 +4,13 @@ namespace Drupal\Tests\patternkit\Functional;
 
 use Drupal\node\Entity\Node;
 use Drupal\patternkit\Element\PatternError;
-use Drupal\patternkit\Entity\Pattern;
+use Drupal\patternkit\PatternRepository;
 use Drupal\patternkit\Plugin\Derivative\PatternkitBlock;
 
 /**
  * Basic E2E testing for Patternkit.
  *
- * @group legacy
  * @group patternkit
- *
- * @todo Remove legacy group on 1.0 release and fix any deprecations.
  */
 class PatternkitTest extends PatternkitBrowserTestBase {
 
@@ -26,11 +23,11 @@ class PatternkitTest extends PatternkitBrowserTestBase {
   ];
 
   /**
-   * The patternkit library service.
+   * The pattern repository service.
    *
-   * @var \Drupal\patternkit\Asset\Library
+   * @var \Drupal\patternkit\PatternRepository
    */
-  protected $library;
+  protected PatternRepository $patternRepository;
 
   /**
    * {@inheritdoc}
@@ -38,7 +35,7 @@ class PatternkitTest extends PatternkitBrowserTestBase {
   public function setUp(): void {
     parent::setUp();
 
-    $this->library = $this->container->get('patternkit.asset.library');
+    $this->patternRepository = $this->container->get('patternkit.pattern.repository');
   }
 
   /**
@@ -79,7 +76,7 @@ class PatternkitTest extends PatternkitBrowserTestBase {
 
     // Identify and create the pattern entity to be used.
     $pattern_id = PatternkitBlock::derivativeToAssetId('patternkit_atoms_example_src_example');
-    $pattern = Pattern::create($this->library->getLibraryAsset($pattern_id));
+    $pattern = $this->patternRepository->getPattern($pattern_id);
 
     // Load the pattern from storage.
     $pattern_cache = $this->patternStorage->loadByProperties([
@@ -100,7 +97,7 @@ class PatternkitTest extends PatternkitBrowserTestBase {
     $pattern->save();
 
     // Place the block for viewing.
-    $block = $this->drupalPlaceBlock('patternkit_block:patternkit_atoms_example_src_example', [
+    $this->drupalPlaceBlock('patternkit_block:patternkit_atoms_example_src_example', [
       'region' => 'content',
       'pattern' => $pattern->getRevisionId(),
       'patternkit_block_id' => $patternkit_block->id(),

@@ -288,22 +288,4 @@ class LibraryTest extends KernelTestBase {
     ], reset($libraries['patternkit_json']->patterns));
   }
 
-  /**
-   * Test caching behavior when the discovery cache is enabled.
-   *
-   * @covers ::getLibraryDefinitions
-   */
-  public function testCacheEnabled() {
-    $this->markTestSkipped('Caching in the Library service is no longer supported.');
-  }
-
-  /**
-   * Test caching behavior when the discovery cache is enabled.
-   *
-   * @covers ::getLibraryDefinitions
-   */
-  public function testCacheDisabled() {
-    $this->markTestSkipped('Caching in the Library service is no longer supported.');
-  }
-
 }
