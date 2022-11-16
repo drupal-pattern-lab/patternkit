@@ -21,6 +21,7 @@ use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Exception\PatternAssetException;
 use Drupal\patternkit\Exception\SchemaException;
 use Drupal\patternkit\PatternEditorConfig;
+use Drupal\patternkit\PatternkitEnvironmentAwareTrait;
 use Drupal\patternkit\Schema\DataPreProcessorFactory;
 use Symfony\Component\Finder\Iterator\RecursiveDirectoryIterator;
 use Webmozart\Assert\Assert;
@@ -31,6 +32,7 @@ use Webmozart\Assert\Assert;
 abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implements PatternLibraryParserInterface {
 
   use StringTranslationTrait;
+  use PatternkitEnvironmentAwareTrait;
 
   /**
    * Serializes and de-serializes data.
@@ -552,8 +554,8 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     Assert::allIsArray($exceptions, 'All exception values are expected to be an array.');
     Assert::allCount($exceptions, 3, 'All exception events are expected to have 3 elements.');
 
-    // @todo Enable debug logging when patternkit supports a flag for debug mode.
-    $debug = FALSE;
+    // Log debug messages if debug mode is enabled. See patternkit.services.yml.
+    $debug = $this->isDebug();
 
     // Log each of the exceptions.
     foreach ($exceptions as [$exception, $message, $context]) {
