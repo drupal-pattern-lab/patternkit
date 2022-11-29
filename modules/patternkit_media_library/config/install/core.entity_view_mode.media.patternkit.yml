@@ -1,0 +1,10 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - media
+    - patternkit_media_library
+id: media.patternkit
+label: Patternkit
+targetEntityType: media
+cache: true

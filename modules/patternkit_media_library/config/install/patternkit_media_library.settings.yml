@@ -1,1 +1,8 @@
 use_styles: false
+media_mapping:
+  image_types:
+    - image
+  video_types:
+    - remote_video
+    - video
+media_display_mode: patternkit

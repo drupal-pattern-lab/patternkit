@@ -15,12 +15,18 @@ function patternkit_media_library_form_layout_builder_configure_block_alter(&$fo
     $form_attached = $form['settings']['configuration']['#attached'];
     $form_attached['drupalSettings']['patternkitEditor']['imageUrl'] = Url::fromRoute('patternkit.media_library')
       ->toString();
+    $form_attached['drupalSettings']['patternkitEditor']['videoUrl'] = Url::fromRoute('patternkit.media_library')
+      ->toString();
     array_unshift($form_attached['library'], 'patternkit_media_library/patternkit.jsoneditor.media_library');
 
     $config = \Drupal::config('patternkit_media_library.settings');
     if ($config->get('use_styles')) {
       $form_attached['library'][] = 'patternkit_media_library/media_library_modal';
     }
+
+    // Expose media/field type mapping configuration to drive allowed types in
+    // media modals.
+    $form_attached['drupalSettings']['patternkitEditor']['mediaMapping'] = $config->get('media_mapping');
 
     $form['settings']['configuration']['#attached'] = $form_attached;
   }

@@ -1,0 +1,25 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Media image embed",
+    "description": "A method for displaying image media items",
+    "category": "component",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+            "enum": ["@patternkit/components/media_image_embed/media_image_embed"],
+            "readonly": true,
+            "options": {
+                "hidden": true
+            }
+        },
+        "image": {
+            "title": "Media image embed",
+            "description": "Add a media image to embed on the page.",
+            "type": "string",
+            "format": "image-media"
+        }
+    },
+    "required": ["name", "image"],
+    "additionalProperties": false
+}

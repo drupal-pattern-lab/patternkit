@@ -26,6 +26,9 @@ trait PatternkitExampleLibraryAwareTrait {
     'example_filtered' => 'atoms/example_filtered/src/example_filtered',
     'example_filtered_multiple' => 'atoms/example_filtered_multiple/src/example_filtered_multiple',
     'example_ref' => 'atoms/example_ref/src/example_ref',
+    'media_combined_embed' => 'components/media_combined_embed/media_combined_embed',
+    'media_image_embed' => 'components/media_image_embed/media_image_embed',
+    'media_video_embed' => 'components/media_video_embed/media_video_embed',
   ];
 
   /**
@@ -108,6 +111,36 @@ trait PatternkitExampleLibraryAwareTrait {
           'json' => $root . '/atoms/example_filtered_multiple/src/example_filtered_multiple.json',
         ],
         'path' => 'atoms/example_filtered_multiple/src/example_filtered_multiple',
+      ] + $defaults,
+      'components/media_combined_embed/media_combined_embed' => [
+        'name' => 'Media combined embed',
+        'title' => 'Media combined embed',
+        'category' => 'component',
+        'assets' => [
+          'twig' => $root . '/components/media_combined_embed/media_combined_embed.twig',
+          'json' => $root . '/components/media_combined_embed/media_combined_embed.json',
+        ],
+        'path' => 'components/media_combined_embed/media_combined_embed',
+      ] + $defaults,
+      'components/media_image_embed/media_image_embed' => [
+        'name' => 'Media image embed',
+        'title' => 'Media image embed',
+        'category' => 'component',
+        'assets' => [
+          'twig' => $root . '/components/media_image_embed/media_image_embed.twig',
+          'json' => $root . '/components/media_image_embed/media_image_embed.json',
+        ],
+        'path' => 'components/media_image_embed/media_image_embed',
+      ] + $defaults,
+      'components/media_video_embed/media_video_embed' => [
+        'name' => 'Media video embed',
+        'title' => 'Media video embed',
+        'category' => 'component',
+        'assets' => [
+          'twig' => $root . '/components/media_video_embed/media_video_embed.twig',
+          'json' => $root . '/components/media_video_embed/media_video_embed.json',
+        ],
+        'path' => 'components/media_video_embed/media_video_embed',
       ] + $defaults,
     ];
 

@@ -5,6 +5,7 @@ namespace Drupal\Tests\patternkit\Kernel\Asset\PatternLibraryParser;
 use Drupal\patternkit\Asset\PatternLibraryParser\TwigPatternLibraryParser;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternLibrary;
+use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
 
 /**
  * Integration tests for the TwigPatternLibraryParser class.
@@ -13,6 +14,8 @@ use Drupal\patternkit\PatternLibrary;
  * @group patternkit
  */
 class TwigPatternLibraryParserTest extends PatternLibraryParserTestBase {
+
+  use PatternkitExampleLibraryAwareTrait;
 
   /**
    * {@inheritdoc}
@@ -88,32 +91,9 @@ class TwigPatternLibraryParserTest extends PatternLibraryParserTestBase {
   public function testDiscoverComponents() {
     $module_path = $this->getModulePath('patternkit_example');
     $component_path = $module_path . '/lib/patternkit/src';
-    $components = TwigPatternLibraryParser::discoverComponents($component_path, [
-      'json',
-      'twig',
-    ]);
-    $expected_components = [
-      'example' =>
-        [
-          'json' => $module_path . '/lib/patternkit/src/atoms/example/src/example.json',
-          'twig' => $module_path . '/lib/patternkit/src/atoms/example/src/example.twig',
-        ],
-      'example_filtered' =>
-        [
-          'json' => $module_path . '/lib/patternkit/src/atoms/example_filtered/src/example_filtered.json',
-          'twig' => $module_path . '/lib/patternkit/src/atoms/example_filtered/src/example_filtered.twig',
-        ],
-      'example_filtered_multiple' =>
-        [
-          'json' => $module_path . '/lib/patternkit/src/atoms/example_filtered_multiple/src/example_filtered_multiple.json',
-          'twig' => $module_path . '/lib/patternkit/src/atoms/example_filtered_multiple/src/example_filtered_multiple.twig',
-        ],
-      'example_ref' =>
-        [
-          'json' => $module_path . '/lib/patternkit/src/atoms/example_ref/src/example_ref.json',
-          'twig' => $module_path . '/lib/patternkit/src/atoms/example_ref/src/example_ref.twig',
-        ],
-    ];
+    $extensions = ['json', 'twig'];
+    $components = TwigPatternLibraryParser::discoverComponents($component_path, $extensions);
+    $expected_components = $this->getExpectedFiles($component_path, $extensions);
 
     $this->assertIsArray($components);
     $this->assertEquals($expected_components, $components);

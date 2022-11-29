@@ -5,6 +5,13 @@ patternkit.media_library:
   requirements:
     _permission: 'access media overview,view media'
 
+patternkit.media_library.preview:
+  path: '/patternkit_media_library/preview/{uuid}'
+  defaults:
+    _controller: '\Drupal\patternkit_media_library\Controller\PatternkitMediaLibraryController::mediaPreview'
+  requirements:
+    _permission: 'access media overview,view media'
+
 patternkit.settings.media_library:
   path: '/admin/config/user-interface/patternkit/media-library'
   defaults:

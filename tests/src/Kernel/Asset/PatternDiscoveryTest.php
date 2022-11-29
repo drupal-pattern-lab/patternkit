@@ -3,6 +3,7 @@
 namespace Drupal\patternkit\Asset;
 
 use Drupal\KernelTests\KernelTestBase;
+use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
 
 /**
  * Test the PatternDiscovery class.
@@ -11,6 +12,8 @@ use Drupal\KernelTests\KernelTestBase;
  * @group patternkit
  */
 class PatternDiscoveryTest extends KernelTestBase {
+
+  use PatternkitExampleLibraryAwareTrait;
 
   /**
    * {@inheritdoc}
@@ -27,14 +30,7 @@ class PatternDiscoveryTest extends KernelTestBase {
    *
    * @var array|\string[][]
    */
-  protected array $expectedDefinitions = [
-    '@patternkit' => [
-      '@patternkit/atoms/example/src/example',
-      '@patternkit/atoms/example_filtered/src/example_filtered',
-      '@patternkit/atoms/example_filtered_multiple/src/example_filtered_multiple',
-      '@patternkit/atoms/example_ref/src/example_ref',
-    ],
-  ];
+  protected array $expectedDefinitions = ['@patternkit' => []];
 
   /**
    * The pattern discovery service being tested.
@@ -50,6 +46,7 @@ class PatternDiscoveryTest extends KernelTestBase {
     parent::setUp();
 
     $this->discovery = $this->container->get('patternkit.pattern.discovery');
+    $this->expectedDefinitions['@patternkit'] = $this->getPatternNames();
   }
 
   /**

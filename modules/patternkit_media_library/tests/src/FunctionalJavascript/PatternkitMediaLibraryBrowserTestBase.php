@@ -27,6 +27,7 @@ abstract class PatternkitMediaLibraryBrowserTestBase extends PatternkitBrowserTe
    */
   static protected $modules = [
     'patternkit_example',
+    'patternkit_media_library',
     'media_library',
   ];
 

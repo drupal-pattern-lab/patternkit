@@ -10,6 +10,7 @@ use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\Schema\ContextBuilder;
 use Drupal\patternkit\Schema\DataPreProcessor\RefNormalizerDataPreProcessor;
 use Drupal\patternkit\Schema\UnresolvedSchema;
+use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
 use org\bovigo\vfs\vfsStream;
 use Prophecy\Argument;
 use Prophecy\Argument\Token\TokenInterface;
@@ -25,6 +26,8 @@ use Swaggest\JsonSchema\Context;
  * @group patternkit
  */
 class TwigPatternLibraryParserTest extends PatternLibraryParserTestBase {
+
+  use PatternkitExampleLibraryAwareTrait;
 
   /**
    * The context builder service.
@@ -130,10 +133,10 @@ class TwigPatternLibraryParserTest extends PatternLibraryParserTestBase {
     $pattern_library->id()->willReturn($library['id']);
     $pattern_library->getPatternInfo()->willReturn($library['pattern_info']);
 
-    $this->createMockPattern('atoms/example/src/example');
-    $this->createMockPattern('atoms/example_filtered/src/example_filtered');
-    $this->createMockPattern('atoms/example_ref/src/example_ref');
-    $this->createMockPattern('atoms/example_filtered_multiple/src/example_filtered_multiple');
+    // Prepare a mock to be loaded for each pattern.
+    foreach ($this->getPatternPaths() as $pattern_path) {
+      $this->createMockPattern($pattern_path);
+    }
 
     $parser = $this->getParserInstance();
     $results = $parser->parsePatternLibraryInfo($pattern_library->reveal(), $path);
@@ -151,54 +154,8 @@ class TwigPatternLibraryParserTest extends PatternLibraryParserTestBase {
       'version',
     ];
 
-    // Define default values expected in each result if not overridden for a
-    // specific pattern.
-    $defaults = [
-      'category' => 'atom',
-      'library' => 'patternkit',
-      'libraryPluginId' => 'twig',
-      'version' => FALSE,
-    ];
-
     // Define the expected metadata results for each discovered pattern.
-    $expected = [
-      'atoms/example/src/example' => [
-        'name' => 'Example',
-        'title' => 'Example',
-        'assets' => [
-          'twig' => $this->vfsRoot->url() . '/atoms/example/src/example.twig',
-          'json' => $this->vfsRoot->url() . '/atoms/example/src/example.json',
-        ],
-        'path' => 'atoms/example/src/example',
-      ] + $defaults,
-      'atoms/example_filtered/src/example_filtered' => [
-        'name' => 'Example with filtered content',
-        'title' => 'Example with filtered content',
-        'assets' => [
-          'twig' => $this->vfsRoot->url() . '/atoms/example_filtered/src/example_filtered.twig',
-          'json' => $this->vfsRoot->url() . '/atoms/example_filtered/src/example_filtered.json',
-        ],
-        'path' => 'atoms/example_filtered/src/example_filtered',
-      ] + $defaults,
-      'atoms/example_ref/src/example_ref' => [
-        'name' => 'Example with Reference',
-        'title' => 'Example with Reference',
-        'assets' => [
-          'twig' => $this->vfsRoot->url() . '/atoms/example_ref/src/example_ref.twig',
-          'json' => $this->vfsRoot->url() . '/atoms/example_ref/src/example_ref.json',
-        ],
-        'path' => 'atoms/example_ref/src/example_ref',
-      ] + $defaults,
-      'atoms/example_filtered_multiple/src/example_filtered_multiple' => [
-        'name' => 'Example with multiple filtered content blocks',
-        'title' => 'Example with multiple filtered content blocks',
-        'assets' => [
-          'twig' => $this->vfsRoot->url() . '/atoms/example_filtered_multiple/src/example_filtered_multiple.twig',
-          'json' => $this->vfsRoot->url() . '/atoms/example_filtered_multiple/src/example_filtered_multiple.json',
-        ],
-        'path' => 'atoms/example_filtered_multiple/src/example_filtered_multiple',
-      ] + $defaults,
-    ];
+    $expected = $this->getExpectedLibraryInformation($this->vfsRoot->url());
 
     $this->assertLibraryInfo($expected, $results, $tested_keys);
   }

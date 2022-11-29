@@ -5,6 +5,8 @@
  * Functions run when the module is installed by Drupal.
  */
 
+use Drupal\Core\Link;
+
 /**
  * Implements hook_requirements().
  */
@@ -21,6 +23,20 @@ function patternkit_media_library_requirements($phase) {
     ];
   }
 
+  $settings = \Drupal::configFactory()->get('patternkit_media_library.settings');
+  $mapping = $settings->get('media_mapping');
+  if (empty($mapping) || empty($mapping['image_types']) || empty($mapping['video_types'])) {
+    $link = Link::createFromRoute(t('here'), 'patternkit.settings.media_library');
+
+    $requirements['patternkit_media_library_media_type_mapping'] = [
+      'title' => t('Patternkit Media Library Media Type Mapping'),
+      'description' => t('Patternkit Media Library settings are missing media type selections for selectable image and video types. This may be configured @link.', [
+        '@link' => $link->toString(),
+      ]),
+      'severity' => REQUIREMENT_WARNING,
+    ];
+  }
+
   return $requirements;
 }
 
@@ -30,11 +46,92 @@ function patternkit_media_library_requirements($phase) {
 function patternkit_media_library_update_8001(&$sandbox) {
   $config_key = 'patternkit_media_library.settings';
 
-  $config_current = \Drupal::configFactory()->getEditable($config_key);
+  $config_current = \Drupal::configFactory()->get($config_key);
   // Installs the default config only if this config is not already set.
   if (is_null($config_current->get('use_styles'))) {
     /** @var \Drupal\Core\Config\ConfigInstaller $config_installer_service */
     $config_installer_service = \Drupal::service('config.installer');
     $config_installer_service->installDefaultConfig('module', 'patternkit_media_library');
+  }
+}
+
+/**
+ * Set default values for new media type mapping configuration.
+ */
+function patternkit_media_library_update_9001() {
+  $config_key = 'patternkit_media_library.settings';
+  $config_current = \Drupal::configFactory()->getEditable($config_key);
+
+  // Only attempt to set the configuration if there isn't a value yet.
+  if (is_null($config_current->get('media_mapping'))) {
+    $config = [
+      'image_types' => [],
+      'video_types' => [],
+    ];
+
+    // Guess at configuration based on media types containing either 'image' or
+    // 'video' in their id.
+    $bundles = \Drupal::service('entity_type.bundle.info')->getBundleInfo('media');
+    foreach (array_keys($bundles) as $type) {
+      if (str_contains($type, 'image')) {
+        $config['image_types'][] = $type;
+      }
+      elseif (str_contains($type, 'video')) {
+        $config['video_types'][] = $type;
+      }
+    }
+
+    $config_current->set($config_key, $config);
+    $config_current->save(TRUE);
+
+    return t('Patternkit Media Library settings have been updated. Please review media type selections on the configuration form.');
+  }
+}
+
+/**
+ * Create new 'patternkit' media view mode for Patternkit media usage.
+ */
+function patternkit_media_library_update_9002() {
+  $repository = \Drupal::service('entity_display.repository');
+  $view_modes = $repository->getViewModes('media');
+
+  // Only create the view mode if it doesn't exist already.
+  if (empty($view_modes['patternkit'])) {
+    $config = [
+      "langcode" => "en",
+      "status" => TRUE,
+      "dependencies" => [
+        "module" => [
+          "media",
+          'patternkit_media_library',
+        ],
+      ],
+      "id" => "media.patternkit",
+      "label" => "Patternkit",
+      "targetEntityType" => "media",
+      "cache" => TRUE,
+    ];
+
+    $storage = \Drupal::entityTypeManager()->getStorage('entity_view_mode');
+    $view_mode = $storage->create($config);
+    $view_mode->save();
+
+    return t('Created new "patternkit" media display mode.');
+  }
+}
+
+/**
+ * Configure the default media embed display mode for Patternkit patterns.
+ */
+function patternkit_media_library_update_9003() {
+  $config_key = 'patternkit_media_library.settings';
+  $config_current = \Drupal::configFactory()->getEditable($config_key);
+
+  // Only attempt to set the configuration if there isn't a value yet.
+  if (is_null($config_current->get('media_display_mode'))) {
+    $config_current->set('media_display_mode', 'patternkit');
+    $config_current->save(TRUE);
+
+    return t('Assigned default media display mode for Patternkit to "patternkit".');
   }
 }

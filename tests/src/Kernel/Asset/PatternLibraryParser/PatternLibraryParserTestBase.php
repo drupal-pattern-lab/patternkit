@@ -6,6 +6,7 @@ use Drupal\KernelTests\KernelTestBase;
 use Drupal\patternkit\Asset\PatternDiscoveryInterface;
 use Drupal\patternkit\Asset\PatternLibraryParserBase;
 use Drupal\patternkit\Asset\PatternLibraryParserInterface;
+use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
 
 /**
  * Test Pattern Library Parser plugins.
@@ -14,6 +15,8 @@ use Drupal\patternkit\Asset\PatternLibraryParserInterface;
  * @group patternkit
  */
 class PatternLibraryParserTestBase extends KernelTestBase {
+
+  use PatternkitExampleLibraryAwareTrait;
 
   /**
    * {@inheritdoc}
@@ -57,25 +60,9 @@ class PatternLibraryParserTestBase extends KernelTestBase {
   public function testDiscoverComponents() {
     $module_path = $this->getModulePath('patternkit_example');
     $component_path = $module_path . '/lib/patternkit/src';
-    $components = PatternLibraryParserBase::discoverComponents($component_path, ['json']);
-    $expected_components = [
-      'example' =>
-        [
-          'json' => $module_path . '/lib/patternkit/src/atoms/example/src/example.json',
-        ],
-      'example_filtered' =>
-        [
-          'json' => $module_path . '/lib/patternkit/src/atoms/example_filtered/src/example_filtered.json',
-        ],
-      'example_filtered_multiple' =>
-        [
-          'json' => $module_path . '/lib/patternkit/src/atoms/example_filtered_multiple/src/example_filtered_multiple.json',
-        ],
-      'example_ref' =>
-        [
-          'json' => $module_path . '/lib/patternkit/src/atoms/example_ref/src/example_ref.json',
-        ],
-    ];
+    $filter = ['json'];
+    $components = PatternLibraryParserBase::discoverComponents($component_path, $filter);
+    $expected_components = $this->getExpectedFiles($component_path, $filter);
 
     $this->assertIsArray($components);
     $this->assertEquals($expected_components, $components);

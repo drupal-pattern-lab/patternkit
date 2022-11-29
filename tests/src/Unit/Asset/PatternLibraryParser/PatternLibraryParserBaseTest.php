@@ -5,6 +5,7 @@ namespace Drupal\Tests\patternkit\Unit\Asset\PatternLibraryParser;
 use Drupal\patternkit\Asset\PatternLibraryParserBase;
 use Drupal\patternkit\Asset\PatternLibraryParserInterface;
 use Drupal\patternkit\Entity\PatternInterface;
+use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
 use org\bovigo\vfs\vfsStream;
 
 /**
@@ -14,6 +15,8 @@ use org\bovigo\vfs\vfsStream;
  * @group patternkit
  */
 class PatternLibraryParserBaseTest extends PatternLibraryParserTestBase {
+
+  use PatternkitExampleLibraryAwareTrait;
 
   /**
    * {@inheritdoc}
@@ -50,24 +53,7 @@ class PatternLibraryParserBaseTest extends PatternLibraryParserTestBase {
   public function testDiscoverComponents() {
     $path = $this->vfsRoot->url();
     $filter = ['twig', 'json'];
-    $expected_results = [
-      'example' => [
-        'json' => $this->vfsRoot->url() . '/atoms/example/src/example.json',
-        'twig' => $this->vfsRoot->url() . '/atoms/example/src/example.twig',
-      ],
-      'example_filtered' => [
-        'json' => $this->vfsRoot->url() . '/atoms/example_filtered/src/example_filtered.json',
-        'twig' => $this->vfsRoot->url() . '/atoms/example_filtered/src/example_filtered.twig',
-      ],
-      'example_ref' => [
-        'json' => $this->vfsRoot->url() . '/atoms/example_ref/src/example_ref.json',
-        'twig' => $this->vfsRoot->url() . '/atoms/example_ref/src/example_ref.twig',
-      ],
-      'example_filtered_multiple' => [
-        'json' => $this->vfsRoot->url() . '/atoms/example_filtered_multiple/src/example_filtered_multiple.json',
-        'twig' => $this->vfsRoot->url() . '/atoms/example_filtered_multiple/src/example_filtered_multiple.twig',
-      ],
-    ];
+    $expected_results = $this->getExpectedFiles($path, $filter);
 
     vfsStream::copyFromFileSystem(__DIR__ . '/../../../../modules/patternkit_test/lib/patternkit/src', $this->vfsRoot);
 

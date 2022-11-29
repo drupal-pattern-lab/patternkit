@@ -5,3 +5,22 @@ patternkit_media_library.settings:
     use_styles:
       type: boolean
       label: 'Boolean that sets whether to load bundled styles for the media library browser.'
+    media_mapping:
+      type: mapping
+      label: 'Media type mapping for allowed media selections.'
+      mapping:
+        image_types:
+          type: sequence
+          label: 'Media types allowed for selection in image fields.'
+          sequence:
+            type: string
+            label: "Media type"
+        video_types:
+          type: sequence
+          label: 'Media types allowed for selection in video fields.'
+          sequence:
+            type: string
+            label: "Media type"
+    media_display_mode:
+      type: string
+      label: 'Display mode for media selected in pattern blocks.'

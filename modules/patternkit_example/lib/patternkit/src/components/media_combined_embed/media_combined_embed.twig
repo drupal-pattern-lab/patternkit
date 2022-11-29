@@ -1,0 +1,12 @@
+{% if image %}
+  {% include '@patternkit/components/media_image_embed/media_image_embed.twig' with {
+    'name': image.name,
+    'image': image.image,
+  } only %}
+{% endif %}
+{% if video %}
+  {% include '@patternkit/components/media_video_embed/media_video_embed.twig' with {
+    'name': video.name,
+    'video': video.video,
+  } only %}
+{% endif %}
