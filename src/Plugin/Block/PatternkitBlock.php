@@ -352,22 +352,31 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     // Display prompts for updating the cached schema if applicable.
     unset($form['schema_desc'], $form['schema_update']);
     if ($form_state->get('schema_updated')) {
-      $form['schema_desc'] = [
-        '#markup' => $this->t('Successfully updated the pattern schema and template to @version.',
+      $success_message = $this->t('Successfully updated the pattern schema and template to the latest version.');
+
+      // Include version numbers in the message for context if available.
+      if ($pattern->getVersion()) {
+        $success_message = $this->t('Successfully updated the pattern schema and template to @version.',
           ['@version' => $pattern->getVersion()]
-        ),
-      ];
+        );
+      }
+      $form['schema_desc'] = ['#markup' => $success_message];
     }
     try {
       // @todo Try to load the base pattern from form state.
       $base_pattern = $this->patternRepository->getPattern($pattern_id, TRUE);
       if ($base_pattern->getHash() !== $pattern->getHash()) {
-        $form['schema_desc'] = [
-          '#markup' => $this->t('Update pattern schema and template from @old_version to @version:', [
+        $update_prompt = $this->t('Update pattern schema and template to the latest version.');
+
+        // Include version numbers in the prompt for context if available.
+        if ($pattern->getVersion() && $base_pattern->getVersion()) {
+          $update_prompt = $this->t('Update pattern schema and template from @old_version to @version.', [
             '@old_version' => $pattern->getVersion(),
             '@version' => $base_pattern->getVersion(),
-          ]),
-        ];
+          ]);
+        }
+
+        $form['schema_desc'] = ['#markup' => $update_prompt];
         $form['schema_update'] = [
           '#ajax' => ['callback' => [$this, 'ajaxUpdatePattern']],
           '#type' => 'submit',

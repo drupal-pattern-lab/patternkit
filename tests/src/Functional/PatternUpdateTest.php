@@ -128,7 +128,7 @@ class PatternUpdateTest extends PatternkitBrowserTestBase {
     // Confirm the form doesn't contain an update notification.
     $this->drupalGet('layout_builder/update/block/overrides/node.1/0/content/' . $uuid);
     $assert->statusCodeEquals(200);
-    $assert->pageTextNotContains('Update pattern schema and template from');
+    $assert->pageTextNotContains('Update pattern schema and template');
 
     // Alter the saved schema to trigger the update process.
     $pattern_id = $component->get('configuration')['pattern'];
@@ -137,15 +137,15 @@ class PatternUpdateTest extends PatternkitBrowserTestBase {
     // Confirm the form shows the update notification.
     $this->drupalGet('layout_builder/update/block/overrides/node.1/0/content/' . $uuid);
     $assert->statusCodeEquals(200);
-    $assert->pageTextContains('Update pattern schema and template from');
+    $assert->pageTextContains('Update pattern schema and template');
     $page->pressButton('Update pattern');
-    $assert->pageTextContains('Successfully updated the pattern schema and template to ' . \Drupal::VERSION);
+    $assert->pageTextContains('Successfully updated the pattern schema and template to the latest version.');
     $page->pressButton('Update');
 
     // The update notification should no longer display for this block.
     $this->drupalGet('layout_builder/update/block/overrides/node.1/0/content/' . $uuid);
     $assert->statusCodeEquals(200);
-    $assert->pageTextNotContains('Update pattern schema and template from');
+    $assert->pageTextNotContains('Update pattern schema and template');
   }
 
   /**
@@ -252,7 +252,7 @@ class PatternUpdateTest extends PatternkitBrowserTestBase {
     // Update the pattern revision to load from disk on the first node.
     $this->drupalGet('layout_builder/update/block/overrides/node.1/0/content/' . $component_1_uuid);
     $assert->statusCodeEquals(200);
-    $assert->pageTextContains('Update pattern schema and template from');
+    $assert->pageTextContains('Update pattern schema and template');
     $page->pressButton('Update pattern');
     $assert->pageTextContains('Successfully updated the pattern schema and template');
     $page->pressButton('Update');
@@ -273,7 +273,7 @@ class PatternUpdateTest extends PatternkitBrowserTestBase {
     // Update the pattern revision to load from disk on the second node.
     $this->drupalGet('layout_builder/update/block/overrides/node.2/0/content/' . $component_2_uuid);
     $assert->statusCodeEquals(200);
-    $assert->pageTextContains('Update pattern schema and template from');
+    $assert->pageTextContains('Update pattern schema and template');
     $page->pressButton('Update pattern');
     $assert->pageTextContains('Successfully updated the pattern schema and template');
     $page->pressButton('Update');

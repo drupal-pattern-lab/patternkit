@@ -1,5 +1,4 @@
 patternkit_twig:
-  version: VERSION
   css:
     theme:
       lib/patternkit/dist/patternkit.css: { }
@@ -9,7 +8,6 @@ patternkit_twig:
     lib/patternkit/src: {plugin: twig}
 
 patternkit_json:
-  version: VERSION
   css:
     theme:
       lib/patternkit/dist/patternkit.css: {}

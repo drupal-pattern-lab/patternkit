@@ -1,5 +1,4 @@
 patternkit:
-  version: VERSION
   css:
     theme:
       lib/patternkit/dist/patternkit.css: {}
