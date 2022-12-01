@@ -81,7 +81,7 @@ function patternkit_media_library_update_9001() {
       }
     }
 
-    $config_current->set($config_key, $config);
+    $config_current->set('media_mapping', $config);
     $config_current->save(TRUE);
 
     return t('Patternkit Media Library settings have been updated. Please review media type selections on the configuration form.');
