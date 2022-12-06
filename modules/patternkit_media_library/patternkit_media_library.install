@@ -28,13 +28,25 @@ function patternkit_media_library_requirements($phase) {
   if (empty($mapping) || empty($mapping['image_types']) || empty($mapping['video_types'])) {
     $link = Link::createFromRoute(t('here'), 'patternkit.settings.media_library');
 
-    $requirements['patternkit_media_library_media_type_mapping'] = [
-      'title' => t('Patternkit Media Library Media Type Mapping'),
-      'description' => t('Patternkit Media Library settings are missing media type selections for selectable image and video types. This may be configured @link.', [
-        '@link' => $link->toString(),
-      ]),
-      'severity' => REQUIREMENT_WARNING,
-    ];
+    if (empty($mapping['image_types'])) {
+      $requirements['patternkit_media_library_image_media_type_mapping'] = [
+        'title' => t('Missing Patternkit Media Library Image Media Type Mapping'),
+        'description' => t('Patternkit Media Library settings are missing configuration for selectable image media types. This may be configured @link. Until this is configured, image media will not be selectable in Patternkit blocks.', [
+          '@link' => $link->toString(),
+        ]),
+        'severity' => REQUIREMENT_INFO,
+      ];
+    }
+
+    if (empty($mapping['video_types'])) {
+      $requirements['patternkit_media_library_video_media_type_mapping'] = [
+        'title' => t('Missing Patternkit Media Library Video Media Type Mapping'),
+        'description' => t('Patternkit Media Library settings are missing configuration for selectable video media types. This may be configured @link. Until this is configured, video media will not be selectable in Patternkit blocks.', [
+          '@link' => $link->toString(),
+        ]),
+        'severity' => REQUIREMENT_INFO,
+      ];
+    }
   }
 
   return $requirements;

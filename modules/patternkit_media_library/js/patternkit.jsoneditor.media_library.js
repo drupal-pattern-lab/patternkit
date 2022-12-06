@@ -211,6 +211,8 @@ var DrupalMediaEditor = /*#__PURE__*/function (_JSONEditor$AbstractE) {
     key: "build",
     value: function build() {
       this.title = this.header = this.label = this.theme.getFormInputLabel(this.getTitle(), this.isRequired());
+      this.input = this.theme.getFormInputField('text');
+      this.button = this.getButton(this.path + '-media', 'upload', this.options.button_text);
       this.addUploader();
       this.addPreview();
     }
@@ -349,9 +351,7 @@ var DrupalMediaEditor = /*#__PURE__*/function (_JSONEditor$AbstractE) {
       var _this2 = this;
 
       // Don't show uploader if this is readonly
-      if (!this.schema.readOnly && !this.schema.readonly) {
-        this.input = this.theme.getFormInputField('text');
-        this.button = this.getButton(this.path + '-media', 'upload', this.options.button_text);
+      if (this.shouldShowUploader()) {
         this.input.addEventListener('change', function (e) {
           e.preventDefault();
           e.stopPropagation();
@@ -365,6 +365,31 @@ var DrupalMediaEditor = /*#__PURE__*/function (_JSONEditor$AbstractE) {
           _this2.openModal();
         });
       }
+    }
+    /**
+     * Test whether a media uploader button should be displayed.
+     *
+     * @returns {boolean}
+     *   True if the uploader should be displayed. False otherwise.
+     */
+
+  }, {
+    key: "shouldShowUploader",
+    value: function shouldShowUploader() {
+      var showUploader = true; // Don't show uploader if this is readonly
+
+      if (this.schema.readOnly || this.schema.readonly) {
+        showUploader = false;
+      } // Don't show the uploader if no media types have been selected.
+
+
+      var media_types = this.options.media_types;
+
+      if (!media_types || media_types.length === 0) {
+        showUploader = false;
+      }
+
+      return showUploader;
     }
     /**
      * Add the preview container for selected media.
@@ -384,7 +409,7 @@ var DrupalMediaEditor = /*#__PURE__*/function (_JSONEditor$AbstractE) {
       this.control = this.theme.getFormControl(this.label, this.input, this.preview);
       this.container.appendChild(this.control);
 
-      if (this.button) {
+      if (this.button && this.shouldShowUploader()) {
         this.container.appendChild(this.button);
       }
 
@@ -528,21 +553,24 @@ var DrupalImageUrlEditor = /*#__PURE__*/function (_DrupalMediaEditor3) {
 
   Drupal.behaviors.patternkitEditorMediaLibrary = {
     attach: function attach(context, settings) {
+      // Abort if a URL is not available for the media library opener.
       if (!window.JSONEditor || !settings.patternkitEditor.imageUrl || !settings.patternkitEditor.videoUrl) {
         return;
-      }
+      } // Abort if configuration is missing for allowed media types.
 
+
+      var mediaMapping = settings.patternkitEditor.mediaMapping;
       var image_options = {
         title: Drupal.t('Select image'),
         button_text: Drupal.t('Select/Upload image'),
         library_url: settings.patternkitEditor.imageUrl,
-        media_types: settings.patternkitEditor.mediaMapping.image_types
+        media_types: mediaMapping.image_types
       };
       var video_options = {
         title: Drupal.t('Select video'),
         button_text: Drupal.t('Select/Upload video'),
         library_url: settings.patternkitEditor.videoUrl,
-        media_types: settings.patternkitEditor.mediaMapping.video_types
+        media_types: mediaMapping.video_types
       };
       JSONEditor.defaults.options.drupal_image_media = image_options;
       JSONEditor.defaults.options.drupal_image_url = image_options;

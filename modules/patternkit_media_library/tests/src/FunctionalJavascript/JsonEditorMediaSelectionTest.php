@@ -80,16 +80,7 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
     $this->video->save();
 
     // Configure media library mapping settings for Patternkit.
-    $config = $this->config(MediaLibrarySettingsForm::SETTINGS);
-    $config->set('media_mapping', [
-      'image_types' => [
-        'image',
-      ],
-      'video_types' => [
-        'dummy_file',
-      ],
-    ]);
-    $config->save();
+    $this->setMediaMappingConfiguration(['image'], ['dummy_file']);
 
     $this->editorUser = $this->drupalCreateUser($this->editorPermissions);
     $this->drupalLogin($this->editorUser);
@@ -402,6 +393,106 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
     // Confirm the pattern is rendered on the Node display.
     $this->drupalGet('node/1');
     $assert->elementExists('css', '.patternkit-media-image-embed--component img');
+  }
+
+  /**
+   * Test media selection for images without selected image media types.
+   */
+  public function testImageMediaSelectionWithoutConfiguration(): void {
+    $assert = $this->assertSession();
+    $page = $this->getSession()->getPage();
+
+    // Configure without any selected image bundles.
+    $this->setMediaMappingConfiguration([]);
+
+    $pattern_name = '[Patternkit] Media image embed';
+    $field_name = 'root[image]';
+
+    // Override the Node layout and place a patternkit block.
+    $this->drupalGet('node/1/layout');
+    $page->clickLink('Add block');
+
+    // Wait for the block list to load before selecting a pattern to insert.
+    $assert->waitForLink($pattern_name)->click();
+
+    // Wait for the JSON Editor form to load.
+    $assert->waitForField($field_name);
+
+    // Wait and confirm the upload button was not added.
+    $assert->assertNoElementAfterWait('css', 'div[data-schemapath="root.image"] button');
+  }
+
+  /**
+   * Test media selection for image urls without selected image media types.
+   */
+  public function testImageUrlSelectionWithoutConfiguration(): void {
+    $assert = $this->assertSession();
+    $page = $this->getSession()->getPage();
+
+    // Configure without any selected image bundles.
+    $this->setMediaMappingConfiguration([]);
+
+    $pattern_name = '[Patternkit] Example';
+    $field_name = 'root[image_url]';
+
+    // Override the Node layout and place a patternkit block.
+    $this->drupalGet('node/1/layout');
+    $page->clickLink('Add block');
+
+    // Wait for the block list to load before selecting a pattern to insert.
+    $assert->waitForLink($pattern_name)->click();
+
+    // Wait for the JSON Editor form to load.
+    $assert->waitForField($field_name);
+
+    // Wait and confirm the upload button was not added.
+    $assert->assertNoElementAfterWait('css', 'div[data-schemapath="root.image_url"] button');
+  }
+
+  /**
+   * Test media selection for video media without selected video media types.
+   */
+  public function testVideoMediaSelectionWithoutConfiguration(): void {
+    $assert = $this->assertSession();
+    $page = $this->getSession()->getPage();
+
+    // Configure without any selected video bundles.
+    $this->setMediaMappingConfiguration([], []);
+
+    $pattern_name = '[Patternkit] Media video embed';
+    $field_name = 'root[video]';
+
+    // Override the Node layout and place a patternkit block.
+    $this->drupalGet('node/1/layout');
+    $page->clickLink('Add block');
+
+    // Wait for the block list to load before selecting a pattern to insert.
+    $assert->waitForLink($pattern_name)->click();
+
+    // Wait for the JSON Editor form to load.
+    $assert->waitForField($field_name);
+
+    // Wait and confirm the upload button was not added.
+    $assert->assertNoElementAfterWait('css', 'div[data-schemapath="root.video"] button');
+  }
+
+  /**
+   * Set configuration for selectable media types in Patternkit patterns.
+   *
+   * @param string[] $image_types
+   *   (Optional) An array of media bundle keys to save as selectable media
+   *   types for image fields.
+   * @param string[] $video_types
+   *   (Optional) An array of media bundle keys to save as selectable media
+   *   types for video fields.
+   */
+  protected function setMediaMappingConfiguration(array $image_types = [], array $video_types = []): void {
+    $config = $this->config(MediaLibrarySettingsForm::SETTINGS);
+    $config->set('media_mapping', [
+      'image_types' => $image_types,
+      'video_types' => $video_types,
+    ]);
+    $config->save();
   }
 
 }
