@@ -83,37 +83,7 @@ class TokenProcessor extends PatternFieldProcessorBase {
    * {@inheritdoc}
    */
   public function apply(SchemaContract $propertySchema, $value, $context, BubbleableMetadata $bubbleableMetadata): string {
-    $token_groups = $this->token->scan($value);
-    $template = $value;
-    $template_context = [];
-    foreach ($token_groups as $group => $tokens) {
-      $tokenized = $this->token->generate(
-        $group,
-        $tokens,
-        $context,
-        [],
-        $bubbleableMetadata
-      );
-      foreach ($tokens as $token) {
-        // Abort token replacement if we don't have a replacement value.
-        if (!isset($tokenized[$token])) {
-          continue;
-        }
-
-        $placeholder = preg_replace("/[^a-z]/", '', $token);
-        $template_context[$placeholder] = $tokenized[$token];
-        // If the user is not using Twig templating,
-        // wrap with a Twig write so we can process it.
-        $token_pos = strpos($template, (string) $token);
-        $template_use_twig = strpos($template, '{{') < $token_pos
-          && strpos($template, '}}', $token_pos + strlen($token)) !== FALSE;
-        if (!$template_use_twig) {
-          $placeholder = '{{' . $placeholder . '}}';
-        }
-        $template = str_replace($token, $placeholder, $template);
-      }
-    }
-    return (string) $this->twig->renderInline($template, $template_context);
+    return $this->token->replace($value, $context, [], $bubbleableMetadata);
   }
 
 }

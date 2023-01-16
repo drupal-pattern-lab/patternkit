@@ -25,12 +25,13 @@ abstract class PatternkitBrowserTestBase extends BrowserTestBase {
     'patternkit',
     'layout_builder',
     'node',
+    'field_ui',
   ];
 
   /**
    * {@inheritdoc}
    */
-  protected $defaultTheme = 'stable';
+  protected $defaultTheme = 'stark';
 
   /**
    * Storage handler for patternkit_block content.

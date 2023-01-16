@@ -160,49 +160,33 @@ JSON;
    */
   public function testApply() {
     $schema_json = <<<JSON
-{
-  "\$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "Example with a basic text property",
-  "type": "object",
-  "properties": {
-    "text": {
-      "title": "Text",
-      "type": "string",
-      "options": {
-        "grid_columns": 4
+      {
+        "\$schema": "http://json-schema.org/draft-04/schema#",
+        "title": "Example with a basic text property",
+        "type": "object",
+        "properties": {
+          "text": {
+            "title": "Text",
+            "type": "string",
+            "options": {
+              "grid_columns": 4
+            }
+          }
+        }
       }
-    }
-  }
-}
-JSON;
+      JSON;
     $schema = Schema::import(json_decode($schema_json));
 
     $value = 'My [node:title] string';
     $randomTitle = $this->getRandomGenerator()->name();
+    $expected = str_replace('[node:title]', $randomTitle, $value);
     $node = $this->createMock(NodeInterface::class);
     $node->title = $randomTitle;
 
-    // Mock the token discovery.
+    // Mock the token replacement.
     $this->token->expects($this->once())
-      ->method('scan')
-      ->willReturn([
-        'node' => [
-          'title' => '[node:title]',
-        ],
-      ]);
-    $this->token->expects($this->once())
-      ->method('generate')
-      ->willReturn([
-        '[node:title]' => $randomTitle,
-      ]);
-
-    // Mock twig rendering.
-    // @todo Remove this once token replacement is rewritten.
-    $this->markAsRisky();
-    $this->twig->expects($this->once())
-      ->method('renderInline')
-      ->with("My {{nodetitle}} string", ['nodetitle' => $randomTitle])
-      ->willReturn("My $randomTitle string");
+      ->method('replace')
+      ->willReturn($expected);
 
     $result = $this->plugin->apply($schema, $value, ['node' => $node], new BubbleableMetadata());
     $this->assertIsString($result);
