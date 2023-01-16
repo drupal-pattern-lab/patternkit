@@ -23,29 +23,34 @@ function patternkit_media_library_requirements($phase) {
     ];
   }
 
-  $settings = \Drupal::configFactory()->get('patternkit_media_library.settings');
-  $mapping = $settings->get('media_mapping');
-  if (empty($mapping) || empty($mapping['image_types']) || empty($mapping['video_types'])) {
-    $link = Link::createFromRoute(t('here'), 'patternkit.settings.media_library');
+  // This test fails during installation since the route doesn't exist yet to
+  // link to.
+  if ($phase != 'install') {
+    $settings = \Drupal::configFactory()
+      ->get('patternkit_media_library.settings');
+    $mapping = $settings->get('media_mapping');
+    if (empty($mapping) || empty($mapping['image_types']) || empty($mapping['video_types'])) {
+      $link = Link::createFromRoute(t('here'), 'patternkit.settings.media_library');
 
-    if (empty($mapping['image_types'])) {
-      $requirements['patternkit_media_library_image_media_type_mapping'] = [
-        'title' => t('Missing Patternkit Media Library Image Media Type Mapping'),
-        'description' => t('Patternkit Media Library settings are missing configuration for selectable image media types. This may be configured @link. Until this is configured, image media will not be selectable in Patternkit blocks.', [
-          '@link' => $link->toString(),
-        ]),
-        'severity' => REQUIREMENT_INFO,
-      ];
-    }
+      if (empty($mapping['image_types'])) {
+        $requirements['patternkit_media_library_image_media_type_mapping'] = [
+          'title' => t('Missing Patternkit Media Library Image Media Type Mapping'),
+          'description' => t('Patternkit Media Library settings are missing configuration for selectable image media types. This may be configured @link. Until this is configured, image media will not be selectable in Patternkit blocks.', [
+            '@link' => $link->toString(),
+          ]),
+          'severity' => REQUIREMENT_INFO,
+        ];
+      }
 
-    if (empty($mapping['video_types'])) {
-      $requirements['patternkit_media_library_video_media_type_mapping'] = [
-        'title' => t('Missing Patternkit Media Library Video Media Type Mapping'),
-        'description' => t('Patternkit Media Library settings are missing configuration for selectable video media types. This may be configured @link. Until this is configured, video media will not be selectable in Patternkit blocks.', [
-          '@link' => $link->toString(),
-        ]),
-        'severity' => REQUIREMENT_INFO,
-      ];
+      if (empty($mapping['video_types'])) {
+        $requirements['patternkit_media_library_video_media_type_mapping'] = [
+          'title' => t('Missing Patternkit Media Library Video Media Type Mapping'),
+          'description' => t('Patternkit Media Library settings are missing configuration for selectable video media types. This may be configured @link. Until this is configured, video media will not be selectable in Patternkit blocks.', [
+            '@link' => $link->toString(),
+          ]),
+          'severity' => REQUIREMENT_INFO,
+        ];
+      }
     }
   }
 
