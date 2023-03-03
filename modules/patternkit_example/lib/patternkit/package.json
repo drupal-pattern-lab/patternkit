@@ -23,6 +23,6 @@
     "gulp-cli": "^2.0.1",
     "node-sass": "^4.13.1",
     "parcel-bundler": "^1.5.1",
-    "sass-lint": "^1.12.1"
+    "sass-lint": "^1.13.0"
   }
 }
