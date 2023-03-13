@@ -193,7 +193,7 @@ class Pattern extends ContentEntityBase implements PatternInterface {
    */
   public function getHash(): string {
     $item = $this->get('hash')->first();
-    return isset($item) ? $item->getValue()['value'] : $this->computeHash();
+    return $item ? $item->getValue()['value'] : $this->computeHash();
   }
 
   /**
@@ -228,11 +228,11 @@ class Pattern extends ContentEntityBase implements PatternInterface {
    * {@inheritdoc}
    */
   public function getSchema(): string {
-    $schema = $this->get('schema');
-    if (!isset($schema)) {
-      $this->fetchAssets();
-    }
     $item = $this->get('schema')->first();
+    if (empty($item)) {
+      $this->fetchAssets();
+      $item = $this->get('schema')->first();
+    }
     return $item ? $item->getValue()['value'] : '';
   }
 
@@ -240,11 +240,11 @@ class Pattern extends ContentEntityBase implements PatternInterface {
    * {@inheritdoc}
    */
   public function getTemplate(): string {
-    $template = $this->get('template');
-    if (!isset($template)) {
-      $this->fetchAssets();
-    }
     $item = $this->get('template')->first();
+    if (empty($item)) {
+      $this->fetchAssets();
+      $item = $this->get('template')->first();
+    }
     return $item ? $item->getValue()['value'] : '';
   }
 
