@@ -14,6 +14,7 @@ use Drupal\Tests\patternkit\Traits\CKEditorIntegrationTestTrait;
  * @group patternkit
  * @group patternkit_media_library
  * @group legacy
+ * @requires module ckeditor
  */
 class CKEditorMediaIntegrationTest extends PatternkitMediaLibraryBrowserTestBase {
 
@@ -27,11 +28,6 @@ class CKEditorMediaIntegrationTest extends PatternkitMediaLibraryBrowserTestBase
     'ckeditor',
     'media_library',
   ];
-
-  /**
-   * {@inheritdoc}
-   */
-  protected $defaultTheme = 'classy';
 
   /**
    * An array of needed editor permissions.

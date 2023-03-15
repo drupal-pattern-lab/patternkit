@@ -98,14 +98,16 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
 
     // Override the Node layout and place a patternkit block.
     $this->drupalGet('node/1/layout');
-    $page->clickLink('Add block');
-
-    // Wait for the block list to load before selecting a pattern to insert.
-    $assert->waitForLink($pattern_name)->click();
+    $this->addPatternBlock($pattern_name);
 
     // Wait for the JSON Editor form to load.
-    $assert->waitForField($field_name);
-    $assert->waitForButton('Select/Upload image')->press();
+    $this->waitForJsonEditorForm();
+
+    // Press the media selection button.
+    $button = $assert->waitForButton('Select/Upload image');
+    // Scroll the button into view since it may be below the fold.
+    $this->scrollOffCanvasElementIntoView('button[title="Select/Upload image"]');
+    $button->press();
 
     // Wait for the library modal.
     $this->assertElementExistsAfterWait('css', '.js-media-library-view');
@@ -138,7 +140,7 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
 
     // Confirm all configuration content is persisted when editing the block.
     $this->drupalGet('layout_builder/update/block/overrides/node.1/0/content/' . $block_uuid);
-    $assert->waitForField($field_name);
+    $this->waitForJsonEditorForm();
     $assert->fieldValueEquals($field_name, "<drupal-media data-entity-type=\"media\" data-entity-uuid=\"$media_uuid\">");
   }
 
@@ -154,14 +156,16 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
 
     // Override the Node layout and place a patternkit block.
     $this->drupalGet('node/1/layout');
-    $page->clickLink('Add block');
-
-    // Wait for the block list to load before selecting a pattern to insert.
-    $assert->waitForLink($pattern_name)->click();
+    $this->addPatternBlock($pattern_name);
 
     // Wait for the JSON Editor form to load.
-    $assert->waitForField($field_name);
-    $assert->waitForButton('Select/Upload video')->press();
+    $this->waitForJsonEditorForm();
+
+    // Press the media selection button.
+    $button = $assert->waitForButton('Select/Upload video');
+    // Scroll the button into view since it may be below the fold.
+    $this->scrollOffCanvasElementIntoView('button[title="Select/Upload video"]');
+    $button->press();
 
     // Wait for the library modal.
     $this->assertElementExistsAfterWait('css', '.js-media-library-view');
@@ -194,7 +198,7 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
 
     // Confirm all configuration content is persisted when editing the block.
     $this->drupalGet('layout_builder/update/block/overrides/node.1/0/content/' . $block_uuid);
-    $assert->waitForField($field_name);
+    $this->waitForJsonEditorForm();
     $assert->fieldValueEquals($field_name, "<drupal-media data-entity-type=\"media\" data-entity-uuid=\"$media_uuid\">");
   }
 
@@ -210,14 +214,16 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
 
     // Override the Node layout and place a patternkit block.
     $this->drupalGet('node/1/layout');
-    $page->clickLink('Add block');
-
-    // Wait for the block list to load before selecting a pattern to insert.
-    $assert->waitForLink($pattern_name)->click();
+    $this->addPatternBlock($pattern_name);
 
     // Wait for the JSON Editor form to load.
-    $assert->waitForField($field_name);
-    $assert->waitForButton('Select/Upload image')->press();
+    $this->waitForJsonEditorForm();
+
+    // Press the media selection button.
+    $button = $assert->waitForButton('Select/Upload image');
+    // Scroll the button into view since it may be below the fold.
+    $this->scrollOffCanvasElementIntoView('button[title="Select/Upload image"]');
+    $button->press();
 
     // Wait for the library modal.
     $this->assertElementExistsAfterWait('css', '.js-media-library-view');
@@ -250,7 +256,7 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
 
     // Confirm all configuration content is persisted when editing the block.
     $this->drupalGet('layout_builder/update/block/overrides/node.1/0/content/' . $block_uuid);
-    $assert->waitForField($field_name);
+    $this->waitForJsonEditorForm();
     $assert->fieldValueEquals($field_name, $file_uri);
   }
 
@@ -265,14 +271,16 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
 
     // Override the Node layout and place a patternkit block.
     $this->drupalGet('node/1/layout');
-    $page->clickLink('Add block');
-
-    // Wait for the block list to load before selecting a pattern to insert.
-    $assert->waitForLink($pattern_name)->click();
+    $this->addPatternBlock($pattern_name);
 
     // Wait for the JSON Editor form to load.
-    $assert->waitForField('root[image][image]');
-    $assert->waitForButton('Select/Upload image')->press();
+    $this->waitForJsonEditorForm();
+
+    // Press the media selection button.
+    $button = $assert->waitForButton('Select/Upload image');
+    // Scroll the button into view since it may be below the fold.
+    $this->scrollOffCanvasElementIntoView('button[title="Select/Upload image"]');
+    $button->press();
 
     // Wait for the library modal.
     $this->assertElementExistsAfterWait('css', '.js-media-library-view');
@@ -291,7 +299,10 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
     // Confirm the preview image is displaying as expected.
     $this->assertElementExistsAfterWait('css', '#je--root_image_image--preview .js-media-library-item-preview img');
 
-    $assert->waitForButton('Select/Upload video')->press();
+    $button = $assert->waitForButton('Select/Upload video');
+    // Scroll the button into view since it may be below the fold.
+    $this->scrollOffCanvasElementIntoView('button[title="Select/Upload video"]');
+    $button->press();
 
     // Wait for the library modal.
     $this->assertElementExistsAfterWait('css', '.js-media-library-view');
@@ -324,7 +335,7 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
 
     // Confirm all configuration content is persisted when editing the block.
     $this->drupalGet('layout_builder/update/block/overrides/node.1/0/content/' . $block_uuid);
-    $assert->waitForField('root[image][image]');
+    $this->waitForJsonEditorForm();
     $assert->fieldValueEquals('root[image][image]', $image_media_token);
     $assert->fieldValueEquals('root[video][video]', $video_media_token);
   }
@@ -341,13 +352,10 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
 
     // Override the Node layout and place a patternkit block.
     $this->drupalGet('node/1/layout');
-    $page->clickLink('Add block');
-
-    // Wait for the block list to load before selecting a pattern to insert.
-    $assert->waitForLink($pattern_name)->click();
+    $this->addPatternBlock($pattern_name);
 
     // Wait for the JSON Editor form to load.
-    $assert->waitForField($field_name);
+    $this->waitForJsonEditorForm();
 
     // Fill the image field with a direct file URL.
     $image_url = $this->image->field_media_image->entity->createFileUrl();
@@ -362,7 +370,7 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
 
     // Confirm all configuration content is persisted when editing the block.
     $this->drupalGet('layout_builder/update/block/overrides/node.1/0/content/' . $block_uuid);
-    $assert->waitForField($field_name);
+    $this->waitForJsonEditorForm();
     $assert->fieldValueEquals($field_name, $image_url);
     $this->assertElementExistsAfterWait('css', '#je--root_image--preview img');
 
@@ -406,17 +414,13 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
     $this->setMediaMappingConfiguration([]);
 
     $pattern_name = '[Patternkit] Media image embed';
-    $field_name = 'root[image]';
 
     // Override the Node layout and place a patternkit block.
     $this->drupalGet('node/1/layout');
-    $page->clickLink('Add block');
-
-    // Wait for the block list to load before selecting a pattern to insert.
-    $assert->waitForLink($pattern_name)->click();
+    $this->addPatternBlock($pattern_name);
 
     // Wait for the JSON Editor form to load.
-    $assert->waitForField($field_name);
+    $this->waitForJsonEditorForm();
 
     // Wait and confirm the upload button was not added.
     $assert->assertNoElementAfterWait('css', 'div[data-schemapath="root.image"] button');
@@ -433,17 +437,13 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
     $this->setMediaMappingConfiguration([]);
 
     $pattern_name = '[Patternkit] Example';
-    $field_name = 'root[image_url]';
 
     // Override the Node layout and place a patternkit block.
     $this->drupalGet('node/1/layout');
-    $page->clickLink('Add block');
-
-    // Wait for the block list to load before selecting a pattern to insert.
-    $assert->waitForLink($pattern_name)->click();
+    $this->addPatternBlock($pattern_name);
 
     // Wait for the JSON Editor form to load.
-    $assert->waitForField($field_name);
+    $this->waitForJsonEditorForm();
 
     // Wait and confirm the upload button was not added.
     $assert->assertNoElementAfterWait('css', 'div[data-schemapath="root.image_url"] button');
@@ -460,17 +460,13 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
     $this->setMediaMappingConfiguration([], []);
 
     $pattern_name = '[Patternkit] Media video embed';
-    $field_name = 'root[video]';
 
     // Override the Node layout and place a patternkit block.
     $this->drupalGet('node/1/layout');
-    $page->clickLink('Add block');
-
-    // Wait for the block list to load before selecting a pattern to insert.
-    $assert->waitForLink($pattern_name)->click();
+    $this->addPatternBlock($pattern_name);
 
     // Wait for the JSON Editor form to load.
-    $assert->waitForField($field_name);
+    $this->waitForJsonEditorForm();
 
     // Wait and confirm the upload button was not added.
     $assert->assertNoElementAfterWait('css', 'div[data-schemapath="root.video"] button');

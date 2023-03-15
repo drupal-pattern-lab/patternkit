@@ -7,4 +7,6 @@ configure: patternkit.settings
 dependencies:
   - drupal:block_content
   - drupal:ckeditor
+test_dependencies:
+  - ckeditor:ckeditor
 php: 7.4

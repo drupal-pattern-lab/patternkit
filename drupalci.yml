@@ -4,7 +4,8 @@ build:
       phplint:
       csslint:
       eslint:
-      phpcs:
+      # @todo Re-enable PHPCS scanning once #3347967 is resolved.
+      # phpcs:
     testing:
       run_tests.standard:
         types: 'Simpletest,PHPUnit-Unit,PHPUnit-Kernel,PHPUnit-Functional'

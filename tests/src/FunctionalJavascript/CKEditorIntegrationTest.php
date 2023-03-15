@@ -12,6 +12,7 @@ use Drupal\Tests\patternkit\Traits\CKEditorIntegrationTestTrait;
  *
  * @group patternkit
  * @group legacy
+ * @requires module ckeditor
  */
 class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
 
@@ -63,13 +64,10 @@ class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
 
     // Override the Node layout and place a patternkit block.
     $this->drupalGet('node/1/layout');
-    $page->clickLink('Add block');
-
-    // Wait for the block list to load before selecting a pattern to insert.
-    $assert->waitForLink($pattern_name)->click();
+    $this->addPatternBlock($pattern_name);
 
     // Wait for the JSON Editor form to load.
-    $assert->waitForField('root[text]');
+    $this->waitForJsonEditorForm();
 
     // Wait for CKEditor to load.
     $this->waitForEditor('editor1');
@@ -98,7 +96,7 @@ class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
 
     // Confirm all configuration content is persisted when editing the block.
     $this->drupalGet('layout_builder/update/block/overrides/node.1/0/content/' . $uuid);
-    $assert->waitForField('root[text]');
+    $this->waitForJsonEditorForm();
     $this->waitForEditor('editor1');
 
     $assert->fieldValueEquals('root[text]', 'Pattern block title');
@@ -123,13 +121,10 @@ class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
 
     // Override the Node layout and place a patternkit block.
     $this->drupalGet('node/1/layout');
-    $page->clickLink('Add block');
-
-    // Wait for the block list to load before selecting a pattern to insert.
-    $assert->waitForLink($pattern_name)->click();
+    $this->addPatternBlock($pattern_name);
 
     // Wait for the JSON Editor form to load.
-    $assert->waitForField('root[text]');
+    $this->waitForJsonEditorForm();
 
     // Wait for CKEditor to load.
     $this->waitForEditor('editor1');
@@ -169,7 +164,7 @@ class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
 
     // Confirm all configuration content is persisted when editing the block.
     $this->drupalGet('layout_builder/update/block/overrides/node.1/0/content/' . $uuid);
-    $assert->waitForField('root[text]');
+    $this->waitForJsonEditorForm();
     $this->waitForEditor('editor1');
 
     $assert->fieldValueEquals('root[text]', 'Pattern block title');

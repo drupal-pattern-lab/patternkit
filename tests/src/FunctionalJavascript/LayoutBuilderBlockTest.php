@@ -32,13 +32,10 @@ class LayoutBuilderBlockTest extends PatternkitBrowserTestBase {
 
     // Override the Node layout and place a patternkit block.
     $this->drupalGet('node/1/layout');
-    $page->clickLink('Add block');
-
-    // Wait for the block list to load before selecting a pattern to insert.
-    $assert->waitForLink($pattern_name)->click();
+    $this->addPatternBlock($pattern_name);
 
     // Wait for the JSON Editor form to load.
-    $assert->waitForField('root[text]');
+    $this->waitForJsonEditorForm();
 
     // Fill in JSON Editor fields.
     $page->fillField('root[text]', 'Pattern block title');
@@ -68,13 +65,10 @@ class LayoutBuilderBlockTest extends PatternkitBrowserTestBase {
 
     // Override the Node layout and place a patternkit block.
     $this->drupalGet('node/1/layout');
-    $page->clickLink('Add block');
-
-    // Wait for the block list to load before selecting a pattern to insert.
-    $assert->waitForLink($pattern_name)->click();
+    $this->addPatternBlock($pattern_name);
 
     // Wait for the JSON Editor form to load.
-    $assert->waitForField('root[text]');
+    $this->waitForJsonEditorForm();
 
     // Fill in JSON Editor fields.
     $page->fillField('root[text]', 'Pattern block title');
@@ -94,7 +88,7 @@ class LayoutBuilderBlockTest extends PatternkitBrowserTestBase {
 
     // Confirm all configuration content is persisted when editing the block.
     $this->drupalGet('layout_builder/update/block/overrides/node.1/0/content/' . $uuid);
-    $assert->waitForField('root[text]');
+    $this->waitForJsonEditorForm();
 
     $assert->fieldValueEquals('root[text]', 'Pattern block title');
     $assert->fieldValueEquals('root[hidden]', 'My hidden text');

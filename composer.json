@@ -21,11 +21,14 @@
         "symfony/finder": "^3.4 || ^4 || ^6",
         "symfony/polyfill-php80": "^1",
         "symfony/polyfill-php81": "^1",
+        "symfony/serializer": "^3.4 || ^4 || ^6",
+        "symfony/property-access": "^3.4 || ^4 || ^6",
         "symfony/yaml": "^3.4 || ^4 || ^6",
         "webmozart/assert": "^1.0",
         "webmozart/path-util": "^2.1.0"
     },
     "require-dev": {
+        "drupal/ckeditor": "^1.0",
         "drupal/core-recommended": "^9 || ^10",
         "drupal/core-dev": "^9 || ^10",
         "drupal/devel": "^4.2 || ^5.0"

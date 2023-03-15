@@ -5,10 +5,12 @@ namespace Drupal\patternkit_media_library\Controller;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Entity\EntityRepositoryInterface;
 use Drupal\Core\Entity\EntityViewBuilderInterface;
+use Drupal\Core\Http\InputBag;
 use Drupal\media_library\MediaLibraryState;
 use Drupal\media_library\MediaLibraryUiBuilder;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\InputBag as SymfonyInputBag;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Controller for supporting media content selection in Patternkit.
@@ -77,12 +79,18 @@ class PatternkitMediaLibraryController extends ControllerBase {
    */
   public function mediaLibrary(Request $request): array {
     $query = $request->query;
+
+    // @todo Remove this when Symfony 4 is no longer supported.
+    if (!($query instanceof SymfonyInputBag)) {
+      $query = new InputBag($query->all());
+    }
+
     $ml_state = MediaLibraryState::create(
       $query->get('media_library_opener_id'),
-      $query->get('media_library_allowed_types', []),
+      $query->all('media_library_allowed_types'),
       $query->get('media_library_selected_type'),
       $query->get('media_library_remaining'),
-      $query->get('media_library_opener_parameters', [])
+      $query->all('media_library_opener_parameters')
     );
 
     return $this->mediaLibraryUiBuilder->buildUi($ml_state);

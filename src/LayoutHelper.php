@@ -366,6 +366,7 @@ class LayoutHelper {
         // displays are iterated through.
         if ($entity_type && $bundle) {
           $ids = $entity_storage->getQuery()
+            ->accessCheck(FALSE)
             ->condition($entity_definition->getKey('bundle'), $bundle)
             ->execute();
         }

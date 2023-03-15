@@ -193,7 +193,11 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
 
     // @todo Load from pattern repository and handle missing patterns.
     $patternkit_blocks = [];
-    $pk_block_ids = $this->blockStorage->getQuery()->condition('reusable', TRUE)->execute();
+    $pk_block_ids = $this->blockStorage
+      ->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('reusable', TRUE)
+      ->execute();
     if ($pk_block_ids) {
       $patternkit_blocks = $this->blockStorage->loadMultiple($pk_block_ids);
     }
