@@ -439,4 +439,17 @@ class Pattern extends ContentEntityBase implements PatternInterface {
     return parent::getCacheTags();
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function getCacheTagsToInvalidate() {
+    if ($this->isNew() || !$this->isDefaultRevision()) {
+      return [];
+    }
+    return [
+      $this->entityTypeId . ':' . $this->id(),
+      'pattern:' . $this->getAssetId(),
+    ];
+  }
+
 }

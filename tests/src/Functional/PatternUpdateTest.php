@@ -108,7 +108,7 @@ class PatternUpdateTest extends PatternkitBrowserTestBase {
     $page->clickLink($pattern_name);
 
     // Confirm the block doesn't initially prompt for updating.
-    $assert->pageTextNotContains('Update pattern schema and template from');
+    $assert->pageTextNotContains('Update pattern schema and template');
 
     // Fill in the hidden fields manually since fillField() won't find hidden
     // fields.
@@ -126,7 +126,8 @@ class PatternUpdateTest extends PatternkitBrowserTestBase {
     $uuid = key($components);
 
     // Confirm the form doesn't contain an update notification.
-    $this->drupalGet('layout_builder/update/block/overrides/node.1/0/content/' . $uuid);
+    $block_form_url = 'layout_builder/update/block/overrides/node.1/0/content/' . $uuid;
+    $this->drupalGet($block_form_url);
     $assert->statusCodeEquals(200);
     $assert->pageTextNotContains('Update pattern schema and template');
 
@@ -135,15 +136,15 @@ class PatternUpdateTest extends PatternkitBrowserTestBase {
     $this->setCachedPatternSchema($pattern_id, '{}');
 
     // Confirm the form shows the update notification.
-    $this->drupalGet('layout_builder/update/block/overrides/node.1/0/content/' . $uuid);
+    $this->drupalGet($block_form_url);
     $assert->statusCodeEquals(200);
     $assert->pageTextContains('Update pattern schema and template');
     $page->pressButton('Update pattern');
-    $assert->pageTextContains('Successfully updated the pattern schema and template to the latest version.');
+    $assert->pageTextContains('Successfully updated the pattern schema and template');
     $page->pressButton('Update');
 
     // The update notification should no longer display for this block.
-    $this->drupalGet('layout_builder/update/block/overrides/node.1/0/content/' . $uuid);
+    $this->drupalGet($block_form_url);
     $assert->statusCodeEquals(200);
     $assert->pageTextNotContains('Update pattern schema and template');
   }

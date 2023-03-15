@@ -80,18 +80,24 @@ trait PatternkitBlockHelperTrait {
    *   The entity to place the block into the layout display of.
    * @param \Drupal\patternkit\Plugin\Block\PatternkitBlock $block
    *   The block instance to place in the layout.
+   *
+   * @return \Drupal\patternkit\Plugin\Block\PatternkitBlock
+   *   The saved block plugin with all updated configuration.
    */
-  protected function placePatternBlockInLayout(EntityInterface $entity, BlockPatternkitBlock $block): void {
+  protected function placePatternBlockInLayout(EntityInterface $entity, BlockPatternkitBlock $block): BlockPatternkitBlock {
     $storage = $this->getSectionStorageForEntity($entity);
     $section = $storage->getSection(0);
 
     $config = $block->getConfiguration();
-    $uuid = $config['instance_uuid'];
-    unset($config['instance_uuid']);
+    $uuid = $block->getBlockEntity()->uuid();
     $component = new SectionComponent($uuid, 'content', $config);
     $section->appendComponent($component);
 
     $storage->save();
+
+    // Return the new plugin instantiation to include all updated configuration
+    // and entity ID references.
+    return $component->getPlugin();
   }
 
   /**

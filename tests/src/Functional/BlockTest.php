@@ -35,12 +35,12 @@ class BlockTest extends PatternkitBrowserTestBase {
       'image_url' => '',
       'hidden' => 'Hidden text',
     ]);
-    $this->placePatternBlockInLayout(Node::load(1), $block);
+    $block = $this->placePatternBlockInLayout(Node::load(1), $block);
 
     $config = $block->getConfiguration();
-    $block_id = $config['patternkit_block_id'];
+    $block_id = $config['patternkit_block_rid'];
     /** @var \Drupal\patternkit\Entity\PatternInterface $pattern */
-    $pattern = $this->patternStorage->loadRevision($config['pattern']);
+    $pattern = $block->getPatternEntity();
     $pattern_id = $pattern->id();
 
     // The page cache only works for anonymous users.
@@ -95,12 +95,13 @@ class BlockTest extends PatternkitBrowserTestBase {
         'hidden' => 'Hidden text',
       ],
     ]);
-    $this->placePatternBlockInLayout(Node::load(1), $new_block);
+    $block = $this->placePatternBlockInLayout(Node::load(1), $new_block);
 
+    // @todo Validate new block id/rid isn't coincidentally the same and passing.
     $config = $block->getConfiguration();
-    $new_block_id = $config['patternkit_block_id'];
+    $new_block_id = $config['patternkit_block_rid'];
     /** @var \Drupal\patternkit\Entity\PatternInterface $pattern */
-    $new_pattern = $this->patternStorage->loadRevision($config['pattern']);
+    $new_pattern = $block->getPatternEntity();
     $new_pattern_id = $new_pattern->id();
 
     $this->drupalGet('node/1');

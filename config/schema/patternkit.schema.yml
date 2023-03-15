@@ -64,4 +64,7 @@ block.settings.patternkit_block:*:
     version:
       type: string
       label: 'Version of the pattern or containing library.'
+    block_serialized:
+      type: string
+      label: 'Serialized block'
   form_element_class: 'Drupal\patternkit\FormElement\PatternkitJson'

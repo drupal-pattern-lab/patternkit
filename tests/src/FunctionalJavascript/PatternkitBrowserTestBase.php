@@ -8,6 +8,7 @@ use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay;
 use Drupal\layout_builder\LayoutEntityHelperTrait;
+use Drupal\Tests\contextual\FunctionalJavascript\ContextualLinkClickTrait;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\patternkit\Traits\SchemaFixtureTrait;
 use Drupal\user\UserInterface;
@@ -21,6 +22,17 @@ abstract class PatternkitBrowserTestBase extends WebDriverTestBase {
   use SchemaFixtureTrait;
   use JsonDecodeTrait;
   use LayoutEntityHelperTrait;
+  use ContextualLinkClickTrait;
+
+  /**
+   * Locator for pattern blocks.
+   */
+  const PATTERN_BLOCK_LOCATOR = '.block-patternkit';
+
+  /**
+   * {@inheritdoc}
+   */
+  protected $defaultTheme = 'starterkit_theme';
 
   /**
    * {@inheritdoc}
@@ -29,12 +41,8 @@ abstract class PatternkitBrowserTestBase extends WebDriverTestBase {
     'patternkit',
     'layout_builder',
     'node',
+    'contextual',
   ];
-
-  /**
-   * {@inheritdoc}
-   */
-  protected $defaultTheme = 'stable9';
 
   /**
    * Storage handler for patternkit_block content.
@@ -91,6 +99,7 @@ abstract class PatternkitBrowserTestBase extends WebDriverTestBase {
     // Create an editorial user with preconfigured permissions.
     $this->editorUser = $this->drupalCreateUser([
       'access administration pages',
+      'access contextual links',
       'configure any layout',
       'create and edit custom blocks',
       'bypass node access',
@@ -243,6 +252,82 @@ abstract class PatternkitBrowserTestBase extends WebDriverTestBase {
     }
     catch (\Exception $e) {
       throw new \Exception("Scroll into view failed: " . $e->getMessage());
+    }
+  }
+
+  /**
+   * Saves a layout and asserts the message is correct.
+   */
+  protected function assertSaveLayout() {
+    $assert_session = $this->assertSession();
+    $page = $this->getSession()->getPage();
+
+    // Reload the page to prevent random failures.
+    $this->drupalGet($this->getUrl());
+    $page->pressButton('Save layout');
+    $this->assertNotEmpty($assert_session->waitForElement('css', '.messages--status'));
+
+    if (stristr($this->getUrl(), 'admin/structure') === FALSE) {
+      $assert_session->pageTextContains('The layout override has been saved.');
+    }
+    else {
+      $assert_session->pageTextContains('The layout has been saved.');
+    }
+  }
+
+  /**
+   * Configures a pattern block in the Layout Builder.
+   *
+   * @param array $old_config
+   *   The old configuration values.
+   * @param array $new_config
+   *   The new configuration values.
+   * @param string $block_css_locator
+   *   The CSS locator to use to select the contextual link.
+   */
+  protected function configurePatternBlock(array $old_config, array $new_config, $block_css_locator = NULL) {
+    $block_css_locator = $block_css_locator ?: static::PATTERN_BLOCK_LOCATOR;
+    $assert_session = $this->assertSession();
+    $page = $this->getSession()->getPage();
+    $this->clickContextualLink($block_css_locator, 'Configure');
+
+    // Wait for the first JSON Editor field to be visible.
+    $je_form = $this->waitForJsonEditorForm();
+
+    // Fill in JSON Editor fields.
+    foreach ($old_config as $key => $old_value) {
+      $selector = '[name="root[' . $key . ']"]';
+      $field = $je_form->find('css', $selector);
+      $this->assertSame($old_value, $field->getValue());
+      $field->setValue($new_config[$key] ?? '');
+    }
+
+    $page->pressButton('Update');
+    $assert_session->assertNoElementAfterWait('css', '#drupal-off-canvas');
+    $assert_session->assertWaitOnAjaxRequest();
+
+    // Test for text in the first config value by default.
+    $this->assertDialogClosedAndTextVisible(reset($new_config));
+  }
+
+  /**
+   * Asserts that the dialog closes and the new text appears on the main canvas.
+   *
+   * @param string $text
+   *   The text.
+   * @param string|null $css_locator
+   *   The css locator to use inside the main canvas if any.
+   */
+  protected function assertDialogClosedAndTextVisible($text, $css_locator = NULL) {
+    $assert_session = $this->assertSession();
+    $assert_session->assertNoElementAfterWait('css', '#drupal-off-canvas');
+    $assert_session->assertWaitOnAjaxRequest();
+    $assert_session->elementNotExists('css', '#drupal-off-canvas');
+    if ($css_locator) {
+      $this->assertNotEmpty($assert_session->waitForElementVisible('css', ".dialog-off-canvas-main-canvas $css_locator:contains('$text')"));
+    }
+    else {
+      $this->assertNotEmpty($assert_session->waitForElementVisible('css', ".dialog-off-canvas-main-canvas:contains('$text')"));
     }
   }
 

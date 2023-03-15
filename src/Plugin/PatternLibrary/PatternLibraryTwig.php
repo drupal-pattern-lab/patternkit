@@ -74,8 +74,7 @@ class PatternLibraryTwig extends PatternLibraryJSON {
         $asset_id = $pattern->getAssetId();
         $path = trim($pattern->getAssets()['twig'] ?: $this->t('Could not resolve file path.'), DRUPAL_ROOT);
         try {
-          $version_value = $pattern->get('version')->getValue();
-          $version = array_pop($version_value)['value'];
+          $version = $pattern->version->value;
         }
         catch (\Exception $exception) {
           $version = $this->t('No version information available.');

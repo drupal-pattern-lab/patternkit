@@ -3,6 +3,7 @@
 namespace Drupal\Tests\patternkit\Functional;
 
 use Drupal\node\Entity\Node;
+use Drupal\patternkit\Plugin\Block\PatternkitBlock;
 
 /**
  * Testing to confirm bypass of the entity cache for blocks if enabled.
@@ -73,14 +74,16 @@ class BlockCacheBypassTest extends PatternkitBrowserTestBase {
     $page->pressButton('Save layout');
 
     // Get the UUID of the component.
-    $components = Node::load(1)
-      ->get('layout_builder__layout')
+    $components = $this->getSectionStorageForEntity(Node::load(1))
       ->getSection(0)
       ->getComponents();
+    /** @var \Drupal\layout_builder\SectionComponent $component */
     $component = end($components);
+    $plugin = $component->getPlugin();
+    $this->assertInstanceOf(PatternkitBlock::class, $plugin);
 
     // Alter the saved template to tell where it was loaded from.
-    $pattern_id = $component->get('configuration')['pattern'];
+    $pattern_id = $plugin->getConfiguration()['pattern'];
     $this->setCachedPatternTemplate($pattern_id, 'This is a cached template.');
 
     // Force a clear of the render cache to prevent cached results.

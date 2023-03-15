@@ -5,6 +5,8 @@
  * Patternkit parses pattern libraries and ingests them into Drupal Blocks.
  */
 
+use Drupal\patternkit\PatternkitBlockEntityOperations;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Url;
 
@@ -51,4 +53,15 @@ function patternkit_theme($existing, $type, $theme, $path): array {
       'variables' => ['content' => NULL],
     ],
   ];
+}
+
+/**
+ * Implements hook_entity_presave().
+ */
+function patternkit_entity_presave(EntityInterface $entity) {
+  if (\Drupal::moduleHandler()->moduleExists('layout_builder')) {
+    /** @var \Drupal\patternkit\PatternkitBlockEntityOperations $entity_operations */
+    $entity_operations = \Drupal::classResolver(PatternkitBlockEntityOperations::class);
+    $entity_operations->handlePreSave($entity);
+  }
 }
