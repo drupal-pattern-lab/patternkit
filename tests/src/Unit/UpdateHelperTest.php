@@ -11,10 +11,12 @@ use Drupal\Core\KeyValueStore\KeyValueExpirableFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\layout_builder\SectionComponent;
+use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternInterface;
-use Drupal\patternkit\Entity\PatternkitBlock;
+use Drupal\patternkit\Entity\PatternkitBlock as EntityPatternkitBlock;
 use Drupal\patternkit\LayoutHelper;
 use Drupal\patternkit\PatternRepository;
+use Drupal\patternkit\Plugin\Block\PatternkitBlock as BlockPatternkitBlock;
 use Drupal\patternkit\UpdateHelper;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
@@ -168,23 +170,15 @@ class UpdateHelperTest extends UnitTestCase {
    * @covers ::getBlockFromComponent
    * @dataProvider providerGetBlockFromComponent
    */
-  public function testGetBlockFromComponent(array $configuration, bool $entity_exists): void {
-    $component = $this->prophesize(BlockInterface::class);
-    $component->get('configuration')->willReturn($configuration);
-    $block = $this->prophesize(PatternkitBlock::class);
+  public function testGetBlockFromComponent(bool $entity_exists): void {
+    $plugin = $this->prophesize(BlockPatternkitBlock::class);
+    $block = $this->prophesize(EntityPatternkitBlock::class);
+    $plugin->getBlockEntity()->willReturn($block->reveal());
 
-    if ($entity_exists) {
-      $this->blockStorage->loadRevision(Argument::type('integer'))
-        ->willReturn($block->reveal());
-      $this->blockStorage->load(Argument::type('integer'))
-        ->willReturn($block->reveal());
-    }
-    else {
-      $this->blockStorage->loadRevision(Argument::type('integer'))
-        ->willReturn(NULL);
-      $this->blockStorage->load(Argument::type('integer'))
-        ->willReturn(NULL);
-    }
+    $block->isNew()->willReturn(!$entity_exists);
+
+    $component = $this->prophesize(BlockInterface::class);
+    $component->getPlugin()->willReturn($plugin->reveal());
 
     $updateHelper = $this->getUpdateHelper();
     $actual = $updateHelper->getBlockFromComponent($component->reveal());
@@ -197,34 +191,12 @@ class UpdateHelperTest extends UnitTestCase {
   public function providerGetBlockFromComponent(): array {
     $cases = [];
 
-    $cases['block id with revision'] = [
-      [
-        'patternkit_block_id' => 1,
-        'patternkit_block_rid' => 1,
-      ],
+    $cases['entity exists'] = [
       TRUE,
     ];
 
-    $cases['block id without revision'] = [
-      [
-        'patternkit_block_id' => 1,
-      ],
+    $cases['entity does not exist'] = [
       TRUE,
-    ];
-
-    $cases['block id with revision without loading'] = [
-      [
-        'patternkit_block_id' => 1,
-        'patternkit_block_rid' => 1,
-      ],
-      FALSE,
-    ];
-
-    $cases['block id without revision without loading'] = [
-      [
-        'patternkit_block_id' => 1,
-      ],
-      FALSE,
     ];
 
     return $cases;
@@ -234,55 +206,18 @@ class UpdateHelperTest extends UnitTestCase {
    * Tests the getPatternFromComponent method.
    *
    * @covers ::getPatternFromComponent
-   * @uses \Drupal\patternkit\Plugin\Derivative\PatternkitBlock::derivativeToAssetId()
-   * @dataProvider providerGetPatternFromComponent
    */
-  public function testGetPatternFromComponent(array $configuration): void {
+  public function testGetPatternFromComponent(): void {
+    $plugin = $this->prophesize(BlockPatternkitBlock::class);
+    $pattern = $this->prophesize(Pattern::class);
+    $plugin->getPatternEntity()->willReturn($pattern->reveal());
+
     $component = $this->prophesize(BlockInterface::class);
-    $component->get('configuration')->willReturn($configuration);
-    $pattern = $this->prophesize(PatternInterface::class);
-
-    if (isset($configuration['pattern']) && is_numeric($configuration['pattern'])) {
-      $this->patternStorage->loadRevision($configuration['pattern'])
-        ->shouldBeCalledOnce()
-        ->willReturn($pattern->reveal());
-    }
-    else {
-      // Mock the plugin returned by the component.
-      $plugin = $this->prophesize(BlockPluginInterface::class);
-      $plugin->getDerivativeId()->willReturn($configuration['derivative_id']);
-
-      $component->getPlugin()->willReturn($plugin->reveal());
-      $this->patternRepository->getPattern($configuration['pattern_id'], TRUE)
-        ->shouldBeCalledOnce()
-        ->willReturn($pattern->reveal());
-    }
+    $component->getPlugin()->willReturn($plugin->reveal());
 
     $updateHelper = $this->getUpdateHelper();
     $actual = $updateHelper->getPatternFromComponent($component->reveal());
     $this->assertEquals($pattern->reveal(), $actual);
-  }
-
-  /**
-   * Data provider for the testGetPatternFromComponent() test.
-   */
-  public function providerGetPatternFromComponent(): array {
-    $cases = [];
-
-    $cases['pattern id'] = [
-      [
-        'pattern' => 1,
-      ],
-    ];
-
-    $cases['plugin id'] = [
-      [
-        'derivative_id' => 'patternkit_example_src_example',
-        'pattern_id' => '@patternkit/example/src/example',
-      ],
-    ];
-
-    return $cases;
   }
 
   /**
@@ -329,15 +264,15 @@ class UpdateHelperTest extends UnitTestCase {
     $component->get('configuration')->willReturn($configuration);
 
     // Prepare the plugin for the component.
-    $plugin = $this->prophesize(BlockPluginInterface::class);
+    $plugin = $this->prophesize(BlockPatternkitBlock::class);
     $plugin->getDerivativeId()->willReturn($derivative_id);
     $component->getPlugin()->willReturn($plugin->reveal());
 
     // Prepare the related patternkit block to be loaded from the component.
-    $block = $this->prophesize(PatternkitBlock::class);
+    $block = $this->prophesize(EntityPatternkitBlock::class);
     $block->getLoadedRevisionId()->willReturn($configuration['patternkit_block_rid']);
-    $this->blockStorage->loadRevision($configuration['patternkit_block_rid'])
-      ->willReturn($block->reveal());
+    $block->isNew()->willReturn(FALSE);
+    $plugin->getBlockEntity()->willReturn($block->reveal());
 
     // Prepare the pattern to be loaded from the component.
     $pattern = $this->prophesize(PatternInterface::class);
@@ -345,13 +280,13 @@ class UpdateHelperTest extends UnitTestCase {
     $pattern->save()->willReturn(2);
     $pattern->getRevisionId()->willReturn($new_pattern_revision = 2);
     $pattern->getAssetId()->willReturn($pattern_id);
+    $pattern->getLibrary()->willReturn('patternkit');
     $pattern->getVersion()->willReturn(\Drupal::VERSION);
     $pattern->setNewRevision()->shouldBeCalledOnce();
     $pattern->isDefaultRevision(TRUE)->shouldBeCalledOnce();
     $pattern->updateFromPattern(Argument::type(PatternInterface::class))
       ->willReturn($pattern->reveal());
-    $this->patternStorage->loadRevision($configuration['pattern'])
-      ->willReturn($pattern->reveal());
+    $plugin->getPatternEntity()->willReturn($pattern->reveal());
 
     // Prepare the base pattern to be loaded for updating.
     $base_pattern = $this->prophesize(PatternInterface::class);

@@ -11,6 +11,7 @@ use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Entity\PatternkitBlock as EntityPatternkitBlock;
+use Drupal\patternkit\Plugin\Block\PatternkitBlock;
 use Drupal\patternkit\Plugin\Derivative\PatternkitBlock as DerivativePatternkitBlock;
 
 /**
@@ -227,7 +228,7 @@ class UpdateHelper {
    *   The block plugin or section component to update.
    * @param string|null $library_name
    *   (optional) The name of the library to match against, or NULL to skip
-   *   matching.
+   *   matching. Example: '@patternkit'.
    *
    * @return false|array
    *   The updated configuration, or FALSE if it failed.
@@ -245,10 +246,21 @@ class UpdateHelper {
 
     $plugin_id = $component->getPluginId();
     $derivative_id = $component->getPlugin()->getDerivativeId();
+    if ($derivative_id === NULL) {
+      $this->logger->error('Encountered broken block plugin: @block_id', [
+        '@block_id' => $plugin_id,
+      ]);
+      return FALSE;
+    }
+
     $pattern_id = DerivativePatternkitBlock::derivativeToAssetId($derivative_id);
 
     // Stop here if this doesn't match the library filter.
-    if ($library_name && !str_starts_with($pattern_id, $library_name)) {
+    if ($library_name && stripos($pattern_id, $library_name) !== 0) {
+      $this->logger->info('Skipping block since pattern ID "@id" did start with library filter "@filter".', [
+        '@id' => $pattern_id,
+        '@filter' => $library_name,
+      ]);
       return FALSE;
     }
 
@@ -279,8 +291,14 @@ class UpdateHelper {
       }
     }
 
-    // Don't update patterns outside the indicated library if provided.
-    if ($library_name && $pattern->getLibrary() !== $library_name) {
+    // Don't update patterns outside the indicated library if provided. Ignore
+    // case when comparing the library name and trim the prefixed '@' from the
+    // library filter value.
+    if ($library_name && strcasecmp($pattern->getLibrary(), ltrim($library_name, '@')) !== 0) {
+      $this->logger->info('Skipping block since pattern library "@library" did not match filter "@filter".', [
+        '@library' => $pattern->getLibrary(),
+        '@filter' => $library_name,
+      ]);
       return FALSE;
     }
 
@@ -323,22 +341,22 @@ class UpdateHelper {
    *
    * @return \Drupal\patternkit\Entity\PatternkitBlock|null
    *   The loaded patternkit block or null if it could not be loaded.
+   *
+   * @throws \Drupal\Core\Entity\EntityStorageException
    */
   public function getBlockFromComponent($component): ?EntityPatternkitBlock {
-    $configuration = $component->get('configuration');
+    $plugin = $component->getPlugin();
 
-    if (isset($configuration['patternkit_block_id']) && (int) $configuration['patternkit_block_id'] > 0) {
+    if ($plugin instanceof PatternkitBlock) {
+      $block = $plugin->getBlockEntity();
 
-      // Load the revision if specified.
-      if (isset($configuration['patternkit_block_rid']) && (int) $configuration['patternkit_block_rid'] > 0) {
-        $patternkit_block = $this->blockStorage->loadRevision($configuration['patternkit_block_rid']);
-      }
-      else {
-        $patternkit_block = $this->blockStorage->load($configuration['patternkit_block_id']);
+      // Don't return a newly stubbed out block if an existing one wasn't found.
+      if ($block->isNew()) {
+        $block = NULL;
       }
     }
 
-    return $patternkit_block ?? NULL;
+    return $block ?? NULL;
   }
 
   /**
@@ -355,19 +373,10 @@ class UpdateHelper {
    * @throws \Drupal\patternkit\Exception\UnknownPatternException
    */
   public function getPatternFromComponent($component): ?PatternInterface {
-    $configuration = $component->get('configuration');
+    $plugin = $component->getPlugin();
 
-    /** @var \Drupal\patternkit\entity\PatternInterface $pattern */
-    if (!empty($configuration['pattern'])) {
-      $pattern = $this->patternStorage->loadRevision($configuration['pattern']);
-    }
-    else {
-      // Identify the pattern in use from the plugin.
-      $plugin = $component->getPlugin();
-      $pattern_id = DerivativePatternkitBlock::derivativeToAssetId($plugin->getDerivativeId());
-
-      // Load the pattern directly from the definition.
-      $pattern = $this->patternRepository->getPattern($pattern_id, TRUE);
+    if ($plugin instanceof PatternkitBlock) {
+      $pattern = $plugin->getPatternEntity();
     }
 
     return $pattern ?? NULL;

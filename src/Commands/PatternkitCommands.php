@@ -12,6 +12,7 @@ use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternRepository;
 use Drupal\patternkit\UpdateHelper;
 use Drush\Commands\DrushCommands;
+use Drush\Exceptions\CommandFailedException;
 
 /**
  * Commands for working with the dev branch of Patternkit.
@@ -112,8 +113,14 @@ class PatternkitCommands extends DrushCommands {
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   * @throws \Drush\Exceptions\CommandFailedException
    */
   public function libUpdate(string $library_name = NULL, $options = ['filter' => self::REQ]): string {
+    // Fail early if the library name filter isn't prefixed.
+    if ($library_name !== NULL && !str_starts_with($library_name, '@')) {
+      throw new CommandFailedException('When using a library name filter, the library name should always include the "@" prefix. For example: "@patternkit"');
+    }
+
     // Assemble filters array from options.
     $filter = [
       'library' => $library_name,
