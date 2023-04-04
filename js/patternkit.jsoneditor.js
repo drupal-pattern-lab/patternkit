@@ -6,6 +6,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.patternkitEditorCKEditor = patternkitEditorCKEditor;
 
+var _patternkitJsoneditorCkeditor = require("./patternkit.jsoneditor.ckeditor5.es6");
+
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -32,21 +34,6 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
-/*globals Console:false */
-
-/*globals Drupal:false */
-
-/*globals jQuery:false */
-
-/*globals JSONEditor:false */
-
-/**
- * @file DrupalImageEditor class.
- *
- * @external Drupal
- * @external jQuery
- * @external JSONEditor
- */
 var DrupalCKEditor = /*#__PURE__*/function (_JSONEditor$defaults$) {
   _inherits(DrupalCKEditor, _JSONEditor$defaults$);
 
@@ -229,7 +216,7 @@ var DrupalCKEditor = /*#__PURE__*/function (_JSONEditor$defaults$) {
 
       if (this.ckeditor_instance) {
         this.ckeditor_instance.setReadOnly(false);
-      } // Hande cases where the Ckeditor instance is removed before binding. Once
+      } // Handle cases where the Ckeditor instance is removed before binding. Once
       // enabled by properties it will run only once. After being able to bind to
       // a DOM element it should be fine since it now has the instance created.
 
@@ -276,9 +263,15 @@ function patternkitEditorCKEditor($, Drupal, JSONEditor) {
       JSONEditor.defaults.options.drupal_ckeditor = {
         ckeditor_config: settings.patternkitEditor.patternkitCKEditorConfig || {}
       };
-      JSONEditor.defaults.editors.drupal_ckeditor = DrupalCKEditor;
+
+      if (drupalSettings.patternkitEditor.wysiwygEditorName === 'ckeditor5') {
+        JSONEditor.defaults.editors.drupal_ckeditor = _patternkitJsoneditorCkeditor.DrupalCKEditor5;
+      } else {
+        JSONEditor.defaults.editors.drupal_ckeditor = DrupalCKEditor;
+      }
+
       JSONEditor.defaults.resolvers.unshift(function (schema) {
-        if (schema.type === 'string' && schema.format === 'html' && schema.options && schema.options.wysiwyg && settings.patternkitEditor.wysiwygEditorName === 'ckeditor' // Ensures the Text format with CKEditor profile loaded okay.
+        if (schema.type === 'string' && schema.format === 'html' && schema.options && schema.options.wysiwyg && (settings.patternkitEditor.wysiwygEditorName === 'ckeditor' || settings.patternkitEditor.wysiwygEditorName === 'ckeditor5') // Ensures the Text format with CKEditor profile loaded okay.
         && settings.patternkitEditor.patternkitCKEditorConfig) {
           return 'drupal_ckeditor';
         }
@@ -287,7 +280,184 @@ function patternkitEditorCKEditor($, Drupal, JSONEditor) {
   };
 }
 
-},{}],2:[function(require,module,exports){
+},{"./patternkit.jsoneditor.ckeditor5.es6":2}],2:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.DrupalCKEditor5 = void 0;
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _get(target, property, receiver) { if (typeof Reflect !== "undefined" && Reflect.get) { _get = Reflect.get; } else { _get = function _get(target, property, receiver) { var base = _superPropBase(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(receiver); } return desc.value; }; } return _get(target, property, receiver || target); }
+
+function _superPropBase(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = _getPrototypeOf(object); if (object === null) break; } return object; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+/*globals Console:false */
+
+/*globals Drupal:false */
+
+/*globals jQuery:false */
+
+/*globals JSONEditor:false */
+
+/**
+ * @file DrupalImageEditor class.
+ *
+ * @external Drupal
+ * @external jQuery
+ * @external JSONEditor
+ */
+var DrupalCKEditor5 = /*#__PURE__*/function (_JSONEditor$defaults$) {
+  _inherits(DrupalCKEditor5, _JSONEditor$defaults$);
+
+  var _super = _createSuper(DrupalCKEditor5);
+
+  function DrupalCKEditor5() {
+    _classCallCheck(this, DrupalCKEditor5);
+
+    return _super.apply(this, arguments);
+  }
+
+  _createClass(DrupalCKEditor5, [{
+    key: "build",
+    value: function build() {
+      // Override the format when building the base string editor.
+      this.options.format = 'textarea';
+
+      _get(_getPrototypeOf(DrupalCKEditor5.prototype), "build", this).call(this);
+
+      this.input_type = this.schema.format;
+      this.input.setAttribute('data-schemaformat', this.input_type);
+    }
+  }, {
+    key: "afterInputReady",
+    value: function afterInputReady() {
+      if (window.CKEditor5) {
+        // Editor options.
+        // @todo Replace JSONEditor.defaults with this.defaults.
+        this.options = jQuery.extend({}, JSONEditor.defaults.options.drupal_ckeditor || {}, this.options.drupal_ckeditor || {});
+        var format = drupalSettings.editor.formats[this.options.ckeditor_config.selected_toolbar];
+        Drupal.editorAttach(this.input, format);
+        var id = this.input.getAttribute('data-ckeditor5-id');
+        this.ckeditor_instance = Drupal.CKEditor5Instances.get(id); // Attach the listener for change events in the CKEditor content.
+        // @todo Determine if this is detrimentally overwriting the change default
+        //   listener attached in editor.js.
+
+        Drupal.editors.ckeditor5.onChange(this.input, this.saveEditorContent.bind(this)); // In "source" mode (e.g., by clicking the "Source" button), CKEditor's
+        // "change" event does not fire, so we need to listen on the "input"
+        // event.
+        // See https://ckeditor.com/docs/ckeditor4/latest/api/CKEDITOR_editor.html#event-change
+
+        this.theme.afterInputReady(this.input);
+      } else {
+        _get(_getPrototypeOf(DrupalCKEditor5.prototype), "afterInputReady", this).call(this);
+      }
+    }
+  }, {
+    key: "destroy",
+    value: function destroy() {
+      if (this.ckeditor_instance) {
+        var format = drupalSettings.editor.formats[this.options.ckeditor_config.selected_toolbar];
+        this.ckeditor_instance.updateSourceElement();
+        Drupal.editorDetach(this.input, format);
+        this.ckeditor_instance = null;
+      }
+
+      _get(_getPrototypeOf(DrupalCKEditor5.prototype), "destroy", this).call(this);
+    }
+  }, {
+    key: "disable",
+    value: function disable(always_disabled) {
+      if (always_disabled) {
+        this.always_disabled = true;
+      }
+
+      if (this.ckeditor_instance) {
+        this.ckeditor_instance.enableReadOnlyMode('patternkit-json-editor');
+      }
+
+      _get(_getPrototypeOf(DrupalCKEditor5.prototype), "disable", this).call(this, always_disabled);
+    }
+  }, {
+    key: "enable",
+    value: function enable() {
+      if (this.always_disabled) {
+        return;
+      }
+
+      if (this.ckeditor_instance) {
+        this.ckeditor_instance.disableReadOnlyMode('patternkit-json-editor');
+      }
+
+      _get(_getPrototypeOf(DrupalCKEditor5.prototype), "enable", this).call(this);
+    }
+  }, {
+    key: "getNumColumns",
+    value: function getNumColumns() {
+      return 6;
+    }
+  }, {
+    key: "setValue",
+    value: function setValue(val, initial, from_template) {
+      var input = _get(_getPrototypeOf(DrupalCKEditor5.prototype), "setValue", this).call(this, val, initial, from_template);
+
+      var ckeditor_instance = this.getCkeditorInstance();
+
+      if (input !== undefined && input.changed && ckeditor_instance) {
+        ckeditor_instance.setData(input.value);
+        this.refreshWatchedFieldValues();
+        this.onChange(true);
+      }
+    }
+  }, {
+    key: "saveEditorContent",
+    value: function saveEditorContent() {
+      this.input.value = this.getCkeditorInstance().getData();
+      this.refreshValue(); // Dirty means display cache is invalidated for string editors.
+
+      this.is_dirty = true;
+      this.onChange(true);
+    }
+  }, {
+    key: "getCkeditorInstance",
+    value: function getCkeditorInstance() {
+      if (this.ckeditor_instance === undefined) {
+        var id = this.input.getAttribute('data-ckeditor5-id');
+        this.ckeditor_instance = Drupal.CKEditor5Instances.get(id);
+      }
+
+      return this.ckeditor_instance;
+    }
+  }]);
+
+  return DrupalCKEditor5;
+}(JSONEditor.defaults.editors.string);
+
+exports.DrupalCKEditor5 = DrupalCKEditor5;
+
+},{}],3:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -506,7 +676,7 @@ function patternkitEditorCygnet($, Drupal, JSONEditor) {
   };
 }
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -650,7 +820,7 @@ function patternkitEditorArray($, Drupal, JSONEditor) {
   };
 }
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1076,7 +1246,7 @@ function patternkitEditorObject($, Drupal, JSONEditor) {
   };
 }
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 "use strict";
 
 var _patternkitJsoneditorQuillEs = require("./patternkit.jsoneditor.quill.es6.js");
@@ -1370,7 +1540,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
   JSONEditor.defaults.options.template = 'handlebars';
 })(jQuery, Drupal, JSONEditor, once);
 
-},{"./patternkit.jsoneditor.ckeditor.es6":1,"./patternkit.jsoneditor.cygnet.es6.js":2,"./patternkit.jsoneditor.editor.array.es6":3,"./patternkit.jsoneditor.editor.object.es6":4,"./patternkit.jsoneditor.prosemirror.es6":6,"./patternkit.jsoneditor.quill.es6.js":7}],6:[function(require,module,exports){
+},{"./patternkit.jsoneditor.ckeditor.es6":1,"./patternkit.jsoneditor.cygnet.es6.js":3,"./patternkit.jsoneditor.editor.array.es6":4,"./patternkit.jsoneditor.editor.object.es6":5,"./patternkit.jsoneditor.prosemirror.es6":7,"./patternkit.jsoneditor.quill.es6.js":8}],7:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1553,7 +1723,7 @@ function patternkitEditorProseMirror($, Drupal, JSONEditor) {
   };
 }
 
-},{"prosemirror-example-setup":12,"prosemirror-model":18,"prosemirror-schema-basic":19,"prosemirror-schema-list":20,"prosemirror-state":21,"prosemirror-view":23}],7:[function(require,module,exports){
+},{"prosemirror-example-setup":13,"prosemirror-model":19,"prosemirror-schema-basic":20,"prosemirror-schema-list":21,"prosemirror-state":22,"prosemirror-view":24}],8:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1761,7 +1931,7 @@ function patternkitEditorQuill($, Drupal, JSONEditor) {
   };
 }
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 'use strict';
 
 function crelt() {
@@ -1794,7 +1964,7 @@ function add(elt, child) {
 
 module.exports = crelt;
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 // ::- Persistent data structure representing an ordered mapping from
 // strings to values, with some convenient update methods.
 function OrderedMap(content) {
@@ -1925,7 +2095,7 @@ OrderedMap.from = function(value) {
 
 module.exports = OrderedMap
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -2608,7 +2778,7 @@ exports.toggleMark = toggleMark;
 exports.wrapIn = wrapIn;
 
 
-},{"prosemirror-model":18,"prosemirror-state":21,"prosemirror-transform":22}],11:[function(require,module,exports){
+},{"prosemirror-model":19,"prosemirror-state":22,"prosemirror-transform":23}],12:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -2751,7 +2921,7 @@ DropCursorView.prototype.dragleave = function dragleave (event) {
 exports.dropCursor = dropCursor;
 
 
-},{"prosemirror-state":21,"prosemirror-transform":22}],12:[function(require,module,exports){
+},{"prosemirror-state":22,"prosemirror-transform":23}],13:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -3356,7 +3526,7 @@ exports.buildMenuItems = buildMenuItems;
 exports.exampleSetup = exampleSetup;
 
 
-},{"prosemirror-commands":10,"prosemirror-dropcursor":11,"prosemirror-gapcursor":13,"prosemirror-history":14,"prosemirror-inputrules":15,"prosemirror-keymap":16,"prosemirror-menu":17,"prosemirror-schema-list":20,"prosemirror-state":21}],13:[function(require,module,exports){
+},{"prosemirror-commands":11,"prosemirror-dropcursor":12,"prosemirror-gapcursor":14,"prosemirror-history":15,"prosemirror-inputrules":16,"prosemirror-keymap":17,"prosemirror-menu":18,"prosemirror-schema-list":21,"prosemirror-state":22}],14:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -3561,7 +3731,7 @@ exports.GapCursor = GapCursor;
 exports.gapCursor = gapCursor;
 
 
-},{"prosemirror-keymap":16,"prosemirror-model":18,"prosemirror-state":21,"prosemirror-view":23}],14:[function(require,module,exports){
+},{"prosemirror-keymap":17,"prosemirror-model":19,"prosemirror-state":22,"prosemirror-view":24}],15:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -4020,7 +4190,7 @@ exports.undo = undo;
 exports.undoDepth = undoDepth;
 
 
-},{"prosemirror-state":21,"prosemirror-transform":22,"rope-sequence":24}],15:[function(require,module,exports){
+},{"prosemirror-state":22,"prosemirror-transform":23,"rope-sequence":25}],16:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -4214,7 +4384,7 @@ exports.undoInputRule = undoInputRule;
 exports.wrappingInputRule = wrappingInputRule;
 
 
-},{"prosemirror-state":21,"prosemirror-transform":22}],16:[function(require,module,exports){
+},{"prosemirror-state":22,"prosemirror-transform":23}],17:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -4326,7 +4496,7 @@ exports.keydownHandler = keydownHandler;
 exports.keymap = keymap;
 
 
-},{"prosemirror-state":21,"w3c-keyname":25}],17:[function(require,module,exports){
+},{"prosemirror-state":22,"w3c-keyname":26}],18:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -4984,7 +5154,7 @@ exports.undoItem = undoItem;
 exports.wrapItem = wrapItem;
 
 
-},{"crelt":8,"prosemirror-commands":10,"prosemirror-history":14,"prosemirror-state":21}],18:[function(require,module,exports){
+},{"crelt":9,"prosemirror-commands":11,"prosemirror-history":15,"prosemirror-state":22}],19:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -8429,7 +8599,7 @@ exports.Schema = Schema;
 exports.Slice = Slice;
 
 
-},{"orderedmap":9}],19:[function(require,module,exports){
+},{"orderedmap":10}],20:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -8604,7 +8774,7 @@ exports.nodes = nodes;
 exports.schema = schema;
 
 
-},{"prosemirror-model":18}],20:[function(require,module,exports){
+},{"prosemirror-model":19}],21:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -8860,7 +9030,7 @@ exports.splitListItem = splitListItem;
 exports.wrapInList = wrapInList;
 
 
-},{"prosemirror-model":18,"prosemirror-transform":22}],21:[function(require,module,exports){
+},{"prosemirror-model":19,"prosemirror-transform":23}],22:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -10011,7 +10181,7 @@ exports.TextSelection = TextSelection;
 exports.Transaction = Transaction;
 
 
-},{"prosemirror-model":18,"prosemirror-transform":22}],22:[function(require,module,exports){
+},{"prosemirror-model":19,"prosemirror-transform":23}],23:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -11682,7 +11852,7 @@ exports.liftTarget = liftTarget;
 exports.replaceStep = replaceStep;
 
 
-},{"prosemirror-model":18}],23:[function(require,module,exports){
+},{"prosemirror-model":19}],24:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -16864,7 +17034,7 @@ exports.__parseFromClipboard = parseFromClipboard;
 exports.__serializeForClipboard = serializeForClipboard;
 
 
-},{"prosemirror-model":18,"prosemirror-state":21,"prosemirror-transform":22}],24:[function(require,module,exports){
+},{"prosemirror-model":19,"prosemirror-state":22,"prosemirror-transform":23}],25:[function(require,module,exports){
 'use strict';
 
 var GOOD_LEAF_SIZE = 200;
@@ -17077,7 +17247,7 @@ var ropeSequence = RopeSequence;
 
 module.exports = ropeSequence;
 
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -17211,4 +17381,4 @@ exports.base = base;
 exports.keyName = keyName;
 exports.shift = shift;
 
-},{}]},{},[5]);
+},{}]},{},[6]);

@@ -98,6 +98,7 @@ class PatternLibraryJSONForm extends ConfigFormBase {
    */
   public const EDITORS = [
     'ckeditor' => 'CKEditor',
+    'ckeditor5' => 'CKEditor5',
     'prosemirror' => 'ProseMirror',
     'quill' => 'Quill',
   ];
@@ -187,7 +188,12 @@ class PatternLibraryJSONForm extends ConfigFormBase {
 
     $ckeditor_toolbar_options = [];
     foreach ($this->entityTypeManager->getStorage('editor')->loadMultiple() as $editor) {
-      if ($editor->getEditor() === 'ckeditor') {
+      $accepted_editors = [
+        'ckeditor',
+        'ckeditor5',
+      ];
+      /** @var \Drupal\editor\EditorInterface $editor */
+      if (in_array($editor->getEditor(), $accepted_editors)) {
         $ckeditor_toolbar_options[$editor->id()] = $editor->label();
       }
     }
@@ -201,7 +207,10 @@ class PatternLibraryJSONForm extends ConfigFormBase {
       '#default_value' => $config->get('patternkit_json_editor_ckeditor_toolbar') ?: '',
       '#states' => [
         'visible' => [
-          ':input[name="patternkit_json_editor_wysiwyg"]' => ['value' => 'ckeditor'],
+          ':input[name="patternkit_json_editor_wysiwyg"]' => [
+            ['value' => 'ckeditor'],
+            ['value' => 'ckeditor5'],
+          ],
         ],
       ],
     ];

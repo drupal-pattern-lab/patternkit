@@ -7,6 +7,7 @@ use Drupal\Core\State\StateInterface;
 use Drupal\Component\Serialization\SerializationInterface;
 use Drupal\Core\Config\ImmutableConfig;
 use Drupal\ckeditor\Plugin\Editor\CKEditor;
+use Drupal\ckeditor5\Plugin\Editor\CKEditor5;
 use Drupal\Core\Logger\LoggerChannelTrait;
 use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\Render\BubbleableMetadata;
@@ -144,12 +145,22 @@ trait JSONSchemaEditorTrait {
       }
     }
 
-    if ($this->config->get('patternkit_json_editor_wysiwyg') == 'ckeditor') {
+    $accepted_editors = [
+      'ckeditor',
+      'ckeditor5',
+    ];
+    if (in_array($this->config->get('patternkit_json_editor_wysiwyg'), $accepted_editors)) {
       $selected_toolbar = $this->config->get('patternkit_json_editor_ckeditor_toolbar');
       if (!empty($selected_toolbar)) {
+        $editor = $this->config->get('patternkit_json_editor_wysiwyg');
         // The following code builds a CKEditor toolbar. Code stolen from
         // \Drupal\editor\Element::preRenderTextFormat.
-        $ckeditor_instance = CKEditor::create(\Drupal::getContainer(), [], 'ckeditor', ['provider' => 'patternkit']);
+        if ($editor === 'ckeditor5') {
+          $ckeditor_instance = CKEditor5::create(\Drupal::getContainer(), [], 'ckeditor5', ['provider' => 'patternkit']);
+        }
+        else {
+          $ckeditor_instance = CKEditor::create(\Drupal::getContainer(), [], 'ckeditor5', ['provider' => 'patternkit']);
+        }
         /** @var \Drupal\editor\Entity\Editor $ckeditor_config */
         $ckeditor_entity = Editor::load($selected_toolbar);
         if ($ckeditor_entity && $ckeditor_entity->status()) {
@@ -181,11 +192,23 @@ trait JSONSchemaEditorTrait {
         ],
         'library' => [
           'patternkit/patternkit.jsoneditor',
-          'ckeditor/drupal.ckeditor',
-          'editor/drupal.editor',
         ],
       ],
     ];
+
+    if (!empty($editor)) {
+      $element['#attached']['library'][] = 'editor/drupal.editor';
+
+      switch ($editor) {
+        case 'ckeditor5':
+          $element['#attached']['library'][] = 'core/ckeditor5.editorClassic';
+          break;
+
+        case 'ckeditor':
+          $element['#attached']['library'][] = 'ckeditor/drupal.ckeditor';
+          break;
+      }
+    }
 
     // Attaches attachments for the selected editor.
     if (!empty($selected_toolbar) && $editor_plugin_manager = $this->getEditorPluginManager()) {

@@ -10,6 +10,8 @@
  * @external JSONEditor
  */
 
+import {DrupalCKEditor5} from './patternkit.jsoneditor.ckeditor5.es6';
+
 class DrupalCKEditor extends JSONEditor.defaults.editors.string {
 
   build() {
@@ -169,7 +171,7 @@ class DrupalCKEditor extends JSONEditor.defaults.editors.string {
       this.ckeditor_instance.setReadOnly(false);
     }
 
-    // Hande cases where the Ckeditor instance is removed before binding. Once
+    // Handle cases where the Ckeditor instance is removed before binding. Once
     // enabled by properties it will run only once. After being able to bind to
     // a DOM element it should be fine since it now has the instance created.
     if (window.DrupalCKEditors && window.DrupalCKEditors[this.path] && !this.ckeditor_instance) {
@@ -206,13 +208,19 @@ export function patternkitEditorCKEditor($, Drupal, JSONEditor) {
       JSONEditor.defaults.options.drupal_ckeditor = {
         ckeditor_config: settings.patternkitEditor.patternkitCKEditorConfig || {}
       };
-      JSONEditor.defaults.editors.drupal_ckeditor = DrupalCKEditor;
+      if (drupalSettings.patternkitEditor.wysiwygEditorName === 'ckeditor5') {
+        JSONEditor.defaults.editors.drupal_ckeditor = DrupalCKEditor5;
+      }
+      else {
+        JSONEditor.defaults.editors.drupal_ckeditor = DrupalCKEditor;
+      }
+
       JSONEditor.defaults.resolvers.unshift(function (schema) {
         if (schema.type === 'string'
           && schema.format === 'html'
           && schema.options
           && schema.options.wysiwyg
-          && settings.patternkitEditor.wysiwygEditorName === 'ckeditor'
+          && (settings.patternkitEditor.wysiwygEditorName === 'ckeditor' || settings.patternkitEditor.wysiwygEditorName === 'ckeditor5')
           // Ensures the Text format with CKEditor profile loaded okay.
           && settings.patternkitEditor.patternkitCKEditorConfig) {
           return 'drupal_ckeditor';

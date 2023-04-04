@@ -14,6 +14,7 @@ class DefaultLayoutTest extends PatternkitBrowserTestBase {
    */
   static protected $modules = [
     'patternkit_example',
+    'field_ui',
   ];
 
   /**

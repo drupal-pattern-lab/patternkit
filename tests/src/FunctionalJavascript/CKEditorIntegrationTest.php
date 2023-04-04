@@ -2,10 +2,9 @@
 
 namespace Drupal\Tests\patternkit\FunctionalJavascript;
 
-use Drupal\editor\Entity\Editor;
-use Drupal\filter\Entity\FilterFormat;
+use Behat\Mink\Element\NodeElement;
 use Drupal\node\Entity\Node;
-use Drupal\Tests\patternkit\Traits\CKEditorIntegrationTestTrait;
+use Drupal\Tests\patternkit\Traits\CKEditor5IntegrationTestTrait;
 
 /**
  * End-to-end testing for patternkit block CKEditor integration.
@@ -16,14 +15,14 @@ use Drupal\Tests\patternkit\Traits\CKEditorIntegrationTestTrait;
  */
 class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
 
-  use CKEditorIntegrationTestTrait;
+  use CKEditor5IntegrationTestTrait;
 
   /**
    * {@inheritdoc}
    */
   static protected $modules = [
     'patternkit_example',
-    'ckeditor',
+    'ckeditor5',
   ];
 
   /**
@@ -33,21 +32,7 @@ class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
     parent::setUp();
 
     // Create a text format and associate CKEditor.
-    FilterFormat::create([
-      'format' => 'filtered_html',
-      'name' => 'Filtered HTML',
-      'weight' => 0,
-    ])->save();
-    Editor::create([
-      'format' => 'filtered_html',
-      'editor' => 'ckeditor',
-    ])->save();
-
-    // Enable CKEditor integration.
-    $config = $this->config('patternkit.settings');
-    $config->set('patternkit_json_editor_wysiwyg', 'ckeditor');
-    $config->set('patternkit_json_editor_ckeditor_toolbar', 'filtered_html');
-    $config->save();
+    $this->configureCkeditorFormat();
   }
 
   /**
@@ -67,21 +52,36 @@ class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
     $this->addPatternBlock($pattern_name);
 
     // Wait for the JSON Editor form to load.
-    $this->waitForJsonEditorForm();
+    $editor_form = $this->waitForJsonEditorForm();
 
     // Wait for CKEditor to load.
-    $this->waitForEditor('editor1');
+    $this->waitForEditor();
 
-    // Fill in JSON Editor fields.
-    $page->fillField('root[text]', 'Pattern block title');
-    $page->fillField('root[hidden]', 'My hidden text');
+    // Fill in basic JSON Editor fields.
+    $editor_form->fillField('root[text]', 'Pattern block title');
+    $editor_form->fillField('root[hidden]', 'My hidden text');
+
+    // Confirm regular fields are populating into the schema config field.
+    $config = $page->find('css', '#schema_instance_config')->getValue();
+    $this->assertStringContainsString('Pattern block title', $config, 'Title field value was not populated into schema config values.');
+    $this->assertStringContainsString('My hidden text', $config, 'Hidden text field value was not populated into schema config values.');
 
     // Fill in the CKEditor field.
     $wysiwyg_value = '<p>My <strong>rich text</strong> <em>value</em>.</p>';
     $this->setEditorValue('root.formatted_text', $wysiwyg_value);
 
+    // Confirm the value is propagated into the form and schema config fields.
+    $this->assertEquals($wysiwyg_value, $this->getEditorValue('root.formatted_text'), 'CKEditor value was not updated.');
+
+    // Wait for the CKEditor value to be propagated to the JSON Editor field.
+    $field = $this->waitForFieldValueChange('root[formatted_text]');
+
+    // Confirm the value was assigned into the JSON Editor field.
+    $this->assertEquals($wysiwyg_value, $field->getValue(), 'CKEditor value was not populated into JSON Editor field.');
+
+    // Confirm the editor value was saved into the form's schema configuration.
     $config = $page->find('css', '#schema_instance_config')->getValue();
-    $this->assertStringContainsString($wysiwyg_value, $config);
+    $this->assertStringContainsString($wysiwyg_value, $config, 'Editor value was not populated into schema config values.');
 
     $page->pressButton('Add block');
     $page->pressButton('Save layout');
@@ -97,7 +97,7 @@ class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
     // Confirm all configuration content is persisted when editing the block.
     $this->drupalGet('layout_builder/update/block/overrides/node.1/0/content/' . $uuid);
     $this->waitForJsonEditorForm();
-    $this->waitForEditor('editor1');
+    $this->waitForEditor();
 
     $assert->fieldValueEquals('root[text]', 'Pattern block title');
     $assert->fieldValueEquals('root[hidden]', 'My hidden text');
@@ -124,18 +124,18 @@ class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
     $this->addPatternBlock($pattern_name);
 
     // Wait for the JSON Editor form to load.
-    $this->waitForJsonEditorForm();
+    $editor_form = $this->waitForJsonEditorForm();
 
     // Wait for CKEditor to load.
-    $this->waitForEditor('editor1');
+    $this->waitForEditor();
 
     // Confirm the CKEditor interface exists.
-    $assert->elementExists('css', '#cke_editor1');
-    $assert->elementExists('css', '#cke_editor2');
+    $assert->elementExists('css', 'div[data-schemapath="root.formatted_text_restricted"] .ck-editor');
+    $assert->elementExists('css', 'div[data-schemapath="root.formatted_text_free"] .ck-editor');
 
     // Fill in JSON Editor fields.
-    $page->fillField('root[text]', 'Pattern block title');
-    $page->fillField('root[hidden]', 'My hidden text');
+    $editor_form->fillField('root[text]', 'Pattern block title');
+    $editor_form->fillField('root[hidden]', 'My hidden text');
 
     // Fill in the first CKEditor field.
     $restricted_value = '<p>My <strong>restricted text</strong> <em>value</em>.</p>';
@@ -144,6 +144,10 @@ class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
     // Fill in the second CKEditor field.
     $free_value = '<p>My <strong>free text</strong> <em>value</em>.</p>';
     $this->setEditorValue('root.formatted_text_free', $free_value);
+
+    // Wait for the field values to be updated.
+    $this->waitForFieldValueChange('root[formatted_text_restricted]');
+    $this->waitForFieldValueChange('root[formatted_text_free]');
 
     // Confirm the schema config field updated and contains CKEditor values.
     $config = $page->find('css', '#schema_instance_config')->getValue();
@@ -165,7 +169,7 @@ class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
     // Confirm all configuration content is persisted when editing the block.
     $this->drupalGet('layout_builder/update/block/overrides/node.1/0/content/' . $uuid);
     $this->waitForJsonEditorForm();
-    $this->waitForEditor('editor1');
+    $this->waitForEditor();
 
     $assert->fieldValueEquals('root[text]', 'Pattern block title');
     $assert->fieldValueEquals('root[hidden]', 'My hidden text');

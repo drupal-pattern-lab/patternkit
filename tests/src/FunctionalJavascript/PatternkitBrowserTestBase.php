@@ -258,7 +258,7 @@ abstract class PatternkitBrowserTestBase extends WebDriverTestBase {
   /**
    * Saves a layout and asserts the message is correct.
    */
-  protected function assertSaveLayout() {
+  protected function assertSaveLayout(): void {
     $assert_session = $this->assertSession();
     $page = $this->getSession()->getPage();
 
@@ -282,10 +282,10 @@ abstract class PatternkitBrowserTestBase extends WebDriverTestBase {
    *   The old configuration values.
    * @param array $new_config
    *   The new configuration values.
-   * @param string $block_css_locator
+   * @param string|null $block_css_locator
    *   The CSS locator to use to select the contextual link.
    */
-  protected function configurePatternBlock(array $old_config, array $new_config, $block_css_locator = NULL) {
+  protected function configurePatternBlock(array $old_config, array $new_config, ?string $block_css_locator = NULL): void {
     $block_css_locator = $block_css_locator ?: static::PATTERN_BLOCK_LOCATOR;
     $assert_session = $this->assertSession();
     $page = $this->getSession()->getPage();
@@ -318,7 +318,7 @@ abstract class PatternkitBrowserTestBase extends WebDriverTestBase {
    * @param string|null $css_locator
    *   The css locator to use inside the main canvas if any.
    */
-  protected function assertDialogClosedAndTextVisible($text, $css_locator = NULL) {
+  protected function assertDialogClosedAndTextVisible(string $text, ?string $css_locator = NULL): void {
     $assert_session = $this->assertSession();
     $assert_session->assertNoElementAfterWait('css', '#drupal-off-canvas');
     $assert_session->assertWaitOnAjaxRequest();

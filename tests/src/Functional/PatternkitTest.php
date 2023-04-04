@@ -20,6 +20,7 @@ class PatternkitTest extends PatternkitBrowserTestBase {
   static protected $modules = [
     'patternkit_example',
     'patternkit_test',
+    'field_ui',
   ];
 
   /**
