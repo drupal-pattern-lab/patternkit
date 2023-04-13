@@ -3,13 +3,19 @@
     font-size: inherit;
     font-weight: inherit;
     line-height: inherit;
+    font-family: 'RedHatText', Helvetica, Arial, sans-serif;
 }
 
-#drupal-off-canvas [data-theme=cygnet] label {
-    font-family: 'RedHatText', Helvetica, Arial, sans-serif;
-}
 #drupal-off-canvas [data-theme=cygnet] button {
     font-family: 'RedHatText', Helvetica, Arial, sans-serif;
+}
+
+/* Updates display and margin of OL and UL within editor area to ensure
+bullets or numbers in lists are not hidden from view in LB sidebar. */
+#drupal-off-canvas [data-theme=cygnet] .ck-editor__main ol,
+#drupal-off-canvas [data-theme=cygnet] .ck-editor__main ul {
+    display: block !important; /* needed to override core styles */
+    margin-left: 20px;
 }
 
 /*
