@@ -197,10 +197,7 @@ class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
 
     // Override the Node layout and place a patternkit block.
     $this->drupalGet('node/1/layout');
-    $page->clickLink('Add block');
-
-    // Wait for the block list to load before selecting a pattern to insert.
-    $assert->waitForLink($pattern_name)->click();
+    $this->addPatternBlock($pattern_name);
 
     // Wait for the JSON Editor form to load.
     $this->waitForJsonEditorForm();
@@ -265,10 +262,7 @@ class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
 
     // Override the Node layout and place a patternkit block.
     $this->drupalGet('node/1/layout');
-    $page->clickLink('Add block');
-
-    // Wait for the block list to load before selecting a pattern to insert.
-    $assert->waitForLink($pattern_name)->click();
+    $this->addPatternBlock($pattern_name);
 
     // Wait for the JSON Editor form to load.
     $this->waitForJsonEditorForm();
