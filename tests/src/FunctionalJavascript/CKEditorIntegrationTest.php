@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\patternkit\FunctionalJavascript;
 
-use Behat\Mink\Element\NodeElement;
 use Drupal\node\Entity\Node;
 use Drupal\Tests\patternkit\Traits\CKEditor5IntegrationTestTrait;
 
@@ -72,6 +71,7 @@ class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
 
     // Confirm the value is propagated into the form and schema config fields.
     $this->assertEquals($wysiwyg_value, $this->getEditorValue('root.formatted_text'), 'CKEditor value was not updated.');
+    $this->triggerCkeditorChange('root.formatted_text');
 
     // Wait for the CKEditor value to be propagated to the JSON Editor field.
     $field = $this->waitForFieldValueChange('root[formatted_text]');
@@ -140,10 +140,12 @@ class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
     // Fill in the first CKEditor field.
     $restricted_value = '<p>My <strong>restricted text</strong> <em>value</em>.</p>';
     $this->setEditorValue('root.formatted_text_restricted', $restricted_value);
+    $this->triggerCkeditorChange('root.formatted_text_restricted');
 
     // Fill in the second CKEditor field.
     $free_value = '<p>My <strong>free text</strong> <em>value</em>.</p>';
     $this->setEditorValue('root.formatted_text_free', $free_value);
+    $this->triggerCkeditorChange('root.formatted_text_free');
 
     // Wait for the field values to be updated.
     $this->waitForFieldValueChange('root[formatted_text_restricted]');
@@ -179,6 +181,135 @@ class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
     $value_2 = $this->getEditorValue('root.formatted_text_free');
     $this->assertEquals($restricted_value, $value_1);
     $this->assertEquals($free_value, $value_2);
+  }
+
+  /**
+   * Test saving when CKEditor is used in source editing mode.
+   */
+  public function testCkeditorSourceEditingMode(): void {
+    $assert = $this->assertSession();
+    $page = $this->getSession()->getPage();
+
+    $pattern_name = '[Patternkit] Example';
+
+    // Log in as an editor with access to update layouts.
+    $this->drupalLogin($this->editorUser);
+
+    // Override the Node layout and place a patternkit block.
+    $this->drupalGet('node/1/layout');
+    $page->clickLink('Add block');
+
+    // Wait for the block list to load before selecting a pattern to insert.
+    $assert->waitForLink($pattern_name)->click();
+
+    // Wait for the JSON Editor form to load.
+    $this->waitForJsonEditorForm();
+
+    // Wait for CKEditor to load.
+    $this->waitForEditor();
+
+    // Get the original config value to watch for changes.
+    $config_field = $page->find('css', '#schema_instance_config');
+    $original_config = $config_field->getValue();
+
+    // Set initial content in the editor.
+    $content = $page->find('css', '.ck-content');
+    $content->setValue('My test content');
+
+    // Confirm content and trigger editor changes. When entering the content
+    // traditionally in the editor, manually triggering the change event
+    // would not be needed. Unfortunately, the web driver doesn't trigger the
+    // event when setting the data value, so we have to trigger it manually for
+    // tests.
+    $this->assertEquals('<p>My test content</p>', $this->getEditorDataAsHtmlString(), "Didn't find the expected content in the editor.");
+    $schema_path = 'root.formatted_text';
+    $this->triggerCkeditorChange($schema_path);
+
+    $changed_config = $this->waitForConfigChange($original_config);
+    $this->assertNotFalse($changed_config, 'A configuration change was not detected.');
+    $this->assertStringContainsString('<p>My test content</p>', $changed_config);
+
+    // Change into source editing mode and alter the content.
+    $this->pressSourceButton();
+    $source_edited_content = '<p>My <em>edited</em> test content</p>';
+    $page->find('css', '.ck-source-editing-area textarea')
+      ->setValue($source_edited_content);
+
+    // Change back from source mode to trigger updates.
+    $this->pressSourceButton();
+    $this->assertEquals($source_edited_content, $this->getEditorDataAsHtmlString());
+
+    // Confirm the source-edited content made it into the serialized config.
+    $changed_config = $this->waitForConfigChange($changed_config);
+    $this->assertStringContainsString($source_edited_content, $changed_config);
+
+    $page->pressButton('Add block');
+    $page->pressButton('Save layout');
+
+    // Confirm the pattern is rendered on the Node display.
+    $this->drupalGet('node/1');
+    $assert->pageTextContains('My edited test content');
+  }
+
+  /**
+   * Test saving when CKEditor is left in source editing mode.
+   */
+  public function testCkeditorSourceEditingModeSaving(): void {
+    $assert = $this->assertSession();
+    $page = $this->getSession()->getPage();
+
+    $pattern_name = '[Patternkit] Example';
+
+    // Log in as an editor with access to update layouts.
+    $this->drupalLogin($this->editorUser);
+
+    // Override the Node layout and place a patternkit block.
+    $this->drupalGet('node/1/layout');
+    $page->clickLink('Add block');
+
+    // Wait for the block list to load before selecting a pattern to insert.
+    $assert->waitForLink($pattern_name)->click();
+
+    // Wait for the JSON Editor form to load.
+    $this->waitForJsonEditorForm();
+
+    // Wait for CKEditor to load.
+    $this->waitForEditor();
+
+    // Get the original config value to watch for changes.
+    $config_field = $page->find('css', '#schema_instance_config');
+    $original_config = $config_field->getValue();
+
+    // Set initial content in the editor.
+    $content = $page->find('css', '.ck-content');
+    $content->setValue('My test content');
+
+    // Confirm content and trigger editor changes. When entering the content
+    // traditionally in the editor, manually triggering the change event
+    // would not be needed. Unfortunately, the web driver doesn't trigger the
+    // event when setting the data value, so we have to trigger it manually for
+    // tests.
+    $this->assertEquals('<p>My test content</p>', $this->getEditorDataAsHtmlString(), "Didn't find the expected content in the editor.");
+    $schema_path = 'root.formatted_text';
+    $this->triggerCkeditorChange($schema_path);
+
+    $changed_config = $this->waitForConfigChange($original_config);
+    $this->assertNotFalse($changed_config, 'A configuration change was not detected.');
+    $this->assertStringContainsString('<p>My test content</p>', $changed_config);
+
+    // Change into source editing mode and alter the content.
+    $this->pressSourceButton();
+    $source_edited_content = '<p>My <em>edited</em> test content</p>';
+    $page->find('css', '.ck-source-editing-area textarea')
+      ->setValue($source_edited_content);
+
+    // Save the block without changing back out of source editing mode.
+    $page->pressButton('Add block');
+    $page->pressButton('Save layout');
+
+    // Confirm the pattern is rendered on the Node display.
+    $this->drupalGet('node/1');
+    $assert->pageTextContains('My edited test content');
   }
 
 }

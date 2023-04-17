@@ -3,7 +3,7 @@
 /*globals jQuery:false */
 /*globals JSONEditor:false */
 /**
- * @file DrupalImageEditor class.
+ * @file DrupalCKEditor class.
  *
  * @external Drupal
  * @external jQuery
@@ -201,7 +201,7 @@ export function patternkitEditorCKEditor($, Drupal, JSONEditor) {
   'use strict';
   Drupal.behaviors.patternkitEditorCKEditor = {
     attach: function (context, settings) {
-      if (!window.JSONEditor) {
+      if (!window.JSONEditor || !drupalSettings.patternkitEditor) {
         return;
       }
 

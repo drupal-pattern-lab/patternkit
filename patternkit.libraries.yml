@@ -24,6 +24,7 @@ patternkit.jsoneditor:
   dependencies:
     - core/drupal.dialog
     - core/drupal.dialog.ajax
+    - core/drupal.editor
     - core/drupalSettings
     - core/drupal.debounce
     - core/jquery

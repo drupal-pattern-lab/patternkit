@@ -39,6 +39,243 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
 
 (function ($, Drupal, JSONEditor, once) {
  'use strict';
+
+ class PatternkitJsonEditor {
+
+   constructor(target, settings, defaults) {
+     this.target = target;
+     this.settings = settings;
+     this.editor_root = document;
+     this.beforeSerializeCallbacks = [];
+     this.beforeSubmitCallbacks = [];
+
+     this.data = {
+       schema: JSON.parse(settings.schemaJson),
+       starting: JSON.parse(settings.startingJson)
+     };
+   }
+
+   loadTheme() {
+     let theme_js = this.settings.themeJS;
+     if (typeof theme_js === 'string') {
+       theme_js = [theme_js];
+     }
+     for (let i = 0; theme_js && i < theme_js.length; i++) {
+       let script_element = document.createElement('script');
+       script_element.type = "text/javascript";
+       script_element.src = theme_js[i];
+       document.getElementsByTagName('head')[0].appendChild(script_element);
+     }
+     let editor_dom = '';
+     if (this.settings.themeStylesheet) {
+       let theme_element = document.createElement('link');
+       theme_element.rel = "stylesheet";
+       theme_element.id = "theme_stylesheet";
+       theme_element.href = this.settings.themeStylesheet;
+       document.getElementsByTagName('head')[0].appendChild(theme_element);
+       editor_dom = '<link rel="stylesheet" id="theme_stylesheet" href="' + this.settings.themeStylesheet + '">';
+     }
+     // @todo Re-eval with this shadow dom webfont bug:
+     // https://bugs.chromium.org/p/chromium/issues/detail?id=336876
+     if (this.settings.iconStylesheet) {
+       let icons_element = document.createElement('link');
+       icons_element.rel = "stylesheet";
+       icons_element.id = "icon_stylesheet";
+       icons_element.href = this.settings.iconStylesheet;
+       document.getElementsByTagName('head')[0].appendChild(icons_element);
+       editor_dom += '<link rel="stylesheet" id="icon_stylesheet" href="' + this.settings.iconStylesheet + '">';
+     }
+     editor_dom += '<div id="editor_holder"></div>';
+
+     // We need to use a Shadow Dom to use themes, which has its own complications
+     // with other JS libraries trying to access editor components, for example WYSIWYG.
+     if (this.settings.useShadowDom) {
+       let shadow = this.attachShadow({mode: 'open'});
+       shadow.innerHTML += editor_dom;
+       this.editor_root = this.target[0].shadowRoot;
+     }
+     else {
+       this.target.html(editor_dom);
+     }
+   }
+
+   setDefaults() {
+     JSONEditor.defaults.options.theme = this.settings.theme;
+     JSONEditor.defaults.options.iconlib = this.settings.icons;
+     JSONEditor.defaults.options.keep_oneof_values = false;
+     JSONEditor.defaults.options.disable_edit_json = this.settings.disableJsonEditButton;
+     JSONEditor.defaults.options.disable_collapse = false;
+     JSONEditor.defaults.options.collapse = false;
+     JSONEditor.defaults.options.ajax = true;
+     JSONEditor.defaults.options.ajax_cache_responses = this.settings.ajaxCacheResponses;
+     JSONEditor.defaults.options.ajax_cache_buster = this.settings.ajaxCacheBuster;
+     JSONEditor.defaults.options.disable_properties = this.settings.disablePropertiesButtons;
+     // Overrides alert message when removing an item.
+     JSONEditor.defaults.languages.en.button_delete_node_warning = 'Are you sure you want to remove this item?'
+
+     // Uses Handlebars template engine so that we can use logic in
+     // `headerTemplate` property in schemas.
+     JSONEditor.defaults.options.template = 'handlebars';
+
+     // @todo Loop through all editor plugins and add them at runtime.
+
+     // Override how references are resolved.
+     JSONEditor.prototype._loadExternalRefs = function (schema, callback) {
+       let refs = this._getExternalRefs(schema);
+       let done = 0, waiting = 0, callback_fired = false;
+       $.each(refs, (url) => {
+         if (this.refs[url]) {
+           return;
+         }
+         if (!this.options.ajax) {
+           throw "Must set ajax option to true to load external ref " + url;
+         }
+         this.refs[url] = 'loading';
+         waiting++;
+         let r = new XMLHttpRequest();
+         let uri = settings.path.baseUrl + url;
+         r.open("GET", uri, true);
+         r.onreadystatechange = () => {
+           if (r.readyState !== 4) {
+             return;
+           }
+           // Request succeeded.
+           if (r.status === 200) {
+             let response;
+             try {
+               response = JSON.parse(r.responseText);
+             }
+             catch (e) {
+               window.console.log(e);
+               throw "Failed to parse external ref " + url;
+             }
+             // @todo Actually validate the schema so we can throw an error.
+             if (!response || typeof response !== "object") {
+               throw "External ref does not contain a valid schema - " + url;
+             }
+             this.refs[url] = response;
+             this._loadExternalRefs(response, function () {
+               done++;
+               if (done >= waiting && !callback_fired) {
+                 callback_fired = true;
+                 callback();
+               }
+             });
+           }
+           // Request failed.
+           else {
+             window.console.log(r);
+             throw "Failed to fetch ref via ajax- " + url;
+           }
+         };
+         r.send();
+       });
+       if (!waiting) {
+         callback();
+       }
+     };
+   }
+
+   loadEditor() {
+     // Initialize the editor with a JSON schema.
+     let config = {
+       schema: this.data.schema,
+       refs: {}
+     };
+     window.patternkitEditor = new JSONEditor(this.editor_root.getElementById('editor_holder'), config);
+
+     window.patternkitEditor.on('ready', this.onReady.bind(this));
+     window.patternkitEditor.on('change', this.saveSchema.bind(this));
+
+     // Expose methods for editors to register AJAX event cycle callbacks.
+     const self = this;
+     window.patternkitEditor.beforeSerialize = (callback) => {
+       self.beforeSerializeCallbacks.push(callback);
+     }
+     window.patternkitEditor.beforeSubmit = (callback) => {
+       self.beforeSubmitCallbacks.push(callback);
+     }
+   }
+
+   saveSchema() {
+     $('#schema_instance_config').val(JSON.stringify(window.patternkitEditor.getValue()));
+
+     // Material Design JS doesn't update fields on ready event.
+     // We call it to make up for that gap.
+     if (window.M) {
+       window.M.updateTextFields();
+     }
+   }
+
+   onReady() {
+     try {
+       // If we provide starting JSON as a value, JSON Editor hides all
+       // non-required fields, which is desired behavior by most users of
+       // the library. For patterns, we want to include any new schema
+       // fields in our values, so they are displayed by default, optional or
+       // not. This also allows us to pre-populate based on the schema
+       // provided.
+       if (typeof this.data.starting === 'object' && !$.isEmptyObject(this.data.starting)) {
+         window.patternkitEditor.setValue({...window.patternkitEditor.getValue(), ...this.data.starting});
+       }
+     }
+     catch (e) {
+       window.console.error(e);
+     }
+
+     // Material Design JS doesn't update fields on ready event.
+     // We call it to make up for that gap.
+     if (window.M) {
+       window.M.updateTextFields();
+     }
+
+     this.hideLoadingIndicator();
+   }
+
+   beforeSerialize() {
+     const callbacks = this.beforeSerializeCallbacks;
+     callbacks.forEach((callback) => {
+       callback();
+     })
+   }
+
+   beforeSubmit() {
+     const callbacks = this.beforeSubmitCallbacks;
+     callbacks.forEach((callback) => {
+       callback();
+     })
+   }
+
+   onSubmit(e) {
+     // Call all serialize and submission handlers since this function is only
+     // triggered outside an AJAX content and those handler would not be
+     // called otherwise.
+     this.beforeSerialize();
+     this.beforeSubmit();
+
+     this.saveSchema();
+     window.patternkitEditor.destroy();
+     delete window.patternkitEditor;
+     $(once.remove('patternkit-editor', $('#patternkit-editor-target')));
+     $(this).off('submit');
+   }
+
+   showLoadingIndicator() {
+     const loadingIndicatorClass = 'js-patternkit-loading__on';
+
+     // Only add the indicator if it isn't already present.
+     let $indicator = $('.' + loadingIndicatorClass);
+     if ($indicator.length === 0) {
+       this.target.before(`<div class="${loadingIndicatorClass}"></div>`);
+     }
+   }
+
+   hideLoadingIndicator() {
+     const loadingIndicatorClass = 'js-patternkit-loading__on';
+     $('.' + loadingIndicatorClass).remove();
+   }
+ }
+
  Drupal.behaviors.patternkitEditor = {
    attach: function (context, settings) {
      if (!window.JSONEditor) {
@@ -48,225 +285,99 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
      Drupal.AjaxCommands.prototype.patternkitEditorUpdate = function (ajax, response, status) {
        window.patternkitEditor.getEditor(response.selector).setValue(response.value);
      };
-     let saveSchema = function () {
-       $('#schema_instance_config').val(JSON.stringify(window.patternkitEditor.getValue()));
-       if (window.M) {
-         window.M.updateTextFields();
-       }
-     };
+
      let $target = $('#patternkit-editor-target', context);
+     let editor = new PatternkitJsonEditor($target, settings.patternkitEditor);
+
      $(once('patternkit-editor', $target)).each(function () {
-       var loadingIndicatorClass = 'js-patternkit-loading__on';
+       editor.showLoadingIndicator();
+       editor.loadTheme();
+       editor.setDefaults();
+       editor.loadEditor();
 
-       $target.before(`<div class="${loadingIndicatorClass}"></div>`);
-
-       let theme_js = settings.patternkitEditor.themeJS;
-       if (typeof theme_js === 'string') {
-         theme_js = [theme_js];
-       }
-       for (let i = 0; theme_js && i < theme_js.length; i++) {
-         let script_element = document.createElement('script');
-         script_element.type = "text/javascript";
-         script_element.src = theme_js[i];
-         document.getElementsByTagName('head')[0].appendChild(script_element);
-       }
-       let editor_dom = '';
-       if (settings.patternkitEditor.themeStylesheet) {
-         let theme_element = document.createElement('link');
-         theme_element.rel = "stylesheet";
-         theme_element.id = "theme_stylesheet";
-         theme_element.href = settings.patternkitEditor.themeStylesheet;
-         document.getElementsByTagName('head')[0].appendChild(theme_element);
-         editor_dom = '<link rel="stylesheet" id="theme_stylesheet" href="' + settings.patternkitEditor.themeStylesheet + '">';
-       }
-       // @todo Re-eval with this shadow dom webfont bug:
-       // https://bugs.chromium.org/p/chromium/issues/detail?id=336876
-       if (settings.patternkitEditor.iconStylesheet) {
-         let icons_element = document.createElement('link');
-         icons_element.rel = "stylesheet";
-         icons_element.id = "icon_stylesheet";
-         icons_element.href = settings.patternkitEditor.iconStylesheet;
-         document.getElementsByTagName('head')[0].appendChild(icons_element);
-         editor_dom += '<link rel="stylesheet" id="icon_stylesheet" href="' + settings.patternkitEditor.iconStylesheet + '">';
-       }
-       editor_dom += '<div id="editor_holder"></div>';
-
-       let editor_root = document;
-       // We need to use a Shadow Dom to use themes, which has its own complications
-       // with other JS libraries trying to access editor components, for example WYSIWYG.
-       if (settings.patternkitEditor.useShadowDom) {
-         let shadow = this.attachShadow({mode: 'open'});
-         shadow.innerHTML += editor_dom;
-         editor_root = $target[0].shadowRoot;
-       }
-       else {
-         $target.html(editor_dom);
-       }
-
-       let data = {
-         schema: JSON.parse(settings.patternkitEditor.schemaJson),
-         starting: JSON.parse(settings.patternkitEditor.startingJson)
-       };
-       JSONEditor.defaults.options.theme = settings.patternkitEditor.theme;
-       JSONEditor.defaults.options.iconlib = settings.patternkitEditor.icons;
-       JSONEditor.defaults.options.keep_oneof_values = false;
-       JSONEditor.defaults.options.disable_edit_json = settings.patternkitEditor.disableJsonEditButton;
-       JSONEditor.defaults.options.disable_collapse = false;
-       JSONEditor.defaults.options.collapse = false;
-       JSONEditor.defaults.options.ajax = true;
-       JSONEditor.defaults.options.ajax_cache_responses = settings.patternkitEditor.ajaxCacheResponses;
-       JSONEditor.defaults.options.ajax_cache_buster = settings.patternkitEditor.ajaxCacheBuster;
-       JSONEditor.defaults.options.disable_properties = settings.patternkitEditor.disablePropertiesButtons;
-       // Overrides alert message when removing an item.
-       JSONEditor.defaults.languages.en.button_delete_node_warning = 'Are you sure you want to remove this item?'
-       
-       // @todo Loop through all editor plugins and add them at runtime.
-
-       // Override how references are resolved.
-       JSONEditor.prototype._loadExternalRefs = function (schema, callback) {
-         let refs = this._getExternalRefs(schema);
-         let done = 0, waiting = 0, callback_fired = false;
-         $.each(refs, (url) => {
-           if (this.refs[url]) {
-             return;
-           }
-           if (!this.options.ajax) {
-             throw "Must set ajax option to true to load external ref " + url;
-           }
-           this.refs[url] = 'loading';
-           waiting++;
-           let r = new XMLHttpRequest();
-           let uri = settings.path.baseUrl + url;
-           r.open("GET", uri, true);
-           r.onreadystatechange = () => {
-             if (r.readyState !== 4) {
-               return;
-             }
-             // Request succeeded.
-             if (r.status === 200) {
-               let response;
-               try {
-                 response = JSON.parse(r.responseText);
-               }
-               catch (e) {
-                 window.console.log(e);
-                 throw "Failed to parse external ref " + url;
-               }
-               // @todo Actually validate the schema so we can throw an error.
-               if (!response || typeof response !== "object") {
-                 throw "External ref does not contain a valid schema - " + url;
-               }
-               this.refs[url] = response;
-               this._loadExternalRefs(response, function () {
-                 done++;
-                 if (done >= waiting && !callback_fired) {
-                   callback_fired = true;
-                   callback();
-                 }
-               });
-             }
-             // Request failed.
-             else {
-               window.console.log(r);
-               throw "Failed to fetch ref via ajax- " + url;
-             }
-           };
-           r.send();
-         });
-         if (!waiting) {
-           callback();
-         }
-       };
-       // Initialize the editor with a JSON schema.
-       let config = {
-         schema: data.schema,
-         refs: {}
-       };
-       window.patternkitEditor = new JSONEditor(editor_root.getElementById('editor_holder'), config);
-       window.patternkitEditor.on('ready', function () {
-         try {
-           // If we provide starting JSON as a value, JSON Editor hides all
-           // non-required fields, which is desired behavior by most users of
-           // the library. For patterns, we want to include any new schema
-           // fields in our values so they are displayed by default, optional or
-           // not.  This also allows us to pre-populate based on the schema
-           // provided.
-           if (typeof data.starting === 'object' && !$.isEmptyObject(data.starting)) {
-             window.patternkitEditor.setValue({...window.patternkitEditor.getValue(), ...data.starting});
-           }
-         }
-         catch (e) {
-           console.error(e);
-         }
-         // Material Design JS doesn't update fields on ready event.
-         // We call it to make up for that gap.
-         if (window.M) {
-           window.M.updateTextFields();
-         }
-
-         $('.' + loadingIndicatorClass).removeClass(loadingIndicatorClass);
+       let $form = $('[data-drupal-selector="edit-actions-submit"]').parent('form');
+       $(once('json-editor-processed', $form, context)).each(function () {
+         $(this).on('submit', editor.onSubmit.bind(editor));
        });
-       window.patternkitEditor.on('change', saveSchema);
+
+       // Drupal triggers Ajax submit via input events before the form events
+       // bubble up for listeners, so we need to add a pre-hook within this
+       // event cycle to trigger the editor update with latest field values
+       // before the values are finalized and submitted.
+       let beforeSerialize = Drupal.Ajax.prototype.beforeSerialize;
+       if (!beforeSerialize.unwrap) {
+         Drupal.Ajax.prototype.beforeSerialize = function (element, options) {
+           if (window.patternkitEditor) {
+             editor.beforeSerialize();
+             editor.saveSchema();
+           }
+
+           beforeSerialize(element, options);
+         }
+
+         // Add a callback to easily remove the decorated wrapper.
+         Drupal.Ajax.prototype.beforeSerialize.unwrap = () => {
+           Drupal.Ajax.prototype.beforeSerialize = beforeSerialize;
+         };
+       }
+
        // Drupal triggers Ajax submit via input events.
        // This is before allowing other events, so we need to add a pre-hook
        // to trigger the editor update with latest field values.
        // @todo Add handling for AJAX errors and re-attach.
-       let parent_call = Drupal.Ajax.prototype.beforeSubmit;
-       Drupal.Ajax.prototype.beforeSubmit = function (formValues, elementSettings, options) {
-         if (window.patternkitEditor) {
-           let index = formValues.findIndex(function (o) {
-             return o.name === "settings[instance_config]";
-           });
-           if (index !== -1) {
-             window.patternkitEditor.disable();
-             saveSchema();
-             formValues[index] = {
-               name: "settings[instance_config]",
-               value: JSON.stringify(window.patternkitEditor.getValue()),
-               type: "hidden",
-               required: false
-             };
-             window.patternkitEditor.destroy();
-             delete window.patternkitEditor;
-             $(once.remove('patternkit-editor', $target));
+       let beforeSubmit = Drupal.Ajax.prototype.beforeSubmit;
+       if (!beforeSubmit.unwrap) {
+         Drupal.Ajax.prototype.beforeSubmit = function (formValues, elementSettings, options) {
+           if (window.patternkitEditor) {
+             // Run any registered beforeSubmit handlers before destroying the
+             // JSONEditor form.
+             editor.beforeSubmit();
            }
-         }
-         parent_call.call(this, formValues, elementSettings, options);
-       };
-       let $form = $('[data-drupal-selector="edit-actions-submit"]').parent('form');
-       $(once('json-editor-processed', $form, context)).each(function () {
-         $(this).on('submit', (e) => {
-           window.patternkitEditor.disable();
-           saveSchema();
-           window.patternkitEditor.destroy();
-           delete window.patternkitEditor;
-           $(once.remove('patternkit-editor', $target));
-           $(this).off('submit');
-         });
-       });
-     });
 
-     // If user closes the Layout Builder dialog without saving, this cleans
-     // up Patternkit (and, in turn) CKEditor instance.  Code stolen from
-     // `Drupal.behaviors.offCanvasEvents`.
-     $(once('patternkit-jsoneditor-off-canvas', window)).on('dialog:beforeclose', (event, dialog, $element) => {
-       // The editor may have already been destroyed if its form was
-       // submitted. The following code only destroys the editor if the modal
-       // gets closed without submitting the form.
-       var dialogEl = $element.get(0);
-       if (dialogEl && dialogEl.id === 'drupal-off-canvas') {
-         if (window.patternkitEditor) {
+           beforeSubmit(formValues, elementSettings, options);
+         };
+
+         // Add a callback to easily remove the decorated wrapper.
+         Drupal.Ajax.prototype.beforeSubmit.unwrap = () => {
+           Drupal.Ajax.prototype.beforeSubmit = beforeSubmit;
+         };
+       }
+     });
+   },
+
+   detach(context, settings, trigger) {
+     let editors;
+     if (trigger === 'serialize') {
+       editors = once.filter('patternkit-editor', '#patternkit-editor-target', context);
+     }
+     else {
+       editors = once.remove('patternkit-editor', '#patternkit-editor-target', context);
+     }
+
+     editors.forEach((editor) => {
+       if (window.patternkitEditor) {
+         if (trigger === 'serialize') {
+           window.patternkitEditor.saveSchema();
+         }
+         else {
+           // Add a status flag to easily check when the editor is being
+           // destroyed.
+           window.patternkitEditor.detaching = true;
            window.patternkitEditor.disable();
            window.patternkitEditor.destroy();
            delete window.patternkitEditor;
+
+           // Remove decorated wrappers on AJAX events.
+           if (Drupal.Ajax.prototype.beforeSerialize.unwrap) {
+             Drupal.Ajax.prototype.beforeSerialize.unwrap();
+           }
+           if (Drupal.Ajax.prototype.beforeSubmit.unwrap) {
+             Drupal.Ajax.prototype.beforeSubmit.unwrap();
+           }
          }
        }
      });
    }
  };
-
- // Uses Handlebars template engine so that we can use logic in
- // `headerTemplate` property in schemas.
- JSONEditor.defaults.options.template = 'handlebars';
 
 })(jQuery, Drupal, JSONEditor, once);

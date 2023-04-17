@@ -5,6 +5,7 @@ namespace Drupal\Tests\patternkit\Traits;
 use Drupal\editor\Entity\Editor;
 use Drupal\filter\Entity\FilterFormat;
 use Drupal\Tests\ckeditor5\Traits\CKEditor5TestTrait;
+use PHPUnit\Framework\ExpectationFailedException;
 
 /**
  * A helper trait to interact with and test CKEditor integration.
@@ -27,10 +28,18 @@ trait CKEditor5IntegrationTestTrait {
       'name' => 'Filtered HTML',
       'weight' => 0,
     ])->save();
-    Editor::create([
+
+    $editor = Editor::create([
       'format' => 'filtered_html',
       'editor' => 'ckeditor5',
-    ])->save();
+    ]);
+
+    // Add the source editing button to the toolbar.
+    $settings = $editor->getSettings();
+    $settings['toolbar']['items'][] = 'sourceEditing';
+    $editor->setSettings($settings);
+
+    $editor->save();
 
     // Enable CKEditor integration.
     $config = $this->config('patternkit.settings');
@@ -109,6 +118,43 @@ trait CKEditor5IntegrationTestTrait {
     $this->assertNotEmpty($ckeditor_id = $wrapper->find('css', '[data-ckeditor5-id]')->getAttribute('data-ckeditor5-id'));
 
     return $ckeditor_id;
+  }
+
+  /**
+   * Mimic the change event triggered by changing content in CKEditor.
+   *
+   * When entering the content traditionally in the editor, manually triggering
+   * the change event would not be needed. Unfortunately, the web driver doesn't
+   * trigger the event when setting the data value, so we have to trigger it
+   * manually for tests.
+   *
+   * @param string $schema_path
+   *   The schema path to the editor to trigger a change event on. For example,
+   *   "root.formatted_text".
+   */
+  protected function triggerCkeditorChange(string $schema_path): void {
+    $javascript = <<<JS
+      (function(){
+        window.patternkitEditor.getEditor('$schema_path').saveEditorContent();
+      })();
+      JS;
+    $this->getSession()->evaluateScript($javascript);
+  }
+
+  /**
+   * Attempt to press the "Source" button with failure handling.
+   *
+   * Attempt to click the "Source" button, but try again after clicking the
+   * "Show more" button if it fails to find it.
+   */
+  protected function pressSourceButton(): void {
+    try {
+      $this->pressEditorButton('Source');
+    }
+    catch (ExpectationFailedException $exception) {
+      $this->pressEditorButton('Show more items');
+      $this->pressEditorButton('Source');
+    }
   }
 
 }

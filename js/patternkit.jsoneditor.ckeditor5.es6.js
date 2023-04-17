@@ -26,20 +26,27 @@ export class DrupalCKEditor5 extends JSONEditor.defaults.editors.string {
       // @todo Replace JSONEditor.defaults with this.defaults.
       this.options = jQuery.extend({}, JSONEditor.defaults.options.drupal_ckeditor || {}, this.options.drupal_ckeditor || {});
 
-      let format = drupalSettings.editor.formats[this.options.ckeditor_config.selected_toolbar];
-      Drupal.editorAttach(this.input, format);
-      let id = this.input.getAttribute('data-ckeditor5-id');
-      this.ckeditor_instance = Drupal.CKEditor5Instances.get(id);
+      this.format = drupalSettings.editor.formats[this.options.ckeditor_config.selected_toolbar];
+      Drupal.editorAttach(this.input, this.format);
 
-      // Attach the listener for change events in the CKEditor content.
-      // @todo Determine if this is detrimentally overwriting the change default
-      //   listener attached in editor.js.
-      Drupal.editors.ckeditor5.onChange(this.input, this.saveEditorContent.bind(this))
+      // Wait for the CKEditor instance to be created and attached to make it
+      // available for attaching event listeners.
+      const self = this;
+      const promise = new Promise((resolve) => {
+        let editor;
+        let intervalId;
+        intervalId = setInterval(() => {
+          editor = self.getCkeditorInstance();
+          if (editor) {
+            // Cancel the interval checking since the instance has been loaded.
+            clearInterval(intervalId);
+            resolve(editor);
+          }
+        }, 500);
+      });
 
-      // In "source" mode (e.g., by clicking the "Source" button), CKEditor's
-      // "change" event does not fire, so we need to listen on the "input"
-      // event.
-      // See https://ckeditor.com/docs/ckeditor4/latest/api/CKEDITOR_editor.html#event-change
+      // Attach event listeners after the editor has been loaded.
+      promise.then(this.attachListeners.bind(this));
 
       this.theme.afterInputReady(this.input);
     }
@@ -48,14 +55,74 @@ export class DrupalCKEditor5 extends JSONEditor.defaults.editors.string {
     }
   }
 
+  attachListeners() {
+    const self = this;
+    const editor = this.ckeditor_instance;
+    editor.once('destroy', () => {
+      self.ckeditor_instance = null;
+    });
+
+    // This change handler mimics the attachment handler from Core's CKEditor 5
+    // implementation without overriding it in order to maintain the support
+    // it provides for bubbling form change events.
+    // @see Drupal.editors.ckeditor5.attach
+    const updateCallback = this.saveEditorContent.bind(this);
+    const onChange = () => {
+      if (editor.plugins.has('SourceEditing')) {
+        // If the change:data is being called while in source editing
+        // mode, it means that the form is being submitted. To avoid
+        // race conditions, in this case the callback gets called
+        // without decorating the callback with debounce.
+        // @see https://www.drupal.org/i/3229174
+        // @see Drupal.editorDetach
+        if (editor.plugins.get('SourceEditing').isSourceEditingMode) {
+          updateCallback();
+          return;
+        }
+      }
+
+      Drupal.debounce(updateCallback, 400)();
+    }
+
+    // Attach the listener for change events in the CKEditor content.
+    editor.model.document.on('change:data', onChange);
+
+    // To avoid race conditions when the form is destroyed, the editor content
+    // needs to be saved to the source field before values are collected for
+    // AJAX submission.
+    window.patternkitEditor.beforeSerialize(() => {
+      const isInSourceMode = self.isInSourceMode();
+
+      // Disable the change event listener to prevent an infinite loop if the
+      // editor happens to be in source mode.
+      if (isInSourceMode) {
+        editor.model.document.off('change:data', onChange);
+      }
+
+      self.saveEditorContent();
+
+      // If an ajax request is triggered that doesn't result in detaching the
+      // form, such as opening a media selection modal, the change listener
+      // needs to be re-attached.
+      if (isInSourceMode) {
+        // Set a timeout to delay re-attaching in order to determine whether the
+        // form is being destroyed. Blindly re-attaching the listener sometimes
+        // results in value lookup failures since the editor is in the process
+        // of being detached.
+        setTimeout(() => {
+          if (window.patternkitEditor && !window.patternkitEditor.detaching) {
+            editor.model.document.on('change:data', onChange);
+          }
+        }, 500);
+      }
+    });
+  }
+
   destroy() {
     if (this.ckeditor_instance) {
-      let format = drupalSettings.editor.formats[this.options.ckeditor_config.selected_toolbar];
-
-      this.ckeditor_instance.updateSourceElement();
-      Drupal.editorDetach(this.input, format);
-      this.ckeditor_instance = null;
+      Drupal.editorDetach(this.input, this.format, 'unload');
     }
+
     super.destroy();
   }
 
@@ -96,7 +163,18 @@ export class DrupalCKEditor5 extends JSONEditor.defaults.editors.string {
   }
 
   saveEditorContent() {
-    this.input.value = this.getCkeditorInstance().getData();
+    // If the source editor is open when the form is submitted, the data
+    // change event may be delayed in firing causing it to call this function
+    // after the JSON Editor has already begun destroying the form and the
+    // values may no longer be updated. In this case, editor has already been
+    // detached, and we'll abort here.
+    const editor = this.getCkeditorInstance();
+    if (!this.jsoneditor || !editor) {
+      return;
+    }
+
+    editor.updateSourceElement();
+
     this.refreshValue();
     // Dirty means display cache is invalidated for string editors.
     this.is_dirty = true;
@@ -111,4 +189,15 @@ export class DrupalCKEditor5 extends JSONEditor.defaults.editors.string {
 
     return this.ckeditor_instance;
   }
+
+  isInSourceMode() {
+    const editor = this.ckeditor_instance;
+    if (editor.plugins && editor.plugins.has('SourceEditing')) {
+      return editor.plugins.get('SourceEditing').isSourceEditingMode;
+    }
+    else {
+      return false;
+    }
+  }
+
 }

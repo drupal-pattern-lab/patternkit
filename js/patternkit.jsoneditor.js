@@ -256,7 +256,7 @@ function patternkitEditorCKEditor($, Drupal, JSONEditor) {
 
   Drupal.behaviors.patternkitEditorCKEditor = {
     attach: function attach(context, settings) {
-      if (!window.JSONEditor) {
+      if (!window.JSONEditor || !drupalSettings.patternkitEditor) {
         return;
       }
 
@@ -358,31 +358,97 @@ var DrupalCKEditor5 = /*#__PURE__*/function (_JSONEditor$defaults$) {
         // Editor options.
         // @todo Replace JSONEditor.defaults with this.defaults.
         this.options = jQuery.extend({}, JSONEditor.defaults.options.drupal_ckeditor || {}, this.options.drupal_ckeditor || {});
-        var format = drupalSettings.editor.formats[this.options.ckeditor_config.selected_toolbar];
-        Drupal.editorAttach(this.input, format);
-        var id = this.input.getAttribute('data-ckeditor5-id');
-        this.ckeditor_instance = Drupal.CKEditor5Instances.get(id); // Attach the listener for change events in the CKEditor content.
-        // @todo Determine if this is detrimentally overwriting the change default
-        //   listener attached in editor.js.
+        this.format = drupalSettings.editor.formats[this.options.ckeditor_config.selected_toolbar];
+        Drupal.editorAttach(this.input, this.format); // Wait for the CKEditor instance to be created and attached to make it
+        // available for attaching event listeners.
 
-        Drupal.editors.ckeditor5.onChange(this.input, this.saveEditorContent.bind(this)); // In "source" mode (e.g., by clicking the "Source" button), CKEditor's
-        // "change" event does not fire, so we need to listen on the "input"
-        // event.
-        // See https://ckeditor.com/docs/ckeditor4/latest/api/CKEDITOR_editor.html#event-change
+        var self = this;
+        var promise = new Promise(function (resolve) {
+          var editor;
+          var intervalId;
+          intervalId = setInterval(function () {
+            editor = self.getCkeditorInstance();
 
+            if (editor) {
+              // Cancel the interval checking since the instance has been loaded.
+              clearInterval(intervalId);
+              resolve(editor);
+            }
+          }, 500);
+        }); // Attach event listeners after the editor has been loaded.
+
+        promise.then(this.attachListeners.bind(this));
         this.theme.afterInputReady(this.input);
       } else {
         _get(_getPrototypeOf(DrupalCKEditor5.prototype), "afterInputReady", this).call(this);
       }
     }
   }, {
+    key: "attachListeners",
+    value: function attachListeners() {
+      var self = this;
+      var editor = this.ckeditor_instance;
+      editor.once('destroy', function () {
+        self.ckeditor_instance = null;
+      }); // This change handler mimics the attachment handler from Core's CKEditor 5
+      // implementation without overriding it in order to maintain the support
+      // it provides for bubbling form change events.
+      // @see Drupal.editors.ckeditor5.attach
+
+      var updateCallback = this.saveEditorContent.bind(this);
+
+      var onChange = function onChange() {
+        if (editor.plugins.has('SourceEditing')) {
+          // If the change:data is being called while in source editing
+          // mode, it means that the form is being submitted. To avoid
+          // race conditions, in this case the callback gets called
+          // without decorating the callback with debounce.
+          // @see https://www.drupal.org/i/3229174
+          // @see Drupal.editorDetach
+          if (editor.plugins.get('SourceEditing').isSourceEditingMode) {
+            updateCallback();
+            return;
+          }
+        }
+
+        Drupal.debounce(updateCallback, 400)();
+      }; // Attach the listener for change events in the CKEditor content.
+
+
+      editor.model.document.on('change:data', onChange); // To avoid race conditions when the form is destroyed, the editor content
+      // needs to be saved to the source field before values are collected for
+      // AJAX submission.
+
+      window.patternkitEditor.beforeSerialize(function () {
+        var isInSourceMode = self.isInSourceMode(); // Disable the change event listener to prevent an infinite loop if the
+        // editor happens to be in source mode.
+
+        if (isInSourceMode) {
+          editor.model.document.off('change:data', onChange);
+        }
+
+        self.saveEditorContent(); // If an ajax request is triggered that doesn't result in detaching the
+        // form, such as opening a media selection modal, the change listener
+        // needs to be re-attached.
+
+        if (isInSourceMode) {
+          // Set a timeout to delay re-attaching in order to determine whether the
+          // form is being destroyed. Blindly re-attaching the listener sometimes
+          // results in value lookup failures since the editor is in the process
+          // of being detached.
+          setTimeout(function () {
+            if (window.patternkitEditor && !window.patternkitEditor.detaching) {
+              editor.model.document.on('change:data', onChange);
+            }
+          }, 500);
+        }
+      });
+    }
+  }, {
     key: "destroy",
     value: function destroy() {
       if (this.ckeditor_instance) {
-        var format = drupalSettings.editor.formats[this.options.ckeditor_config.selected_toolbar];
-        this.ckeditor_instance.updateSourceElement();
-        Drupal.editorDetach(this.input, format);
-        this.ckeditor_instance = null;
+        Drupal.editorDetach(this.input, this.format, 'unload');
       }
 
       _get(_getPrototypeOf(DrupalCKEditor5.prototype), "destroy", this).call(this);
@@ -434,7 +500,18 @@ var DrupalCKEditor5 = /*#__PURE__*/function (_JSONEditor$defaults$) {
   }, {
     key: "saveEditorContent",
     value: function saveEditorContent() {
-      this.input.value = this.getCkeditorInstance().getData();
+      // If the source editor is open when the form is submitted, the data
+      // change event may be delayed in firing causing it to call this function
+      // after the JSON Editor has already begun destroying the form and the
+      // values may no longer be updated. In this case, editor has already been
+      // detached, and we'll abort here.
+      var editor = this.getCkeditorInstance();
+
+      if (!this.jsoneditor || !editor) {
+        return;
+      }
+
+      editor.updateSourceElement();
       this.refreshValue(); // Dirty means display cache is invalidated for string editors.
 
       this.is_dirty = true;
@@ -449,6 +526,17 @@ var DrupalCKEditor5 = /*#__PURE__*/function (_JSONEditor$defaults$) {
       }
 
       return this.ckeditor_instance;
+    }
+  }, {
+    key: "isInSourceMode",
+    value: function isInSourceMode() {
+      var editor = this.ckeditor_instance;
+
+      if (editor.plugins && editor.plugins.has('SourceEditing')) {
+        return editor.plugins.get('SourceEditing').isSourceEditingMode;
+      } else {
+        return false;
+      }
     }
   }]);
 
@@ -1269,6 +1357,12 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
 // Instantiates wysiwyg plugins.
 (0, _patternkitJsoneditorQuillEs.patternkitEditorQuill)(jQuery, Drupal, JSONEditor);
 (0, _patternkitJsoneditorCkeditor.patternkitEditorCKEditor)(jQuery, Drupal, JSONEditor);
@@ -1283,30 +1377,25 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 (function ($, Drupal, JSONEditor, once) {
   'use strict';
 
-  Drupal.behaviors.patternkitEditor = {
-    attach: function attach(context, settings) {
-      if (!window.JSONEditor) {
-        return;
-      } // Ajax command response to allow updating Editor field values.
+  var PatternkitJsonEditor = /*#__PURE__*/function () {
+    function PatternkitJsonEditor(target, settings, defaults) {
+      _classCallCheck(this, PatternkitJsonEditor);
 
-
-      Drupal.AjaxCommands.prototype.patternkitEditorUpdate = function (ajax, response, status) {
-        window.patternkitEditor.getEditor(response.selector).setValue(response.value);
+      this.target = target;
+      this.settings = settings;
+      this.editor_root = document;
+      this.beforeSerializeCallbacks = [];
+      this.beforeSubmitCallbacks = [];
+      this.data = {
+        schema: JSON.parse(settings.schemaJson),
+        starting: JSON.parse(settings.startingJson)
       };
+    }
 
-      var saveSchema = function saveSchema() {
-        $('#schema_instance_config').val(JSON.stringify(window.patternkitEditor.getValue()));
-
-        if (window.M) {
-          window.M.updateTextFields();
-        }
-      };
-
-      var $target = $('#patternkit-editor-target', context);
-      $(once('patternkit-editor', $target)).each(function () {
-        var loadingIndicatorClass = 'js-patternkit-loading__on';
-        $target.before("<div class=\"".concat(loadingIndicatorClass, "\"></div>"));
-        var theme_js = settings.patternkitEditor.themeJS;
+    _createClass(PatternkitJsonEditor, [{
+      key: "loadTheme",
+      value: function loadTheme() {
+        var theme_js = this.settings.themeJS;
 
         if (typeof theme_js === 'string') {
           theme_js = [theme_js];
@@ -1321,56 +1410,57 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
         var editor_dom = '';
 
-        if (settings.patternkitEditor.themeStylesheet) {
+        if (this.settings.themeStylesheet) {
           var theme_element = document.createElement('link');
           theme_element.rel = "stylesheet";
           theme_element.id = "theme_stylesheet";
-          theme_element.href = settings.patternkitEditor.themeStylesheet;
+          theme_element.href = this.settings.themeStylesheet;
           document.getElementsByTagName('head')[0].appendChild(theme_element);
-          editor_dom = '<link rel="stylesheet" id="theme_stylesheet" href="' + settings.patternkitEditor.themeStylesheet + '">';
+          editor_dom = '<link rel="stylesheet" id="theme_stylesheet" href="' + this.settings.themeStylesheet + '">';
         } // @todo Re-eval with this shadow dom webfont bug:
         // https://bugs.chromium.org/p/chromium/issues/detail?id=336876
 
 
-        if (settings.patternkitEditor.iconStylesheet) {
+        if (this.settings.iconStylesheet) {
           var icons_element = document.createElement('link');
           icons_element.rel = "stylesheet";
           icons_element.id = "icon_stylesheet";
-          icons_element.href = settings.patternkitEditor.iconStylesheet;
+          icons_element.href = this.settings.iconStylesheet;
           document.getElementsByTagName('head')[0].appendChild(icons_element);
-          editor_dom += '<link rel="stylesheet" id="icon_stylesheet" href="' + settings.patternkitEditor.iconStylesheet + '">';
+          editor_dom += '<link rel="stylesheet" id="icon_stylesheet" href="' + this.settings.iconStylesheet + '">';
         }
 
-        editor_dom += '<div id="editor_holder"></div>';
-        var editor_root = document; // We need to use a Shadow Dom to use themes, which has its own complications
+        editor_dom += '<div id="editor_holder"></div>'; // We need to use a Shadow Dom to use themes, which has its own complications
         // with other JS libraries trying to access editor components, for example WYSIWYG.
 
-        if (settings.patternkitEditor.useShadowDom) {
+        if (this.settings.useShadowDom) {
           var shadow = this.attachShadow({
             mode: 'open'
           });
           shadow.innerHTML += editor_dom;
-          editor_root = $target[0].shadowRoot;
+          this.editor_root = this.target[0].shadowRoot;
         } else {
-          $target.html(editor_dom);
+          this.target.html(editor_dom);
         }
-
-        var data = {
-          schema: JSON.parse(settings.patternkitEditor.schemaJson),
-          starting: JSON.parse(settings.patternkitEditor.startingJson)
-        };
-        JSONEditor.defaults.options.theme = settings.patternkitEditor.theme;
-        JSONEditor.defaults.options.iconlib = settings.patternkitEditor.icons;
+      }
+    }, {
+      key: "setDefaults",
+      value: function setDefaults() {
+        JSONEditor.defaults.options.theme = this.settings.theme;
+        JSONEditor.defaults.options.iconlib = this.settings.icons;
         JSONEditor.defaults.options.keep_oneof_values = false;
-        JSONEditor.defaults.options.disable_edit_json = settings.patternkitEditor.disableJsonEditButton;
+        JSONEditor.defaults.options.disable_edit_json = this.settings.disableJsonEditButton;
         JSONEditor.defaults.options.disable_collapse = false;
         JSONEditor.defaults.options.collapse = false;
         JSONEditor.defaults.options.ajax = true;
-        JSONEditor.defaults.options.ajax_cache_responses = settings.patternkitEditor.ajaxCacheResponses;
-        JSONEditor.defaults.options.ajax_cache_buster = settings.patternkitEditor.ajaxCacheBuster;
-        JSONEditor.defaults.options.disable_properties = settings.patternkitEditor.disablePropertiesButtons; // Overrides alert message when removing an item.
+        JSONEditor.defaults.options.ajax_cache_responses = this.settings.ajaxCacheResponses;
+        JSONEditor.defaults.options.ajax_cache_buster = this.settings.ajaxCacheBuster;
+        JSONEditor.defaults.options.disable_properties = this.settings.disablePropertiesButtons; // Overrides alert message when removing an item.
 
-        JSONEditor.defaults.languages.en.button_delete_node_warning = 'Are you sure you want to remove this item?'; // @todo Loop through all editor plugins and add them at runtime.
+        JSONEditor.defaults.languages.en.button_delete_node_warning = 'Are you sure you want to remove this item?'; // Uses Handlebars template engine so that we can use logic in
+        // `headerTemplate` property in schemas.
+
+        JSONEditor.defaults.options.template = 'handlebars'; // @todo Loop through all editor plugins and add them at runtime.
         // Override how references are resolved.
 
         JSONEditor.prototype._loadExternalRefs = function (schema, callback) {
@@ -1440,104 +1530,218 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
           if (!waiting) {
             callback();
           }
-        }; // Initialize the editor with a JSON schema.
-
-
+        };
+      }
+    }, {
+      key: "loadEditor",
+      value: function loadEditor() {
+        // Initialize the editor with a JSON schema.
         var config = {
-          schema: data.schema,
+          schema: this.data.schema,
           refs: {}
         };
-        window.patternkitEditor = new JSONEditor(editor_root.getElementById('editor_holder'), config);
-        window.patternkitEditor.on('ready', function () {
-          try {
-            // If we provide starting JSON as a value, JSON Editor hides all
-            // non-required fields, which is desired behavior by most users of
-            // the library. For patterns, we want to include any new schema
-            // fields in our values so they are displayed by default, optional or
-            // not.  This also allows us to pre-populate based on the schema
-            // provided.
-            if (_typeof(data.starting) === 'object' && !$.isEmptyObject(data.starting)) {
-              window.patternkitEditor.setValue(_objectSpread(_objectSpread({}, window.patternkitEditor.getValue()), data.starting));
-            }
-          } catch (e) {
-            console.error(e);
-          } // Material Design JS doesn't update fields on ready event.
-          // We call it to make up for that gap.
+        window.patternkitEditor = new JSONEditor(this.editor_root.getElementById('editor_holder'), config);
+        window.patternkitEditor.on('ready', this.onReady.bind(this));
+        window.patternkitEditor.on('change', this.saveSchema.bind(this)); // Expose methods for editors to register AJAX event cycle callbacks.
 
+        var self = this;
 
-          if (window.M) {
-            window.M.updateTextFields();
+        window.patternkitEditor.beforeSerialize = function (callback) {
+          self.beforeSerializeCallbacks.push(callback);
+        };
+
+        window.patternkitEditor.beforeSubmit = function (callback) {
+          self.beforeSubmitCallbacks.push(callback);
+        };
+      }
+    }, {
+      key: "saveSchema",
+      value: function saveSchema() {
+        $('#schema_instance_config').val(JSON.stringify(window.patternkitEditor.getValue())); // Material Design JS doesn't update fields on ready event.
+        // We call it to make up for that gap.
+
+        if (window.M) {
+          window.M.updateTextFields();
+        }
+      }
+    }, {
+      key: "onReady",
+      value: function onReady() {
+        try {
+          // If we provide starting JSON as a value, JSON Editor hides all
+          // non-required fields, which is desired behavior by most users of
+          // the library. For patterns, we want to include any new schema
+          // fields in our values, so they are displayed by default, optional or
+          // not. This also allows us to pre-populate based on the schema
+          // provided.
+          if (_typeof(this.data.starting) === 'object' && !$.isEmptyObject(this.data.starting)) {
+            window.patternkitEditor.setValue(_objectSpread(_objectSpread({}, window.patternkitEditor.getValue()), this.data.starting));
           }
+        } catch (e) {
+          window.console.error(e);
+        } // Material Design JS doesn't update fields on ready event.
+        // We call it to make up for that gap.
 
-          $('.' + loadingIndicatorClass).removeClass(loadingIndicatorClass);
+
+        if (window.M) {
+          window.M.updateTextFields();
+        }
+
+        this.hideLoadingIndicator();
+      }
+    }, {
+      key: "beforeSerialize",
+      value: function beforeSerialize() {
+        var callbacks = this.beforeSerializeCallbacks;
+        callbacks.forEach(function (callback) {
+          callback();
         });
-        window.patternkitEditor.on('change', saveSchema); // Drupal triggers Ajax submit via input events.
+      }
+    }, {
+      key: "beforeSubmit",
+      value: function beforeSubmit() {
+        var callbacks = this.beforeSubmitCallbacks;
+        callbacks.forEach(function (callback) {
+          callback();
+        });
+      }
+    }, {
+      key: "onSubmit",
+      value: function onSubmit(e) {
+        // Call all serialize and submission handlers since this function is only
+        // triggered outside an AJAX content and those handler would not be
+        // called otherwise.
+        this.beforeSerialize();
+        this.beforeSubmit();
+        this.saveSchema();
+        window.patternkitEditor.destroy();
+        delete window.patternkitEditor;
+        $(once.remove('patternkit-editor', $('#patternkit-editor-target')));
+        $(this).off('submit');
+      }
+    }, {
+      key: "showLoadingIndicator",
+      value: function showLoadingIndicator() {
+        var loadingIndicatorClass = 'js-patternkit-loading__on'; // Only add the indicator if it isn't already present.
+
+        var $indicator = $('.' + loadingIndicatorClass);
+
+        if ($indicator.length === 0) {
+          this.target.before("<div class=\"".concat(loadingIndicatorClass, "\"></div>"));
+        }
+      }
+    }, {
+      key: "hideLoadingIndicator",
+      value: function hideLoadingIndicator() {
+        var loadingIndicatorClass = 'js-patternkit-loading__on';
+        $('.' + loadingIndicatorClass).remove();
+      }
+    }]);
+
+    return PatternkitJsonEditor;
+  }();
+
+  Drupal.behaviors.patternkitEditor = {
+    attach: function attach(context, settings) {
+      if (!window.JSONEditor) {
+        return;
+      } // Ajax command response to allow updating Editor field values.
+
+
+      Drupal.AjaxCommands.prototype.patternkitEditorUpdate = function (ajax, response, status) {
+        window.patternkitEditor.getEditor(response.selector).setValue(response.value);
+      };
+
+      var $target = $('#patternkit-editor-target', context);
+      var editor = new PatternkitJsonEditor($target, settings.patternkitEditor);
+      $(once('patternkit-editor', $target)).each(function () {
+        editor.showLoadingIndicator();
+        editor.loadTheme();
+        editor.setDefaults();
+        editor.loadEditor();
+        var $form = $('[data-drupal-selector="edit-actions-submit"]').parent('form');
+        $(once('json-editor-processed', $form, context)).each(function () {
+          $(this).on('submit', editor.onSubmit.bind(editor));
+        }); // Drupal triggers Ajax submit via input events before the form events
+        // bubble up for listeners, so we need to add a pre-hook within this
+        // event cycle to trigger the editor update with latest field values
+        // before the values are finalized and submitted.
+
+        var beforeSerialize = Drupal.Ajax.prototype.beforeSerialize;
+
+        if (!beforeSerialize.unwrap) {
+          Drupal.Ajax.prototype.beforeSerialize = function (element, options) {
+            if (window.patternkitEditor) {
+              editor.beforeSerialize();
+              editor.saveSchema();
+            }
+
+            beforeSerialize(element, options);
+          }; // Add a callback to easily remove the decorated wrapper.
+
+
+          Drupal.Ajax.prototype.beforeSerialize.unwrap = function () {
+            Drupal.Ajax.prototype.beforeSerialize = beforeSerialize;
+          };
+        } // Drupal triggers Ajax submit via input events.
         // This is before allowing other events, so we need to add a pre-hook
         // to trigger the editor update with latest field values.
         // @todo Add handling for AJAX errors and re-attach.
 
-        var parent_call = Drupal.Ajax.prototype.beforeSubmit;
 
-        Drupal.Ajax.prototype.beforeSubmit = function (formValues, elementSettings, options) {
-          if (window.patternkitEditor) {
-            var index = formValues.findIndex(function (o) {
-              return o.name === "settings[instance_config]";
-            });
+        var beforeSubmit = Drupal.Ajax.prototype.beforeSubmit;
 
-            if (index !== -1) {
-              window.patternkitEditor.disable();
-              saveSchema();
-              formValues[index] = {
-                name: "settings[instance_config]",
-                value: JSON.stringify(window.patternkitEditor.getValue()),
-                type: "hidden",
-                required: false
-              };
-              window.patternkitEditor.destroy();
-              delete window.patternkitEditor;
-              $(once.remove('patternkit-editor', $target));
+        if (!beforeSubmit.unwrap) {
+          Drupal.Ajax.prototype.beforeSubmit = function (formValues, elementSettings, options) {
+            if (window.patternkitEditor) {
+              // Run any registered beforeSubmit handlers before destroying the
+              // JSONEditor form.
+              editor.beforeSubmit();
             }
-          }
 
-          parent_call.call(this, formValues, elementSettings, options);
-        };
+            beforeSubmit(formValues, elementSettings, options);
+          }; // Add a callback to easily remove the decorated wrapper.
 
-        var $form = $('[data-drupal-selector="edit-actions-submit"]').parent('form');
-        $(once('json-editor-processed', $form, context)).each(function () {
-          var _this2 = this;
 
-          $(this).on('submit', function (e) {
-            window.patternkitEditor.disable();
-            saveSchema();
-            window.patternkitEditor.destroy();
-            delete window.patternkitEditor;
-            $(once.remove('patternkit-editor', $target));
-            $(_this2).off('submit');
-          });
-        });
-      }); // If user closes the Layout Builder dialog without saving, this cleans
-      // up Patternkit (and, in turn) CKEditor instance.  Code stolen from
-      // `Drupal.behaviors.offCanvasEvents`.
+          Drupal.Ajax.prototype.beforeSubmit.unwrap = function () {
+            Drupal.Ajax.prototype.beforeSubmit = beforeSubmit;
+          };
+        }
+      });
+    },
+    detach: function detach(context, settings, trigger) {
+      var editors;
 
-      $(once('patternkit-jsoneditor-off-canvas', window)).on('dialog:beforeclose', function (event, dialog, $element) {
-        // The editor may have already been destroyed if its form was
-        // submitted. The following code only destroys the editor if the modal
-        // gets closed without submitting the form.
-        var dialogEl = $element.get(0);
+      if (trigger === 'serialize') {
+        editors = once.filter('patternkit-editor', '#patternkit-editor-target', context);
+      } else {
+        editors = once.remove('patternkit-editor', '#patternkit-editor-target', context);
+      }
 
-        if (dialogEl && dialogEl.id === 'drupal-off-canvas') {
-          if (window.patternkitEditor) {
+      editors.forEach(function (editor) {
+        if (window.patternkitEditor) {
+          if (trigger === 'serialize') {
+            window.patternkitEditor.saveSchema();
+          } else {
+            // Add a status flag to easily check when the editor is being
+            // destroyed.
+            window.patternkitEditor.detaching = true;
             window.patternkitEditor.disable();
             window.patternkitEditor.destroy();
-            delete window.patternkitEditor;
+            delete window.patternkitEditor; // Remove decorated wrappers on AJAX events.
+
+            if (Drupal.Ajax.prototype.beforeSerialize.unwrap) {
+              Drupal.Ajax.prototype.beforeSerialize.unwrap();
+            }
+
+            if (Drupal.Ajax.prototype.beforeSubmit.unwrap) {
+              Drupal.Ajax.prototype.beforeSubmit.unwrap();
+            }
           }
         }
       });
     }
-  }; // Uses Handlebars template engine so that we can use logic in
-  // `headerTemplate` property in schemas.
-
-  JSONEditor.defaults.options.template = 'handlebars';
+  };
 })(jQuery, Drupal, JSONEditor, once);
 
 },{"./patternkit.jsoneditor.ckeditor.es6":1,"./patternkit.jsoneditor.cygnet.es6.js":3,"./patternkit.jsoneditor.editor.array.es6":4,"./patternkit.jsoneditor.editor.object.es6":5,"./patternkit.jsoneditor.prosemirror.es6":7,"./patternkit.jsoneditor.quill.es6.js":8}],7:[function(require,module,exports){

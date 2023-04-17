@@ -331,4 +331,24 @@ abstract class PatternkitBrowserTestBase extends WebDriverTestBase {
     }
   }
 
+  /**
+   * Wait for all change events to fire and update the hidden config values.
+   *
+   * @param string $original_value
+   *   The original configuration value to compare against and identify when the
+   *   content has changed.
+   *
+   * @return string|false
+   *   The changed configuration value or false if no change was detected.
+   */
+  protected function waitForConfigChange(string $original_value) {
+    $config_field = $this->getSession()->getPage()->find('css', '#schema_instance_config');
+
+    $value_changed = $config_field->waitFor(5, function ($element) use ($original_value) {
+      return $element->getValue() !== $original_value;
+    });
+
+    return $value_changed ? $config_field->getValue() : FALSE;
+  }
+
 }
