@@ -74,6 +74,8 @@ class WysiwygFieldProcessorTest extends UnitTestCase {
    * Tests applies method in various use cases.
    *
    * @covers ::applies
+   * @covers ::__construct
+   * @covers ::getTextProfile
    * @dataProvider providerApplies
    */
   public function testApplies(SchemaContract $propertySchema, bool $expected) {
@@ -173,6 +175,8 @@ JSON;
 
   /**
    * @covers ::apply
+   * @covers ::__construct
+   * @covers ::getTextProfile
    */
   public function testApply() {
     $schema_json = <<<JSON
@@ -214,6 +218,8 @@ JSON;
   }
 
   /**
+   * @covers ::getTextProfile
+   * @covers ::__construct
    * @covers ::getTextProfile
    */
   public function testGetTextProfile() {

@@ -81,8 +81,8 @@ class PatternkitEnvironmentAwareTraitTest extends UnitTestCase {
 
   /**
    * @covers ::isDebug
-   * @uses \Drupal\patternkit\PatternkitEnvironmentTrait::setPatternkitEnvironment()
-   * @uses \Drupal\patternkit\PatternkitEnvironmentTrait::patternkitEnvironment()
+   * @covers ::patternkitEnvironment
+   * @covers ::setPatternkitEnvironment
    */
   public function testIsDebug() {
     $this->environment->isDebug()
@@ -96,8 +96,8 @@ class PatternkitEnvironmentAwareTraitTest extends UnitTestCase {
 
   /**
    * @covers ::getEnvironmentFeature
-   * @uses \Drupal\patternkit\PatternkitEnvironmentTrait::setPatternkitEnvironment()
-   * @uses \Drupal\patternkit\PatternkitEnvironmentTrait::patternkitEnvironment()
+   * @covers ::patternkitEnvironment
+   * @covers ::setPatternkitEnvironment
    */
   public function testGetEnvironmentFeature() {
     $this->environment->getFeatureOption('configured_option', FALSE)

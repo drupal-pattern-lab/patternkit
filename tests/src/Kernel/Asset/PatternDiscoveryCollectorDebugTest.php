@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\tests\patternkit\Kernel\Asset;
+namespace Drupal\Tests\patternkit\Kernel\Asset;
 
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\patternkit\Asset\PatternDiscoveryCollector;

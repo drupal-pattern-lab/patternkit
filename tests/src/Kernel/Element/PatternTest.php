@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\tests\patternkit\Kernel\Element;
+namespace Drupal\Tests\patternkit\Kernel\Element;
 
 use Drupal\Core\Render\RendererInterface;
 use Drupal\KernelTests\KernelTestBase;

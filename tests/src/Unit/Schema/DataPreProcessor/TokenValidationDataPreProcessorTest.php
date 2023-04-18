@@ -72,6 +72,7 @@ class TokenValidationDataPreProcessorTest extends UnitTestCase {
 
   /**
    * @covers ::process
+   * @covers ::__construct
    * @dataProvider providerProcess
    */
   public function testProcess($data, string $schema_json, bool $import, bool $schema_should_change) {

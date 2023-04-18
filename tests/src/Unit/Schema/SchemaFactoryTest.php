@@ -62,6 +62,7 @@ class SchemaFactoryTest extends UnitTestCase {
    *
    * @covers ::createInstance
    * @covers ::decodeJson
+   * @covers ::__construct
    * @uses \Swaggest\JsonSchema\Schema
    */
   public function testCreateInstanceWithoutContext() {
@@ -81,6 +82,7 @@ class SchemaFactoryTest extends UnitTestCase {
    *
    * @covers ::createInstance
    * @covers ::decodeJson
+   * @covers ::__construct
    * @uses \Swaggest\JsonSchema\Schema
    */
   public function testCreateInstanceWithContext() {

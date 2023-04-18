@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\patternkit\UnitSchema;
+namespace Drupal\Tests\patternkit\Unit\Schema;
 
 use Drupal\patternkit\Schema\SchemaRefHandler;
 use Drupal\Tests\UnitTestCase;
@@ -26,7 +26,6 @@ class SchemaRefHandlerTest extends UnitTestCase {
    * Test parsing of normalized schema references.
    *
    * @covers ::parseNormalizedSchemaReference
-   * @uses \Drupal\patternkit\Schema\SchemaRefHandler::__construct
    * @dataProvider providerParseNormalizedSchemaReference
    */
   public function testParseNormalizedSchemaReference(string $ref, $expected) {
@@ -105,7 +104,6 @@ class SchemaRefHandlerTest extends UnitTestCase {
    * Test parsing of namespaced schema references.
    *
    * @covers ::parseNamespacedSchemaReference
-   * @uses \Drupal\patternkit\Schema\SchemaRefHandler::__construct
    * @dataProvider providerParseNamespacedSchemaReference
    */
   public function testParseNamespacedSchemaReference(string $ref, $expected) {
@@ -185,8 +183,7 @@ class SchemaRefHandlerTest extends UnitTestCase {
    * Test normalization of namespaced schema references.
    *
    * @covers ::normalizeNamespacedSchemaReference
-   * @uses \Drupal\patternkit\Schema\SchemaRefHandler::__construct
-   * @uses \Drupal\patternkit\Schema\SchemaRefHandler::parseNamespacedSchemaReference()
+   * @uses \Drupal\patternkit\Schema\SchemaRefHandler::parseNamespacedSchemaReference
    * @dataProvider providerNormalizeNamespacedSchemaReference
    */
   public function testNormalizeNamespacedSchemaReference(string $ref, $expected) {

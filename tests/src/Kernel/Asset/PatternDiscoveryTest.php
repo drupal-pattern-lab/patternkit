@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\patternkit\Asset;
+namespace Drupal\Tests\patternkit\Kernel\Asset;
 
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;

@@ -23,6 +23,7 @@ use Swaggest\JsonSchema\Context;
  * @coversDefaultClass \Drupal\patternkit\Asset\PatternLibraryParser\TwigPatternLibraryParser
  * @uses \Drupal\patternkit\PatternLibraryJSONParserTrait::setContextBuilder()
  * @uses \Drupal\patternkit\PatternLibraryJSONParserTrait::contextBuilder()
+ * @uses \Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait
  * @group patternkit
  */
 class TwigPatternLibraryParserTest extends PatternLibraryParserTestBase {

@@ -27,6 +27,7 @@ use Prophecy\Prophecy\ObjectProphecy;
  * Unit tests for the UpdateHelper service.
  *
  * @coversDefaultClass \Drupal\patternkit\UpdateHelper
+ * @covers ::__construct
  * @group patternkit
  */
 class UpdateHelperTest extends UnitTestCase {
@@ -415,6 +416,7 @@ class UpdateHelperTest extends UnitTestCase {
   /**
    * @covers ::updateAllPatternComponents
    * @covers ::layoutHelper
+   * @covers ::setLayoutHelper
    */
   public function testUpdateAllPatternComponentsWithoutFilters(): void {
     $this->layoutHelper = $this->prophesize(LayoutHelper::class);

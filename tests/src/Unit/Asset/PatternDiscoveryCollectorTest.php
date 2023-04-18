@@ -27,6 +27,7 @@ use Symfony\Component\Serializer\Serializer;
  * Tests for the PatternDiscoveryCollector class.
  *
  * @coversDefaultClass \Drupal\patternkit\Asset\PatternDiscoveryCollector
+ * @uses \Drupal\patternkit\PatternkitEnvironmentAwareTrait
  * @group patternkit
  */
 class PatternDiscoveryCollectorTest extends UnitTestCase {
@@ -219,8 +220,10 @@ class PatternDiscoveryCollectorTest extends UnitTestCase {
    * @covers ::getPatternsByNamespace
    * @covers ::__construct
    * @covers ::getLibraryObject
+   * @covers ::lazyLoadCache
    * @uses \Drupal\patternkit\Asset\PatternDiscoveryCollector::getLibraryPlugin()
    * @uses \Drupal\patternkit\Asset\PatternDiscoveryCollector::resolveCacheMiss()
+   * @uses \Drupal\patternkit\PatternkitEnvironmentAwareTrait
    * @dataProvider providerGetPatternsByNamespace
    */
   public function testGetPatternsByNamespace(
@@ -292,6 +295,8 @@ class PatternDiscoveryCollectorTest extends UnitTestCase {
   /**
    * @covers ::getPatternsByNamespace
    * @covers ::getLibraryPlugin
+   * @covers ::lazyLoadCache
+   * @uses \Drupal\patternkit\PatternkitEnvironmentAwareTrait
    * @uses \Drupal\patternkit\Asset\PatternDiscoveryCollector::resolveCacheMiss()
    * @uses \Drupal\patternkit\Asset\PatternDiscoveryCollector::getLibraryObject()
    * @uses \Drupal\patternkit\Asset\PatternDiscoveryCollector::__construct
@@ -318,6 +323,8 @@ class PatternDiscoveryCollectorTest extends UnitTestCase {
   /**
    * @covers ::getPatternsByNamespace
    * @covers ::getLibraryPlugin
+   * @covers ::lazyLoadCache
+   * @uses \Drupal\patternkit\PatternkitEnvironmentAwareTrait
    * @uses \Drupal\patternkit\Asset\PatternDiscoveryCollector::resolveCacheMiss()
    * @uses \Drupal\patternkit\Asset\PatternDiscoveryCollector::getLibraryObject()
    * @uses \Drupal\patternkit\Asset\PatternDiscoveryCollector::__construct
@@ -351,6 +358,8 @@ class PatternDiscoveryCollectorTest extends UnitTestCase {
   /**
    * @covers ::getPatternsByNamespace
    * @covers ::getLibraryPlugin
+   * @covers ::lazyLoadCache
+   * @uses \Drupal\patternkit\PatternkitEnvironmentAwareTrait
    * @uses \Drupal\patternkit\Asset\PatternDiscoveryCollector::resolveCacheMiss()
    * @uses \Drupal\patternkit\Asset\PatternDiscoveryCollector::getLibraryObject()
    * @uses \Drupal\patternkit\Asset\PatternDiscoveryCollector::__construct
@@ -383,6 +392,8 @@ class PatternDiscoveryCollectorTest extends UnitTestCase {
    * @covers ::getPatternsByNamespace
    * @covers ::__construct
    * @covers ::getLibraryObject
+   * @covers ::lazyLoadCache
+   * @uses \Drupal\patternkit\PatternkitEnvironmentAwareTrait
    * @uses \Drupal\patternkit\Asset\PatternDiscoveryCollector::resolveCacheMiss
    */
   public function testGetLibraryPluginNoPlugin() {
@@ -482,6 +493,11 @@ class PatternDiscoveryCollectorTest extends UnitTestCase {
    *
    * @covers ::lazyLoadCache
    * @covers ::updateCache
+   * @covers ::getLibraryObject
+   * @covers ::getLibraryPlugin
+   * @covers ::getPatternsByNamespace
+   * @covers ::resolveCacheMiss
+   * @covers ::__construct
    */
   public function testCacheBypass() {
     $this->setDefaultExpectations();
@@ -507,6 +523,11 @@ class PatternDiscoveryCollectorTest extends UnitTestCase {
    *
    * @covers ::lazyLoadCache
    * @covers ::updateCache
+   * @covers ::getLibraryObject
+   * @covers ::getLibraryPlugin
+   * @covers ::getPatternsByNamespace
+   * @covers ::resolveCacheMiss
+   * @covers ::__construct
    */
   public function testCacheBypassDisabled() {
     $this->setDefaultExpectations();

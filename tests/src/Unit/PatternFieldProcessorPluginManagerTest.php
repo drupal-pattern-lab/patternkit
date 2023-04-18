@@ -32,6 +32,13 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * Test functionality for the Pattern Field Processor Plugin Manager.
  *
  * @coversDefaultClass \Drupal\patternkit\PatternFieldProcessorPluginManager
+ * @covers ::__construct
+ * @uses \Drupal\patternkit\Schema\SchemaFactory
+ * @uses \Drupal\patternkit\Schema\SchemaHelper
+ * @uses \Drupal\patternkit\Schema\SchemaIterator
+ * @uses \Drupal\patternkit\Schema\SchemaWalker
+ * @uses \Drupal\patternkit\Schema\SchemaWalkerFactory
+ * @uses \Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor
  * @group patternkit
  */
 class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
@@ -195,6 +202,8 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
    * Test error-handling for the processSchemaValues method.
    *
    * @covers ::processSchemaValues
+   * @covers ::loadProcessors
+   * @covers ::traverseSchema
    */
   public function testProcessSchemaValuesWithErrors() {
     // Prepare the schema for the pattern being processed.
@@ -281,6 +290,7 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
    * Test schema traversal to ensure the callback receives expected arguments.
    *
    * @covers ::traverseSchema
+   * @covers ::applyProcessors
    * @dataProvider providerTraverseSchema
    */
   public function testTraverseSchema(string $schema_json, $values, callable $expectationsCallback) {
@@ -724,6 +734,7 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
    * Test property traversal with array properties containing references.
    *
    * @covers ::traverseSchema
+   * @covers ::applyProcessors
    */
   public function testTraverseSchemaWithArraysWithRefs() {
     // Prepare the schema for the pattern being processed.

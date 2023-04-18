@@ -12,6 +12,7 @@ use org\bovigo\vfs\vfsStream;
  * Tests for the PatternLibraryParserBase class.
  *
  * @coversDefaultClass \Drupal\patternkit\Asset\PatternLibraryParserBase
+ * @uses \Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait
  * @group patternkit
  */
 class PatternLibraryParserBaseTest extends PatternLibraryParserTestBase {

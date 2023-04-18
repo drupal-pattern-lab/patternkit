@@ -24,6 +24,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * Test the PatternKit asset library implementation.
  *
  * @coversDefaultClass \Drupal\patternkit\Asset\Library
+ * @uses \Drupal\patternkit\PatternLibrary
  * @group patternkit
  * @group legacy
  */
@@ -177,6 +178,9 @@ class LibraryTest extends UnitTestCase {
 
   /**
    * @covers ::buildByExtension
+   * @covers ::getLibrariesByExtension
+   * @covers ::getLibraryObject
+   * @covers ::__construct
    */
   public function testBuildByExtension() {
     $this->libraryNamespaceResolver->expects($this->once())
@@ -198,6 +202,8 @@ class LibraryTest extends UnitTestCase {
 
   /**
    * @covers ::getLibraries
+   * @covers ::getLibraryObject
+   * @covers ::__construct
    *
    * @todo Expand mocking to simulate multiple extensions and libraries.
    */
