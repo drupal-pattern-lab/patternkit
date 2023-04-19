@@ -3,6 +3,7 @@
 namespace Drupal\Tests\patternkit\Kernel\Asset;
 
 use Drupal\KernelTests\KernelTestBase;
+use Drupal\patternkit\Asset\PatternDiscoveryInterface;
 use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
 
 /**
