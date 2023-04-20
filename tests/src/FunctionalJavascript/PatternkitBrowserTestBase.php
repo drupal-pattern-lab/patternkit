@@ -144,26 +144,41 @@ abstract class PatternkitBrowserTestBase extends WebDriverTestBase {
     $page = $this->getSession()->getPage();
     $assert_session = $this->assertSession();
 
-    $page->clickLink('Add block');
+    try {
+      $page->clickLink('Add block');
 
-    // Wait for the block list to load before selecting a pattern to insert.
-    $link = $assert_session->waitForLink($pattern_name);
+      // Wait for the block list to load before selecting a pattern to insert.
+      $link = $assert_session->waitForLink($pattern_name);
 
-    // Wait to confirm the AJAX listener has been attached to the link.
-    $link->waitFor(1, fn(NodeElement $link) => $link->getAttribute('data-once') === 'ajax');
-    $this->assertEquals('ajax', $link->getAttribute('data-once'));
+      // Wait to confirm the AJAX listener has been attached to the link.
+      $link->waitFor(1, fn(NodeElement $link) => $link->getAttribute('data-once') === 'ajax');
+      $this->assertEquals('ajax', $link->getAttribute('data-once'));
 
-    // Scroll the link into view to ensure the correct link is clicked.
-    $this->scrollOffCanvasElementIntoView("li a:contains($pattern_name)");
+      // Scroll the link into view to ensure the correct link is clicked.
+      $this->scrollOffCanvasElementIntoView("li a:contains($pattern_name)");
 
-    // Click the link to add the block.
-    $link->click();
-    $assert_session->assertWaitOnAjaxRequest();
+      // Click the link to add the block.
+      $link->click();
+      $assert_session->assertWaitOnAjaxRequest();
 
-    $form = $assert_session->waitForElementVisible('css', 'form.layout-builder-configure-block', 40000);
+      $form = $assert_session->waitForElementVisible('css', 'form.layout-builder-configure-block', 40000);
 
-    // Fail if we still didn't find the loaded block form.
-    $this->assertNotNull($form, 'Unable to find block configuration form.');
+      // Fail if we still didn't find the loaded block form.
+      $this->assertNotNull($form, 'Unable to find block configuration form.');
+    }
+    catch (ExpectationFailedException $exception) {
+      $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+      $caller_method = "${backtrace[1]['class']}__${backtrace[1]['function']}";
+      $filename = "fail__$caller_method.jpg";
+
+      // Capture a screenshot to help with debugging.
+      $this->createScreenshot(\Drupal::root() . '/sites/default/files/simpletest/' . $filename);
+
+      // Output the HTML after AJAX requests to help with debugging.
+      $this->htmlOutput($this->getSession()->getPage()->getHtml());
+
+      throw $exception;
+    }
 
     return $form;
   }
@@ -183,7 +198,7 @@ abstract class PatternkitBrowserTestBase extends WebDriverTestBase {
     }
     catch (ExpectationFailedException $exception) {
       $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
-      $caller_method = $backtrace[1]['function'];
+      $caller_method = "${backtrace[1]['class']}__${backtrace[1]['function']}";
       $filename = "fail__$caller_method.jpg";
 
       // Capture a screenshot to help with debugging.
