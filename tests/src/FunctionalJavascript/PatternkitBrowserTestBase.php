@@ -168,7 +168,10 @@ abstract class PatternkitBrowserTestBase extends WebDriverTestBase {
     }
     catch (ExpectationFailedException $exception) {
       $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
-      $caller_method = "${backtrace[1]['class']}__${backtrace[1]['function']}";
+      $caller_method = implode('__', [
+        $backtrace[1]['class'],
+        $backtrace[1]['function'],
+      ]);
       $filename = "fail__$caller_method.jpg";
 
       // Capture a screenshot to help with debugging.
@@ -198,7 +201,10 @@ abstract class PatternkitBrowserTestBase extends WebDriverTestBase {
     }
     catch (ExpectationFailedException $exception) {
       $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
-      $caller_method = "${backtrace[1]['class']}__${backtrace[1]['function']}";
+      $caller_method = implode('__', [
+        $backtrace[1]['class'],
+        $backtrace[1]['function'],
+      ]);
       $filename = "fail__$caller_method.jpg";
 
       // Capture a screenshot to help with debugging.
