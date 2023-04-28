@@ -3,8 +3,10 @@
 namespace Drupal\patternkit\Form;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\editor\Entity\Editor;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -18,6 +20,13 @@ class PatternLibraryJSONForm extends ConfigFormBase {
    * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
   protected EntityTypeManagerInterface $entityTypeManager;
+
+  /**
+   * The module handler service.
+   *
+   * @var \Drupal\Core\Extension\ModuleHandlerInterface
+   */
+  protected ModuleHandlerInterface $moduleHandler;
 
   /**
    * Settings identifier.
@@ -95,6 +104,8 @@ class PatternLibraryJSONForm extends ConfigFormBase {
    * Array of editor options supported by the JSON Schema Editor.
    *
    * @var array
+   *
+   * @see self::getAllowedWysiwygEditors()
    */
   public const EDITORS = [
     'ckeditor' => 'CKEditor',
@@ -109,6 +120,7 @@ class PatternLibraryJSONForm extends ConfigFormBase {
   public static function create(ContainerInterface $container): self {
     $instance = parent::create($container);
     $instance->entityTypeManager = $container->get('entity_type.manager');
+    $instance->moduleHandler = $container->get('module_handler');
     return $instance;
   }
 
@@ -181,7 +193,7 @@ class PatternLibraryJSONForm extends ConfigFormBase {
     $form['patternkit_json_editor_wysiwyg'] = [
       '#type' => 'select',
       '#title' => $this->t('WYSIWYG editor'),
-      '#options' => static::EDITORS,
+      '#options' => $this->getAllowedWysiwygEditors(),
       '#empty_value' => '',
       '#default_value' => $config->get('patternkit_json_editor_wysiwyg') ?: '',
     ];
@@ -226,10 +238,54 @@ class PatternLibraryJSONForm extends ConfigFormBase {
   }
 
   /**
+   * Get a list of options for allowed WYSIWYG editors to select.
+   *
+   * @return array
+   *   An options list of WYSIWYG editors with all dependencies available.
+   */
+  protected function getAllowedWysiwygEditors(): array {
+    // Remove options from supported editors if their required modules are not
+    // enabled.
+    $excluded = [];
+
+    if (!$this->moduleHandler->moduleExists('ckeditor')) {
+      $excluded[] = 'CKEditor';
+    }
+    if (!$this->moduleHandler->moduleExists('ckeditor5')) {
+      $excluded[] = 'CKEditor5';
+    }
+
+    return array_diff(static::EDITORS, $excluded);
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function getFormId(): string {
     return 'patternkit_json_editor_config';
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function validateForm(array &$form, FormStateInterface $form_state) {
+    // Validate editor and WYSIWYG toolbar selections.
+    $wysiwyg = $form_state->getValue('patternkit_json_editor_wysiwyg');
+    $toolbar = $form_state->getValue('patternkit_json_editor_ckeditor_toolbar');
+
+    if ($toolbar && in_array($wysiwyg, ['ckeditor', 'ckeditor5'])) {
+      $editor = Editor::load($toolbar);
+
+      if ($editor->getEditor() !== $wysiwyg) {
+        $form_state->setErrorByName('patternkit_json_editor_ckeditor_toolbar', $this->t(
+          'The selected toolbar is not configured to use the selected toolbar. Expected to find "@expected", but found "@actual" instead.',
+          [
+            '@expected' => $wysiwyg,
+            '@actual' => $editor->getEditor(),
+          ]
+        ));
+      }
+    }
   }
 
   /**
