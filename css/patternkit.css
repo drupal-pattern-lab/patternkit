@@ -20,3 +20,12 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/*
+ * Updates styles for primary button within off-canvas tray
+ * to ensure the button displays properly and it's easy to interact with.
+ */
+#drupal-off-canvas .layout-builder-configure-block .button--primary {
+  padding: 12px 0 !important;
+  max-width: 300px;
+}
