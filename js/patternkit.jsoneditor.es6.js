@@ -183,6 +183,7 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
        refs: {}
      };
      window.patternkitEditor = new JSONEditor(this.editor_root.getElementById('editor_holder'), config);
+     window.patternkitEditor.patternkit = this;
 
      window.patternkitEditor.on('ready', this.onReady.bind(this));
      window.patternkitEditor.on('change', this.saveSchema.bind(this));
@@ -248,7 +249,7 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
 
    onSubmit(e) {
      // Call all serialize and submission handlers since this function is only
-     // triggered outside an AJAX content and those handler would not be
+     // triggered outside an AJAX content and those handlers would not be
      // called otherwise.
      this.beforeSerialize();
      this.beforeSubmit();
@@ -295,51 +296,71 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
        editor.setDefaults();
        editor.loadEditor();
 
-       let $form = $('[data-drupal-selector="edit-actions-submit"]').parent('form');
-       $(once('json-editor-processed', $form, context)).each(function () {
-         $(this).on('submit', editor.onSubmit.bind(editor));
-       });
+       let $submitButton = $('[data-drupal-selector="edit-actions-submit"]');
+       let $form = $submitButton.parent('form');
+
+       // Get the ajax handler instance.
+       let id = $submitButton.attr('id');
+       let ajax = Drupal.ajax.instances.find(element => element &&
+         element.selector && element.selector === '#' + id);
+
+       // If there is no AJAX handler for the submit button, we're most likely
+       // viewing the form directly without an AJAX interface. In this scenario,
+       // we need to capture and react to the form submit event directly since
+       // there will be no AJAX event cycle to hook into.
+       if (ajax === undefined) {
+         $(once('json-editor-processed', $form, context)).each(function () {
+           $(this).on('submit', editor.onSubmit.bind(editor));
+         });
+
+         // Exit here since there is no more handling needed.
+         return;
+       }
 
        // Drupal triggers Ajax submit via input events before the form events
        // bubble up for listeners, so we need to add a pre-hook within this
        // event cycle to trigger the editor update with latest field values
        // before the values are finalized and submitted.
-       let beforeSerialize = Drupal.Ajax.prototype.beforeSerialize;
-       if (!beforeSerialize.unwrap) {
-         Drupal.Ajax.prototype.beforeSerialize = function (element, options) {
+       if (!ajax.hasOwnProperty('beforeSerialize')) {
+         let beforeSerialize = ajax.beforeSerialize;
+         ajax.beforeSerialize = function (element, options) {
            if (window.patternkitEditor) {
              editor.beforeSerialize();
              editor.saveSchema();
            }
 
-           beforeSerialize(element, options);
+           beforeSerialize.apply(this, [element, options]);
          }
-
-         // Add a callback to easily remove the decorated wrapper.
-         Drupal.Ajax.prototype.beforeSerialize.unwrap = () => {
-           Drupal.Ajax.prototype.beforeSerialize = beforeSerialize;
-         };
        }
 
        // Drupal triggers Ajax submit via input events.
        // This is before allowing other events, so we need to add a pre-hook
        // to trigger the editor update with latest field values.
        // @todo Add handling for AJAX errors and re-attach.
-       let beforeSubmit = Drupal.Ajax.prototype.beforeSubmit;
-       if (!beforeSubmit.unwrap) {
-         Drupal.Ajax.prototype.beforeSubmit = function (formValues, elementSettings, options) {
+       if (!ajax.hasOwnProperty('beforeSubmit')) {
+         let beforeSubmit = ajax.beforeSubmit;
+         ajax.beforeSubmit = function (formValues, elementSettings, options) {
            if (window.patternkitEditor) {
              // Run any registered beforeSubmit handlers before destroying the
              // JSONEditor form.
              editor.beforeSubmit();
+
+             // Ensure the submitted form values are updated with all changes.
+             // If the submit button was clicked without clicking out of a text
+             // field, for example, the change event from that field will not
+             // have fired, and the serialized form values will not have been
+             // updated. In this case, we need to make sure the submitted config
+             // value is updated.
+             let index = formValues.findIndex(function (o) {
+               return o.name === "settings[instance_config]";
+             });
+             if (index !== -1) {
+               window.patternkitEditor.disable();
+               formValues[index].value = JSON.stringify(window.patternkitEditor.getValue());
+             }
            }
 
-           beforeSubmit(formValues, elementSettings, options);
-         };
-
-         // Add a callback to easily remove the decorated wrapper.
-         Drupal.Ajax.prototype.beforeSubmit.unwrap = () => {
-           Drupal.Ajax.prototype.beforeSubmit = beforeSubmit;
+           beforeSubmit.apply(this, [formValues, elementSettings, options]);
          };
        }
      });
@@ -357,7 +378,7 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
      editors.forEach((editor) => {
        if (window.patternkitEditor) {
          if (trigger === 'serialize') {
-           window.patternkitEditor.saveSchema();
+           window.patternkitEditor.patternkit.saveSchema();
          }
          else {
            // Add a status flag to easily check when the editor is being
@@ -366,14 +387,6 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
            window.patternkitEditor.disable();
            window.patternkitEditor.destroy();
            delete window.patternkitEditor;
-
-           // Remove decorated wrappers on AJAX events.
-           if (Drupal.Ajax.prototype.beforeSerialize.unwrap) {
-             Drupal.Ajax.prototype.beforeSerialize.unwrap();
-           }
-           if (Drupal.Ajax.prototype.beforeSubmit.unwrap) {
-             Drupal.Ajax.prototype.beforeSubmit.unwrap();
-           }
          }
        }
      });
