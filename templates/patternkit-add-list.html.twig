@@ -12,11 +12,11 @@
  * @ingroup themeable
  */
 #}
-{% spaceless %}
-  <dl>
-    {% for type in content.types %}
-      <dt>{{ type.link }}</dt>
-      <dd>{{ type.description }}</dd>
-    {% endfor %}
-  </dl>
-{% endspaceless %}
+{% apply spaceless %}
+<dl>
+	{% for type in content.types %}
+		<dt>{{ type.link }}</dt>
+		<dd>{{ type.description }}</dd>
+	{% endfor %}
+</dl>
+{% endapply %}
