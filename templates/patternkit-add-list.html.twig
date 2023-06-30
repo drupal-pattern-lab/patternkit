@@ -14,9 +14,9 @@
 #}
 {% apply spaceless %}
 <dl>
-	{% for type in content.types %}
-		<dt>{{ type.link }}</dt>
-		<dd>{{ type.description }}</dd>
-	{% endfor %}
+  {% for type in content.types %}
+    <dt>{{ type.link }}</dt>
+    <dd>{{ type.description }}</dd>
+  {% endfor %}
 </dl>
 {% endapply %}
