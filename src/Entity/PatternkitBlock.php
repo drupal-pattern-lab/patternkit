@@ -156,4 +156,22 @@ class PatternkitBlock extends BlockContent {
     return $this->get('pattern_id')->getString();
   }
 
+  /**
+   * Get unserialized configuration data for the block.
+   *
+   * @return array
+   *   The unserialized data from the "data" field value.
+   *
+   * @throws \JsonException
+   */
+  public function getData(): array {
+    $data = $this->get('data')->value;
+    if ($data === NULL) {
+      return [];
+    }
+    else {
+      return json_decode($data, TRUE, 512, JSON_THROW_ON_ERROR);
+    }
+  }
+
 }

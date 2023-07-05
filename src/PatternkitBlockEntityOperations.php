@@ -147,6 +147,8 @@ class PatternkitBlockEntityOperations implements ContainerInjectionInterface {
    * @param bool $duplicate_blocks
    *   Whether the blocks should be duplicated.
    *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    * @throws \Drupal\Core\Entity\EntityStorageException
    */
   protected function saveBlockComponent(EntityInterface $entity, SectionComponent $component, $new_revision, $duplicate_blocks): void {

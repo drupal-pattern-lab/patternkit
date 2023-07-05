@@ -165,6 +165,8 @@ class LayoutHelper {
    *   - `display_mode`: A specific display mode to limit updates to. For this
    *     filter to be used, an `entity_type` and `bundle` value is also
    *     required.
+   *   - `pattern`: A pattern asset name to limit updates.
+
    *
    * @return int[]
    *   A tuple of update counts containing the following values:
@@ -179,7 +181,6 @@ class LayoutHelper {
     $block_count = 0;
     $entity_count = 0;
 
-    $library_name = $filter['library'] ?? NULL;
     $entity_type = $filter['entity_type'] ?? '';
     $bundle = $filter['bundle'] ?? '';
     $display_mode = $filter['display_mode'] ?? '';
@@ -205,17 +206,21 @@ class LayoutHelper {
     };
 
     // Prepare a closure for updating each component.
-    $update_component = function (string $storage_id, SectionStorageInterface $section_storage, SectionComponent $component) use ($library_name, &$block_count, $log_with_buffering): bool {
+    $update_helper = $this->updateHelper();
+    $update_component = function (string $storage_id, SectionStorageInterface $section_storage, SectionComponent $component) use ($filter, $update_helper, &$block_count, $log_with_buffering): bool {
       // Log the notification for updating this section storage item.
       $log_with_buffering($section_storage, $storage_id);
 
-      if (!$configuration = $this->updateHelper()->updateBlockComponentPattern($component, $library_name)) {
-        return FALSE;
+      $updated = FALSE;
+      if ($update_helper->filterComponent($component, $filter)) {
+        if ($configuration = $update_helper->updateBlockComponentPattern($component)) {
+          $component->setConfiguration($configuration);
+          $block_count++;
+          $updated = TRUE;
+        }
       }
-      $component->setConfiguration($configuration);
-      $block_count++;
 
-      return TRUE;
+      return $updated;
     };
 
     // Iterate over sections within each section store to update patterns and
@@ -239,6 +244,8 @@ class LayoutHelper {
    * @param callable $callback
    *   A callback to apply to each section component. The callback should expect
    *   the following arguments:
+   *   - $storage_id: The string identifier for the section storage instance
+   *     being processed.
    *   - $section_storage: The
    *     @link \Drupal\layout_builder\SectionStorageInterface @endlink layout
    *     containing the component being processed.

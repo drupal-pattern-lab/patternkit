@@ -3,22 +3,26 @@
 namespace Drupal\Tests\patternkit\Unit;
 
 use Drupal\block\BlockInterface;
+use Drupal\Component\Plugin\Exception\PluginException;
 use Drupal\Core\Block\BlockPluginInterface;
+use Drupal\Core\Block\Plugin\Block\Broken;
+use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\KeyValueStore\KeyValueExpirableFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
-use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\layout_builder\SectionComponent;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Entity\PatternkitBlock as EntityPatternkitBlock;
+use Drupal\patternkit\Exception\UnknownPatternException;
 use Drupal\patternkit\LayoutHelper;
-use Drupal\patternkit\PatternRepository;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock as BlockPatternkitBlock;
 use Drupal\patternkit\UpdateHelper;
+use Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait;
 use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
@@ -33,6 +37,7 @@ use Prophecy\Prophecy\ObjectProphecy;
 class UpdateHelperTest extends UnitTestCase {
 
   use ProphecyTrait;
+  use PatternkitMockHelperTrait;
 
   /**
    * The entity type manager service.
@@ -77,13 +82,6 @@ class UpdateHelperTest extends UnitTestCase {
   protected ObjectProphecy $logger;
 
   /**
-   * The patternkit pattern repository service.
-   *
-   * @var \Drupal\patternkit\PatternRepository|\Prophecy\Prophecy\ObjectProphecy
-   */
-  protected ObjectProphecy $patternRepository;
-
-  /**
    * The Patternkit layout helper service, if Layout Builder is available.
    *
    * @var \Drupal\patternkit\LayoutHelper|\Prophecy\Prophecy\ObjectProphecy
@@ -105,7 +103,6 @@ class UpdateHelperTest extends UnitTestCase {
 
     $this->blockStorage = $this->prophesize(EntityStorageInterface::class);
     $this->patternStorage = $this->prophesize(EntityStorageInterface::class);
-    $this->patternRepository = $this->prophesize(PatternRepository::class);
     $this->keyValueExpirable = $this->prophesize(KeyValueExpirableFactoryInterface::class);
     $this->moduleHandler = $this->prophesize(ModuleHandlerInterface::class);
     $this->logger = $this->prophesize(LoggerChannelInterface::class);
@@ -126,16 +123,50 @@ class UpdateHelperTest extends UnitTestCase {
 
     $updateHelper = new UpdateHelper(
       $entityTypeManager->reveal(),
-      $this->patternRepository->reveal(),
       $this->keyValueExpirable->reveal(),
       $this->moduleHandler->reveal(),
       $this->logger->reveal(),
     );
 
-    $stringTranslation = $this->prophesize(TranslationInterface::class);
-    $updateHelper->setStringTranslation($stringTranslation->reveal());
+    $updateHelper->setStringTranslation($this->getStringTranslationStub());
 
     return $updateHelper;
+  }
+
+  /**
+   * Get a partial mock of the test subject with injected dependencies.
+   *
+   * @param string[] $methods
+   *   (Optional) An array of test class methods to be mocked. These methods
+   *   will be marked for mocking, but expectations for them will still need
+   *   to be configured on the returned instance.
+   *
+   * @return \PHPUnit\Framework\MockObject\MockObject|\Drupal\patternkit\UpdateHelper
+   *   The mocked object with injected dependencies.
+   */
+  protected function getPartialMock(array $methods = []): MockObject {
+    // Mock for the constructor arguments.
+    $entityTypeManager = $this->prophesize(EntityTypeManagerInterface::class);
+    $entityTypeManager->getStorage('patternkit_block')
+      ->willReturn($this->blockStorage->reveal());
+    $entityTypeManager->getStorage('patternkit_pattern')
+      ->willReturn($this->patternStorage->reveal());
+
+    // Partially mock the service to avoid excessive mocking for deeper
+    // functions on each block.
+    $mock = $this->getMockBuilder(UpdateHelper::class)
+      ->setConstructorArgs([
+        $entityTypeManager->reveal(),
+        $this->keyValueExpirable->reveal(),
+        $this->moduleHandler->reveal(),
+        $this->logger->reveal(),
+      ])
+      ->onlyMethods($methods)
+      ->getMock();
+
+    $mock->setStringTranslation($this->getStringTranslationStub());
+
+    return $mock;
   }
 
   /**
@@ -192,13 +223,9 @@ class UpdateHelperTest extends UnitTestCase {
   public function providerGetBlockFromComponent(): array {
     $cases = [];
 
-    $cases['entity exists'] = [
-      TRUE,
-    ];
+    $cases['entity exists'] = [TRUE];
 
-    $cases['entity does not exist'] = [
-      TRUE,
-    ];
+    $cases['entity does not exist'] = [FALSE];
 
     return $cases;
   }
@@ -222,32 +249,10 @@ class UpdateHelperTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::updatePattern
-   */
-  public function testUpdatePattern(): void {
-    $base_pattern = $this->prophesize(PatternInterface::class);
-    $pattern = $this->prophesize(PatternInterface::class);
-
-    // A new default revision should get created.
-    $pattern->setNewRevision()->shouldBeCalledOnce();
-    $pattern->isDefaultRevision(TRUE)->shouldBeCalledOnce();
-
-    // Values should be updated from the base pattern onto the target pattern.
-    $pattern->updateFromPattern($base_pattern->reveal())->shouldBeCalledOnce();
-
-    // The target pattern should get updated.
-    $pattern->save()->shouldBeCalledOnce()->willReturn(1);
-
-    $this->getUpdateHelper()->updatePattern($pattern->reveal(), $base_pattern->reveal());
-  }
-
-  /**
    * @covers ::updateBlockComponentPattern
    * @covers ::isPatternkitComponent
    * @covers ::getBlockFromComponent
    * @covers ::getPatternFromComponent
-   * @covers ::updatePattern
-   * @uses \Drupal\patternkit\Plugin\Derivative\PatternkitBlock::derivativeToAssetId()
    */
   public function testUpdateBlockComponentPattern(): void {
     $configuration = [
@@ -259,42 +264,60 @@ class UpdateHelperTest extends UnitTestCase {
     $plugin_id = 'patternkit:' . $derivative_id;
     $pattern_id = '@patternkit/example/src/example';
 
-    // Prepare the component being processed.
-    $component = $this->prophesize(BlockInterface::class);
-    $component->getPluginId()->willReturn($plugin_id);
-    $component->get('configuration')->willReturn($configuration);
-
-    // Prepare the plugin for the component.
-    $plugin = $this->prophesize(BlockPatternkitBlock::class);
-    $plugin->getDerivativeId()->willReturn($derivative_id);
-    $component->getPlugin()->willReturn($plugin->reveal());
-
     // Prepare the related patternkit block to be loaded from the component.
-    $block = $this->prophesize(EntityPatternkitBlock::class);
-    $block->getLoadedRevisionId()->willReturn($configuration['patternkit_block_rid']);
-    $block->isNew()->willReturn(FALSE);
-    $plugin->getBlockEntity()->willReturn($block->reveal());
+    $block = $this->getMockPatternkitBlockEntity([
+      'is_new' => FALSE,
+    ]);
+    $block->getLoadedRevisionId()
+      ->willReturn($configuration['patternkit_block_rid']);
 
     // Prepare the pattern to be loaded from the component.
-    $pattern = $this->prophesize(PatternInterface::class);
-    $pattern->getHash()->willReturn('abc123');
-    $pattern->save()->willReturn(2);
-    $pattern->getRevisionId()->willReturn($new_pattern_revision = 2);
-    $pattern->getAssetId()->willReturn($pattern_id);
-    $pattern->getLibrary()->willReturn('patternkit');
-    $pattern->getVersion()->willReturn(\Drupal::VERSION);
-    $pattern->setNewRevision()->shouldBeCalledOnce();
-    $pattern->isDefaultRevision(TRUE)->shouldBeCalledOnce();
-    $pattern->updateFromPattern(Argument::type(PatternInterface::class))
-      ->willReturn($pattern->reveal());
-    $plugin->getPatternEntity()->willReturn($pattern->reveal());
+    $pattern = $this->getMockPatternEntity([
+      'asset_id' => $pattern_id,
+      'hash' => 'abc123',
+      'version' => 'OLD',
+    ]);
 
     // Prepare the base pattern to be loaded for updating.
-    $base_pattern = $this->prophesize(PatternInterface::class);
-    $base_pattern->getHash()->willReturn('def456');
-    $base_pattern->getVersion()->willReturn(\Drupal::VERSION);
-    $this->patternRepository->getPattern($pattern_id, TRUE)
-      ->willReturn($base_pattern->reveal());
+    $base_pattern = $this->getMockPatternEntity([
+      'asset_id' => $pattern_id,
+      'hash' => 'def456',
+      'version' => 'NEW',
+    ]);
+
+    // Prepare the plugin being processed.
+    $plugin = $this->getMockPatternkitBlockPlugin([
+      'plugin_id' => $plugin_id,
+      'derivative_id' => $derivative_id,
+      'configuration' => $configuration,
+      'block' => $block->reveal(),
+      'pattern' => $pattern->reveal(),
+      'base_pattern' => $base_pattern->reveal(),
+    ]);
+
+    // Prepare the component being processed.
+    $component = $this->getMockBlockComponent([
+      'plugin_id' => $plugin_id,
+      'configuration' => $configuration,
+      'plugin' => $plugin->reveal(),
+    ]);
+
+    // Prepare an "updated" pattern instance.
+    $updated_pattern = $this->prophesize(PatternInterface::class);
+    $updated_pattern->getRevisionId()->willReturn($new_pattern_revision = 2);
+
+    // Expect the plugin's update function to be called.
+    $plugin->updatePattern($pattern->reveal(), $base_pattern->reveal())
+      ->shouldBeCalledOnce()
+      ->will(function () use ($updated_pattern, $new_pattern_revision, $configuration) {
+        // Update the returned configuration.
+        /** @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Plugin\Block\PatternkitBlock $this */
+        $this->getConfiguration()->willReturn([
+          'pattern' => $new_pattern_revision,
+        ] + $configuration);
+
+        return $updated_pattern->reveal();
+      });
 
     $updateHelper = $this->getUpdateHelper();
     $actual = $updateHelper->updateBlockComponentPattern($component->reveal());
@@ -305,36 +328,206 @@ class UpdateHelperTest extends UnitTestCase {
   }
 
   /**
+   * Test various failure scenarios while updating a block component.
+   *
+   * This is written using switch statements and strings to select the correct
+   * test case to ensure a clean running environment for each scenario and clear
+   * labeling for any failures without having to create a separate test method
+   * for each scenario. Loading the necessary mocking in some way for each test
+   * case from the data provider would be more ideal, but since the data
+   * is only run once and can only provide static arguments this isn't easily
+   * achievable.
+   *
    * @covers ::updateBlockComponentPattern
-   * @covers ::isPatternkitComponent
-   * @uses \Drupal\patternkit\Plugin\Derivative\PatternkitBlock::derivativeToAssetId()
+   * @dataProvider providerUpdateBlockComponentPatternWithFailures
    */
-  public function testUpdateBlockComponentPatternWithFilter(): void {
-    $library_name = 'my_library';
+  public function testUpdateBlockComponentPatternWithFailures(string $scenario): void {
+    $configuration = [
+      'pattern' => 123,
+      'patternkit_block_id' => 1,
+      'patternkit_block_rid' => 2,
+    ];
+    $derivative_id = 'patternkit_example_src_example';
+    $plugin_id = 'patternkit:' . $derivative_id;
+    $pattern_id = '@patternkit/example/src/example';
+
+    // Prepare the related patternkit block to be loaded from the component.
+    $block = $this->getMockPatternkitBlockEntity([
+      'is_new' => FALSE,
+    ]);
+    $block->getLoadedRevisionId()
+      ->willReturn($configuration['patternkit_block_rid']);
+
+    // Prepare the pattern to be loaded from the component.
+    $pattern = $this->getMockPatternEntity([
+      'asset_id' => $pattern_id,
+      'hash' => 'abc123',
+      'version' => 'OLD',
+    ]);
+
+    // Prepare the base pattern to be loaded for updating.
+    $base_pattern = $this->getMockPatternEntity([
+      'asset_id' => $pattern_id,
+      'hash' => 'def456',
+      'version' => 'NEW',
+    ]);
+
+    // Prepare the plugin being processed.
+    $plugin = $this->getMockPatternkitBlockPlugin([
+      'plugin_id' => $plugin_id,
+      'derivative_id' => $derivative_id,
+      'configuration' => $configuration,
+      'block' => $block->reveal(),
+      'pattern' => $pattern->reveal(),
+      'base_pattern' => $base_pattern->reveal(),
+    ]);
 
     // Prepare the component being processed.
-    $component = $this->prophesize(BlockInterface::class);
-    $component->getPluginId()->willReturn('patternkit:patternkit_example_src_example');
+    $component = $this->getMockBlockComponent([
+      'plugin_id' => $plugin_id,
+      'configuration' => $configuration,
+      'plugin' => $plugin->reveal(),
+    ]);
 
-    // Prepare the plugin for the component.
-    $plugin = $this->prophesize(BlockPluginInterface::class);
-    $plugin->getDerivativeId()->willReturn('patternkit_example_src_example');
-    $component->getPlugin()->willReturn($plugin->reveal());
+    $mock = $this->getPartialMock([
+      'getBlockFromComponent',
+      'getPatternFromComponent',
+    ]);
 
-    $updateHelper = $this->getUpdateHelper();
+    $this->logger->info('Updating block plugin with id @plugin.', [
+      '@plugin' => $plugin_id,
+    ])->shouldBeCalledOnce();
 
-    // The library name shouldn't match, so FALSE should get returned.
-    $this->assertFalse($updateHelper->updateBlockComponentPattern($component->reveal(), $library_name));
+    switch ($scenario) {
+      case 'failure to load block entity':
+        $mock->method('getBlockFromComponent')->willReturn(NULL);
+
+        $this->logger->error(
+          'Unable to load the block entity for block @block_id. Check the logs for more info.',
+          ['@block_id' => $plugin_id])
+          ->shouldBeCalledOnce();
+
+        $result = $mock->updateBlockComponentPattern($component->reveal());
+        $this->assertFalse($result, 'Expected FALSE when the block entity could not be loaded.');
+        break;
+
+      case 'exception loading block entity':
+        $mock->method('getBlockFromComponent')->willThrowException(new EntityStorageException());
+
+        $this->logger->error(
+          'Unable to load the block entity for block @block_id. Check the logs for more info.',
+          ['@block_id' => $plugin_id]
+        )->shouldBeCalledOnce();
+
+        $result = $mock->updateBlockComponentPattern($component->reveal());
+        $this->assertFalse($result, 'Expected FALSE when fetching the block entity throws an exception.');
+        break;
+
+      case 'failure to load pattern entity':
+        $mock->method('getBlockFromComponent')->willReturn($block->reveal());
+        $mock->method('getPatternFromComponent')->willReturn(NULL);
+
+        $this->logger->error(
+          'Unable to load the pattern for block @block_id. Check the logs for more info.',
+          ['@block_id' => $plugin_id]
+        )->shouldBeCalledOnce();
+
+        $result = $mock->updateBlockComponentPattern($component->reveal());
+        $this->assertFalse($result, 'Expected FALSE when the pattern entity could not be loaded.');
+        break;
+
+      case 'exception loading pattern entity':
+        $mock->method('getBlockFromComponent')->willReturn($block->reveal());
+        $mock->method('getPatternFromComponent')->willThrowException(new PluginException());
+
+        $this->logger->error(
+          'Unable to load the pattern for block @block_id. Check the logs for more info.',
+          ['@block_id' => $plugin_id]
+        )->shouldBeCalledOnce();
+
+        $result = $mock->updateBlockComponentPattern($component->reveal());
+        $this->assertFalse($result, 'Expected FALSE when fetching the pattern entity throws an exception.');
+        break;
+
+      case 'failure to load base pattern':
+        $mock->method('getBlockFromComponent')->willReturn($block->reveal());
+        $mock->method('getPatternFromComponent')->willReturn($pattern->reveal());
+        $plugin->getBasePattern()->willThrow(new UnknownPatternException());
+
+        $this->logger->error('Failed to load base pattern for @pattern.', ['@pattern' => $pattern_id])
+          ->shouldBeCalledOnce();
+
+        $result = $mock->updateBlockComponentPattern($component->reveal());
+        $this->assertFalse($result, 'Expected FALSE when loading the base pattern throws an exception.');
+        break;
+
+      case 'update is not needed':
+        $mock->method('getBlockFromComponent')->willReturn($block->reveal());
+        $mock->method('getPatternFromComponent')->willReturn($pattern->reveal());
+        $base_pattern->getHash()->willReturn('abc123');
+
+        $this->logger->info('Pattern "@pattern" did not need to be updated.', ['@pattern' => $pattern_id])
+          ->shouldBeCalledOnce();
+
+        $result = $mock->updateBlockComponentPattern($component->reveal());
+        $this->assertFalse($result, 'Expected FALSE when a pattern is already up to date.');
+        break;
+
+      case 'exception during pattern update':
+        $mock->method('getBlockFromComponent')->willReturn($block->reveal());
+        $mock->method('getPatternFromComponent')->willReturn($pattern->reveal());
+        $plugin->updatePattern($pattern->reveal(), $base_pattern->reveal())
+          ->willThrow(new EntityStorageException());
+
+        $this->logger->notice('Updating pattern "@pattern" from "@old" to "@new".', [
+          '@pattern' => $pattern_id,
+          '@old' => 'OLD',
+          '@new' => 'NEW',
+        ])->shouldBeCalledOnce();
+        $this->logger->error('Failed to update pattern "@pattern" for block "@block_id".', [
+          '@pattern' => $pattern_id,
+          '@block_id' => $plugin_id,
+        ])->shouldBeCalledOnce();
+
+        $result = $mock->updateBlockComponentPattern($component->reveal());
+        $this->assertFalse($result, 'Expected FALSE when an exception occurs during the update process.');
+        break;
+
+    }
+  }
+
+  /**
+   * Data provider for the testUpdateBlockComponentPatternWithFailures() test.
+   */
+  public function providerUpdateBlockComponentPatternWithFailures(): array {
+    $scenarios = [
+      'failure to load block entity',
+      'exception loading block entity',
+      'failure to load pattern entity',
+      'exception loading pattern entity',
+      'failure to load base pattern',
+      'update is not needed',
+      'exception during pattern update',
+    ];
+
+    // Create an array keyed by the scenario name as well for readability in
+    // test results.
+    $cases = [];
+    foreach ($scenarios as $name) {
+      $cases[$name] = [$name];
+    }
+
+    return $cases;
   }
 
   /**
    * @covers ::updateBlockComponents
    */
   public function testUpdateBlockComponents(): void {
+    $filter = [];
     $blocks = [];
     $block = $this->prophesize(BlockInterface::class);
     $plugin = $this->prophesize(BlockPluginInterface::class);
-    $block->getPlugin()->willReturn($plugin->reveal());
 
     // Mock 3 blocks for iteration.
     $blocks[] = $block->reveal();
@@ -342,25 +535,17 @@ class UpdateHelperTest extends UnitTestCase {
     $blocks[] = $block->reveal();
     $this->blockStorage->loadMultiple()->willReturn($blocks);
 
-    // Mock for the constructor arguments.
-    $entityTypeManager = $this->prophesize(EntityTypeManagerInterface::class);
-    $entityTypeManager->getStorage('patternkit_block')
-      ->willReturn($this->blockStorage->reveal());
-    $entityTypeManager->getStorage('patternkit_pattern')
-      ->willReturn($this->patternStorage->reveal());
-
     // Partially mock the service to avoid excessive mocking for deeper
     // functions on each block.
-    $mock = $this->getMockBuilder(UpdateHelper::class)
-      ->setConstructorArgs([
-        $entityTypeManager->reveal(),
-        $this->patternRepository->reveal(),
-        $this->keyValueExpirable->reveal(),
-        $this->moduleHandler->reveal(),
-        $this->logger->reveal(),
-      ])
-      ->onlyMethods(['updateBlockComponentPattern'])
-      ->getMock();
+    $mock = $this->getPartialMock([
+      'filterComponent',
+      'updateBlockComponentPattern',
+    ]);
+
+    $mock->expects($this->exactly(count($blocks)))
+      ->method('filterComponent')
+      ->with($this->isInstanceOf(BlockInterface::class), $filter)
+      ->willReturn($plugin->reveal());
 
     // Mock the update method to confirm function behavior.
     $mock->expects($this->exactly(count($blocks)))
@@ -387,25 +572,9 @@ class UpdateHelperTest extends UnitTestCase {
     $this->moduleHandler->moduleExists('layout_builder')
       ->willReturn(FALSE);
 
-    // Mock for the constructor arguments.
-    $entityTypeManager = $this->prophesize(EntityTypeManagerInterface::class);
-    $entityTypeManager->getStorage('patternkit_block')
-      ->willReturn($this->blockStorage->reveal());
-    $entityTypeManager->getStorage('patternkit_pattern')
-      ->willReturn($this->patternStorage->reveal());
-
     // Partially mock the service to avoid excessive mocking for deeper
     // functions on each block.
-    $mock = $this->getMockBuilder(UpdateHelper::class)
-      ->setConstructorArgs([
-        $entityTypeManager->reveal(),
-        $this->patternRepository->reveal(),
-        $this->keyValueExpirable->reveal(),
-        $this->moduleHandler->reveal(),
-        $this->logger->reveal(),
-      ])
-      ->onlyMethods(['updateBlockComponents'])
-      ->getMock();
+    $mock = $this->getPartialMock(['updateBlockComponents']);
 
     $mock->expects($this->once())->method('updateBlockComponents')
       ->willReturn(3);
@@ -435,19 +604,11 @@ class UpdateHelperTest extends UnitTestCase {
 
     // Partially mock the service to avoid excessive mocking for deeper
     // functions on each block.
-    $mock = $this->getMockBuilder(UpdateHelper::class)
-      ->setConstructorArgs([
-        $entityTypeManager->reveal(),
-        $this->patternRepository->reveal(),
-        $this->keyValueExpirable->reveal(),
-        $this->moduleHandler->reveal(),
-        $this->logger->reveal(),
-      ])
-      ->onlyMethods(['updateBlockComponents'])
-      ->getMock();
+    $mock = $this->getPartialMock(['updateBlockComponents']);
     $mock->setLayoutHelper($this->layoutHelper->reveal());
 
     $mock->expects($this->once())->method('updateBlockComponents')
+      ->with([])
       ->willReturn(3);
 
     $this->assertEquals([8, 2], $mock->updateAllPatternComponents());
@@ -455,10 +616,364 @@ class UpdateHelperTest extends UnitTestCase {
 
   /**
    * @covers ::updateAllPatternComponents
-   * @covers ::layoutHelper
+   * @dataProvider providerUpdateAllPatternComponentsWithFilters
    */
-  public function testUpdateAllPatternComponentsWithFilters(): void {
-    $this->markTestIncomplete();
+  public function testUpdateAllPatternComponentsWithFilters(array $filter, array $expected_logging, array $options): void {
+    [
+      'layout_helper' => $use_layout_helper,
+    ] = $options;
+
+    $expected_blocks = 0;
+    $expected_entities = 0;
+
+    // Configure mocking and expected side effects for layout builder usage.
+    if ($use_layout_helper ?? FALSE) {
+      // Pretend layout builder components and layouts were updated.
+      $expected_blocks = 5;
+      $expected_entities = 2;
+
+      $this->layoutHelper = $this->prophesize(LayoutHelper::class);
+      $this->layoutHelper->updateLayoutBuilderComponents($filter)
+        ->shouldBeCalledOnce()
+        ->willReturn([
+          $expected_blocks,
+          $expected_entities,
+        ]);
+    }
+
+    // Configure log messaging expectations.
+    foreach ($expected_logging as $log) {
+      [$channel, $message] = $log;
+
+      if ($context = $log[2] ?? NULL) {
+        $this->logger->$channel($message, $context)->shouldBeCalledOnce();
+      }
+      else {
+        $this->logger->$channel($message)->shouldBeCalledOnce();
+      }
+    }
+
+    $mock = $this->getPartialMock([
+      'updateBlockComponents',
+      'layoutHelper',
+    ]);
+    $mock->expects($this->atLeastOnce())->method('layoutHelper')
+      ->willReturn($use_layout_helper ? $this->layoutHelper->reveal() : NULL);
+
+    $mock
+      ->method('updateBlockComponents')
+      ->with($filter)
+      ->willReturnCallback(function () use (&$expected_blocks): int {
+        // Pretend a number of blocks were updated.
+        $num_blocks = 3;
+
+        // Increment the expected value to match.
+        $expected_blocks += $num_blocks;
+
+        return $num_blocks;
+      });
+
+    $actual = $mock->updateAllPatternComponents($filter);
+    $this->assertEquals([$expected_blocks, $expected_entities], $actual);
+  }
+
+  /**
+   * Data provider for the testUpdateAllPatternComponentsWithFilters() test.
+   */
+  public function providerUpdateAllPatternComponentsWithFilters(): array {
+    $cases = [];
+
+    $cases['entity type filter'] = [
+      // Filter values.
+      ['entity_type' => 'node'],
+      // Expected log messages.
+      [
+        [
+          'info',
+          'Updating patterns throughout defined layouts.',
+        ],
+        [
+          'info',
+          'Skipping block updates due to the presence of entity filters.',
+        ],
+        [
+          'notice',
+          'Updated @entities entity layouts and @blocks Patternkit blocks.',
+          [
+            '@entities' => 2,
+            '@blocks' => 5,
+          ],
+        ],
+      ],
+      // Test run options.
+      [
+        'layout_helper' => TRUE,
+      ],
+    ];
+
+    $cases['entity type filter without layout builder'] = [
+      // Filter values.
+      ['entity_type' => 'node'],
+      // Expected log messages.
+      [
+        [
+          'info',
+          'Skipping block updates due to the presence of entity filters.',
+        ],
+        [
+          'notice',
+          'Updated @entities entity layouts and @blocks Patternkit blocks.',
+          [
+            '@entities' => 0,
+            '@blocks' => 0,
+          ],
+        ],
+      ],
+      // Test run options.
+      [
+        'layout_helper' => FALSE,
+      ],
+    ];
+
+    return $cases;
+  }
+
+  /**
+   * Test filter behaviors of the filterComponents() method.
+   *
+   * @param array $component
+   *   Configuration for a mock test component that will be passed to
+   *   @link \Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait::getMockComponent()@endlink.
+   * @param array $filter
+   *   Filter configuration to test with the filterComponents() method.
+   * @param bool $expected
+   *   The expected result of the function execution. For these tests, a boolean
+   *   FALSE result would indicate an error or failed filter match, but a TRUE
+   *   instead will match against a boolean cast of the returned plugin result.
+   * @param string $component_type
+   *   The type of component to be tested with. Valid options are 'block' or
+   *   'layout'.
+   *
+   * @covers ::filterComponent
+   * @covers ::isPatternkitComponent
+   * @dataProvider providerFilterComponent
+   */
+  public function testFilterComponent(array $component, array $filter, bool $expected, string $component_type) {
+    $component = $this->getMockComponent($component_type, $component);
+
+    $updateHelper = $this->getUpdateHelper();
+    $actual = $updateHelper->filterComponent($component->reveal(), $filter);
+    $this->assertEquals($expected, (bool) $actual);
+  }
+
+  /**
+   * Data provider for the testFilterComponent() test.
+   */
+  public function providerFilterComponent(): array {
+    $cases = [];
+
+    $derivative_id = $this->getRandomGenerator()->string();
+
+    // Test a valid block with no filters.
+    $cases['no filter'] = [
+      // Mock configuration.
+      [
+        'plugin_id' => 'patternkit:' . $derivative_id,
+        'plugin' => [
+          'derivative_id' => $derivative_id,
+          'pattern_id' => '@patternkit/atoms/example/src/example',
+        ],
+      ],
+      // Filter values.
+      [],
+      // Expected result.
+      TRUE,
+    ];
+
+    // Test a valid block with a matching library filter.
+    $cases['library filter match'] = [
+      // Mock configuration.
+      [
+        'plugin_id' => 'patternkit:' . $derivative_id,
+        'plugin' => [
+          'derivative_id' => $derivative_id,
+          'pattern_id' => '@patternkit/atoms/example/src/example',
+        ],
+      ],
+      // Filter values.
+      ['library' => '@patternkit'],
+      // Expected result.
+      TRUE,
+    ];
+
+    // Test a valid block with an exclusionary library filter.
+    $cases['library filter miss'] = [
+      // Mock configuration.
+      [
+        'plugin_id' => 'patternkit:' . $derivative_id,
+        'plugin' => [
+          'derivative_id' => $derivative_id,
+          'pattern_id' => '@patternkit/atoms/example/src/example',
+        ],
+      ],
+      // Filter values.
+      ['library' => '@not-patternkit'],
+      // Expected result.
+      FALSE,
+    ];
+
+    // Test a valid block with a matching pattern ID filter.
+    $cases['pattern filter match'] = [
+      // Mock configuration.
+      [
+        'plugin_id' => 'patternkit:' . $derivative_id,
+        'plugin' => [
+          'derivative_id' => $derivative_id,
+          'pattern_id' => '@patternkit/atoms/example/src/example',
+        ],
+      ],
+      // Filter values.
+      ['pattern' => '@patternkit/atoms/example/src/example'],
+      // Expected result.
+      TRUE,
+    ];
+
+    // Test a valid block with an exclusionary pattern ID filter.
+    $cases['pattern filter miss'] = [
+      // Mock configuration.
+      [
+        'plugin_id' => 'patternkit:' . $derivative_id,
+        'plugin' => [
+          'derivative_id' => $derivative_id,
+          'pattern_id' => '@patternkit/atoms/example/src/example',
+        ],
+      ],
+      // Filter values.
+      ['pattern' => '@a/different/pattern'],
+      // Expected result.
+      FALSE,
+    ];
+
+    // Run each test case with both component types.
+    $test_cases = [];
+    foreach ($cases as $name => $args) {
+      $test_cases[$name . ' with block'] = [...$args, 'block'];
+      $test_cases[$name . ' with layout builder'] = [...$args, 'layout'];
+    }
+
+    return $test_cases;
+  }
+
+  /**
+   * Test error scenarios when filtering components.
+   *
+   * This is written using switch statements and strings to select the correct
+   * test case to ensure a clean running environment for each scenario and clear
+   * labeling for any failures without having to create a separate test method
+   * for each scenario. Loading the necessary mocking in some way for each test
+   * case from the data provider would be more ideal, but since the data
+   * is only run once and can only provide static arguments this isn't easily
+   * achievable.
+   *
+   * @covers ::filterComponent
+   * @covers ::isPatternkitComponent
+   * @dataProvider providerFilterComponentWithErrors
+   */
+  public function testFilterComponentWithErrors(string $scenario, string $component_type) {
+    $derivative_id = $this->getRandomGenerator()->string();
+    $plugin_id = 'patternkit:' . $derivative_id;
+
+    switch ($scenario) {
+      case 'not a patternkit component':
+        $component = $this->getMockComponent($component_type, [
+          'plugin_id' => 'something-else:' . $derivative_id,
+        ]);
+
+        $updateHelper = $this->getUpdateHelper();
+        $actual = $updateHelper->filterComponent($component->reveal(), []);
+        $this->assertFalse($actual);
+        break;
+
+      case 'broken block':
+        $uuid = $this->getRandomGenerator()->string();
+        $plugin = $this->prophesize(Broken::class);
+        $component = $this->getMockComponent($component_type, [
+          'plugin_id' => $plugin_id,
+          'plugin' => $plugin->reveal(),
+          'uuid' => $uuid,
+        ]);
+
+        $this->logger->warning('Encountered unknown plugin type "@plugin" while processing block ID "@block_id".', [
+          '@plugin' => get_class($plugin->reveal()),
+          '@block_id' => $uuid,
+        ])->shouldBeCalledOnce();
+
+        $updateHelper = $this->getUpdateHelper();
+        $actual = $updateHelper->filterComponent($component->reveal(), []);
+        $this->assertFalse($actual);
+        break;
+
+      case 'failure to load derivative id':
+        $component = $this->getMockComponent($component_type, [
+          'plugin_id' => $plugin_id,
+          'plugin' => [
+            'plugin_id' => $plugin_id,
+            'derivative_id' => NULL,
+            'pattern_id' => '@patternkit/atoms/example/src/example',
+          ],
+        ]);
+
+        $this->logger->error('Encountered broken block plugin: @block_id', [
+          '@block_id' => $plugin_id,
+        ])->shouldBeCalledOnce();
+
+        $updateHelper = $this->getUpdateHelper();
+        $actual = $updateHelper->filterComponent($component->reveal(), []);
+        $this->assertFalse($actual);
+        break;
+
+      case 'plugin exception':
+        $uuid = $this->getRandomGenerator()->string();
+        $error_message = $this->getRandomGenerator()->sentences(5);
+
+        $component = $this->getMockComponent($component_type, [
+          'plugin_id' => $plugin_id,
+          'uuid' => $uuid,
+        ]);
+        $component->getPlugin()->willThrow(new PluginException($error_message));
+
+        $this->logger->error('Unable to load the plugin for block @block_id: @message', [
+          '@block_id' => $uuid,
+          '@message' => $error_message,
+        ])->shouldBeCalledOnce();
+
+        $updateHelper = $this->getUpdateHelper();
+        $actual = $updateHelper->filterComponent($component->reveal(), []);
+        $this->assertFalse($actual);
+        break;
+
+    }
+  }
+
+  /**
+   * Data provider for the testFilterComponentWithErrors() test.
+   */
+  public function providerFilterComponentWithErrors(): array {
+    $scenarios = [
+      'not a patternkit component',
+      'broken block',
+      'failure to load derivative id',
+      'plugin exception',
+    ];
+
+    // Run each test case with both component types.
+    $cases = [];
+    foreach ($scenarios as $scenario) {
+      $cases[$scenario . ' with block'] = [$scenario, 'block'];
+      $cases[$scenario . ' with layout builder'] = [$scenario, 'layout'];
+    }
+
+    return $cases;
   }
 
 }

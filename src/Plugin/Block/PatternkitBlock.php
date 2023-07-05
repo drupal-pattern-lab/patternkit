@@ -22,14 +22,17 @@ use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Utility\Token;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Entity\PatternkitBlock as EntityPatternkitBlock;
+use Drupal\patternkit\Event\PatternUpdateEvent;
 use Drupal\patternkit\Exception\UnknownPatternException;
 use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternkitEnvironmentAwareInterface;
 use Drupal\patternkit\PatternkitEnvironmentAwareTrait;
+use Drupal\patternkit\PatternkitEvents;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\patternkit\PatternRepository;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Provides a block that will display a Pattern from a Library with context.
@@ -119,6 +122,13 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
   protected LanguageManagerInterface $languageManager;
 
   /**
+   * The event dispatcher service.
+   *
+   * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
+   */
+  protected EventDispatcherInterface $eventDispatcher;
+
+  /**
    * The patternkit logger channel.
    *
    * @var \Drupal\Core\Logger\LoggerChannelInterface
@@ -180,6 +190,8 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    *   Token service.
    * @param \Drupal\Core\Language\LanguageManagerInterface $language_manager
    *   The language manager service.
+   * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher
+   *   The event dispatcher service.
    * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
    *   The logger channel for logging messages.
    *
@@ -199,6 +211,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     SerializationInterface $serializer,
     Token $token,
     LanguageManagerInterface $language_manager,
+    EventDispatcherInterface $event_dispatcher,
     LoggerChannelInterface $logger
   ) {
     $this->blockManager = $block_manager;
@@ -211,6 +224,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $this->serializer = $serializer;
     $this->token = $token;
     $this->languageManager = $language_manager;
+    $this->eventDispatcher = $event_dispatcher;
     $this->logger = $logger;
 
     // Assign token contexts into the plugin definition.
@@ -245,6 +259,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       $container->get('serialization.json'),
       $container->get('token'),
       $container->get('language_manager'),
+      $container->get('event_dispatcher'),
       $container->get('logger.channel.patternkit'),
     );
 
@@ -284,6 +299,8 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    *   - array fields => the form data configured via the pattern schema,
    *
    * @see baseConfigurationDefaults()
+   *
+   * @codeCoverageIgnore
    */
   public function getConfiguration(): array { // phpcs:ignore
     return parent::getConfiguration();
@@ -312,6 +329,11 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
   public function blockForm($form, FormStateInterface $form_state): array {
     $form += parent::blockForm($form, $form_state);
 
+    // Load configuration saved in the form state if there is any. This might
+    // happen when the pattern is updated and the form gets rebuilt.
+    if ($saved_config = $form_state->get('configuration')) {
+      $this->setConfiguration($saved_config);
+    }
     $configuration = $this->getConfiguration();
 
     try {
@@ -402,21 +424,95 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
   public function blockValidate($form, FormStateInterface $form_state): void {
     if ($submit = $form_state->getTriggeringElement() ?? FALSE) {
       if (!empty($submit['#value']) && $submit['#value']->getUntranslatedString() === 'Update pattern') {
-        /** @var \Drupal\patternkit\Entity\PatternInterface $base_pattern */
-        $base_pattern = $form_state->get('base_pattern') ?? $this->getBasePattern();
-        /** @var \Drupal\patternkit\Entity\PatternInterface $pattern */
-        $pattern = $form_state->get('pattern') ?? $this->getPatternEntity();
-
-        $pattern = $this->getUpdatedPatternRevision($pattern, $base_pattern);
-
-        $this->configuration['version'] = $pattern->getVersion();
-        $this->configuration['pattern'] = $pattern->getRevisionId();
-        $form_state->set('pattern', $pattern);
-        $form_state->set('schema_updated', TRUE);
-        $form_state->setRebuild(TRUE);
+        $this->handleBlockFormUpdate($form_state);
       }
     }
     parent::blockValidate($form, $form_state);
+  }
+
+  /**
+   * Handle operations for a triggered pattern update operation from the form.
+   *
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The submitted form state.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   * @throws \Drupal\Core\Entity\EntityStorageException
+   */
+  protected function handleBlockFormUpdate(FormStateInterface $form_state): void {
+    /** @var \Drupal\patternkit\Entity\PatternInterface $base_pattern */
+    $base_pattern = $form_state->get('base_pattern') ?? $this->getBasePattern();
+    /** @var \Drupal\patternkit\Entity\PatternInterface $pattern */
+    $pattern = $form_state->get('pattern') ?? $this->getPatternEntity();
+
+    $pattern = $this->updatePattern($pattern, $base_pattern);
+
+    $form_state->set('pattern', $pattern);
+    $form_state->set('schema_updated', TRUE);
+    $form_state->set('configuration', $this->getConfiguration());
+    $form_state->setRebuild(TRUE);
+  }
+
+  /**
+   * Update the pattern in use to match the provided base pattern.
+   *
+   * If the hash between the provided pattern instances differs, a new pattern
+   * revision will be created unless an existing revision is successfully loaded
+   * with the targeted hash.
+   *
+   * During the update process, a pattern update event will also be triggered
+   * for other modules to react to as needed.
+   *
+   * @param \Drupal\patternkit\Entity\PatternInterface|null $pattern
+   *   (optional) The active pattern instance.
+   * @param \Drupal\patternkit\Entity\PatternInterface|null $base_pattern
+   *   (optional) The base pattern to be updated from.
+   *
+   * @return \Drupal\patternkit\Entity\PatternInterface|null
+   *   The updated pattern revision or null if no update was necessary.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   * @throws \Drupal\Core\Entity\EntityStorageException
+   * @throws \JsonException
+   *
+   * @see \Drupal\patternkit\Event\PatternUpdateEvent
+   */
+  public function updatePattern(?PatternInterface $pattern = NULL, ?PatternInterface $base_pattern = NULL): ?PatternInterface {
+    $pattern ??= $this->getPatternEntity();
+    $base_pattern ??= $this->getBasePattern();
+
+    // If a base pattern is provided we assume it is always for the same pattern
+    // asset.
+    assert($pattern->getAssetId() === $base_pattern->getAssetId());
+
+    // Stop here if no update is available.
+    if ($pattern->getHash() == $base_pattern->getHash()) {
+      return NULL;
+    }
+
+    // Make a copy of the pattern before applying updates for inclusion in
+    // event dispatching.
+    $original = clone $pattern;
+    $updated_pattern = $this->getUpdatedPatternRevision($pattern, $base_pattern);
+
+    $this->configuration['version'] = $updated_pattern->getVersion();
+    $this->configuration['pattern'] = $updated_pattern->getRevisionId();
+
+    // Dispatch an update event to allow other modules to react to pattern
+    // updates and alter block content accordingly.
+    $event = $this->getUpdateEvent($original, $updated_pattern);
+    $this->eventDispatcher->dispatch($event, PatternkitEvents::PATTERN_UPDATE);
+
+    // Capture content updates from the event if changes were made.
+    if ($event->isAltered()) {
+      $updated_content = $event->getContent();
+      $serialized = json_encode($updated_content, JSON_THROW_ON_ERROR);
+      $this->updateBlockEntity(['data' => $serialized]);
+    }
+
+    return $updated_pattern;
   }
 
   /**
@@ -425,7 +521,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    * If an existing revision with the same hash is found, this revision is
    * returned. If not, a new revision is created and saved, but it is not set as
    * the default revision until the entire layout is saved at which time the
-   * revision will be resaved as the default revision and cache tags for the
+   * revision will be re-saved as the default revision and cache tags for the
    * pattern entity and the pattern asset name will be invalidated.
    *
    * @param \Drupal\patternkit\Entity\PatternInterface $pattern
@@ -441,7 +537,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    * @throws \Drupal\Core\Entity\EntityStorageException
    *
    * @see \Drupal\patternkit\Entity\Pattern::getCacheTagsToInvalidate()
-   * @see \Drupal\patternkit\Plugin\Block\PatternkitBlock::cachePatternEntity()
+   * @see self::cachePatternEntity()
    */
   protected function getUpdatedPatternRevision(PatternInterface $pattern, PatternInterface $base_pattern): PatternInterface {
     // Stop early if the hashes already match.
@@ -478,7 +574,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    */
   public function blockSubmit($form, FormStateInterface $form_state): void {
     // Create or update the block entity.
-    $this->updateBlockEntity($form_state);
+    $this->updateBlockEntity($form_state->getValues(), $form_state->get('block_entity'));
 
     // Ensure any updates to the Pattern revision are captured in configuration.
     $pattern = $form_state->get('pattern') ?? $this->getPatternEntity();
@@ -502,14 +598,10 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $block = $this->getBlockEntity();
     $pattern = $this->getPatternEntity();
 
-    // Load pattern configuration.
-    $data = $block->data->value ?? '';
-    $config = $this->decode($data);
-
     $element = [
       '#type' => 'pattern',
       '#pattern' => $pattern,
-      '#config' => $config,
+      '#config' => $block->getData(),
       '#context' => $this->getContextValues(),
     ];
 
@@ -830,46 +922,47 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    * Attempting to save the entity at this stage results in premature cache
    * invalidations.
    *
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *   The form state for the submitted form being processed.
+   * @param array $values
+   *   An array of values to update on the block entity.
+   * @param \Drupal\patternkit\Entity\PatternkitBlock|null $block_entity
+   *   (Optional) The patternkit block entity to be updated. If one is not
+   *   provided, attempts will be made to load it from existing configuration.
    *
    * @return \Drupal\patternkit\Entity\PatternkitBlock
    *   The updated or created patternkit block entity.
    *
    * @see \Drupal\patternkit\PatternkitBlockEntityOperations::handlePreSave()
    */
-  protected function updateBlockEntity(FormStateInterface $form_state): EntityPatternkitBlock {
-    $patternkit_block = $form_state->get('block_entity');
-    $patternkit_block ??= $this->getBlockEntity();
-    $values = $form_state->getValues();
-    $fields = array_flip(array_keys($patternkit_block->getFields()));
+  protected function updateBlockEntity(array $values, ?EntityPatternkitBlock $block_entity = NULL): EntityPatternkitBlock {
+    $block_entity ??= $this->getBlockEntity();
+    $fields = array_flip(array_keys($block_entity->getFields()));
 
     // Assign field values into the block entity.
     foreach ($values as $key => $value) {
       if (isset($fields[$key])) {
-        $patternkit_block->set($key, $value);
+        $block_entity->set($key, $value);
       }
       // Map additional keys that may differ from the storage structure.
       else {
         switch ($key) {
           case 'instance_config':
-            $patternkit_block->set('data', $value);
+            $block_entity->set('data', $value);
             break;
 
           case 'label':
-            $patternkit_block->set('info', $value);
+            $block_entity->set('info', $value);
             break;
         }
       }
     }
 
     // Assign additional contextual values into the entity.
-    $patternkit_block->set('pattern_id', $this->getPatternId());
+    $block_entity->set('pattern_id', $this->getPatternId());
 
     // Serialize the updated block instance to be loaded and saved later.
-    $this->configuration['block_serialized'] = serialize($patternkit_block);
+    $this->configuration['block_serialized'] = serialize($block_entity);
 
-    return $patternkit_block;
+    return $block_entity;
   }
 
   /**
@@ -882,18 +975,22 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    *
    * @throws \Drupal\Core\Entity\EntityStorageException
    *
+   * @see \Drupal\patternkit\Plugin\Block\PatternkitBlock::updateBlockEntity()
+   *   Unsaved edits to block entity values may be saved in a serialized value
+   *   until the parent entity is saved.
    * @see \Drupal\patternkit\PatternkitBlockEntityOperations::handlePreSave()
    */
   public function saveBlockContent(bool $new_revision = FALSE, bool $duplicate_block = FALSE): void {
-    /** @var \Drupal\patternkit\Entity\PatternkitBlock $block */
+    /** @var \Drupal\patternkit\Entity\PatternkitBlock|null $block */
     $block = NULL;
 
     // Load the unsaved changes if the block was updated.
-    // NB. We're not loading with ::loadBlockEntity to maintain more clear
+    // NB. We're not loading with ::getBlockEntity to maintain more clear
     // control over the flow of where the block is loaded from to better manage
     // duplication if needed.
     if (!empty($this->configuration['block_serialized'])) {
       $block = unserialize($this->configuration['block_serialized']);
+      assert($block instanceof EntityPatternkitBlock);
     }
 
     if ($duplicate_block) {
@@ -981,8 +1078,6 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    *
    * @throws \Drupal\Core\Entity\EntityStorageException
    *   Throws exception if a referenced block entity could not be loaded.
-   *
-   * @todo Deduplicate with UpdateHelper::getBlockFromComponent().
    */
   public function getBlockEntity(): EntityPatternkitBlock {
     // Return the loaded block entity immediately if it's already available.
@@ -1168,9 +1263,28 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    *
    * @return mixed
    *   The decoded value of the JSON string.
+   *
+   * @codeCoverageIgnore
    */
   protected function decode(string $value) {
     return $this->serializer::decode($value);
+  }
+
+  /**
+   * Get a Pattern update event for dispatching.
+   *
+   * @param \Drupal\patternkit\Entity\PatternInterface $original
+   *   The pattern entity being updated.
+   * @param \Drupal\patternkit\Entity\PatternInterface $updated_pattern
+   *   The updated pattern entity.
+   *
+   * @return \Drupal\patternkit\Event\PatternUpdateEvent
+   *   A pattern update event ready for dispatching.
+   *
+   * @codeCoverageIgnore
+   */
+  protected function getUpdateEvent(PatternInterface $original, PatternInterface $updated_pattern): PatternUpdateEvent {
+    return new PatternUpdateEvent($this, $original, $updated_pattern);
   }
 
 }

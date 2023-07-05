@@ -114,7 +114,6 @@ services:
     class: Drupal\patternkit\UpdateHelper
     arguments:
       - '@entity_type.manager'
-      - '@patternkit.pattern.repository'
       - '@keyvalue.expirable'
       - '@module_handler'
       - '@logger.channel.patternkit'

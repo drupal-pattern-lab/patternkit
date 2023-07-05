@@ -97,6 +97,10 @@ class PatternkitCommands extends DrushCommands {
    *   updates to be limited to. Example: 'node.article.default'. Fewer items
    *   may also be provided to filter. For example, only an entity and a bundle
    *   may be provided ('node.article') or just an entity type ('node').
+   * @option string $pattern
+   *   A specific pattern name to be updated. When using this option, only one
+   *   pattern name may be specified per execution.
+   *   Example: '@patternkit/atoms/example/src/example'.
    *
    * @return string
    *   A confirmation message for completion.
@@ -109,13 +113,15 @@ class PatternkitCommands extends DrushCommands {
    *   Update all @patternkit library patterns in all blocks and layouts.
    * @usage drush pklu --filter=node.article
    *   Update all patterns on the Node Article content type and overrides.
+   * @usage drush pklu --pattern='@patternkit/atoms/example/src/example'
+   *   Update all blocks using the patternkit example pattern.
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    * @throws \Drush\Exceptions\CommandFailedException
    */
-  public function libUpdate(string $library_name = NULL, $options = ['filter' => self::REQ]): string {
+  public function libUpdate(string $library_name = NULL, $options = ['filter' => self::REQ, 'pattern' => self::REQ]): string {
     // Fail early if the library name filter isn't prefixed.
     if ($library_name !== NULL && !str_starts_with($library_name, '@')) {
       throw new CommandFailedException('When using a library name filter, the library name should always include the "@" prefix. For example: "@patternkit"');
@@ -131,6 +137,10 @@ class PatternkitCommands extends DrushCommands {
       $filter['entity_type'] = $filters[0] ?? NULL;
       $filter['bundle'] = $filters[1] ?? NULL;
       $filter['display_mode'] = $filters[2] ?? NULL;
+    }
+
+    if ($options['pattern']) {
+      $filter['pattern'] = $options['pattern'];
     }
 
     $this->updateHelper->updateAllPatternComponents($filter);

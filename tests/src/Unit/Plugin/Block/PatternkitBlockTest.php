@@ -2,22 +2,29 @@
 
 namespace Drupal\Tests\patternkit\Unit\Plugin\Block;
 
+use Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher;
 use Drupal\Component\Serialization\SerializationInterface;
 use Drupal\Core\Block\BlockManager;
 use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Entity\Query\QueryInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Plugin\Context\ContextHandlerInterface;
 use Drupal\Core\Plugin\Context\ContextRepositoryInterface;
 use Drupal\Core\Utility\Token;
 use Drupal\patternkit\Entity\Pattern;
+use Drupal\patternkit\Entity\PatternInterface;
+use Drupal\patternkit\Event\PatternUpdateEvent;
 use Drupal\patternkit\PatternkitEnvironment;
+use Drupal\patternkit\PatternkitEvents;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\patternkit\PatternRepository;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock;
 use Drupal\patternkit\Entity\PatternkitBlock as EntityPatternkitBlock;
+use Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait;
 use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
@@ -31,6 +38,7 @@ use Prophecy\Prophecy\ObjectProphecy;
 class PatternkitBlockTest extends UnitTestCase {
 
   use ProphecyTrait;
+  use PatternkitMockHelperTrait;
 
   /**
    * Controls the block cache.
@@ -103,6 +111,13 @@ class PatternkitBlockTest extends UnitTestCase {
   protected ObjectProphecy $languageManager;
 
   /**
+   * The event dispatcher service.
+   *
+   * @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher
+   */
+  protected ObjectProphecy $eventDispatcher;
+
+  /**
    * The patternkit logger channel.
    *
    * @var \Drupal\Core\Logger\LoggerChannelInterface|\Prophecy\Prophecy\ObjectProphecy
@@ -167,6 +182,19 @@ class PatternkitBlockTest extends UnitTestCase {
   protected ObjectProphecy $defaultDefinitionPattern;
 
   /**
+   * An associative array of method return values for mocked global functions.
+   *
+   * The key of the array should map to a lookup value for the mocked function
+   * being overridden.
+   *
+   * @var array
+   *
+   * @see \Drupal\patternkit\Plugin\Block\serialize()
+   * @see https://akrabat.com/replacing-a-built-in-php-function-when-testing-a-component/
+   */
+  public static array $mockedFunctions = [];
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp(): void {
@@ -182,6 +210,7 @@ class PatternkitBlockTest extends UnitTestCase {
     $this->serializer = $this->prophesize(SerializationInterface::class);
     $this->token = $this->prophesize(Token::class);
     $this->languageManager = $this->prophesize(LanguageManagerInterface::class);
+    $this->eventDispatcher = $this->prophesize(ContainerAwareEventDispatcher::class);
     $this->logger = $this->prophesize(LoggerChannelInterface::class);
     $this->patternkitEnvironment = $this->prophesize(PatternkitEnvironment::class);
 
@@ -189,7 +218,7 @@ class PatternkitBlockTest extends UnitTestCase {
     $this->token->getInfo()->willReturn(['tokens' => []]);
     $this->contextRepository->getAvailableContexts()->willReturn([]);
 
-    $this->defaultDefinitionPattern = $this->preparePatternProphecy([
+    $this->defaultDefinitionPattern = $this->getMockPatternEntity([
       'name' => self::DEFAULT_PATTERN_ID,
       'library' => '@patternkit',
       'path' => 'atoms/example/src/example',
@@ -228,12 +257,56 @@ class PatternkitBlockTest extends UnitTestCase {
       $this->serializer->reveal(),
       $this->token->reveal(),
       $this->languageManager->reveal(),
+      $this->eventDispatcher->reveal(),
       $this->logger->reveal(),
     );
 
     $plugin->setPatternkitEnvironment($this->patternkitEnvironment->reveal());
 
     return $this->plugin = $plugin;
+  }
+
+  /**
+   * Get a partial mock of the test subject with injected dependencies.
+   *
+   * @param string[] $methods
+   *   (Optional) An array of test class methods to be mocked. These methods
+   *   will be marked for mocking, but expectations for them will still need
+   *   to be configured on the returned instance.
+   * @param array $configuration
+   *   (Optional) An associative array of configuration values to be passed into
+   *   the plugin constructor during instantiation.
+   *
+   * @return \PHPUnit\Framework\MockObject\MockObject|\Drupal\patternkit\Plugin\Block\PatternkitBlock
+   *   The mocked object with injected dependencies.
+   */
+  protected function getPartialMock(array $methods = [], array $configuration = []): MockObject {
+    // Mock these to disable their execution from the constructor.
+    $methods = array_merge($methods, [
+      'prepareTokenContexts',
+      'defaultConfiguration',
+    ]);
+
+    return $this->getMockBuilder(PatternkitBlock::class)
+      ->setConstructorArgs([
+        $this->blockManager->reveal(),
+        $configuration,
+        $this->contextHandler->reveal(),
+        $this->contextRepository->reveal(),
+        $this->patternStorage->reveal(),
+        $this->blockStorage->reveal(),
+        $this->patternRepository->reveal(),
+        $this->patternLibraryPluginManager->reveal(),
+        self::DEFAULT_PLUGIN_ID,
+        $this->mockPluginDefinition,
+        $this->serializer->reveal(),
+        $this->token->reveal(),
+        $this->languageManager->reveal(),
+        $this->eventDispatcher->reveal(),
+        $this->logger->reveal(),
+      ])
+      ->onlyMethods($methods)
+      ->getMock();
   }
 
   /**
@@ -371,7 +444,6 @@ class PatternkitBlockTest extends UnitTestCase {
 
   /**
    * @covers ::getBlockEntity
-   * @covers ::getConfiguration
    * @uses \Drupal\patternkit\Plugin\Block\PatternkitBlock
    */
   public function testGetBlockEntityWithRevisionId(): void {
@@ -390,7 +462,6 @@ class PatternkitBlockTest extends UnitTestCase {
 
   /**
    * @covers ::getBlockEntity
-   * @covers ::getConfiguration
    * @uses \Drupal\patternkit\Plugin\Block\PatternkitBlock
    */
   public function testGetBlockEntityWithBlockId(): void {
@@ -409,7 +480,6 @@ class PatternkitBlockTest extends UnitTestCase {
 
   /**
    * @covers ::getBlockEntity
-   * @covers ::getConfiguration
    * @uses \Drupal\patternkit\Plugin\Block\PatternkitBlock
    */
   public function testGetBlockEntityWithMissingBlock(): void {
@@ -430,7 +500,6 @@ class PatternkitBlockTest extends UnitTestCase {
 
   /**
    * @covers ::getBlockEntity
-   * @covers ::getConfiguration
    * @uses \Drupal\patternkit\Plugin\Block\PatternkitBlock
    */
   public function testGetBlockEntityWithNewBlock(): void {
@@ -449,7 +518,6 @@ class PatternkitBlockTest extends UnitTestCase {
 
   /**
    * @covers ::getBlockEntity
-   * @covers ::getConfiguration
    * @uses \Drupal\patternkit\Plugin\Block\PatternkitBlock
    */
   public function testGetBlockEntityWithTranslation(): void {
@@ -476,7 +544,6 @@ class PatternkitBlockTest extends UnitTestCase {
 
   /**
    * @covers ::getBlockEntity
-   * @covers ::getConfiguration
    * @uses \Drupal\patternkit\Plugin\Block\PatternkitBlock
    */
   public function testGetBlockEntityWithoutAvailableTranslation(): void {
@@ -510,7 +577,7 @@ class PatternkitBlockTest extends UnitTestCase {
   public function testGetBasePattern(): void {
     $patternName = '@my/pattern';
 
-    $prophecy = $this->preparePatternProphecy([
+    $prophecy = $this->getMockPatternEntity([
       'name' => $patternName,
     ]);
     $this->patternStorage->loadRevision(Argument::type('int'))
@@ -522,7 +589,7 @@ class PatternkitBlockTest extends UnitTestCase {
     ];
 
     // Prepare a pattern to be returned.
-    $patternProphecy = $this->preparePatternProphecy();
+    $patternProphecy = $this->getMockPatternEntity();
     $pattern = $patternProphecy->reveal();
 
     // Expect the base pattern to be loaded using our pattern name.
@@ -547,7 +614,7 @@ class PatternkitBlockTest extends UnitTestCase {
     ];
 
     // Mock a pattern to be returned.
-    $patternProphecy = $this->preparePatternProphecy();
+    $patternProphecy = $this->getMockPatternEntity();
     $pattern = $patternProphecy->reveal();
 
     // Expect the revision to be requested.
@@ -584,7 +651,7 @@ class PatternkitBlockTest extends UnitTestCase {
     $configuration = [];
 
     // Mock a base pattern to be returned.
-    $basePatternProphecy = $this->preparePatternProphecy([
+    $basePatternProphecy = $this->getMockPatternEntity([
       'name' => $expectations['pattern_id'],
       'library' => $expectations['library'],
       'path' => $expectations['path'],
@@ -596,7 +663,7 @@ class PatternkitBlockTest extends UnitTestCase {
       ->willReturn($basePatternProphecy->reveal());
 
     // Mock a result pattern to be returned.
-    $resultPatternProphecy = $this->preparePatternProphecy();
+    $resultPatternProphecy = $this->getMockPatternEntity();
 
     // The pattern should be searched for without an ID.
     $this->patternStorage->loadByProperties(Argument::allOf(
@@ -636,21 +703,17 @@ class PatternkitBlockTest extends UnitTestCase {
       'node' => 'node placeholder',
       'user' => 'user placeholder',
     ];
-    $configData = $this->getRandomGenerator()->object();
+    $configData = (array) $this->getRandomGenerator()->object();
 
-    $block = $this->prophesize(EntityPatternkitBlock::class);
-    $block->getCacheContexts()->willReturn($blockCacheData['contexts']);
-    $block->getCacheTags()->willReturn($blockCacheData['tags']);
-    $block->getCacheMaxAge()->willReturn($blockCacheData['max-age']);
+    $block = $this->getMockPatternkitBlockEntity($blockCacheData + [
+      'data' => $configData,
+    ]);
 
     // Shortcut magic methods for looking up data value. Config data will be
     // artificially returned using the mocked decode method instead.
     $block->hasField('data')->willReturn(FALSE);
 
-    $pattern = $this->preparePatternProphecy();
-    $pattern->getCacheContexts()->willReturn($patternCacheData['contexts']);
-    $pattern->getCacheTags()->willReturn($patternCacheData['tags']);
-    $pattern->getCacheMaxAge()->willReturn($patternCacheData['max-age']);
+    $pattern = $this->getMockPatternEntity($patternCacheData);
 
     $plugin = $this->createPartialMock(PatternkitBlock::class, [
       'getBlockEntity',
@@ -689,16 +752,16 @@ class PatternkitBlockTest extends UnitTestCase {
    */
   public function testCachePatternEntity(): void {
     // Mock a cached pattern with an older hash.
-    $cachedPattern = $this->preparePatternProphecy([
+    $cachedPattern = $this->getMockPatternEntity([
       'id' => 10,
-      'rid' => 122,
+      'revision_id' => 122,
       'hash' => 'older_hash',
     ]);
 
     // Mock a pattern with a newer hash.
-    $newPattern = $this->preparePatternProphecy([
+    $newPattern = $this->getMockPatternEntity([
       'id' => 10,
-      'rid' => 123,
+      'revision_id' => 123,
       'hash' => 'newer_hash',
     ]);
 
@@ -759,7 +822,7 @@ class PatternkitBlockTest extends UnitTestCase {
    */
   public function testCachePatternEntityWithNewPattern(): void {
     // Mock a pattern without existing IDs to represent a new Pattern entity.
-    $pattern = $this->preparePatternProphecy([
+    $pattern = $this->getMockPatternEntity([
       'hash' => 'abc123',
     ]);
 
@@ -802,15 +865,15 @@ class PatternkitBlockTest extends UnitTestCase {
    */
   public function testCachePatternEntityWithUncachedPattern(): void {
     // Mock a cached Pattern with an older hash.
-    $cachedPattern = $this->preparePatternProphecy([
+    $cachedPattern = $this->getMockPatternEntity([
       'id' => 10,
-      'rid' => 122,
+      'revision_id' => 122,
       'hash' => 'older_hash',
     ]);
 
     // Mock a Pattern with a newer hash but no IDs to represent a Pattern loaded
     // from the filesystem.
-    $newPattern = $this->preparePatternProphecy([
+    $newPattern = $this->getMockPatternEntity([
       'id' => NULL,
       'hash' => 'newer_hash',
     ]);
@@ -850,7 +913,6 @@ class PatternkitBlockTest extends UnitTestCase {
    * Test saving block content without serialized block content.
    *
    * @covers ::saveBlockContent
-   * @covers ::getConfiguration
    * @uses \Drupal\patternkit\Plugin\Block\PatternkitBlock
    * @dataProvider providerSaveBlockContent
    *
@@ -928,57 +990,469 @@ class PatternkitBlockTest extends UnitTestCase {
   }
 
   /**
-   * Create a Pattern entity prophecy with preconfigured values.
+   * Test updatePattern() when both pattern parameters are provided.
    *
-   * This is a helper method to simplify the creation of Pattern entity
-   * prophecies with lookup methods configured for specified values.
-   *
-   * @param array $patternConfig
-   *   (Optional) An array of configuration values to map lookup method return
-   *   values to.
-   *
-   * @return \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternInterface
-   *   A preconfigured prophecy for a Pattern entity.
+   * @covers ::updatePattern
+   * @covers ::getUpdatedPatternRevision
+   * @covers ::__construct
+   * @uses \Drupal\patternkit\Event\PatternUpdateEvent
    */
-  protected function preparePatternProphecy(array $patternConfig = []): ObjectProphecy {
-    $patternProphecy = $this->prophesize(Pattern::class);
+  public function testUpdatePatternWithParameters() {
+    /**
+     * @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternInterface $cachedPattern
+     * @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternInterface $basePattern
+     * @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternInterface $newPatternRevision
+     */
+    [
+      'cached' => $cachedPattern,
+      'base' => $basePattern,
+      'new' => $newPatternRevision,
+    ] = $this->prepareUpdatePatternDependencies();
 
-    foreach ($patternConfig as $key => $value) {
-      switch ($key) {
-        case 'name':
-          $patternProphecy->getAssetId()->willReturn($value);
-          break;
+    // Prepare a spy for the update event to monitor interactions.
+    $event = $this->prophesize(PatternUpdateEvent::class);
+    $event->isAltered()->shouldBeCalledOnce()->willReturn(FALSE);
 
-        case 'library':
-          $patternProphecy->getLibrary()->willReturn($value);
-          break;
+    // Confirm the update event is dispatched.
+    $this->eventDispatcher->dispatch($event->reveal(), PatternkitEvents::PATTERN_UPDATE)
+      ->shouldBeCalledOnce();
 
-        case 'path':
-          $patternProphecy->getPath()->willReturn($value);
-          break;
+    $plugin = $this->getPartialMock([
+      'getPatternEntity',
+      'getBasePattern',
+      'getUpdateEvent',
+    ]);
 
-        case 'id':
-          $patternProphecy->id()->willReturn($value);
-          break;
+    // Pattern entity methods shouldn't be called with parameters passed in.
+    $plugin->expects($this->never())->method('getPatternEntity');
+    $plugin->expects($this->never())->method('getBasePattern');
 
-        case 'rid':
-          $patternProphecy->getRevisionId()->willReturn($value);
-          break;
+    // Inject the event spy to monitor interactions.
+    $plugin->expects($this->once())->method('getUpdateEvent')
+      ->with($this->equalTo($cachedPattern->reveal()), $newPatternRevision->reveal())
+      ->willReturn($event->reveal());
 
-        case 'hash':
-          $patternProphecy->getHash()->willReturn($value);
-          break;
+    // Prepare a mocked query for loading existing pattern revisions.
+    $this->preparePatternQuery();
 
-        default:
-          $this->addWarning("Unknown key/value assignment for pattern mocking: $key => $value");
-      }
-
-      // NB. This is not returning the SAVED_NEW constant because it is not
-      // loaded from common.inc during unit test execution.
-      $patternProphecy->save()->willReturn(1);
-    }
-
-    return $patternProphecy;
+    $actual = $plugin->updatePattern($cachedPattern->reveal(), $basePattern->reveal());
+    $this->assertSame($newPatternRevision->reveal(), $actual);
   }
 
+  /**
+   * Test updatePattern() when pattern parameters are not provided.
+   *
+   * @covers ::updatePattern
+   * @covers ::getUpdatedPatternRevision
+   * @covers ::__construct
+   * @uses \Drupal\patternkit\Event\PatternUpdateEvent
+   */
+  public function testUpdatePatternWithoutParameters(): void {
+    /**
+     * @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternInterface $cachedPattern
+     * @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternInterface $basePattern
+     * @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternInterface $newPatternRevision
+     */
+    [
+      'cached' => $cachedPattern,
+      'base' => $basePattern,
+      'new' => $newPatternRevision,
+    ] = $this->prepareUpdatePatternDependencies();
+
+    // Prepare a mocked query for loading existing pattern revisions.
+    $this->preparePatternQuery();
+
+    // Prepare a spy for the update event to monitor interactions.
+    $event = $this->prophesize(PatternUpdateEvent::class);
+    $event->isAltered()->shouldBeCalledOnce()->willReturn(FALSE);
+
+    // Confirm the update event is dispatched.
+    $this->eventDispatcher->dispatch($event->reveal(), PatternkitEvents::PATTERN_UPDATE)
+      ->shouldBeCalledOnce();
+
+    // Mock out-of-scope methods.
+    $plugin = $this->getPartialMock([
+      'getPatternEntity',
+      'getBasePattern',
+      'getUpdateEvent',
+    ]);
+
+    // Inject the event spy to monitor interactions.
+    $plugin->expects($this->once())->method('getUpdateEvent')
+      ->with($this->equalTo($cachedPattern->reveal()), $cachedPattern->reveal())
+      ->willReturn($event->reveal());
+
+    // Pattern entity methods should be used to load entities if they are not
+    // provided as parameters.
+    $plugin->expects($this->once())->method('getPatternEntity')
+      ->willReturn($cachedPattern->reveal());
+    $plugin->expects($this->once())->method('getBasePattern')
+      ->willReturn($basePattern->reveal());
+
+    $actual = $plugin->updatePattern();
+    $this->assertSame($newPatternRevision->reveal(), $actual);
+  }
+
+  /**
+   * Test updatePattern() when a new revision has to be created.
+   *
+   * @covers ::updatePattern
+   * @covers ::getUpdatedPatternRevision
+   * @covers ::__construct
+   * @uses \Drupal\patternkit\Event\PatternUpdateEvent
+   */
+  public function testUpdatePatternWithoutExistingRevision(): void {
+    /**
+     * @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternInterface $cachedPattern
+     * @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternInterface $basePattern
+     */
+    [
+      'cached' => $cachedPattern,
+      'base' => $basePattern,
+    ] = $this->prepareUpdatePatternDependencies();
+
+    // Prepare a mocked query for loading existing pattern revisions that will
+    // return no results necessitating the creation of a new revision.
+    $this->preparePatternQuery([]);
+
+    // Prepare a spy for the update event to monitor interactions.
+    $event = $this->prophesize(PatternUpdateEvent::class);
+    $event->isAltered()->shouldBeCalledOnce()->willReturn(FALSE);
+
+    // Confirm the update event is dispatched.
+    $this->eventDispatcher->dispatch($event->reveal(), PatternkitEvents::PATTERN_UPDATE)
+      ->shouldBeCalledOnce();
+
+    // Mock out-of-scope methods.
+    $plugin = $this->getPartialMock([
+      'getPatternEntity',
+      'getBasePattern',
+      'getUpdateEvent',
+    ]);
+
+    // Pattern entity methods should be used to load entities if they are not
+    // provided as parameters.
+    $plugin->expects($this->never())->method('getPatternEntity')
+      ->willReturn($cachedPattern->reveal());
+    $plugin->expects($this->once())->method('getBasePattern')
+      ->willReturn($basePattern->reveal());
+
+    // Inject the event spy to monitor interactions.
+    $plugin->expects($this->once())->method('getUpdateEvent')
+      ->with($this->equalTo($cachedPattern->reveal()), $cachedPattern->reveal())
+      ->willReturn($event->reveal());
+
+    // Mock expected calls for the pattern update process.
+    $cachedPattern->updateFromPattern($basePattern->reveal())
+      ->shouldBeCalledOnce()
+      ->will(function (array $args): PatternInterface {
+        /** @var \Drupal\patternkit\Entity\PatternInterface $basePattern */
+        $basePattern = $args[0];
+
+        // Inherit relevant values from the base pattern.
+        /** @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\Pattern $this */
+        $this->getHash()->willReturn($basePattern->getHash());
+        $this->getVersion()->willReturn($basePattern->getVersion());
+
+        return $this->reveal();
+      });
+    $cachedPattern->setNewRevision()->shouldBeCalled();
+    $cachedPattern->isDefaultRevision(FALSE)->shouldBeCalled();
+    $cachedPattern->save()->shouldBeCalled();
+
+    $actual = $plugin->updatePattern($cachedPattern->reveal());
+    $this->assertSame($cachedPattern->reveal(), $actual);
+    $this->assertEquals($cachedPattern->reveal()->getVersion(), $basePattern->reveal()->getVersion());
+    $this->assertEquals($cachedPattern->reveal()->getHash(), $basePattern->reveal()->getHash());
+  }
+
+  /**
+   * Test updatePattern() when no update is needed.
+   *
+   * @covers ::updatePattern
+   * @covers ::__construct
+   * @uses \Drupal\patternkit\Event\PatternUpdateEvent
+   */
+  public function testUpdatePatternWithoutUpdateNeeded(): void {
+    /**
+     * @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternInterface $cachedPattern
+     * @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternInterface $basePattern
+     */
+    [
+      'cached' => $cachedPattern,
+      'base' => $basePattern,
+    ] = $this->prepareUpdatePatternDependencies();
+
+    // Override the base pattern hash to match thereby indicating an update is
+    // not needed.
+    $basePattern->getHash()->willReturn($cachedPattern->reveal()->getHash());
+
+    // A query should never be triggered to look up existing revisions.
+    $this->patternStorage->getQuery()->shouldNotBeCalled();
+
+    // Calls to update and save the pattern should never be made.
+    $cachedPattern->updateFromPattern(Argument::any())->shouldNotBeCalled();
+    $cachedPattern->save()->shouldNotBeCalled();
+
+    // An update event should never be created or dispatched.
+    $this->eventDispatcher->dispatch(Argument::any(), PatternkitEvents::PATTERN_UPDATE)
+      ->shouldNotBeCalled();
+
+    // Mock out-of-scope methods.
+    $plugin = $this->getPartialMock([
+      'getPatternEntity',
+      'getBasePattern',
+      'getUpdateEvent',
+      'getUpdatedPatternRevision',
+    ]);
+
+    // An update event should not be created.
+    $plugin->expects($this->never())->method('getUpdateEvent');
+
+    // An updated revision should never be searched for.
+    $plugin->expects($this->never())->method('getUpdatedPatternRevision');
+
+    // Pattern entity methods should be used to load entities if they are not
+    // provided as parameters.
+    $plugin->expects($this->once())->method('getPatternEntity')
+      ->willReturn($cachedPattern->reveal());
+    $plugin->expects($this->once())->method('getBasePattern')
+      ->willReturn($basePattern->reveal());
+
+    // Snapshot configuration beforehand to verify no changes were made.
+    $originalConfiguration = $plugin->getConfiguration();
+
+    // Null should be returned since no update was made.
+    $this->assertNull($plugin->updatePattern());
+
+    // Confirm no changes were made to the configuration during the process.
+    $this->assertEquals($originalConfiguration, $plugin->getConfiguration());
+  }
+
+  /**
+   * @covers ::updatePattern
+   * @covers ::getUpdatedPatternRevision
+   * @covers ::__construct
+   */
+  public function testUpdateEventDispatchingWithoutAlterations() {
+    /**
+     * @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternInterface $cachedPattern
+     * @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternInterface $basePattern
+     * @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternInterface $newPatternRevision
+     */
+    [
+      'cached' => $cachedPattern,
+      'base' => $basePattern,
+      'new' => $newPatternRevision,
+    ] = $this->prepareUpdatePatternDependencies();
+
+    // Prepare a mocked query for loading existing pattern revisions.
+    $this->preparePatternQuery();
+
+    // Prepare a spy for the update event to monitor interactions.
+    $event = $this->prophesize(PatternUpdateEvent::class);
+
+    // Confirm the update event is dispatched.
+    $this->eventDispatcher->dispatch($event->reveal(), PatternkitEvents::PATTERN_UPDATE)
+      ->shouldBeCalledOnce();
+
+    // Mock out-of-scope methods.
+    $plugin = $this->getPartialMock([
+      'getUpdateEvent',
+      'updateBlockEntity',
+    ]);
+
+    // Inject the event spy to monitor interactions.
+    $plugin->expects($this->once())->method('getUpdateEvent')
+      ->with(
+        // A clone of the original pattern should be provided.
+        $this->equalTo($cachedPattern->reveal()),
+        // The new revision should also be passed in.
+        $newPatternRevision->reveal())
+      ->willReturn($event->reveal());
+
+    // Indicate no alterations were made for this test.
+    $event->isAltered()->shouldBeCalledOnce()->willReturn(FALSE);
+
+    // The block entity should not be altered.
+    $plugin->expects($this->never())->method('updateBlockEntity');
+
+    $actual = $plugin->updatePattern($cachedPattern->reveal(), $basePattern->reveal());
+    $this->assertSame($newPatternRevision->reveal(), $actual);
+  }
+
+  /**
+   * @covers ::updatePattern
+   * @covers ::getUpdatedPatternRevision
+   * @covers ::updateBlockEntity
+   * @covers ::__construct
+   * @covers ::getPatternId
+   *
+   * @see \Drupal\Tests\patternkit\Unit\Plugin\Block\PatternkitBlockTest::$mockedFunctions
+   * @see \Drupal\patternkit\Plugin\Block\serialize()
+   */
+  public function testUpdateEventDispatchingWithAlterations() {
+    /**
+     * @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternInterface $cachedPattern
+     * @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternInterface $basePattern
+     * @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternInterface $newPatternRevision
+     */
+    [
+      'cached' => $cachedPattern,
+      'base' => $basePattern,
+      'new' => $newPatternRevision,
+    ] = $this->prepareUpdatePatternDependencies();
+
+    // Prepare a mocked query for loading existing pattern revisions.
+    $this->preparePatternQuery();
+
+    // Prepare a spy for the update event to monitor interactions.
+    $event = $this->prophesize(PatternUpdateEvent::class);
+
+    // Confirm the update event is dispatched.
+    $this->eventDispatcher->dispatch($event->reveal(), PatternkitEvents::PATTERN_UPDATE)
+      ->shouldBeCalledOnce();
+
+    // Mock out-of-scope methods.
+    $plugin = $this->getPartialMock([
+      'getUpdateEvent',
+      'getBlockEntity',
+    ]);
+
+    // Inject the event spy to monitor interactions.
+    $plugin->expects($this->once())->method('getUpdateEvent')
+      ->with(
+        // A clone of the original pattern should be provided.
+        $this->equalTo($cachedPattern->reveal()),
+        // The new revision should also be passed in.
+        $newPatternRevision->reveal())
+      ->willReturn($event->reveal());
+
+    // Indicate alterations were made to test saving updates.
+    $event->isAltered()->shouldBeCalledOnce()->willReturn(TRUE);
+
+    // Mock updated content to be assigned to block.
+    $updatedContent = (array) $this->getRandomGenerator()->object();
+    $event->getContent()->shouldBeCalled()->willReturn($updatedContent);
+
+    // Mock the block entity to be updated.
+    $blockEntity = $this->getMockPatternkitBlockEntity();
+    $plugin->method('getBlockEntity')->willReturn($blockEntity->reveal());
+
+    // Handle overriding of the builtin serialize() function and set an expected
+    // return value.
+    // @see \Drupal\patternkit\Plugin\Block\serialize()
+    self::$mockedFunctions['serialize'] = $serialized = 'serialized block with updates';
+
+    // Expect the updated content to be serialized and set.
+    $blockEntity->set('data', json_encode($updatedContent))
+      ->shouldBeCalled();
+
+    // Allow other values to be set as well without breaking for unexpected
+    // method calls.
+    $blockEntity->set(Argument::type('string'), Argument::any())
+      ->shouldBeCalled();
+
+    $actual = $plugin->updatePattern($cachedPattern->reveal(), $basePattern->reveal());
+    $this->assertSame($newPatternRevision->reveal(), $actual);
+
+    // @todo Confirm updates to configuration.
+    $configuration = $plugin->getConfiguration();
+    $this->assertEquals($serialized, $configuration['block_serialized']);
+  }
+
+  /**
+   * A helper function to prepare pattern prophecies for updatePattern() tests.
+   *
+   * The pattern storage prophecy is also prepared to load the new pattern
+   * revision if queried for the default revision ID.
+   *
+   * @return \Prophecy\Prophecy\ObjectProphecy[]
+   *   An associative array of pattern prophecies with the following keys:
+   *   - 'cached': A pattern mocked as if loaded from the database and in need
+   *     of updating.
+   *   - 'base': A mocked base pattern that is an updated version of the cached
+   *     pattern mock.
+   *   - 'new': A mocked pattern representing an updated revision.
+   */
+  protected function prepareUpdatePatternDependencies(): array {
+    // Mock a cached Pattern with an older hash.
+    $cachedPattern = $this->getMockPatternEntity([
+      'id' => 10,
+      'revision_id' => 122,
+      'hash' => 'older_hash',
+      'version' => 'OLD',
+      'asset_id' => self::DEFAULT_PATTERN_ID,
+    ]);
+
+    // Mock a Pattern with a newer hash but no IDs to represent a Pattern loaded
+    // from the filesystem.
+    $basePattern = $this->getMockPatternEntity([
+      'id' => NULL,
+      'hash' => 'newer_hash',
+      'version' => 'NEW',
+      'asset_id' => self::DEFAULT_PATTERN_ID,
+    ]);
+
+    // Mock an updated revision being loaded from the database.
+    $newPatternRevision = $this->getMockPatternEntity([
+      'id' => 10,
+      'revision_id' => 123,
+      'hash' => 'newer_hash',
+      'version' => 'NEW',
+      'asset_id' => self::DEFAULT_PATTERN_ID,
+    ]);
+    $this->patternStorage->loadRevision(123)
+      ->willReturn($newPatternRevision->reveal());
+
+    return [
+      'cached' => $cachedPattern,
+      'base' => $basePattern,
+      'new' => $newPatternRevision,
+    ];
+  }
+
+  /**
+   * Mock and return a query with provided results from pattern storage.
+   *
+   * @param array $results
+   *   (Optional) An array of ID-keyed results to return from the query. If no
+   *   values are provided, results will default to a single entry matching the
+   *   revision ID of mocked entities in prepareUpdatePatternDependencies().
+   *
+   * @see \Drupal\patternkit\Plugin\Block\PatternkitBlock::getUpdatedPatternRevision()
+   */
+  protected function preparePatternQuery(array $results = [123 => 123]): void {
+    // Prepare a mocked query for loading existing pattern revisions.
+    $query = $this->prophesize(QueryInterface::class);
+    $query->accessCheck(Argument::any())->willReturn($query->reveal());
+    $query->latestRevision()->willReturn($query->reveal());
+    $query->condition(Argument::cetera())->willReturn($query->reveal());
+    $query->execute()->willReturn($results);
+
+    // Return the mocked query from pattern storage when it's requested.
+    $this->patternStorage->getQuery()->willReturn($query->reveal());
+  }
+
+}
+
+// Override the builtin serialize() function for testing.
+namespace Drupal\patternkit\Plugin\Block;
+
+use Drupal\Tests\patternkit\Unit\Plugin\Block\PatternkitBlockTest;
+
+/**
+ * An overridden test function for validating serialized content.
+ *
+ * @param mixed $value
+ *   The value to be serialized.
+ *
+ * @return string
+ *   A preconfigured return value for the method.
+ *
+ * @see \Drupal\Tests\patternkit\Unit\Plugin\Block\PatternkitBlockTest::$mockedFunctions
+ * @see https://akrabat.com/replacing-a-built-in-php-function-when-testing-a-component/
+ */
+function serialize($value): string {
+  return PatternkitBlockTest::$mockedFunctions['serialize'];
 }

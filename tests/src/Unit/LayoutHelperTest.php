@@ -22,6 +22,7 @@ use Drupal\layout_builder\SectionStorageInterface;
 use Drupal\node\Entity\Node;
 use Drupal\patternkit\LayoutHelper;
 use Drupal\patternkit\PatternRepository;
+use Drupal\patternkit\Plugin\Block\PatternkitBlock;
 use Drupal\patternkit\UpdateHelper;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
@@ -264,8 +265,10 @@ class LayoutHelperTest extends UnitTestCase {
       $tempstore_sections[$id] = $layout->reveal();
     }
 
-    $this->updateHelper->updateBlockComponentPattern(Argument::type(SectionComponent::class), Argument::any())
+    $this->updateHelper->updateBlockComponentPattern(Argument::type(SectionComponent::class))
       ->willReturn(['updated' => TRUE]);
+    $this->updateHelper->filterComponent(Argument::type(SectionComponent::class), [])
+      ->willReturn($this->prophesize(PatternkitBlock::class)->reveal());
 
     $this->entityTypeManager->getStorage('patternkit_pattern')
       ->willReturn($this->patternStorage->reveal());

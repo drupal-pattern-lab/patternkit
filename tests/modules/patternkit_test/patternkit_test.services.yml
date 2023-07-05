@@ -1,0 +1,5 @@
+services:
+  patternkit_test.pattern_update_subscriber:
+    class: Drupal\patternkit_test\EventSubscriber\PatternUpdateSubscriber
+    tags:
+      - { name: event_subscriber }

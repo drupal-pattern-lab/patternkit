@@ -157,6 +157,9 @@ class PatternLibrary {
         $this->version = substr($version, 1);
       }
     }
+    elseif ($version === NULL) {
+      $this->version = \Drupal::VERSION;
+    }
 
     // If this is a 3rd party library, the license info is required.
     if (isset($remote) && !isset($license)) {

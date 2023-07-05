@@ -3,6 +3,7 @@
 namespace Drupal\patternkit;
 
 use Drupal\block\BlockInterface;
+use Drupal\Component\Plugin\Exception\PluginException;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
@@ -12,7 +13,6 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Entity\PatternkitBlock as EntityPatternkitBlock;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock;
-use Drupal\patternkit\Plugin\Derivative\PatternkitBlock as DerivativePatternkitBlock;
 
 /**
  * A utility service to perform helpful commands for update processes.
@@ -64,13 +64,6 @@ class UpdateHelper {
   protected LoggerChannelInterface $logger;
 
   /**
-   * The patternkit pattern repository service.
-   *
-   * @var \Drupal\patternkit\PatternRepository
-   */
-  protected PatternRepository $patternRepository;
-
-  /**
    * The Patternkit layout helper service, if Layout Builder is available.
    *
    * @var \Drupal\patternkit\LayoutHelper|null
@@ -82,8 +75,6 @@ class UpdateHelper {
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The entity type manager service.
-   * @param \Drupal\patternkit\PatternRepository $patternRepository
-   *   The pattern repository service.
    * @param \Drupal\Core\KeyValueStore\KeyValueExpirableFactoryInterface $keyValueExpirable
    *   The expirable key value factory service.
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
@@ -96,7 +87,6 @@ class UpdateHelper {
    */
   public function __construct(
     EntityTypeManagerInterface $entityTypeManager,
-    PatternRepository $patternRepository,
     KeyValueExpirableFactoryInterface $keyValueExpirable,
     ModuleHandlerInterface $moduleHandler,
     LoggerChannelInterface $logger
@@ -104,7 +94,6 @@ class UpdateHelper {
     $this->entityTypeManager = $entityTypeManager;
     $this->blockStorage = $entityTypeManager->getStorage('patternkit_block');
     $this->patternStorage = $entityTypeManager->getStorage('patternkit_pattern');
-    $this->patternRepository = $patternRepository;
     $this->keyValueExpirable = $keyValueExpirable;
     $this->moduleHandler = $moduleHandler;
     $this->logger = $logger;
@@ -141,6 +130,7 @@ class UpdateHelper {
    *   - `display_mode`: A specific display mode to limit updates to. For this
    *     filter to be used, an `entity_type` and `bundle` value is also
    *     required.
+   *   - `pattern`: A pattern asset name to limit updates.
    *
    * @return int[]
    *   A tuple of update counts containing the following values:
@@ -151,7 +141,7 @@ class UpdateHelper {
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
-  public function updateAllPatternComponents(array $filter = []) {
+  public function updateAllPatternComponents(array $filter = []): array {
     // Track how many items were updated.
     $block_count = 0;
     $entity_count = 0;
@@ -162,13 +152,13 @@ class UpdateHelper {
       [
         $block_count,
         $entity_count,
-      ] = $this->layoutHelper->updateLayoutBuilderComponents($filter);
+      ] = $this->layoutHelper()->updateLayoutBuilderComponents($filter);
     }
 
     // Update all block components next.
     if (empty($filter['entity_type'])) {
       $this->logger->info('Updating patterns throughout block components.');
-      $block_count += $this->updateBlockComponents($filter['library'] ?? NULL);
+      $block_count += $this->updateBlockComponents($filter);
     }
     else {
       $this->logger->info('Skipping block updates due to the presence of entity filters.');
@@ -186,14 +176,23 @@ class UpdateHelper {
   /**
    * Update patterns referenced in block plugins.
    *
-   * @param string|null $library_name
-   *   (Optional) A namespaced pattern library name to limit updates to. Only
-   *   patterns starting with this library name will be updated.
+   * @param array $filter
+   *   (optional) An associative array of filter values. Allowed keys are:
+   *   - `library`: Filters updates to only patterns within the specified
+   *     pattern library.
+   *   - `entity_type`: An entity type machine name. Only patterns within
+   *     displays on this entity type will be updated.
+   *   - `bundle`: A bundle machine name to filter layout updates by. For this
+   *     filter to be used, an `entity_type` value is also required.
+   *   - `display_mode`: A specific display mode to limit updates to. For this
+   *     filter to be used, an `entity_type` and `bundle` value is also
+   *     required.
+   *   - `pattern`: A pattern asset name to limit updates.
    *
    * @return int
    *   A count of how many blocks were updated.
    */
-  public function updateBlockComponents(?string $library_name = NULL): int {
+  public function updateBlockComponents(array $filter = []): int {
     $block_count = 0;
 
     // Update all blocks.
@@ -203,11 +202,10 @@ class UpdateHelper {
       }
 
       try {
-        $plugin = $block->getPlugin();
-        $result = $this->updateBlockComponentPattern($plugin, $library_name);
-
-        if ($result !== FALSE) {
-          $block_count++;
+        if ($this->filterComponent($block, $filter)) {
+          if ($this->updateBlockComponentPattern($block) !== FALSE) {
+            $block_count++;
+          }
         }
       }
       catch (\Exception $exception) {
@@ -226,53 +224,34 @@ class UpdateHelper {
    *
    * @param \Drupal\block\BlockInterface|\Drupal\layout_builder\SectionComponent $component
    *   The block plugin or section component to update.
-   * @param string|null $library_name
-   *   (optional) The name of the library to match against, or NULL to skip
-   *   matching. Example: '@patternkit'.
    *
    * @return false|array
    *   The updated configuration, or FALSE if it failed.
    *
-   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginException
-   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
-   * @throws \Drupal\Core\Entity\EntityStorageException
    * @throws \JsonException
    */
-  public function updateBlockComponentPattern($component, ?string $library_name = NULL) {
-    if (!$this->isPatternkitComponent($component)) {
-      return FALSE;
+  public function updateBlockComponentPattern($component) {
+    $plugin = $component->getPlugin();
+    assert($plugin instanceof PatternkitBlock);
+
+    $this->logger->info('Updating block plugin with id @plugin.',
+      ['@plugin' => $plugin->getPluginId()]);
+
+    try {
+      $patternkit_block = $this->getBlockFromComponent($component);
     }
-
-    $plugin_id = $component->getPluginId();
-    $derivative_id = $component->getPlugin()->getDerivativeId();
-    if ($derivative_id === NULL) {
-      $this->logger->error('Encountered broken block plugin: @block_id', [
-        '@block_id' => $plugin_id,
-      ]);
-      return FALSE;
+    catch (\Exception $ignored) {
+      // We'll log the failure in the 'finally' block below.
     }
-
-    $pattern_id = DerivativePatternkitBlock::derivativeToAssetId($derivative_id);
-
-    // Stop here if this doesn't match the library filter.
-    if ($library_name && stripos($pattern_id, $library_name) !== 0) {
-      $this->logger->info('Skipping block since pattern ID "@id" did start with library filter "@filter".', [
-        '@id' => $pattern_id,
-        '@filter' => $library_name,
-      ]);
-      return FALSE;
+    finally {
+      if (empty($patternkit_block)) {
+        $this->logger->error('Unable to load the block entity for block @block_id. Check the logs for more info.', [
+          '@block_id' => $plugin->getPluginId(),
+        ]);
+        return FALSE;
+      }
     }
-
-    $configuration = $component->get('configuration');
-
-    $patternkit_block = $this->getBlockFromComponent($component);
-
-    // Ensure the block revision ID is up-to-date.
-    $configuration['patternkit_block_rid'] = $patternkit_block->getLoadedRevisionId();
-
-    $this->logger->info($this->t('Updating block plugin with id @plugin.',
-      ['@plugin' => $plugin_id]));
 
     // Load the pattern referenced from the component.
     try {
@@ -282,52 +261,58 @@ class UpdateHelper {
       // We'll log the failure in the 'finally' block below.
     }
     finally {
-      if (!isset($pattern)) {
-        $this->logger->error($this->t('Unable to load the pattern @pattern for block @block_id. Check the logs for more info.', [
-          '@pattern' => $pattern_id ?? $component->getPlugin()->getPluginId(),
-          '@block_id' => $plugin_id,
-        ]));
+      if (empty($pattern)) {
+        $this->logger->error('Unable to load the pattern for block @block_id. Check the logs for more info.', [
+          '@block_id' => $plugin->getPluginId(),
+        ]);
         return FALSE;
       }
     }
 
-    // Don't update patterns outside the indicated library if provided. Ignore
-    // case when comparing the library name and trim the prefixed '@' from the
-    // library filter value.
-    if ($library_name && strcasecmp($pattern->getLibrary(), ltrim($library_name, '@')) !== 0) {
-      $this->logger->info('Skipping block since pattern library "@library" did not match filter "@filter".', [
-        '@library' => $pattern->getLibrary(),
-        '@filter' => $library_name,
-      ]);
-      return FALSE;
-    }
-
     try {
       // Load the base pattern for comparison to test if updates are needed.
-      $base_pattern = $this->patternRepository->getPattern($pattern_id, TRUE);
+      $base_pattern = $plugin->getBasePattern();
     }
     catch (\Exception $exception) {
-      $this->logger->error($this->t("Failed to load base pattern for @pattern.", ['@pattern' => $pattern_id]));
+      $this->logger->error('Failed to load base pattern for @pattern.', ['@pattern' => $pattern->getAssetId()]);
       return FALSE;
     }
 
     // Skip if the pattern doesn't need to be updated.
     if ($base_pattern->getHash() === $pattern->getHash()) {
-      $this->logger->info($this->t('Pattern @pattern did not need to be updated.', ['@pattern' => $pattern_id]));
+      $this->logger->info('Pattern "@pattern" did not need to be updated.', ['@pattern' => $pattern->getAssetId()]);
       return FALSE;
     }
 
     // Update the pattern with new configuration from the base pattern.
-    $this->logger->notice($this->t('Updating pattern @pattern from @old to @new.',
+    $this->logger->notice('Updating pattern "@pattern" from "@old" to "@new".',
       [
         '@pattern' => $pattern->getAssetId(),
         '@old' => $pattern->getVersion(),
         '@new' => $base_pattern->getVersion(),
-      ]));
-    $this->updatePattern($pattern, $base_pattern);
+      ]);
 
-    // Update configuration to reference the updated pattern entity revision.
-    $configuration['pattern'] = $pattern->getRevisionId();
+    // Update the pattern and save configuration changes to the component.
+    try {
+      $plugin->updatePattern($pattern, $base_pattern);
+
+      // Configuration including the pattern and block entity references or
+      // serialized block entity values may have changed, so they need to be
+      // persisted to the component.
+      $component->set('configuration', $plugin->getConfiguration());
+    }
+    catch (\Exception $exception) {
+      $this->logger->error('Failed to update pattern "@pattern" for block "@block_id".',
+        [
+          '@pattern' => $pattern->getAssetId(),
+          '@block_id' => $plugin->getPluginId(),
+        ]);
+      return FALSE;
+    }
+
+    // Ensure the block revision ID is up-to-date.
+    $configuration = $component->get('configuration');
+    $configuration['patternkit_block_rid'] = $patternkit_block->getLoadedRevisionId();
 
     // Return the updated configuration.
     return $configuration;
@@ -383,28 +368,6 @@ class UpdateHelper {
   }
 
   /**
-   * Update a Pattern entity to use updated configuration.
-   *
-   * @param \Drupal\patternkit\Entity\PatternInterface $pattern
-   *   The pattern entity to be updated.
-   * @param \Drupal\patternkit\Entity\PatternInterface $base_pattern
-   *   The pattern entity to pull updated values from.
-   *
-   * @return int
-   *   Either SAVED_NEW or SAVED_UPDATED, depending on the operation performed.
-   *
-   * @throws \JsonException
-   * @throws \Drupal\Core\Entity\EntityStorageException
-   */
-  public function updatePattern(PatternInterface $pattern, PatternInterface $base_pattern): int {
-    $pattern->setNewRevision();
-    $pattern->isDefaultRevision(TRUE);
-    $pattern->updateFromPattern($base_pattern);
-
-    return $pattern->save();
-  }
-
-  /**
    * Get the layout helper service if Layout Builder is enabled.
    *
    * @return \Drupal\patternkit\LayoutHelper|null
@@ -433,6 +396,84 @@ class UpdateHelper {
   public function setLayoutHelper(LayoutHelper $layoutHelper): void {
     $this->layoutHelper = $layoutHelper;
     $this->layoutHelper->setUpdateHelper($this);
+  }
+
+  /**
+   * Apply filters to a component to prevent updates to filtered components.
+   *
+   * @param \Drupal\block\BlockInterface|\Drupal\layout_builder\SectionComponent $component
+   *   The block plugin or section component to update.
+   * @param array $filter
+   *   (optional) An associative array of filter values. Allowed keys are:
+   *   - `library`: Filters updates to only patterns within the specified
+   *     pattern library.
+   *   - `entity_type`: An entity type machine name. Only patterns within
+   *     displays on this entity type will be updated.
+   *   - `bundle`: A bundle machine name to filter layout updates by. For this
+   *     filter to be used, an `entity_type` value is also required.
+   *   - `display_mode`: A specific display mode to limit updates to. For this
+   *     filter to be used, an `entity_type` and `bundle` value is also
+   *     required.
+   *   - `pattern`: A pattern asset name to limit updates.
+   *
+   * @return \Drupal\patternkit\Plugin\Block\PatternkitBlock|false
+   *   The loaded patternkit block plugin instance or false if filters excluded
+   *   this component from processing.
+   */
+  public function filterComponent($component, array $filter = []) {
+    try {
+      if (!$this->isPatternkitComponent($component)) {
+        return FALSE;
+      }
+
+      $plugin = $component->getPlugin();
+
+      // Fail now if we got an unexpected plugin type.
+      if (!$plugin instanceof PatternkitBlock) {
+        $this->logger->warning('Encountered unknown plugin type "@plugin" while processing block ID "@block_id".', [
+          '@plugin' => get_class($plugin),
+          '@block_id' => method_exists($component, 'getUuid') ? $component->getUuid() : $component->uuid(),
+        ]);
+        return FALSE;
+      }
+
+      // Abort now if the derivative doesn't load properly.
+      if ($plugin->getDerivativeId() === NULL) {
+        $this->logger->error('Encountered broken block plugin: @block_id', [
+          '@block_id' => $plugin->getPluginId(),
+        ]);
+        return FALSE;
+      }
+
+      $pattern_id = $plugin->getPatternId();
+
+      // Stop here if this doesn't match the library filter.
+      if (isset($filter['library']) && stripos($pattern_id, $filter['library']) !== 0) {
+        $this->logger->info('Skipping block since pattern ID "@id" did not start with library filter "@filter".', [
+          '@id' => $pattern_id,
+          '@filter' => $filter['library'],
+        ]);
+        return FALSE;
+      }
+
+      // Exclude any patterns not matching the pattern name filter if provided.
+      if (isset($filter['pattern']) && stripos($pattern_id, $filter['pattern']) !== 0) {
+        $this->logger->info('Skipping block since pattern ID "@id" did not match pattern filter "@filter".', [
+          '@id' => $pattern_id,
+          '@filter' => $filter['pattern'],
+        ]);
+        return FALSE;
+      }
+    }
+    catch (PluginException $pluginException) {
+      $this->logger->error('Unable to load the plugin for block @block_id: @message', [
+        '@block_id' => method_exists($component, 'getUuid') ? $component->getUuid() : $component->uuid(),
+        '@message' => $pluginException->getMessage(),
+      ]);
+      return FALSE;
+    }
+
+    return $plugin;
   }
 
 }
