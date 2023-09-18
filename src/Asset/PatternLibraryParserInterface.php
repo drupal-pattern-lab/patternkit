@@ -16,8 +16,8 @@ interface PatternLibraryParserInterface {
    *
    * @param string $name
    *   The name of the pattern.
-   * @param array|object $schema
-   *   The optional schema for the pattern.
+   * @param array|object $data
+   *   Configuration data for the pattern.
    *
    * @return \Drupal\patternkit\Entity\PatternInterface
    *   A fully-instantiated Patternkit Pattern.

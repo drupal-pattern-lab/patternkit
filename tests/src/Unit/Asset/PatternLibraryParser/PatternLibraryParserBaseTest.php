@@ -79,10 +79,11 @@ class PatternLibraryParserBaseTest extends PatternLibraryParserTestBase {
       ->at($this->vfsRoot);
 
     $pattern_prophecy = $this->prophesize(PatternInterface::class);
+    $pattern_prophecy->getAssetId()->willReturn('@test/my/asset');
     $pattern_prophecy->getAssets()->willReturn(
       [
-        'twig' => $this->vfsRoot->url() . '/my_asset_file.twig',
-        'json' => $this->vfsRoot->url() . '/my_asset_file.json',
+        'twig' => 'my_asset_file.twig',
+        'json' => 'my_asset_file.json',
       ]
     );
 

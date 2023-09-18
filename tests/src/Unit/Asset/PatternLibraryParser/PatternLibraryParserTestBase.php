@@ -16,11 +16,14 @@ use Drupal\Core\Theme\ThemeManagerInterface;
 use Drupal\patternkit\Asset\PatternDependencyResolver;
 use Drupal\patternkit\Asset\PatternLibraryParserInterface;
 use Drupal\patternkit\Entity\Pattern;
+use Drupal\patternkit\PatternkitEnvironment;
+use Drupal\patternkit\PatternkitEnvironmentAwareInterface;
 use Drupal\patternkit\Schema\DataPreProcessorFactory;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\UnitTestCase;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
+use PHPUnit\Framework\MockObject\MockBuilder;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
@@ -116,6 +119,13 @@ abstract class PatternLibraryParserTestBase extends UnitTestCase {
   protected ObjectProphecy $logger;
 
   /**
+   * The pattern environment service.
+   *
+   * @var \Drupal\patternkit\PatternkitEnvironment|\Prophecy\Prophecy\ObjectProphecy
+   */
+  protected ObjectProphecy $environment;
+
+  /**
    * The pattern library parser being tested.
    *
    * @var \Drupal\patternkit\Asset\PatternLibraryParserInterface
@@ -166,6 +176,11 @@ abstract class PatternLibraryParserTestBase extends UnitTestCase {
     $this->dataPreProcessorFactory = $this->prophesize(DataPreProcessorFactory::class);
     $this->patternDependencyResolver = $this->prophesize(PatternDependencyResolver::class);
     $this->logger = $this->prophesize(LoggerChannelInterface::class);
+    $this->environment = $this->prophesize(PatternkitEnvironment::class);
+    $this->environment->isDebug()->willReturn(FALSE);
+
+    $this->entityTypeManager->getStorage('patternkit_pattern')
+      ->willReturn($this->patternStorage->reveal());
   }
 
   /**
@@ -175,11 +190,8 @@ abstract class PatternLibraryParserTestBase extends UnitTestCase {
    *   An instantiated parser plugin with all mocked dependencies.
    */
   protected function getParserInstance(): PatternLibraryParserInterface {
-    $this->entityTypeManager->getStorage('patternkit_pattern')
-      ->willReturn($this->patternStorage->reveal());
-
     $testClass = $this->getTestClass();
-    return new $testClass(
+    $parser = new $testClass(
       // @todo Replace real serializer with a mockable one.
       // $this->serializer->reveal(),
       new Json(),
@@ -194,6 +206,36 @@ abstract class PatternLibraryParserTestBase extends UnitTestCase {
       $this->patternDependencyResolver->reveal(),
       $this->logger->reveal(),
     );
+
+    if ($parser instanceof PatternkitEnvironmentAwareInterface) {
+      $parser->setPatternkitEnvironment($this->environment->reveal());
+    }
+
+    return $parser;
+  }
+
+  /**
+   * Build a partial mock for the parser being tested.
+   *
+   * @return \PHPUnit\Framework\MockObject\MockBuilder
+   *   A partially configured mock builder for the test class with prepared
+   *   dependencies configured as constructor args.
+   */
+  protected function getPartialMock(): MockBuilder {
+    return $this->getMockBuilder($this->getTestClass())
+      ->setConstructorArgs([
+        $this->serializer->reveal(),
+        $this->vfsRoot->url(),
+        $this->moduleHandler->reveal(),
+        $this->themeManager->reveal(),
+        $this->streamWrapperManager->reveal(),
+        $this->librariesDirectoryFileFinder->reveal(),
+        $this->extensionPathResolver->reveal(),
+        $this->entityTypeManager->reveal(),
+        $this->dataPreProcessorFactory->reveal(),
+        $this->patternDependencyResolver->reveal(),
+        $this->logger->reveal(),
+      ]);
   }
 
   /**
@@ -226,6 +268,9 @@ abstract class PatternLibraryParserTestBase extends UnitTestCase {
         // if none were provided.
         $pattern->fetchAssets()->willReturn($args[0]['assets'] ?? []);
 
+        // Return the given path when requested.
+        $pattern->getPath()->willReturn($args[0]['path']);
+
         return $pattern->reveal();
       });
   }
@@ -253,7 +298,7 @@ abstract class PatternLibraryParserTestBase extends UnitTestCase {
     foreach ($expected as $pattern => $metadata) {
       // Get the subset of data we're testing for.
       $metadata_subset = array_intersect_key($actual[$pattern], array_flip($tested_keys));
-      $this->assertEqualsCanonicalizing($metadata, $metadata_subset, "Didn't find the expected metadata for $pattern.");
+      $this->assertEquals($metadata, $metadata_subset, "Didn't find the expected metadata for $pattern.");
     }
   }
 

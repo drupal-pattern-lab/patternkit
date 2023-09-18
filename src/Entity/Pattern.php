@@ -9,6 +9,7 @@ use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\patternkit\Exception\PatternMismatchException;
+use Drupal\patternkit\PatternLibraryPluginInterface;
 
 /**
  * Defines the Pattern entity type which stores pattern metadata in Drupal.
@@ -401,26 +402,12 @@ class Pattern extends ContentEntityBase implements PatternInterface {
    * @throws \Drupal\patternkit\Exception\PatternAssetException
    * @throws \JsonException
    *
+   * @internal
    * NOTE: This method is not supported for external use or backward-
    * compatibility commitments.
    */
   public function fetchAssets(): array {
-    $plugin_id = $this->getLibraryPluginId();
-    /** @var \Drupal\patternkit\PatternLibraryPluginManager $plugin_manager */
-    $plugin_manager = \Drupal::service('plugin.manager.library.pattern');
-    /** @var \Drupal\patternkit\PatternLibraryPluginInterface $plugin */
-    try {
-      $plugin = $plugin_manager->createInstance($plugin_id);
-    }
-    catch (PluginException $exception) {
-      // Allow plugin fall-backs of type 'base_plugin.override_plugin'.
-      $plugin_id = strstr($plugin_id, '.', TRUE);
-      if (empty($plugin_id)) {
-        throw new PluginNotFoundException($plugin_id,
-          "Unable to fetch assets for pattern " . $this->getPath());
-      }
-      $plugin = $plugin_manager->createInstance($plugin_id);
-    }
+    $plugin = $this->getLibraryPlugin();
     $assets = $plugin->fetchAssets($this);
     $this->setTemplate($assets['template'] ?? '');
     $this->setSchema($assets['schema'] ?? '');
@@ -450,6 +437,38 @@ class Pattern extends ContentEntityBase implements PatternInterface {
       $this->entityTypeId . ':' . $this->id(),
       'pattern:' . $this->getAssetId(),
     ];
+  }
+
+  /**
+   * Load the pattern library plugin used by this pattern.
+   *
+   * @return \Drupal\patternkit\PatternLibraryPluginInterface
+   *   The loaded pattern library plugin for this pattern.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\PluginException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   *
+   * @todo Reimplement with proper fallback plugin loading.
+   */
+  protected function getLibraryPlugin(): PatternLibraryPluginInterface {
+    $plugin_id = $this->getLibraryPluginId();
+    /** @var \Drupal\patternkit\PatternLibraryPluginManager $plugin_manager */
+    $plugin_manager = \Drupal::service('plugin.manager.library.pattern');
+    try {
+      $plugin = $plugin_manager->createInstance($plugin_id);
+    }
+    catch (PluginException $exception) {
+      // Allow plugin fall-backs of type 'base_plugin.override_plugin'.
+      $plugin_id = strstr($plugin_id, '.', TRUE);
+      if (empty($plugin_id)) {
+        throw new PluginNotFoundException($plugin_id,
+          "Unable to fetch assets for pattern " . $this->getPath());
+      }
+      $plugin = $plugin_manager->createInstance($plugin_id);
+    }
+
+    /** @var \Drupal\patternkit\PatternLibraryPluginInterface $plugin */
+    return $plugin;
   }
 
 }

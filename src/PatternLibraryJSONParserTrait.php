@@ -167,6 +167,7 @@ trait PatternLibraryJSONParserTrait {
    * @throws \JsonException
    * @throws \Swaggest\JsonSchema\Exception
    * @throws \Swaggest\JsonSchema\InvalidValue
+   * @throws \Drupal\patternkit\Exception\MissingDataPreProcessorException
    */
   public function normalizeSchemaReferences(string $schema_json): string {
     $preprocessor = $this->dataPreProcessorFactory->getPreProcessor('normalizer');
@@ -201,6 +202,57 @@ trait PatternLibraryJSONParserTrait {
    */
   public function getSchemaDependencies(string $schema_json, string $pattern_id): array {
     return $this->patternDependencyResolver->getSchemaDependencies($schema_json, $pattern_id);
+  }
+
+  /**
+   * Test if a string could be a JSON schema object.
+   *
+   * This test is not definitive to determine if a string represents a JSON
+   * schema. It only tests to make sure a JSON string is valid for decoding and
+   * is an object.
+   *
+   * @param string $json
+   *   The string to test.
+   *
+   * @return bool
+   *   TRUE if this could be a JSON schema, FALSE otherwise.
+   */
+  protected function isJson(string $json): bool {
+    // For our purposes we only want to accept objects, so we can rule out based
+    // on the first non-whitespace character if it isn't an opening brace.
+    if (ltrim($json)[0] !== '{') {
+      return FALSE;
+    }
+
+    // Attempt to decode the string as JSON and return based on errors.
+    json_decode($json);
+    return json_last_error() === JSON_ERROR_NONE;
+  }
+
+  /**
+   * Apply necessary processing for discovered pattern schemas.
+   *
+   * @param string $schema_json
+   *   The raw JSON string for the discovered pattern schema.
+   * @param \Drupal\patternkit\Entity\PatternInterface $pattern
+   *   The pattern entity being prepared and processed.
+   *
+   * @return string
+   *   The processed JSON schema string with any necessary alterations.
+   *
+   * @throws \JsonException
+   * @throws \Swaggest\JsonSchema\Exception
+   * @throws \Swaggest\JsonSchema\InvalidValue
+   */
+  public function processSchema(string $schema_json, PatternInterface $pattern): string {
+    // Replace any $ref links with relative paths.
+    $processed_schema = $this->normalizeSchemaReferences($schema_json);
+
+    // Identify and record all pattern reference dependencies.
+    $dependencies = $this->getSchemaDependencies($processed_schema, $pattern->getAssetId());
+    $pattern->setDependencies($dependencies);
+
+    return $processed_schema;
   }
 
 }

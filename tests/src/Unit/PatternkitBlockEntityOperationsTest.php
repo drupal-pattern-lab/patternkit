@@ -5,11 +5,13 @@ namespace Drupal\Tests\patternkit\Unit;
 use Drupal\Core\Block\BlockPluginInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\RevisionableInterface;
 use Drupal\layout_builder\Section;
 use Drupal\layout_builder\SectionComponent;
 use Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface;
+use Drupal\layout_builder\SectionStorageInterface;
 use Drupal\patternkit\PatternkitBlockEntityOperations;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock;
 use Drupal\Tests\UnitTestCase;
@@ -90,13 +92,17 @@ class PatternkitBlockEntityOperationsTest extends UnitTestCase {
    */
   public function testHandlePresave() {
     $entity = $this->prophesize(EntityInterface::class);
+    $entity_type = $this->prophesize(EntityTypeInterface::class);
+    $entity->getEntityType()->willReturn($entity_type->reveal());
 
     $mock = $this->createPartialMock(PatternkitBlockEntityOperations::class, [
       'isLayoutCompatibleEntity',
-      'getEntitySections',
       'originalEntityUsesDefaultStorage',
+      'getSectionStorageForEntity',
     ]);
     $mock->method('originalEntityUsesDefaultStorage')->willReturn(TRUE);
+    $mock->method('isLayoutCompatibleEntity')->with($entity->reveal())
+      ->willReturn(TRUE);
 
     // Mock a placed patternkit block component.
     $patternBlockPlugin = $this->prophesize(PatternkitBlock::class);
@@ -141,12 +147,14 @@ class PatternkitBlockEntityOperationsTest extends UnitTestCase {
       $patternBlockComponent->reveal(),
     ]);
 
-    $mock->method('isLayoutCompatibleEntity')->willReturn(TRUE);
-    $mock->method('getEntitySections')->with($entity->reveal())
-      ->willReturn([
-        $section0->reveal(),
-        $section1->reveal(),
-      ]);
+    $sectionStorage = $this->prophesize(SectionStorageInterface::class);
+    $sectionStorage->getSections()->willReturn([
+      $section0->reveal(),
+      $section1->reveal(),
+    ]);
+
+    $mock->method('getSectionStorageForEntity')->with($entity->reveal())
+      ->willReturn($sectionStorage->reveal());
 
     $mock->handlePreSave($entity->reveal());
   }
@@ -159,11 +167,11 @@ class PatternkitBlockEntityOperationsTest extends UnitTestCase {
 
     $mock = $this->createPartialMock(PatternkitBlockEntityOperations::class, [
       'isLayoutCompatibleEntity',
-      'getEntitySections',
+      'getSectionStorageForEntity',
       'saveBlockComponent',
     ]);
     $mock->method('isLayoutCompatibleEntity')->willReturn(FALSE);
-    $mock->expects($this->never())->method('getEntitySections');
+    $mock->expects($this->never())->method('getSectionStorageForEntity');
     $mock->expects($this->never())->method('saveBlockComponent');
 
     $mock->handlePreSave($entity->reveal());
@@ -191,7 +199,7 @@ class PatternkitBlockEntityOperationsTest extends UnitTestCase {
 
     $mock = $this->createPartialMock(PatternkitBlockEntityOperations::class, [
       'isLayoutCompatibleEntity',
-      'getEntitySections',
+      'getSectionStorageForEntity',
       'originalEntityUsesDefaultStorage',
       'saveBlockComponent',
     ]);
@@ -211,9 +219,11 @@ class PatternkitBlockEntityOperationsTest extends UnitTestCase {
     ]);
 
     $sections = [$section0->reveal()];
-    $mock->method('getEntitySections')
+    $sectionStorage = $this->prophesize(SectionStorageInterface::class);
+    $sectionStorage->getSections()->willReturn($sections);
+    $mock->method('getSectionStorageForEntity')
       ->with($entity->reveal())
-      ->willReturn($sections);
+      ->willReturn($sectionStorage->reveal());
 
     $mock->expects($this->once())->method('saveBlockComponent')
       ->with(

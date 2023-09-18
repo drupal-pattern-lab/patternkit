@@ -7,7 +7,7 @@ use Swaggest\JsonSchema\SchemaContract;
 /**
  * Base exception for unexpected events during Schema processing.
  */
-class SchemaException extends \RuntimeException {
+class SchemaException extends PatternAssetException {
 
   /**
    * The schema being processed at the time of the exception.

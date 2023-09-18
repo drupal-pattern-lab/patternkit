@@ -2,13 +2,13 @@
 
 namespace Drupal\patternkit\Element;
 
-use Drupal\patternkit\Exception\UnknownPatternException;
-use Drupal\patternkit\PatternFieldProcessorPluginManager;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Render\Element\RenderElement;
 use Drupal\patternkit\Entity\PatternInterface;
-use Drupal\patternkit\Exception\SchemaException;
+use Drupal\patternkit\Exception\PatternAssetException;
+use Drupal\patternkit\Exception\UnknownPatternException;
+use Drupal\patternkit\PatternFieldProcessorPluginManager;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\patternkit\PatternRepository;
@@ -170,21 +170,21 @@ class Pattern extends RenderElement implements ContainerFactoryPluginInterface {
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    */
   public function preRenderPatternElement(array $element): array {
-    /** @var \Drupal\patternkit\Entity\PatternInterface $pattern */
+    /** @var \Drupal\patternkit\Entity\PatternInterface|null $pattern */
     $pattern = $element['#pattern'];
+
+    // Fail early if a pattern was unable to be loaded.
+    if ($pattern === NULL) {
+      return [
+        '#markup' => $this->t('Pattern unavailable.'),
+      ];
+    }
 
     // Capture base bubbleable metadata.
     $metadata = BubbleableMetadata::createFromRenderArray($element);
 
     // Ensure the metadata from the pattern is present.
     $metadata->addCacheableDependency($pattern);
-
-    // Fail early if a pattern was unable to be loaded.
-    if (is_null($pattern)) {
-      return [
-        '#markup' => $this->t('Pattern unavailable.'),
-      ];
-    }
 
     $pattern->config = $element['#config'];
     $pattern->context = $element['#context'];
@@ -195,7 +195,7 @@ class Pattern extends RenderElement implements ContainerFactoryPluginInterface {
       $library_plugin = $this->getPatternLibraryPlugin($pattern);
       $elements = $library_plugin->render([$pattern]);
     }
-    catch (SchemaException $exception) {
+    catch (PatternAssetException $exception) {
       // Replace the pattern output with an error element for more sophisticated
       // output handling.
       // @see \Drupal\patternkit\Element\PatternError

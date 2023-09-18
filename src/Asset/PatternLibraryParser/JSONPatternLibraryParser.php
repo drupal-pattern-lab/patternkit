@@ -2,18 +2,16 @@
 
 namespace Drupal\patternkit\Asset\PatternLibraryParser;
 
-use Drupal\Component\Plugin\Exception\PluginException;
-use Drupal\Component\Plugin\Exception\PluginNotFoundException;
 use Drupal\Core\Asset\Exception\InvalidLibraryFileException;
+use Drupal\patternkit\Asset\PatternLibraryParserBase;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Exception\MissingSchemaException;
-use Drupal\patternkit\Exception\PatternAssetException;
 use Drupal\patternkit\Exception\SchemaException;
 use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\PatternLibraryJSONParserTrait;
-use Drupal\patternkit\Asset\PatternLibraryParserBase;
 use Swaggest\JsonSchema\Exception as JsonSchemaException;
+use Webmozart\Assert\Assert;
 
 /**
  * Parses a Twig pattern library collection into usable metadata.
@@ -21,6 +19,11 @@ use Swaggest\JsonSchema\Exception as JsonSchemaException;
 class JSONPatternLibraryParser extends PatternLibraryParserBase {
 
   use PatternLibraryJSONParserTrait;
+
+  /**
+   * The plug ID for this parser plugin to be referenced from patterns.
+   */
+  protected const PLUGIN_ID = 'json';
 
   /**
    * {@inheritdoc}
@@ -32,36 +35,32 @@ class JSONPatternLibraryParser extends PatternLibraryParserBase {
     PatternInterface $pattern,
     PatternEditorConfig $config = NULL
   ): array {
-    // @todo Add support for twig lib attachments such as JS and images.
     $assets = parent::fetchPatternAssets($pattern, $config);
 
     // Test to make sure necessary assets were discovered.
-    if (empty($assets['json'])) {
+    if (empty($assets['json']) || !$this->isJson($assets['json'])) {
       throw new MissingSchemaException(
-        sprintf('Unable to find a suitable schema for pattern "%s"',
-          $pattern->getAssetId()));
+        sprintf('Unable to find a suitable schema for pattern "%s". JSON asset identified as "%s".',
+          $pattern->getAssetId(), $assets['json'] ?? ''));
     }
 
+    // Remap file extensions to purpose-based keys.
     $assets['schema'] = $assets['json'];
 
     try {
-      // Replace any $ref links with relative paths.
-      $assets['schema'] = $this->normalizeSchemaReferences($assets['schema']);
-
-      // Identify and record all pattern reference dependencies.
-      $dependencies = $this->getSchemaDependencies($assets['schema'], $pattern->getAssetId());
-      $pattern->setDependencies($dependencies);
+      // Process the schema.
+      $assets['schema'] = $this->processSchema($assets['schema'], $pattern);
     }
     catch (JsonSchemaException $e) {
       throw new SchemaException(
-        sprintf('Unable to consume the schema for pattern %s: %s', $pattern->getAssetId(), $e->getMessage()),
+        sprintf('Unable to consume the schema for pattern "%s": %s', $pattern->getAssetId(), $e->getMessage()),
         $e->getCode(),
         $e,
       );
     }
     catch (\JsonException $e) {
       throw new SchemaException(
-        sprintf('Unable to decode the schema for pattern %s: %s', $pattern->getAssetId(), $e->getMessage()),
+        sprintf('Unable to decode the schema for pattern "%s": %s', $pattern->getAssetId(), $e->getMessage()),
         $e->getCode(),
         $e,
       );
@@ -74,103 +73,35 @@ class JSONPatternLibraryParser extends PatternLibraryParserBase {
    * {@inheritdoc}
    */
   public function parsePatternLibraryInfo(PatternLibrary $library, string $path): array {
-    if (!file_exists($path)) {
+    Assert::false(str_starts_with($path, $this->root), 'The library path is expected to be relative to the web root.');
+
+    if (!file_exists("$this->root/$path")) {
       throw new InvalidLibraryFileException("Path $path does not exist.");
     }
+
+    // Collect metadata for all discovered components.
     $metadata = [];
+
+    // Attempt to load existing pattern data from the library.
     $info = $library->getPatternInfo();
-    if ($path[0] === '/') {
-      // Trim the root path plus the trailing slash.
-      $relative_path = substr($path, strlen($this->root . '/'));
-    }
-    else {
-      $relative_path = $path;
+    if (!isset($info[$path]) && $this->isDebug()) {
+      $this->logger->debug('No pattern information found for library "@library" at "@path".', [
+        '@library' => $library->id(),
+        '@path' => $path,
+      ]);
     }
 
+    // Collect exceptions throughout processing for logging at the end.
     $exceptions = [];
-    $pattern_info = $info[$relative_path];
-    foreach (self::discoverComponents($path, ['json']) as $name => $data) {
-      if (empty($data['json']) || !file_exists($data['json'])) {
-        continue;
-      }
-      $pattern_path = trim(substr($data['json'], strlen($path), -strlen('.json')), '/\\');
 
-      $library_defaults = [
-        '$schema' => 'https://json-schema.org/schema#',
-        'assets' => ['schema' => $data['json']],
-        'category' => $pattern_info['category'] ?? 'default',
-        'title' => $name,
-        'type' => 'object',
-        'format' => 'grid',
-        'library' => $library->id(),
-        'libraryPluginId' => $pattern_info['plugin'],
-        'license' => $library->license ?? [],
-        'name' => $name,
-        'path' => $pattern_path,
-        'properties' => (object) [],
-        'required' => [],
-        'version' => $library->version ?? '',
-      ];
-      if (!empty($data['json']) && $file_contents = file_get_contents($data['json'])) {
-        $category_guess = $library->category ?? strstr($pattern_path, DIRECTORY_SEPARATOR, TRUE);
-        $library_defaults['category'] = $category_guess ?? $library_defaults['category'];
-        $library_defaults['assets']['json'] = $data['json'];
-        $pattern = $this->createPattern($name, (array) $this->serializer::decode($file_contents) + $library_defaults);
-      }
-      else {
-        // Create the pattern from defaults.
-        // @todo Have this cleverly infer defaults from the template.
-        $pattern = $this->createPattern($name, $library_defaults);
-      }
+    // Prepare pattern value defaults for all items in this library.
+    $library_defaults = $this->getLibraryDefaults($library, $path);
 
-      try {
-        // Process assets and capture them in the cached pattern definition.
-        $pattern->fetchAssets();
+    // Process all discovered components.
+    foreach (self::discoverComponents("$this->root/$path", $this->getRequiredFileExtensions($library)) as $component_name => $files) {
+      if ($pattern = $this->processComponent($library, $path, $library_defaults, $component_name, $files, $exceptions)) {
+        $metadata[$pattern->getPath()] = $pattern->toArray();
       }
-      catch (PluginNotFoundException | PluginException $e) {
-        // Record the exception and don't include the pattern in results.
-        $exceptions[$pattern->getAssetId()] = [
-          $e,
-          'Unable to load plugin "%plugin" for pattern "%pattern": @exception',
-          [
-            '%plugin' => $pattern->getLibraryPluginId(),
-            '%pattern' => $pattern->getAssetId(),
-            '@exception' => $e->getMessage(),
-          ],
-        ];
-        continue;
-      }
-      catch (PatternAssetException | SchemaException $e) {
-        // Record the exception and don't include the pattern in results.
-        $exceptions[$pattern->getAssetId()] = [
-          $e,
-          '@message<br><pre>@trace</pre>',
-          [
-            '@message' => $e->getMessage(),
-            '@trace' => $e->getTraceAsString(),
-          ],
-        ];
-        continue;
-      }
-      catch (\JsonException $e) {
-        // Record the exception and don't include the pattern in results.
-        $exceptions[$pattern->getAssetId()] = [
-          $e,
-          'Unable to parse schema content for "%pattern": @exception',
-          [
-            '%pattern' => $pattern->getAssetId(),
-            '@exception' => $e->getMessage(),
-          ],
-        ];
-        continue;
-      }
-
-      $pattern->filename = trim(substr($data['json'], strlen($path)), '/\\');
-      // @todo Set $pattern->url to the actual URL of the pattern.
-      // @todo Add default of library version fallback to extension version.
-      $pattern->version ??= 'VERSION';
-
-      $metadata[$pattern->getPath()] = $pattern->toArray();
     }
 
     if ($exceptions) {
@@ -178,6 +109,111 @@ class JSONPatternLibraryParser extends PatternLibraryParserBase {
     }
 
     return $metadata;
+  }
+
+  /**
+   * Process individually discovered component assets into a Pattern entity.
+   *
+   * @param \Drupal\patternkit\PatternLibrary $library
+   *   The library information object.
+   * @param string $library_path
+   *   The library path being processed. This is typically a path relative to
+   *   the Drupal web root.
+   * @param array $library_defaults
+   *   Default property values common to all patterns discovered within the
+   *   library being processed.
+   * @param string $component_name
+   *   The name of the component being processed. This is usually the basename
+   *   of the files that were discovered.
+   * @param array $files
+   *   An associative array of discovered assets. Each value is the full file
+   *   path from the system root to the file, and each is keyed by the file
+   *   extension.
+   * @param array $exceptions
+   *   An array to capture exception data in during processing. This is passed
+   *   by reference to enable capturing of exceptions and storage for later
+   *   review without breaking control flow.
+   *
+   * @return \Drupal\patternkit\Entity\PatternInterface|null
+   *   An instantiated Pattern entity from the discovered assets, or NULL if
+   *   the component could not be created into a Pattern.
+   */
+  protected function processComponent(PatternLibrary $library, string $library_path, array $library_defaults, string $component_name, array $files, array &$exceptions): ?PatternInterface {
+    // A json file is required for this parser. Stop here if one isn't found.
+    if (empty($files['json']) || !file_exists($files['json'])) {
+      return NULL;
+    }
+
+    // Prepare pattern instance defaults.
+    $defaults = $this->getPatternDefaults($library, $library_path, $component_name, $files);
+    $defaults += $library_defaults;
+
+    if (empty($defaults['category'])) {
+      $defaults['category'] = $this->getSuggestedPatternCategory($library, $library_path, $defaults);
+    }
+
+    // Attempt to load the pattern with all assets resolved.
+    return $this->loadPattern($component_name, $defaults, $exceptions);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function getPatternDefaults(PatternLibrary $library, string $library_path, string $component_name, array $files): array {
+    Assert::keyExists($files, 'json', 'All components are expected to have a JSON file.');
+
+    $defaults = parent::getPatternDefaults($library, $library_path, $component_name, $files);
+
+    // Remove the library path and extension to form the pattern path.
+    $pattern_path = trim(substr($files['json'], strlen("$this->root/$library_path/"), -strlen('.json')), '/\\');
+    $defaults['path'] = $pattern_path;
+
+    // Identify the path to the directory containing a component's assets.
+    $asset_path = trim("$library_path/$pattern_path", '/\\');
+
+    // Record the JSON asset path.
+    $defaults['assets']['json'] = "$asset_path.json";
+
+    // Prioritize values from the JSON schema over prepared defaults.
+    if ($file_contents = file_get_contents($files['json'])) {
+      $schema_content = (array) $this->serializer::decode($file_contents);
+
+      // Whitelist which schema values we pay attention to at this stage.
+      $schema_values = array_intersect_key($schema_content, array_flip([
+        'category',
+        'name',
+        'title',
+        'description',
+        'version',
+      ]));
+
+      $defaults = $schema_values + $defaults;
+    }
+
+    return $defaults;
+  }
+
+  /**
+   * Get a list of required files for components using this parser.
+   *
+   * @param \Drupal\patternkit\PatternLibrary $library
+   *   The pattern library data object.
+   *
+   * @return string[]
+   *   A string array of file extensions required by each component.
+   */
+  protected function getRequiredFileExtensions(PatternLibrary $library): array {
+    return ['json'];
+  }
+
+  /**
+   * Get the plugin ID for patterns discovered with this parser.
+   *
+   * @return string
+   *   The plugin ID for pattern discovered with this parser.
+   */
+  public function getPluginId(): string {
+    return static::PLUGIN_ID;
   }
 
 }

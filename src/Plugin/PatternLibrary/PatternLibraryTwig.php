@@ -5,8 +5,6 @@ namespace Drupal\patternkit\Plugin\PatternLibrary;
 use Drupal\Component\Utility\Html;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Template\TwigEnvironment;
-use Drupal\patternkit\Entity\PatternInterface;
-use Drupal\patternkit\PatternEditorConfig;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -40,13 +38,6 @@ class PatternLibraryTwig extends PatternLibraryJSON {
   }
 
   /**
-   * {@inheritdoc}
-   */
-  public function fetchAssets(PatternInterface $pattern, ?PatternEditorConfig $config = NULL): array {
-    return $this->parser->fetchPatternAssets($pattern, $config);
-  }
-
-  /**
    * Overrides the JSON Library render method.
    *
    * {@inheritdoc}
@@ -72,7 +63,10 @@ class PatternLibraryTwig extends PatternLibraryJSON {
       if ($this->getTwigEnvironment()->isDebug()) {
         $hash = $pattern->getHash();
         $asset_id = $pattern->getAssetId();
-        $path = trim($pattern->getAssets()['twig'] ?: $this->t('Could not resolve file path.'), DRUPAL_ROOT);
+        $path = $pattern->getAssets()['twig'] ?: $this->t('Could not resolve file path.');
+        if (str_starts_with($path, DRUPAL_ROOT)) {
+          $path = substr($path, strlen(DRUPAL_ROOT));
+        }
         try {
           $version = $pattern->version->value;
         }

@@ -7,5 +7,6 @@ services:
       - '@patternkit.pattern.repository'
       - '@cache_tags.invalidator'
       - '@patternkit.helper.update'
+      - '%app.root%'
     tags:
       - { name: drush.command }

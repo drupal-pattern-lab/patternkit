@@ -21,7 +21,9 @@ use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Exception\PatternAssetException;
 use Drupal\patternkit\Exception\SchemaException;
 use Drupal\patternkit\PatternEditorConfig;
+use Drupal\patternkit\PatternkitEnvironmentAwareInterface;
 use Drupal\patternkit\PatternkitEnvironmentAwareTrait;
+use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\Schema\DataPreProcessorFactory;
 use Symfony\Component\Finder\Iterator\RecursiveDirectoryIterator;
 use Webmozart\Assert\Assert;
@@ -29,10 +31,20 @@ use Webmozart\Assert\Assert;
 /**
  * Base functionality for a pattern library parser.
  */
-abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implements PatternLibraryParserInterface {
+abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implements PatternLibraryParserInterface, PatternkitEnvironmentAwareInterface {
 
   use StringTranslationTrait;
   use PatternkitEnvironmentAwareTrait;
+
+  /**
+   * A placeholder value for when a pattern library does not specify a version.
+   */
+  protected const VERSION_PLACEHOLDER = 'VERSION';
+
+  /**
+   * The default category to fall back to if one cannot be suggested.
+   */
+  protected const DEFAULT_CATEGORY = 'default';
 
   /**
    * Serializes and de-serializes data.
@@ -121,22 +133,14 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
   }
 
   /**
-   * Returns a new Patternkit Pattern.
-   *
-   * @param string $name
-   *   The name of the pattern.
-   * @param array|object $data
-   *   The optional data for the pattern.
-   *
-   * @return \Drupal\patternkit\Entity\PatternInterface
-   *   A fully-instantiated Patternkit Pattern.
+   * {@inheritdoc}
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
   public function createPattern(string $name, $data): PatternInterface {
     // Pattern schemas contain values needed for Pattern fields.
-    $values = ['name' => $name];
+    $values = ['name' => $data['title'] ?? $name];
     return $this->patternStorage->create($values + $data);
   }
 
@@ -163,7 +167,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
       }
 
       // Skip tests folders.
-      if (strpos($file->getRelativePath(), '/tests') !== FALSE) {
+      if (stripos($file->getRelativePath(), '/tests') !== FALSE) {
         continue;
       }
 
@@ -181,6 +185,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
       $file_path = $file->getPath();
       $components[$file_basename][$file_ext] = "$file_path/$file_basename.$file_ext";
     }
+
     return $components;
   }
 
@@ -287,28 +292,33 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
   }
 
   /**
-   * Fetches all assets for a pattern.
+   * {@inheritdoc}
    *
-   * @param \Drupal\patternkit\Entity\PatternInterface $pattern
-   *   The pattern to use for asset retrieval.
-   * @param \Drupal\patternkit\PatternEditorConfig|null $config
-   *   The configuration object to use for provisioning the pattern.
-   *
-   * @return array
-   *   An array of loaded patterns assets.
+   * @todo Add support for twig lib attachments such as JS and images.
    */
   public function fetchPatternAssets(PatternInterface $pattern, PatternEditorConfig $config = NULL): array {
-    // @todo Add support for twig lib attachments such as JS and images.
+    // If this is a pattern being assembled during discovery, the asset paths
+    // should already be populated on the pattern entity from the initial
+    // creation of it in ::parsePatternLibraryInfo().
     $assets = $pattern->getAssets();
     foreach ($assets as $asset => $data) {
       if (empty($data)) {
         continue;
       }
-      if (file_exists($data)) {
-        $assets[$asset] = file_get_contents($data);
+
+      $full_path = $this->root . '/' . $data;
+      if (file_exists($full_path)) {
+        $assets[$asset] = file_get_contents($full_path);
       }
-      // $this->fetchSingleAsset();
+      else {
+        $this->logger->warning('Unable to load "@type" asset from "@location" for pattern "@pattern".', [
+          '@type' => $asset,
+          '@location' => $data,
+          '@pattern' => $pattern->getAssetId(),
+        ]);
+      }
     }
+
     return $assets;
   }
 
@@ -328,7 +338,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     if (!\Drupal::service('file_system')->prepareDirectory($path, FileSystem::CREATE_DIRECTORY)) {
       \Drupal::service('messenger')->addMessage(
         t(
-        "Unable to create folder (@path) to contain the pklugins artifacts.",
+        "Unable to create folder (@path) to contain the plugin artifacts.",
           ['@path' => $path]
       ));
     }
@@ -538,6 +548,76 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
   }
 
   /**
+   * Attempt to create a pattern instance from discovered data.
+   *
+   * Create a pattern instance from all discovered data and default values. In
+   * the case of any failures, exceptions will be captured and recorded in the
+   * provided $exceptions array for later logging.
+   *
+   * @param string $pattern_name
+   *   The name of the pattern to be created.
+   * @param array $defaults
+   *   An associative array of default values for instantiating the pattern.
+   * @param array $exceptions
+   *   An associative array passed by reference for capturing and recording any
+   *   exceptions for later logging via ::logParserExceptions().
+   *
+   * @return \Drupal\patternkit\Entity\PatternInterface|null
+   *   The instantiated Pattern entity or NULL if an exception was encountered.
+   *
+   * @see self::logParserExceptions()
+   */
+  protected function loadPattern(string $pattern_name, array $defaults, array &$exceptions): ?PatternInterface {
+    $success = FALSE;
+    try {
+      // Create the pattern from defaults.
+      $pattern = $this->createPattern($pattern_name, $defaults);
+
+      // Process assets and capture them in the cached pattern definition.
+      $pattern->fetchAssets();
+
+      // Track successful completion for the return value.
+      $success = TRUE;
+    }
+    catch (PluginNotFoundException | PluginException $e) {
+      // Record the exception and don't include the pattern in results.
+      $exceptions[$pattern_name] = [
+        $e,
+        'Unable to load plugin "%plugin" for pattern "%pattern": @exception',
+        [
+          '%plugin' => $pattern->getLibraryPluginId(),
+          '%pattern' => $pattern_name,
+          '@exception' => $e->getMessage(),
+        ],
+      ];
+    }
+    catch (PatternAssetException | SchemaException $e) {
+      // Record the exception and don't include the pattern in results.
+      $exceptions[$pattern_name] = [
+        $e,
+        '@message<br><pre>@trace</pre>',
+        [
+          '@message' => $e->getMessage(),
+          '@trace' => $e->getTraceAsString(),
+        ],
+      ];
+    }
+    catch (\JsonException $e) {
+      // Record the exception and don't include the pattern in results.
+      $exceptions[$pattern_name] = [
+        $e,
+        'Unable to parse schema content for "%pattern": @exception',
+        [
+          '%pattern' => $pattern_name,
+          '@exception' => $e->getMessage(),
+        ],
+      ];
+    }
+
+    return $success ? $pattern : NULL;
+  }
+
+  /**
    * Log encountered exceptions during library parsing and discovery.
    *
    * @param string $library
@@ -587,6 +667,86 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
         ]
       );
     }
+  }
+
+    /**
+   * Get pattern default values general to the whole pattern library.
+   *
+   * @param \Drupal\patternkit\PatternLibrary $library
+   *   The library information object.
+   * @param string $library_path
+   *   The library path being processed. This is typically a path relative to
+   *   the Drupal web root.
+   *
+   * @return array
+   *   An associative array of default values for all patterns in the library.
+   */
+  protected function getLibraryDefaults(PatternLibrary $library, string $library_path): array {
+    $pattern_collections = $library->getPatternInfo();
+    $collection_info = $pattern_collections[$library_path];
+
+    // Prepare pattern value defaults for all items in this library.
+    $library_defaults = [
+      'category'        => $collection_info['category'] ?? '',
+      'library'         => $library->id(),
+      'libraryPluginId' => $this->getPluginId(),
+      'version'         => $library->version ?: static::VERSION_PLACEHOLDER,
+    ];
+
+    return $library_defaults;
+  }
+
+  /**
+   * Get default values for instantiation of a pattern being discovered.
+   *
+   * @param \Drupal\patternkit\PatternLibrary $library
+   *   The pattern library data object.
+   * @param string $library_path
+   *   The path to the pattern library being processed. This should be a path
+   *   relative to the Drupal web root and should not include a trailing slash.
+   * @param string $component_name
+   *   The name of the component being processed. This is usually the basename
+   *   of the files that were discovered.
+   * @param string[] $files
+   *   An associative array of discovered assets. Each value is the full file
+   *   path from the system root to the file, and each is keyed by the file
+   *   extension.
+   *
+   * @return array
+   *   An associative array of pattern values to use for instantiation.
+   */
+  protected function getPatternDefaults(PatternLibrary $library, string $library_path, string $component_name, array $files): array {
+    // Prepare pattern instance defaults.
+    return [
+      'assets' => [],
+      'name' => $component_name,
+    ];
+}
+
+    /**
+   * Determine a pattern category from library information.
+   *
+   * @param \Drupal\patternkit\PatternLibrary $library
+   *   The pattern library data object.
+   * @param string $library_path
+   *   The path to the library being processed.
+   * @param array $pattern_values
+   *   Pattern values prepared so far.
+   *
+   * @return string
+   *   A suggested pattern category.
+   */
+  protected function getSuggestedPatternCategory(PatternLibrary $library, string $library_path, array $pattern_values): string {
+    $pattern_collection = $library->getPatternInfo()[$library_path];
+
+    if (!empty($pattern_collection['category'])) {
+      return $pattern_collection['category'];
+    }
+
+    $pattern_path = $pattern_values['path'];
+    $category_guess = strstr($pattern_path, DIRECTORY_SEPARATOR, TRUE);
+
+    return $category_guess ?: self::DEFAULT_CATEGORY;
   }
 
 }

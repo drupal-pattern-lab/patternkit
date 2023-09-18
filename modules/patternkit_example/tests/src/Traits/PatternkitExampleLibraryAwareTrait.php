@@ -59,20 +59,24 @@ trait PatternkitExampleLibraryAwareTrait {
   /**
    * Get the assembled library information expected for tests.
    *
-   * @param string $root
-   *   The path to the library files. This will be prefixed in front of all
-   *   pattern file paths.
    * @param array $defaults
    *   (Optional) A set of default values to configure on every pattern unless
    *   specifically set for a given pattern.
+   * @param string $lib_path
+   *   (Optional) A library path to prefix on all asset file paths. If not
+   *   provided, all asset paths will be relative to the library directory.
    */
-  protected function getExpectedLibraryInformation(string $root, array $defaults = []): array {
-    $root = $root ?? $this->vfsRoot->url();
+  protected function getExpectedLibraryInformation(array $defaults = [], string $lib_path = ''): array {
+    // Prepare the file path prefix if necessary.
+    if ($lib_path && !str_ends_with($lib_path, '/')) {
+      $lib_path .= '/';
+    }
+
     $defaults = $defaults + [
       'category' => 'atom',
       'library' => 'patternkit',
       'libraryPluginId' => 'twig',
-      'version' => FALSE,
+      'version' => 'VERSION',
     ];
 
     $expected = [
@@ -80,8 +84,8 @@ trait PatternkitExampleLibraryAwareTrait {
         'name' => 'Example',
         'title' => 'Example',
         'assets' => [
-          'twig' => $root . '/atoms/example/src/example.twig',
-          'json' => $root . '/atoms/example/src/example.json',
+          'twig' => $lib_path . 'atoms/example/src/example.twig',
+          'json' => $lib_path . 'atoms/example/src/example.json',
         ],
         'path' => 'atoms/example/src/example',
       ] + $defaults,
@@ -89,8 +93,8 @@ trait PatternkitExampleLibraryAwareTrait {
         'name' => 'Example with filtered content',
         'title' => 'Example with filtered content',
         'assets' => [
-          'twig' => $root . '/atoms/example_filtered/src/example_filtered.twig',
-          'json' => $root . '/atoms/example_filtered/src/example_filtered.json',
+          'twig' => $lib_path . 'atoms/example_filtered/src/example_filtered.twig',
+          'json' => $lib_path . 'atoms/example_filtered/src/example_filtered.json',
         ],
         'path' => 'atoms/example_filtered/src/example_filtered',
       ] + $defaults,
@@ -98,8 +102,8 @@ trait PatternkitExampleLibraryAwareTrait {
         'name' => 'Example with Reference',
         'title' => 'Example with Reference',
         'assets' => [
-          'twig' => $root . '/atoms/example_ref/src/example_ref.twig',
-          'json' => $root . '/atoms/example_ref/src/example_ref.json',
+          'twig' => $lib_path . 'atoms/example_ref/src/example_ref.twig',
+          'json' => $lib_path . 'atoms/example_ref/src/example_ref.json',
         ],
         'path' => 'atoms/example_ref/src/example_ref',
       ] + $defaults,
@@ -107,8 +111,8 @@ trait PatternkitExampleLibraryAwareTrait {
         'name' => 'Example with multiple filtered content blocks',
         'title' => 'Example with multiple filtered content blocks',
         'assets' => [
-          'twig' => $root . '/atoms/example_filtered_multiple/src/example_filtered_multiple.twig',
-          'json' => $root . '/atoms/example_filtered_multiple/src/example_filtered_multiple.json',
+          'twig' => $lib_path . 'atoms/example_filtered_multiple/src/example_filtered_multiple.twig',
+          'json' => $lib_path . 'atoms/example_filtered_multiple/src/example_filtered_multiple.json',
         ],
         'path' => 'atoms/example_filtered_multiple/src/example_filtered_multiple',
       ] + $defaults,
@@ -117,8 +121,8 @@ trait PatternkitExampleLibraryAwareTrait {
         'title' => 'Media combined embed',
         'category' => 'component',
         'assets' => [
-          'twig' => $root . '/components/media_combined_embed/media_combined_embed.twig',
-          'json' => $root . '/components/media_combined_embed/media_combined_embed.json',
+          'twig' => $lib_path . 'components/media_combined_embed/media_combined_embed.twig',
+          'json' => $lib_path . 'components/media_combined_embed/media_combined_embed.json',
         ],
         'path' => 'components/media_combined_embed/media_combined_embed',
       ] + $defaults,
@@ -127,8 +131,8 @@ trait PatternkitExampleLibraryAwareTrait {
         'title' => 'Media image embed',
         'category' => 'component',
         'assets' => [
-          'twig' => $root . '/components/media_image_embed/media_image_embed.twig',
-          'json' => $root . '/components/media_image_embed/media_image_embed.json',
+          'twig' => $lib_path . 'components/media_image_embed/media_image_embed.twig',
+          'json' => $lib_path . 'components/media_image_embed/media_image_embed.json',
         ],
         'path' => 'components/media_image_embed/media_image_embed',
       ] + $defaults,
@@ -137,8 +141,8 @@ trait PatternkitExampleLibraryAwareTrait {
         'title' => 'Media video embed',
         'category' => 'component',
         'assets' => [
-          'twig' => $root . '/components/media_video_embed/media_video_embed.twig',
-          'json' => $root . '/components/media_video_embed/media_video_embed.json',
+          'twig' => $lib_path . 'components/media_video_embed/media_video_embed.twig',
+          'json' => $lib_path . 'components/media_video_embed/media_video_embed.json',
         ],
         'path' => 'components/media_video_embed/media_video_embed',
       ] + $defaults,

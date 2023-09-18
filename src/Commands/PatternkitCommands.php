@@ -57,6 +57,13 @@ class PatternkitCommands extends DrushCommands {
   protected UpdateHelper $updateHelper;
 
   /**
+   * The root path of the Drupal installation.
+   *
+   * @var string
+   */
+  protected string $root;
+
+  /**
    * Constructs the Patternkit Drush Commands functionality.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
@@ -69,13 +76,16 @@ class PatternkitCommands extends DrushCommands {
    *   The cache tags invalidator service.
    * @param \Drupal\patternkit\UpdateHelper $updateHelper
    *   The patternkit update helper service.
+   * @param string $root
+   *   The root path of the Drupal installation.
    */
   public function __construct(
     EntityTypeManagerInterface $entityTypeManager,
     PatternDiscoveryInterface $patternDiscovery,
     PatternRepository $patternRepository,
     CacheTagsInvalidatorInterface $cacheTagsInvalidator,
-    UpdateHelper $updateHelper
+    UpdateHelper $updateHelper,
+    string $root
   ) {
     parent::__construct();
 
@@ -84,6 +94,7 @@ class PatternkitCommands extends DrushCommands {
     $this->patternRepository = $patternRepository;
     $this->cacheTagsInvalidator = $cacheTagsInvalidator;
     $this->updateHelper = $updateHelper;
+    $this->root = $root;
   }
 
   /**
@@ -290,6 +301,93 @@ class PatternkitCommands extends DrushCommands {
     $this->cacheTagsInvalidator->invalidateTags($tags);
 
     return $this->t('Invalidated all patternkit pattern and library cache entries.');
+  }
+
+  /**
+   * Update invalid asset paths in stored Pattern entities.
+   *
+   * This resolves an issue where pattern assets like the schema or twig files
+   * cannot be loaded from saved Pattern entities after a pattern library has
+   * been moved to a new file path.
+   *
+   * @command patternkit:update-asset-paths
+   */
+  public function updateAssetPaths(): int {
+    $pattern_storage = $this->entityTypeManager->getStorage('patternkit_pattern');
+    $loaded_patterns = $pattern_storage->loadMultiple();
+
+    $is_verbose = $this->io()->isVerbose();
+
+    // Track updates and failures for final reporting.
+    $updated = 0;
+    $errors = 0;
+
+    /** @var \Drupal\patternkit\Entity\PatternInterface $pattern */
+    foreach ($loaded_patterns as $pattern) {
+      // Get asset data cached in the database entry.
+      $assets = $pattern->getAssets();
+
+      // Test each asset for availability.
+      $needs_update = FALSE;
+      foreach ($assets as $type => $path) {
+        if (str_starts_with($path, $this->root)) {
+          $needs_update = TRUE;
+        }
+        else {
+          $path = $this->root . '/' . $path;
+        }
+
+        if (!file_exists($path)) {
+          if ($is_verbose) {
+            $warning = dt('Unable to load "@type" asset from "@path" for pattern id @id.', [
+              '@type' => $type,
+              '@path' => $path,
+              '@id' => $pattern->id(),
+            ]);
+            $this->logger()->warning($warning);
+          }
+
+          // Since we've identified that some assets were unavailable we can
+          // stop testing and move on to updating.
+          $needs_update = TRUE;
+          break;
+        }
+      }
+
+      if ($needs_update) {
+        try {
+          // Load the latest discovered version of the pattern.
+          $source_pattern = $this->patternRepository->getPattern($pattern->getAssetId());
+
+          // Update the asset paths for the saved entity.
+          $pattern->setAssets($source_pattern->getAssets());
+          $pattern->save();
+          $updated++;
+
+          $notice = dt('Updated cached asset paths for pattern ID "@id".', [
+            '@id' => $pattern->id(),
+          ]);
+          $this->logger()->notice($notice);
+        }
+        catch (\Exception $exception) {
+          $error = dt('Failed to update asset paths for cached pattern ID "@id": @message', [
+            '@id' => $pattern->id(),
+            '@message' => $exception->getMessage(),
+          ]);
+          $this->logger()->error($error);
+          $errors++;
+        }
+      }
+    }
+
+    $summary = dt('Completed processing of @count cached patterns with @updates and @errors.', [
+      '@count' => count($loaded_patterns),
+      '@updates' => $this->formatPlural($updated, '1 update', '@count updates'),
+      '@errors' => $this->formatPlural($errors, '1 error', '@count errors'),
+    ]);
+    $this->io()->writeln($summary);
+
+    return ($errors > 0) ? self::EXIT_FAILURE_WITH_CLARITY : self::EXIT_SUCCESS;
   }
 
   /**

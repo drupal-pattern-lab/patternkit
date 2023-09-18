@@ -8,6 +8,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\RevisionableInterface;
+use Drupal\layout_builder\DefaultsSectionStorageInterface;
 use Drupal\layout_builder\LayoutEntityHelperTrait;
 use Drupal\layout_builder\SectionComponent;
 use Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface;
@@ -94,7 +95,8 @@ class PatternkitBlockEntityOperations implements ContainerInjectionInterface {
     }
     $duplicate_blocks = FALSE;
 
-    if ($sections = $this->getEntitySections($entity)) {
+    $storage = $this->getSectionStorageForEntity($entity);
+    if ($sections = $storage->getSections()) {
       if ($this->originalEntityUsesDefaultStorage($entity)) {
         // This is a new override from a default and the blocks need to be
         // duplicated.
