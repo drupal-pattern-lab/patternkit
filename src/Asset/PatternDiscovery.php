@@ -108,4 +108,12 @@ class PatternDiscovery implements PatternDiscoveryInterface {
     return strstr($pattern, '/', TRUE);
   }
 
+  /**
+   * Rebuild the cache of pattern definitions.
+   */
+  public function rebuild(): void {
+    $this->getPatternDefinitions();
+    $this->collector->destruct();
+  }
+
 }

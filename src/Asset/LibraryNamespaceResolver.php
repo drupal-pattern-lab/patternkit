@@ -184,7 +184,7 @@ class LibraryNamespaceResolver extends CacheCollector implements LibraryNamespac
       // be overridden before being persisted at the end of the request.
       $this->set($definition['namespace'], $definition);
       $this->persist($definition['namespace']);
-    };
+    }
 
     return $libraries;
   }
@@ -370,6 +370,14 @@ class LibraryNamespaceResolver extends CacheCollector implements LibraryNamespac
       return FALSE;
     }
     return TRUE;
+  }
+
+  /**
+   * Rebuild the cache of library definitions.
+   */
+  public function rebuild(): void {
+    $this->getLibraryDefinitions(TRUE);
+    $this->updateCache();
   }
 
 }

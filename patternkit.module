@@ -65,3 +65,16 @@ function patternkit_entity_presave(EntityInterface $entity) {
     $entity_operations->handlePreSave($entity);
   }
 }
+
+/**
+ * Implements hook_rebuild().
+ */
+function patternkit_rebuild() {
+  // Rebuild the library definitions cache.
+  \Drupal::service('patternkit.library.namespace_resolver')
+    ->rebuild();
+
+  // Rebuild the pattern discovery cache.
+  \Drupal::service('patternkit.pattern.discovery')
+    ->rebuild();
+}
