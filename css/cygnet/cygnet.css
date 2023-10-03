@@ -44,6 +44,14 @@
   font-weight: 300;
 }
 
+#patternkit-editor-target [data-theme=cygnet] label.required::after,
+[data-theme=cygnet] label.required::after {
+  display: inline;
+  content: "*";
+  color: #ee0000;
+  padding-left: 4px;
+}
+
 .je-cygnet-indented-panel {
   margin-bottom: 16px;
 }
