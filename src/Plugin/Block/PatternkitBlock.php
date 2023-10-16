@@ -998,12 +998,12 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
         // @todo Determine if translation handling needs to be added here.
         $block = $this->blockStorage->loadRevision($this->configuration['patternkit_block_rid']);
       }
-      if ($block) {
+      if ($block instanceof EntityPatternkitBlock) {
         $block = $block->createDuplicate();
       }
     }
 
-    if ($block) {
+    if ($block instanceof EntityPatternkitBlock) {
       // Since the custom block is only set if it was unserialized, the flag
       // will only affect blocks which were modified or serialized originally.
       if ($new_revision) {

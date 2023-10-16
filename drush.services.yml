@@ -8,5 +8,6 @@ services:
       - '@cache_tags.invalidator'
       - '@patternkit.helper.update'
       - '%app.root%'
+      - '@patternkit.layout_batch_manager'
     tags:
       - { name: drush.command }

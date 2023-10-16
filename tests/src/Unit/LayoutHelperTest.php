@@ -194,6 +194,8 @@ class LayoutHelperTest extends UnitTestCase {
   /**
    * @covers ::updateLayoutBuilderComponents
    * @covers ::applyToSectionComponents
+   * @covers ::getBufferedLogger
+   * @covers ::getUpdateCallback
    * @covers ::__construct
    *
    * @todo Add test coverage for filtering.

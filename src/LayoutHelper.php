@@ -13,8 +13,10 @@ use Drupal\Core\Plugin\Context\ContextDefinition;
 use Drupal\Core\Plugin\Context\EntityContext;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay;
+use Drupal\layout_builder\LayoutEntityHelperTrait;
 use Drupal\layout_builder\LayoutTempstoreRepositoryInterface;
 use Drupal\layout_builder\SectionComponent;
+use Drupal\layout_builder\SectionListInterface;
 use Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface;
 use Drupal\layout_builder\SectionStorageInterface;
 
@@ -24,6 +26,7 @@ use Drupal\layout_builder\SectionStorageInterface;
 class LayoutHelper {
 
   use StringTranslationTrait;
+  use LayoutEntityHelperTrait;
 
   /**
    * The entity type manager service.
@@ -66,13 +69,6 @@ class LayoutHelper {
    * @var \Drupal\layout_builder\LayoutTempstoreRepositoryInterface
    */
   protected LayoutTempstoreRepositoryInterface $layoutTempstoreRepository;
-
-  /**
-   * The section storage manager service, if available.
-   *
-   * @var \Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface
-   */
-  protected SectionStorageManagerInterface $sectionStorageManager;
 
   /**
    * The patternkit update helper service.
@@ -127,7 +123,7 @@ class LayoutHelper {
   /**
    * Get patternkit components from a given layout.
    *
-   * @param \Drupal\layout_builder\SectionStorageInterface $sectionStorage
+   * @param \Drupal\layout_builder\SectionListInterface $sectionList
    *   The layout section storage to search through.
    *
    * @return \Drupal\layout_builder\SectionComponent[]
@@ -137,10 +133,10 @@ class LayoutHelper {
    *
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    */
-  public function getPatternComponentsFromLayout(SectionStorageInterface $sectionStorage): array {
+  public function getPatternComponentsFromLayout(SectionListInterface $sectionList): array {
     $results = [];
 
-    foreach ($sectionStorage->getSections() as $section_delta => $section) {
+    foreach ($sectionList->getSections() as $section_delta => $section) {
       foreach ($section->getComponents() as $uuid => $component) {
         if ($this->updateHelper()->isPatternkitComponent($component)) {
           $results["$section_delta.$uuid"] = $component;
@@ -166,7 +162,6 @@ class LayoutHelper {
    *     filter to be used, an `entity_type` and `bundle` value is also
    *     required.
    *   - `pattern`: A pattern asset name to limit updates.
-
    *
    * @return int[]
    *   A tuple of update counts containing the following values:
@@ -191,23 +186,84 @@ class LayoutHelper {
     // Gather section storages from the tempstore, to update layout drafts.
     $temp_sections = $this->getSectionStorageFromTempStore();
 
+    // Prepare a closure for updating each component.
+    $update_callback = $this->getUpdateCallback($block_count, $filter);
+
+    // Iterate over sections within each section store to update patterns and
+    // blocks within them.
+    $this->logger->info('Updating layout components for entity layouts.');
+    $updated = $this->applyToSectionComponents($entity_sections, $update_callback);
+    $entity_count += count($updated);
+
+    $this->logger->info('Updating layout components for uncommitted layouts.');
+    $updated = $this->applyToSectionComponents($temp_sections, $update_callback);
+    $entity_count += count($updated);
+
+    return [$block_count, $entity_count];
+  }
+
+  /**
+   * Create a closure for logging messages only once.
+   *
+   * @return \Closure
+   *   A closure that buffers logged messages for each section storage item. The
+   *   closure expects the following arguments:
+   *   - SectionStorageInterface $section_storage
+   *   - string $storage_id
+   */
+  protected function getBufferedLogger(): \Closure {
     // Track which section storage items have been logged already.
-    $logged = new \SplObjectStorage();
+    $logBuffer = new \SplObjectStorage();
 
     // Prepare a closure to only log the layout update notification once instead
     // of every time a component within each layout is processed.
-    $log_with_buffering = function (SectionStorageInterface $section_storage, string $storage_id) use ($logged) {
-      if (!$logged->contains($section_storage)) {
+    return function (SectionStorageInterface $section_storage, string $storage_id) use ($logBuffer) {
+      if (!$logBuffer->contains($section_storage)) {
         $this->logger->notice('Updating layout components for layout @storage_id.', [
           '@storage_id' => $storage_id,
         ]);
-        $logged->attach($section_storage);
+        $logBuffer->attach($section_storage);
       }
     };
+  }
+
+  /**
+   * Create a closure for updating pattern components in a layout.
+   *
+   * @param int $num_updated
+   *   (optional) A counter for how many blocks have been updated. This value is
+   *   passed by reference for updating directly.
+   * @param array $filter
+   *   (optional) An associative array of filter values. Allowed keys are:
+   *   - `library`: Filters updates to only patterns within the specified
+   *     pattern library.
+   *   - `entity_type`: An entity type machine name. Only patterns within
+   *     displays on this entity type will be updated.
+   *   - `bundle`: A bundle machine name to filter layout updates by. For this
+   *     filter to be used, an `entity_type` value is also required.
+   *   - `display_mode`: A specific display mode to limit updates to. For this
+   *     filter to be used, an `entity_type` and `bundle` value is also
+   *     required.
+   *   - `pattern`: A pattern asset name to limit updates.
+   * @param bool $silent
+   *   (optional) An option to silence progress logging. Defaults to FALSE which
+   *   logs each item being processed. TRUE will prevent these messages from
+   *   being logged.
+   *
+   * @return \Closure
+   *   A closure for use with
+   *   @link \Drupal\patternkit\LayoutHelper::applyToSectionComponents @endlink
+   *   to update pattern components within a layout.
+   */
+  public function getUpdateCallback(int &$num_updated = 0, array $filter = [], bool $silent = FALSE): \Closure {
+    // Track which section storage items have been logged already.
+    // Optionally pass in an empty method to silence logging if set.
+    $log_with_buffering = $silent ? fn() => NULL : $this->getBufferedLogger();
 
     // Prepare a closure for updating each component.
-    $update_helper = $this->updateHelper();
-    $update_component = function (string $storage_id, SectionStorageInterface $section_storage, SectionComponent $component) use ($filter, $update_helper, &$block_count, $log_with_buffering): bool {
+    return function (string $storage_id, SectionStorageInterface $section_storage, SectionComponent $component) use ($filter, &$num_updated, $log_with_buffering): bool {
+      $update_helper = $this->updateHelper();
+
       // Log the notification for updating this section storage item.
       $log_with_buffering($section_storage, $storage_id);
 
@@ -215,25 +271,13 @@ class LayoutHelper {
       if ($update_helper->filterComponent($component, $filter)) {
         if ($configuration = $update_helper->updateBlockComponentPattern($component)) {
           $component->setConfiguration($configuration);
-          $block_count++;
+          $num_updated++;
           $updated = TRUE;
         }
       }
 
       return $updated;
     };
-
-    // Iterate over sections within each section store to update patterns and
-    // blocks within them.
-    $this->logger->info('Updating layout components for entity layouts.');
-    $updated = $this->applyToSectionComponents($entity_sections, $update_component);
-    $entity_count += count($updated);
-
-    $this->logger->info('Updating layout components for uncommitted layouts.');
-    $updated = $this->applyToSectionComponents($temp_sections, $update_component);
-    $entity_count += count($updated);
-
-    return [$block_count, $entity_count];
   }
 
   /**
@@ -291,7 +335,6 @@ class LayoutHelper {
 
       if ($needs_save) {
         $storage_item->save();
-        $this->layoutTempstoreRepository->set($storage_item);
         $changed_sections[$storage_id] = $storage_item;
       }
     }

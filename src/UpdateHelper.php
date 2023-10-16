@@ -407,13 +407,6 @@ class UpdateHelper {
    *   (optional) An associative array of filter values. Allowed keys are:
    *   - `library`: Filters updates to only patterns within the specified
    *     pattern library.
-   *   - `entity_type`: An entity type machine name. Only patterns within
-   *     displays on this entity type will be updated.
-   *   - `bundle`: A bundle machine name to filter layout updates by. For this
-   *     filter to be used, an `entity_type` value is also required.
-   *   - `display_mode`: A specific display mode to limit updates to. For this
-   *     filter to be used, an `entity_type` and `bundle` value is also
-   *     required.
    *   - `pattern`: A pattern asset name to limit updates.
    *
    * @return \Drupal\patternkit\Plugin\Block\PatternkitBlock|false

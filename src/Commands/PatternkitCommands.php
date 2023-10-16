@@ -8,11 +8,14 @@ use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\patternkit\Asset\PatternDiscoveryInterface;
+use Drupal\patternkit\BulkOperations\LayoutDiscoveryBatchManager;
+use Drupal\patternkit\BulkOperations\Worker\LayoutDiscoveryBatchWorker;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternRepository;
 use Drupal\patternkit\UpdateHelper;
 use Drush\Commands\DrushCommands;
 use Drush\Exceptions\CommandFailedException;
+use Symfony\Component\Console\Exception\InvalidArgumentException;
 
 /**
  * Commands for working with the dev branch of Patternkit.
@@ -57,6 +60,13 @@ class PatternkitCommands extends DrushCommands {
   protected UpdateHelper $updateHelper;
 
   /**
+   * The layout batch manager service.
+   *
+   * @var \Drupal\patternkit\BulkOperations\LayoutDiscoveryBatchManager
+   */
+  protected LayoutDiscoveryBatchManager $layoutBatchManager;
+
+  /**
    * The root path of the Drupal installation.
    *
    * @var string
@@ -78,6 +88,8 @@ class PatternkitCommands extends DrushCommands {
    *   The patternkit update helper service.
    * @param string $root
    *   The root path of the Drupal installation.
+   * @param \Drupal\patternkit\BulkOperations\LayoutDiscoveryBatchManager $layoutBatchManager
+   *   The layout batch manager service.
    */
   public function __construct(
     EntityTypeManagerInterface $entityTypeManager,
@@ -85,7 +97,8 @@ class PatternkitCommands extends DrushCommands {
     PatternRepository $patternRepository,
     CacheTagsInvalidatorInterface $cacheTagsInvalidator,
     UpdateHelper $updateHelper,
-    string $root
+    string $root,
+    LayoutDiscoveryBatchManager $layoutBatchManager
   ) {
     parent::__construct();
 
@@ -94,11 +107,18 @@ class PatternkitCommands extends DrushCommands {
     $this->patternRepository = $patternRepository;
     $this->cacheTagsInvalidator = $cacheTagsInvalidator;
     $this->updateHelper = $updateHelper;
+    $this->layoutBatchManager = $layoutBatchManager;
     $this->root = $root;
   }
 
   /**
    * Update all patterns in a library.
+   *
+   * This update process loads and iterates through all content on the site. For
+   * sites with a large amount of content, this may result in timeouts or memory
+   * limit errors. If this is a concern or occurs, consider using the
+   * 'drush patternkit:batch-update' command instead to run these processes in a
+   * batched operation or via queued processing.
    *
    * @param string|null $library_name
    *   (optional) The name of a library to limit updates to.
@@ -131,8 +151,13 @@ class PatternkitCommands extends DrushCommands {
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    * @throws \Drush\Exceptions\CommandFailedException
+   *
+   * @see self::batchUpdate()
    */
-  public function libUpdate(string $library_name = NULL, $options = ['filter' => self::REQ, 'pattern' => self::REQ]): string {
+  public function libUpdate(string $library_name = NULL, $options = [
+    'filter' => self::REQ,
+    'pattern' => self::REQ,
+  ]): string {
     // Fail early if the library name filter isn't prefixed.
     if ($library_name !== NULL && !str_starts_with($library_name, '@')) {
       throw new CommandFailedException('When using a library name filter, the library name should always include the "@" prefix. For example: "@patternkit"');
@@ -287,20 +312,101 @@ class PatternkitCommands extends DrushCommands {
   /**
    * Invalidate caches for patternkit cache data.
    *
-   * @return string|\Drupal\Core\StringTranslation\TranslatableMarkup
-   *   A status message for Drush to display.
-   *
    * @command patternkit:cache:clear
    * @aliases pkcc
-   *
-   * @format string
    */
-  public function clearCache(): string {
+  public function clearCache(): void {
     $tags = ['patternkit_patterns', 'patternkit_libraries'];
 
     $this->cacheTagsInvalidator->invalidateTags($tags);
 
-    return $this->t('Invalidated all patternkit pattern and library cache entries.');
+    $this->logger()->success(
+      dt('Invalidated all patternkit pattern and library cache entries.'));
+  }
+
+  /**
+   * Run Patternkit block updates using batch operations.
+   *
+   * @param string|null $library_name
+   *   The name of a library to limit updates to.
+   *
+   * @option string $filter
+   *   A string concatenation of entity type, bundle, and display mode for
+   *   updates to be limited to. Example: 'node.article.default'. Fewer items
+   *   may also be provided to filter. For example, only an entity and a bundle
+   *   may be provided ('node.article') or just an entity type ('node').
+   * @option string $pattern
+   *   A specific pattern name to be updated. When using this option, only one
+   *   pattern name may be specified per execution.
+   *   Example: '@patternkit/atoms/example/src/example'.
+   * @option string $revisions
+   *   The selection mode for entity revisions to update. Options are:
+   *   - default: The current default revision is loaded.
+   *   - latest: The latest entity revision is loaded. This is usually the
+   *     current default revision unless a newer unpublished revision exists.
+   *   - all: Selection should include all discovered entity revisions.
+   * @option no-run-queue
+   *   Prevent execution of discovered layout updates and leave them in the
+   *   queue for later processing instead.
+   *
+   * @usage drush pkbu
+   *   Update layouts for all default revisions.
+   * @usage drush pkbu --revisions=all
+   *   Update layouts for all available revisions.
+   * @usage drush pkbu --revisions=latest --filter=node.page
+   *   Update layouts for the latest revision of all nodes of the page bundle.
+   * @usage drush pkbu --pattern='@patternkit/atoms/example/src/example'
+   *   Update all example pattern blocks on layouts for all default revisions.
+   * @usage drush pkbu --no-run-queue
+   *   Discover all layouts for updates, but leave them in the
+   *   'patternkit_layout_updates' queue for later processing.
+   *
+   * @command patternkit:batch-update
+   * @aliases pkbu
+   */
+  public function batchUpdate(string $library_name = NULL, $options = [
+    'filter' => self::REQ,
+    'pattern' => self::REQ,
+    'revisions' => LayoutDiscoveryBatchWorker::REVISION_MODE_DEFAULT,
+    'no-run-queue' => FALSE,
+  ]) {
+    // Validate the selected revision mode.
+    $revision_modes = [
+      LayoutDiscoveryBatchWorker::REVISION_MODE_DEFAULT,
+      LayoutDiscoveryBatchWorker::REVISION_MODE_LATEST,
+      LayoutDiscoveryBatchWorker::REVISION_MODE_ALL,
+    ];
+    if (!in_array($options['revisions'], $revision_modes)) {
+      throw new InvalidArgumentException(dt('Invalid option "@value" provided for "--revisions" flag. Valid options are: @options', [
+        '@value' => $options['revisions'],
+        '@options' => implode(',', $revision_modes),
+      ]));
+    }
+
+    // Assemble filters array from options.
+    $parsed_filters = [
+      'library' => $library_name,
+    ];
+
+    if ($options['filter']) {
+      $filter_split = explode('.', $options['filter'], 3);
+      $parsed_filters['entity_type'] = $filter_split[0] ?? NULL;
+      $parsed_filters['bundle'] = $filter_split[1] ?? NULL;
+      $parsed_filters['display_mode'] = $filter_split[2] ?? NULL;
+    }
+
+    if ($options['pattern']) {
+      $parsed_filters['pattern'] = $options['pattern'];
+    }
+
+    $update_options = [
+      'filter' => $parsed_filters,
+      'revisions' => $options['revisions'],
+      'run_queue' => !$options['no-run-queue'],
+    ];
+
+    $this->layoutBatchManager->populateQueue(5, $update_options);
+    drush_backend_batch_process();
   }
 
   /**

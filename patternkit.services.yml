@@ -22,6 +22,9 @@ services:
   logger.channel.patternkit:
     parent: logger.channel_base
     arguments: ['patternkit']
+  logger.channel.patternkit_batch:
+    parent: logger.channel_base
+    arguments: [ 'patternkit.batch' ]
   path_processor.patterns:
     class: Drupal\patternkit\PathProcessor\PathProcessorPatterns
     tags:
@@ -126,6 +129,9 @@ services:
       - '@logger.channel.patternkit'
       - '@?layout_builder.tempstore_repository'
       - '@?plugin.manager.layout_builder.section_storage'
+  patternkit.layout_batch_manager:
+    class: Drupal\patternkit\BulkOperations\LayoutDiscoveryBatchManager
+    arguments: [ '@entity_type.manager', '@string_translation']
   patternkit.translate_layout_builder_block:
     class: Drupal\patternkit\Routing\PatternkitTranslateBlockFormRouteSubscriber
     tags:
