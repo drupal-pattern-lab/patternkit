@@ -29,12 +29,10 @@ class PatternkitControllerTest extends PatternkitKernelTestBase {
   ];
 
   /**
-   * The pattern repository service being tested.
+   * The controller being tested.
    *
-   * @var \Drupal\patternkit\PatternRepository
+   * @var \Drupal\patternkit\Controller\PatternkitController
    */
-  protected $repository;
-
   protected PatternkitController $controller;
 
   /**
@@ -76,7 +74,7 @@ class PatternkitControllerTest extends PatternkitKernelTestBase {
     $this->assertEquals('200', $response->getStatusCode());
 
     $content = $this->decodeJson($response->getContent());
-    $this->assertObjectNotHasAttribute('error', $content);
+    $this->assertFalse(isset($content->error));
   }
 
   /**
@@ -93,8 +91,8 @@ class PatternkitControllerTest extends PatternkitKernelTestBase {
     $this->assertEquals('404', $response->getStatusCode());
 
     $content = $this->decodeJson($response->getContent());
-    $this->assertObjectHasAttribute('error', $content);
-    $this->assertEquals('Unable to load "@unknown" namespace.', $content->error);
+    $this->assertTrue(isset($content->error));
+    $this->assertEquals('No known pattern definition for "@unknown/pattern".', $content->error);
   }
 
   /**
@@ -116,7 +114,7 @@ class PatternkitControllerTest extends PatternkitKernelTestBase {
     $this->assertEquals('200', $response->getStatusCode());
 
     $content = $this->decodeJson($response->getContent());
-    $this->assertObjectNotHasAttribute('error', $content);
+    $this->assertFalse(isset($content->error));
     $this->assertJsonStringEqualsJsonFile($schema_path, $response->getContent());
   }
 
@@ -138,8 +136,8 @@ class PatternkitControllerTest extends PatternkitKernelTestBase {
     $this->assertEquals('404', $response->getStatusCode());
 
     $content = $this->decodeJson($response->getContent());
-    $this->assertObjectHasAttribute('error', $content);
-    $this->assertEquals('Unable to load "@unknown" namespace.', $content->error);
+    $this->assertTrue(isset($content->error));
+    $this->assertEquals('No known pattern definition for "@unknown/pattern".', $content->error);
   }
 
 }

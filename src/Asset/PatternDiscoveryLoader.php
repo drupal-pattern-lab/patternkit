@@ -4,12 +4,7 @@ namespace Drupal\patternkit\Asset;
 
 use Drupal\Component\Plugin\Exception\PluginException;
 use Drupal\Core\Asset\Exception\InvalidLibraryFileException;
-use Drupal\Core\Cache\CacheBackendInterface;
-use Drupal\Core\Cache\CacheCollector;
-use Drupal\Core\Lock\LockBackendInterface;
 use Drupal\patternkit\Exception\UnknownPatternException;
-use Drupal\patternkit\PatternkitEnvironmentAwareInterface;
-use Drupal\patternkit\PatternkitEnvironmentAwareTrait;
 use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
@@ -17,13 +12,17 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
+use Webmozart\Assert\Assert;
 
 /**
- * A cache collector implementation to load and cache pattern definitions.
+ * A loading service for discovering and loading pattern definitions.
+ *
+ * This service handles the plugin management and library definition parsing
+ * necessary to identify all available patterns in Patternkit-enabled libraries.
+ *
+ * @internal
  */
-class PatternDiscoveryCollector extends CacheCollector implements PatternkitEnvironmentAwareInterface {
-
-  use PatternkitEnvironmentAwareTrait;
+class PatternDiscoveryLoader {
 
   /**
    * The default library parser plugin to be used if not explicitly specified.
@@ -31,30 +30,6 @@ class PatternDiscoveryCollector extends CacheCollector implements PatternkitEnvi
    * @var string
    */
   const DEFAULT_LIBRARY_PLUGIN_ID = 'twig';
-
-  /**
-   * The cache ID for storing discovery metadata.
-   *
-   * @var string
-   */
-  const PERSISTENT_CACHE_ID = 'patternkit.patterns';
-
-  /**
-   * Cache tags to apply to cache entries.
-   *
-   * @var string[]
-   */
-  const CACHE_TAGS = [
-    // Clear cache entries when all patternkit data is invalidated.
-    'patternkit',
-
-    // Clear this pattern data specifically.
-    'patternkit_patterns',
-
-    // Clear when the underlying library data is invalidated.
-    'patternkit_libraries',
-    'library_info',
-  ];
 
   /**
    * The library namespace resolver service.
@@ -85,12 +60,8 @@ class PatternDiscoveryCollector extends CacheCollector implements PatternkitEnvi
   protected SerializerInterface $serializer;
 
   /**
-   * Creates an instance of PatternDiscoveryCollector.
+   * Creates an instance of PatternDiscoveryLoader.
    *
-   * @param \Drupal\Core\Cache\CacheBackendInterface $cache
-   *   The cache backend.
-   * @param \Drupal\Core\Lock\LockBackendInterface $lock
-   *   The lock backend.
    * @param \Drupal\patternkit\Asset\LibraryNamespaceResolverInterface $namespaceResolver
    *   The library namespace resolver service.
    * @param \Drupal\patternkit\PatternLibraryPluginManager $libraryPluginManager
@@ -101,15 +72,11 @@ class PatternDiscoveryCollector extends CacheCollector implements PatternkitEnvi
    *   (optional) A serializer for normalizing pattern library properties.
    */
   public function __construct(
-    CacheBackendInterface $cache,
-    LockBackendInterface $lock,
     LibraryNamespaceResolverInterface $namespaceResolver,
     PatternLibraryPluginManager $libraryPluginManager,
     LoggerInterface $logger,
     SerializerInterface $serializer = NULL
   ) {
-    parent::__construct(self::PERSISTENT_CACHE_ID, $cache, $lock, self::CACHE_TAGS);
-
     $this->namespaceResolver = $namespaceResolver;
     $this->libraryPluginManager = $libraryPluginManager;
     $this->logger = $logger;
@@ -118,23 +85,14 @@ class PatternDiscoveryCollector extends CacheCollector implements PatternkitEnvi
   }
 
   /**
-   * {@inheritdoc}
-   */
-  protected function resolveCacheMiss($key) {
-    $this->storage[$key] = $this->getPatternsByNamespace($key);
-    $this->persist($key);
-
-    return $this->storage[$key];
-  }
-
-  /**
-   * Load all patterns provided by a library.
+   * Load all patterns provided by a library namespace.
    *
-   * @param string $library
-   *   The name of the library to load patterns for.
+   * @param string $namespace
+   *   The name of the library namespace to load patterns for.
    *
-   * @return \Drupal\patternkit\Entity\Pattern[]
-   *   An array of all loaded patterns keyed by their namespaced pattern id.
+   * @return array<string, array<string, mixed>>
+   *   An associative array of all discovered pattern definitions within the
+   *   namespace. Each definition is keyed by their fully-namespaced pattern id.
    *
    * @throws \Symfony\Component\Serializer\Exception\ExceptionInterface
    * @throws \Drupal\Core\Asset\Exception\InvalidLibraryFileException
@@ -143,8 +101,8 @@ class PatternDiscoveryCollector extends CacheCollector implements PatternkitEnvi
    *
    * @see \Drupal\patternkit\Asset\LibraryNamespaceResolver::getLibraryDefinitions()
    */
-  protected function getPatternsByNamespace(string $library): array {
-    $namespace = $library[0] === '@' ? $library : "@$library";
+  public function getPatternsByNamespace(string $namespace): array {
+    Assert::startsWith($namespace, '@', 'The library namespace is expected to begin with an "@" symbol. Got: ' . $namespace);
 
     $library_definition = $this->namespaceResolver->getLibraryFromNamespace($namespace);
     $pattern_info = $library_definition['patterns'] ?? [];
@@ -169,7 +127,7 @@ class PatternDiscoveryCollector extends CacheCollector implements PatternkitEnvi
       if (empty($path)) {
         $this->logger->info('No path set for %library under the patterns key. Data:<br /><pre>@data</pre>',
           [
-            '%library' => $library,
+            '%library' => $namespace,
             '@data' => print_r($info, TRUE),
           ],
         );
@@ -211,7 +169,7 @@ class PatternDiscoveryCollector extends CacheCollector implements PatternkitEnvi
       if (empty($discovered_patterns)) {
         $this->logger->info("No patterns found in %library library for path %path.",
           [
-            '%library' => $library,
+            '%library' => $namespace,
             '%path' => $path,
           ]
         );
@@ -281,30 +239,6 @@ class PatternDiscoveryCollector extends CacheCollector implements PatternkitEnvi
     $library = $this->serializer->denormalize($library_info, PatternLibrary::class);
 
     return $library;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  protected function lazyLoadCache() {
-    if ($this->patternkitEnvironment()->getFeatureOption('bypass_pattern_cache', FALSE)) {
-      // Mark the cache as loaded, so it doesn't get loaded again.
-      $this->cacheLoaded = TRUE;
-    }
-
-    parent::lazyLoadCache();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  protected function updateCache($lock = TRUE) {
-    if ($this->patternkitEnvironment()->getFeatureOption('bypass_pattern_cache', FALSE)) {
-      // Skip updating the cache.
-      return;
-    }
-
-    parent::updateCache($lock);
   }
 
 }

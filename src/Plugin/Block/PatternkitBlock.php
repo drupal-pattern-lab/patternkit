@@ -25,6 +25,7 @@ use Drupal\patternkit\Entity\PatternkitBlock as EntityPatternkitBlock;
 use Drupal\patternkit\Event\PatternUpdateEvent;
 use Drupal\patternkit\Exception\UnknownPatternException;
 use Drupal\patternkit\PatternEditorConfig;
+use Drupal\patternkit\PatternkitEnvironment;
 use Drupal\patternkit\PatternkitEnvironmentAwareInterface;
 use Drupal\patternkit\PatternkitEnvironmentAwareTrait;
 use Drupal\patternkit\PatternkitEvents;
@@ -1048,7 +1049,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
 
     // Determine whether the option to always load the latest pattern data from
     // the filesystem is enabled and bypass the database if so.
-    $shouldBypassDatabase = $this->getEnvironmentFeature('bypass_database_cache', FALSE);
+    $shouldBypassDatabase = $this->getEnvironmentFeature(PatternkitEnvironment::FEATURE_BYPASS_DATABASE_CACHE, FALSE);
     if (!$shouldBypassDatabase && !empty($configuration['pattern'])) {
       /** @var \Drupal\patternkit\entity\PatternInterface|null $pattern */
       $pattern = $this->patternStorage->loadRevision($configuration['pattern']);

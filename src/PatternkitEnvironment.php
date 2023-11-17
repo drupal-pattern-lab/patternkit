@@ -25,6 +25,22 @@ class PatternkitEnvironment {
   protected array $features;
 
   /**
+   * A feature option to bypass the database cache for discovered patterns.
+   *
+   * @see self::getFeatureOption()
+   * @see \Drupal\patternkit\Asset\PatternDiscovery
+   */
+  public const FEATURE_BYPASS_PATTERN_CACHE = 'bypass_pattern_cache';
+
+  /**
+   * A feature option to bypass the database cache for stored pattern content.
+   *
+   * @see self::getFeatureOption()
+   * @see \Drupal\patternkit\Plugin\Block\PatternkitBlock::getPatternEntity()
+   */
+  public const FEATURE_BYPASS_DATABASE_CACHE = 'bypass_database_cache';
+
+  /**
    * Creates a new PatternkitEnvironment instance.
    *
    * @param array $options

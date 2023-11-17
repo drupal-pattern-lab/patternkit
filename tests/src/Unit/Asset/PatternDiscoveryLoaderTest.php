@@ -4,15 +4,11 @@ namespace Drupal\Tests\patternkit\Unit\Asset;
 
 use Drupal\Component\Plugin\Exception\PluginException;
 use Drupal\Core\Asset\Exception\InvalidLibraryFileException;
-use Drupal\Core\Cache\Cache;
-use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Extension\Extension;
 use Drupal\Core\Extension\ExtensionList;
-use Drupal\Core\Lock\LockBackendInterface;
 use Drupal\patternkit\Asset\LibraryNamespaceResolverInterface;
-use Drupal\patternkit\Asset\PatternDiscoveryCollector;
-use Drupal\patternkit\PatternkitEnvironment;
+use Drupal\patternkit\Asset\PatternDiscoveryLoader;
 use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
@@ -24,69 +20,54 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Serializer\Serializer;
 
 /**
- * Tests for the PatternDiscoveryCollector class.
+ * Tests for the PatternDiscoveryLoader class.
  *
- * @coversDefaultClass \Drupal\patternkit\Asset\PatternDiscoveryCollector
- * @uses \Drupal\patternkit\PatternkitEnvironmentAwareTrait
+ * @coversDefaultClass \Drupal\patternkit\Asset\PatternDiscoveryLoader
  * @group patternkit
  */
-class PatternDiscoveryCollectorTest extends UnitTestCase {
+class PatternDiscoveryLoaderTest extends UnitTestCase {
 
   use ProphecyTrait;
 
   /**
-   * A cache backend mock.
-   *
-   * @var \Drupal\Core\Cache\CacheBackendInterface|\Prophecy\Prophecy\ObjectProphecy
-   */
-  protected ObjectProphecy $cache;
-
-  /**
-   * A lock backend mock.
-   *
-   * @var \Drupal\Core\Lock\LockBackendInterface|\Prophecy\Prophecy\ObjectProphecy
-   */
-  protected ObjectProphecy $lock;
-
-  /**
    * A mock library namespace resolver.
    *
-   * @var \Drupal\patternkit\Asset\LibraryNamespaceResolverInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Asset\LibraryNamespaceResolverInterface>
    */
   protected ObjectProphecy $libraryNamespaceResolver;
 
   /**
    * A mock pattern library plugin manager.
    *
-   * @var \Drupal\patternkit\PatternLibraryPluginManager|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\PatternLibraryPluginManager>
    */
   protected ObjectProphecy $patternLibraryPluginManager;
 
   /**
    * A mock logger.
    *
-   * @var \Psr\Log\LoggerInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Psr\Log\LoggerInterface>
    */
   protected ObjectProphecy $logger;
 
   /**
    * A mock serializer.
    *
-   * @var \Symfony\Component\Serializer\SerializerInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Symfony\Component\Serializer\Serializer>
    */
   protected ObjectProphecy $serializer;
 
   /**
-   * A mock patternkit environment.
+   * The loader service being tested.
    *
-   * @var \Drupal\patternkit\PatternkitEnvironment|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Drupal\patternkit\Asset\PatternDiscoveryLoader
    */
-  protected ObjectProphecy $patternkitEnvironment;
+  protected PatternDiscoveryLoader $loader;
 
   /**
    * A boilerplate library definition for use in tests.
    *
-   * @var array
+   * @var array<string, string|mixed>
    */
   protected array $libraryDefinition = [
     'id' => 'example',
@@ -106,9 +87,9 @@ class PatternDiscoveryCollectorTest extends UnitTestCase {
   /**
    * Mock pattern data for return from plugin discovery.
    *
-   * @var array
+   * @var array<string, array<string, string>>
    *
-   * @see \Drupal\Tests\patternkit\Unit\Asset\PatternDiscoveryCollectorTest::$mockPatternDiscovery
+   * @see \Drupal\Tests\patternkit\Unit\Asset\PatternDiscoveryLoaderTest::$mockPatternDiscovery
    */
   protected array $mockPatternData = [
     'my_pattern' => ['abcd' => 'efg'],
@@ -118,9 +99,9 @@ class PatternDiscoveryCollectorTest extends UnitTestCase {
   /**
    * Mock pattern discovery data for the default plugin data.
    *
-   * @var array
+   * @var array<string, array<string, string>>
    *
-   * @see \Drupal\Tests\patternkit\Unit\Asset\PatternDiscoveryCollectorTest::$mockPatternData
+   * @see \Drupal\Tests\patternkit\Unit\Asset\PatternDiscoveryLoaderTest::$mockPatternData
    */
   protected array $mockPatternDiscovery = [
     '@example/my_pattern' => ['abcd' => 'efg'],
@@ -133,13 +114,17 @@ class PatternDiscoveryCollectorTest extends UnitTestCase {
   protected function setUp(): void {
     parent::setUp();
 
-    $this->cache = $this->prophesize(CacheBackendInterface::class);
-    $this->lock = $this->prophesize(LockBackendInterface::class);
     $this->libraryNamespaceResolver = $this->prophesize(LibraryNamespaceResolverInterface::class);
     $this->patternLibraryPluginManager = $this->prophesize(PatternLibraryPluginManager::class);
     $this->logger = $this->prophesize(LoggerInterface::class);
     $this->serializer = $this->prophesize(Serializer::class);
-    $this->patternkitEnvironment = $this->prophesize(PatternkitEnvironment::class);
+
+    $this->loader = new PatternDiscoveryLoader(
+      $this->libraryNamespaceResolver->reveal(),
+      $this->patternLibraryPluginManager->reveal(),
+      $this->logger->reveal(),
+      $this->serializer->reveal(),
+    );
 
     $extension = $this->prophesize(Extension::class);
     $extensionList = $this->prophesize(ExtensionList::class);
@@ -151,30 +136,9 @@ class PatternDiscoveryCollectorTest extends UnitTestCase {
   }
 
   /**
-   * Get an instance of the collector for testing with mocks injected.
-   *
-   * @return \Drupal\patternkit\Asset\PatternDiscoveryCollector
-   *   The collector instance for testing with configured mocks injected.
-   */
-  protected function getCollector(): PatternDiscoveryCollector {
-    $collector = new PatternDiscoveryCollector(
-      $this->cache->reveal(),
-      $this->lock->reveal(),
-      $this->libraryNamespaceResolver->reveal(),
-      $this->patternLibraryPluginManager->reveal(),
-      $this->logger->reveal(),
-      $this->serializer->reveal(),
-    );
-
-    $collector->setPatternkitEnvironment($this->patternkitEnvironment->reveal());
-
-    return $collector;
-  }
-
-  /**
    * Configure mocked services with default expectations for a successful load.
    *
-   * @param array $overrides
+   * @param array{library_definition?: array<string, string|mixed>, plugin_id?: string, plugin_data?: array<string, array<string, string>>} $overrides
    *   (optional) An associative array of specific overrides for default mocking
    *   to prepare for a test case. Without any overrides provided, default data
    *   on this classes instance variables will be used. To override any of these
@@ -220,10 +184,7 @@ class PatternDiscoveryCollectorTest extends UnitTestCase {
    * @covers ::getPatternsByNamespace
    * @covers ::__construct
    * @covers ::getLibraryObject
-   * @covers ::lazyLoadCache
-   * @uses \Drupal\patternkit\Asset\PatternDiscoveryCollector::getLibraryPlugin()
-   * @uses \Drupal\patternkit\Asset\PatternDiscoveryCollector::resolveCacheMiss()
-   * @uses \Drupal\patternkit\PatternkitEnvironmentAwareTrait
+   * @uses \Drupal\patternkit\Asset\PatternDiscoveryLoader::getLibraryPlugin()
    * @dataProvider providerGetPatternsByNamespace
    */
   public function testGetPatternsByNamespace(
@@ -231,7 +192,7 @@ class PatternDiscoveryCollectorTest extends UnitTestCase {
     array $plugin_data,
     $expected,
     ?callable $expectations_callback = NULL
-  ) {
+  ): void {
     // Use the callback to set up case-specific expectations if provided.
     if ($expectations_callback) {
       call_user_func($expectations_callback, $this);
@@ -242,15 +203,14 @@ class PatternDiscoveryCollectorTest extends UnitTestCase {
       'plugin_data' => $plugin_data,
     ]);
 
-    $collector = $this->getCollector();
-    $actual = $collector->get('@example');
+    $actual = $this->loader->getPatternsByNamespace('@example');
     $this->assertEquals($expected, $actual);
   }
 
   /**
    * Data provider for testGetPatternsByNamespace.
    */
-  public function providerGetPatternsByNamespace() {
+  public function providerGetPatternsByNamespace(): array {
     $cases = [];
 
     $cases['no patterns found'] = [
@@ -295,13 +255,10 @@ class PatternDiscoveryCollectorTest extends UnitTestCase {
   /**
    * @covers ::getPatternsByNamespace
    * @covers ::getLibraryPlugin
-   * @covers ::lazyLoadCache
-   * @uses \Drupal\patternkit\PatternkitEnvironmentAwareTrait
-   * @uses \Drupal\patternkit\Asset\PatternDiscoveryCollector::resolveCacheMiss()
-   * @uses \Drupal\patternkit\Asset\PatternDiscoveryCollector::getLibraryObject()
-   * @uses \Drupal\patternkit\Asset\PatternDiscoveryCollector::__construct
+   * @uses \Drupal\patternkit\Asset\PatternDiscoveryLoader::getLibraryObject()
+   * @uses \Drupal\patternkit\Asset\PatternDiscoveryLoader::__construct
    */
-  public function testPluginExceptionWithFallback() {
+  public function testPluginExceptionWithFallback(): void {
     // Override the pattern definition to look for a more specific plugin that
     // is unavailable. It should fall back to the known 'twig' plugin and follow
     // expected behavior from there on.
@@ -315,21 +272,17 @@ class PatternDiscoveryCollectorTest extends UnitTestCase {
     $this->patternLibraryPluginManager->createInstance('twig.unknown')
       ->willThrow(new PluginException('Unknown plugin'))->shouldBeCalledOnce();
 
-    $collector = $this->getCollector();
-    $actual = $collector->get('@example');
+    $actual = $this->loader->getPatternsByNamespace('@example');
     $this->assertEquals($this->mockPatternDiscovery, $actual);
   }
 
   /**
    * @covers ::getPatternsByNamespace
    * @covers ::getLibraryPlugin
-   * @covers ::lazyLoadCache
-   * @uses \Drupal\patternkit\PatternkitEnvironmentAwareTrait
-   * @uses \Drupal\patternkit\Asset\PatternDiscoveryCollector::resolveCacheMiss()
-   * @uses \Drupal\patternkit\Asset\PatternDiscoveryCollector::getLibraryObject()
-   * @uses \Drupal\patternkit\Asset\PatternDiscoveryCollector::__construct
+   * @uses \Drupal\patternkit\Asset\PatternDiscoveryLoader::getLibraryObject()
+   * @uses \Drupal\patternkit\Asset\PatternDiscoveryLoader::__construct
    */
-  public function testPluginExceptionWithoutFallback() {
+  public function testPluginExceptionWithoutFallback(): void {
     // Override the pattern definition to look for a more specific plugin that
     // is unavailable. It should fall back to the known 'twig' plugin and follow
     // expected behavior from there on.
@@ -349,22 +302,18 @@ class PatternDiscoveryCollectorTest extends UnitTestCase {
 
     $this->expectException(InvalidLibraryFileException::class);
     $this->expectExceptionMessage("Error loading pattern libraries via missing_plugin: ");
-    $this->expectExceptionMessage($exception_message, 'Expected the thrown exception message to contain the original exception message.');
+    $this->expectExceptionMessage($exception_message);
 
-    $collector = $this->getCollector();
-    $collector->get('@example');
+    $this->loader->getPatternsByNamespace('@example');
   }
 
   /**
    * @covers ::getPatternsByNamespace
    * @covers ::getLibraryPlugin
-   * @covers ::lazyLoadCache
-   * @uses \Drupal\patternkit\PatternkitEnvironmentAwareTrait
-   * @uses \Drupal\patternkit\Asset\PatternDiscoveryCollector::resolveCacheMiss()
-   * @uses \Drupal\patternkit\Asset\PatternDiscoveryCollector::getLibraryObject()
-   * @uses \Drupal\patternkit\Asset\PatternDiscoveryCollector::__construct
+   * @uses \Drupal\patternkit\Asset\PatternDiscoveryLoader::getLibraryObject()
+   * @uses \Drupal\patternkit\Asset\PatternDiscoveryLoader::__construct
    */
-  public function testPluginExceptionWithoutFallback2() {
+  public function testPluginExceptionWithoutFallback2(): void {
     // Override the pattern definition to look for an unavailable plugin. This
     // should cause an exception to be thrown.
     $library_definition = $this->libraryDefinition;
@@ -383,8 +332,7 @@ class PatternDiscoveryCollectorTest extends UnitTestCase {
     $this->expectExceptionMessage("Error loading pattern libraries via missing_plugin: ");
     $this->expectExceptionMessage($exception_message, 'Expected the thrown exception message to contain the original exception message.');
 
-    $collector = $this->getCollector();
-    $collector->get('@example');
+    $this->loader->getPatternsByNamespace('@example');
   }
 
   /**
@@ -392,11 +340,8 @@ class PatternDiscoveryCollectorTest extends UnitTestCase {
    * @covers ::getPatternsByNamespace
    * @covers ::__construct
    * @covers ::getLibraryObject
-   * @covers ::lazyLoadCache
-   * @uses \Drupal\patternkit\PatternkitEnvironmentAwareTrait
-   * @uses \Drupal\patternkit\Asset\PatternDiscoveryCollector::resolveCacheMiss
    */
-  public function testGetLibraryPluginNoPlugin() {
+  public function testGetLibraryPluginNoPlugin(): void {
     // Mock discovered plugin definitions for confirmation in log message.
     $library_plugin_definitions = [
       'all' => [],
@@ -425,8 +370,7 @@ class PatternDiscoveryCollectorTest extends UnitTestCase {
       ])
       ->shouldBeCalledOnce();
 
-    $collector = $this->getCollector();
-    $actual = $collector->get('@example');
+    $actual = $this->loader->getPatternsByNamespace('@example');
     $this->assertEquals($this->mockPatternDiscovery, $actual);
   }
 
@@ -435,7 +379,7 @@ class PatternDiscoveryCollectorTest extends UnitTestCase {
    *
    * @coversNothing
    */
-  public function testWithoutLibraryVersion() {
+  public function testWithoutLibraryVersion(): void {
     // Unset the library version.
     $library_definition = $this->libraryDefinition;
     unset($library_definition['version']);
@@ -444,111 +388,8 @@ class PatternDiscoveryCollectorTest extends UnitTestCase {
       'library_definition' => $library_definition,
     ]);
 
-    $collector = $this->getCollector();
-    $actual = $collector->get('@example');
+    $actual = $this->loader->getPatternsByNamespace('@example');
     $this->assertEquals($this->mockPatternDiscovery, $actual);
-  }
-
-  /**
-   * @covers ::resolveCacheMiss
-   * @uses \Drupal\patternkit\Asset\PatternDiscoveryCollector
-   */
-  public function testResolveCacheMiss() {
-    $this->setDefaultExpectations();
-
-    // Force a cache miss with no cache results.
-    $this->cache->get(PatternDiscoveryCollector::PERSISTENT_CACHE_ID)
-      ->willReturn(NULL)->shouldBeCalledOnce();
-
-    $this->cache->get(PatternDiscoveryCollector::PERSISTENT_CACHE_ID, FALSE)
-      ->shouldBeCalled();
-
-    // Expect the cache to set the new data with all cache tags on destruction.
-    $this->cache->set(
-      PatternDiscoveryCollector::PERSISTENT_CACHE_ID,
-      [
-        '@example' => $this->mockPatternDiscovery,
-      ],
-      Cache::PERMANENT,
-      PatternDiscoveryCollector::CACHE_TAGS,
-    )->shouldBeCalledOnce();
-
-    // During the update process, the lock will need to be acquired and
-    // released.
-    $this->lock->acquire('patternkit.patterns:Drupal\Core\Cache\CacheCollector')
-      ->willReturn(TRUE);
-    $this->lock->release('patternkit.patterns:Drupal\Core\Cache\CacheCollector')
-      ->willReturn();
-
-    $collector = $this->getCollector();
-    $actual = $collector->get('@example');
-    $this->assertEquals($this->mockPatternDiscovery, $actual);
-
-    // Trigger the cache update.
-    $collector->destruct();
-  }
-
-  /**
-   * Test cache handling with the bypass option enabled.
-   *
-   * @covers ::lazyLoadCache
-   * @covers ::updateCache
-   * @covers ::getLibraryObject
-   * @covers ::getLibraryPlugin
-   * @covers ::getPatternsByNamespace
-   * @covers ::resolveCacheMiss
-   * @covers ::__construct
-   */
-  public function testCacheBypass() {
-    $this->setDefaultExpectations();
-
-    $this->patternkitEnvironment->getFeatureOption('bypass_pattern_cache', FALSE)
-      ->willReturn(TRUE)
-      ->shouldBeCalledTimes(2);
-
-    $this->cache->get(Argument::cetera())->shouldNotBeCalled();
-    $this->cache->set(Argument::cetera())->shouldNotBeCalled();
-
-    $collector = $this->getCollector();
-
-    // Fetch a value which should trigger a cache load.
-    $collector->get('@example');
-
-    // Trigger destruction which should case a cache update.
-    $collector->destruct();
-  }
-
-  /**
-   * Test cache handling with the bypass option disabled.
-   *
-   * @covers ::lazyLoadCache
-   * @covers ::updateCache
-   * @covers ::getLibraryObject
-   * @covers ::getLibraryPlugin
-   * @covers ::getPatternsByNamespace
-   * @covers ::resolveCacheMiss
-   * @covers ::__construct
-   */
-  public function testCacheBypassDisabled() {
-    $this->setDefaultExpectations();
-
-    $this->patternkitEnvironment->getFeatureOption('bypass_pattern_cache', FALSE)
-      ->willReturn(FALSE)
-      ->shouldBeCalledTimes(2);
-
-    $this->cache->get(Argument::cetera())->shouldBeCalled();
-    $this->cache->set(Argument::cetera())->shouldBeCalled();
-
-    $this->lock->acquire(Argument::cetera())->willReturn(TRUE);
-    $this->lock->release(Argument::cetera())->willReturn(TRUE);
-
-    $collector = $this->getCollector();
-
-    // Fetch a value which should trigger a cache load.
-    $collector->get('@example');
-
-    // Trigger destruction which should case a cache update.
-    $collector->destruct();
   }
 
 }

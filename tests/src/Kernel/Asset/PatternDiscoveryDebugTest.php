@@ -3,18 +3,18 @@
 namespace Drupal\Tests\patternkit\Kernel\Asset;
 
 use Drupal\Core\Cache\CacheBackendInterface;
-use Drupal\patternkit\Asset\PatternDiscoveryCollector;
+use Drupal\patternkit\Asset\PatternDiscovery;
 use Drupal\patternkit\Asset\PatternDiscoveryInterface;
 use Drupal\Tests\patternkit\Kernel\PatternkitKernelTestBase;
 use Prophecy\PhpUnit\ProphecyTrait;
 
 /**
- * Tests for the PatternDiscoveryCollector class with debug options enabled.
+ * Tests for the PatternDiscovery service with debug options enabled.
  *
- * @coversDefaultClass \Drupal\patternkit\Asset\PatternDiscoveryCollector
+ * @coversDefaultClass \Drupal\patternkit\Asset\PatternDiscovery
  * @group patternkit
  */
-class PatternDiscoveryCollectorDebugTest extends PatternkitKernelTestBase {
+class PatternDiscoveryDebugTest extends PatternkitKernelTestBase {
 
   use ProphecyTrait;
 
@@ -25,6 +25,13 @@ class PatternDiscoveryCollectorDebugTest extends PatternkitKernelTestBase {
     'patternkit_example',
     'patternkit_debug_test',
   ];
+
+  /**
+   * The cache bin ID for the discovered patternkit patterns.
+   *
+   * @var string
+   */
+  protected string $cacheBin = PatternDiscovery::CACHE_BIN_PREFIX . 'patternkit';
 
   /**
    * The discovery cache for testing cache entries.
@@ -46,40 +53,35 @@ class PatternDiscoveryCollectorDebugTest extends PatternkitKernelTestBase {
   protected function setUp(): void {
     parent::setUp();
 
+    $this->patternDiscovery = $this->container->get('patternkit.pattern.discovery');
     $this->cache = $this->container->get('cache.discovery');
 
     // Ensure the pattern cache is empty to start with.
-    $this->cache->delete(PatternDiscoveryCollector::PERSISTENT_CACHE_ID);
-
-    $this->patternDiscovery = $this->container->get('patternkit.pattern.discovery');
+    $this->cache->delete($this->cacheBin);
   }
 
   /**
-   * @covers ::destruct
-   * @covers ::lazyLoadCache
-   * @covers ::updateCache
+   * Ensure cache entries are not saved with debug mode enabled.
+   *
+   * @covers ::useCaches
+   * @covers ::__construct
    */
   public function testCacheSaveBypass() {
     // Confirm the cache starts out empty.
-    $this->assertFalse($this->cache
-      ->get(PatternDiscoveryCollector::PERSISTENT_CACHE_ID));
+    $this->assertFalse($this->cache->get($this->cacheBin));
 
     // Load data that would get cached.
     $result = $this->patternDiscovery->getPatternsByNamespace('@patternkit');
     $this->assertIsArray($result);
     $this->assertNotEmpty($result);
 
-    // Trigger the destruction process that should store data in the cache.
-    $this->container->get('patternkit.pattern.discovery.collector')->destruct();
-
     // Confirm the cache ends empty.
-    $this->assertFalse($this->cache
-      ->get(PatternDiscoveryCollector::PERSISTENT_CACHE_ID));
+    $this->assertFalse($this->cache->get($this->cacheBin), 'Expected to find no cache entry.');
   }
 
   /**
-   * @covers ::lazyLoadCache
-   * @covers ::resolveCacheMiss
+   * @covers ::useCaches
+   * @covers ::__construct
    */
   public function testCacheLoadBypass() {
     // Seed the cache with dummy data to confirm what is returned.
@@ -88,13 +90,17 @@ class PatternDiscoveryCollectorDebugTest extends PatternkitKernelTestBase {
         '@my/made/up/pattern' => (array) $this->getRandomGenerator()->object(),
       ],
     ];
-    $this->cache->set(PatternDiscoveryCollector::PERSISTENT_CACHE_ID, $dummy_data);
+    $this->cache->set($this->cacheBin, $dummy_data);
 
     // Test loaded content to confirm it doesn't match the cached data.
     $actual = $this->patternDiscovery->getPatternsByNamespace('@patternkit');
-    $this->assertNotEquals($dummy_data['@patternkit'], $actual);
-    $this->assertArrayNotHasKey('@my/made/up/pattern', $actual);
-    $this->assertArrayHasKey('@patternkit/atoms/example/src/example', $actual);
+    $this->assertIsArray($actual);
+
+    // Expect known patterns to be discovered.
+    $this->assertArrayHasKey('@patternkit/atoms/example/src/example', $actual, 'Expected to find discovered patterns from the filesystem.');
+
+    // Expect the seeded cache data to not be loaded.
+    $this->assertArrayNotHasKey('@my/made/up/pattern', $actual, 'Expected cache data to not be loaded.');
   }
 
 }

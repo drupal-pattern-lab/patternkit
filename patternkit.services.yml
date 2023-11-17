@@ -68,14 +68,19 @@ services:
       - { name: needs_destruction }
   patternkit.pattern.discovery:
     class: Drupal\patternkit\Asset\PatternDiscovery
-    arguments: [ '@patternkit.pattern.discovery.collector', '@patternkit.library.namespace_resolver']
-  patternkit.pattern.discovery.collector:
-    class: Drupal\patternkit\Asset\PatternDiscoveryCollector
-    arguments: [ '@cache.discovery', '@lock', '@patternkit.library.namespace_resolver', '@plugin.manager.library.pattern', '@logger.channel.patternkit']
-    calls:
-      - ['setPatternkitEnvironment', ['@patternkit.environment'] ]
-    tags:
-      - { name: needs_destruction }
+    arguments:
+      - '@patternkit.pattern.discovery.loader'
+      - '@patternkit.library.namespace_resolver'
+      - '@cache.discovery'
+      - '@logger.channel.patternkit'
+      - '@patternkit.environment'
+  patternkit.pattern.discovery.loader:
+    class: Drupal\patternkit\Asset\PatternDiscoveryLoader
+    arguments:
+      - '@patternkit.library.namespace_resolver'
+      - '@plugin.manager.library.pattern'
+      - '@logger.channel.patternkit'
+    public: false
   patternkit.pattern.dependency_resolver:
     class: Drupal\patternkit\Asset\PatternDependencyResolver
     arguments:
