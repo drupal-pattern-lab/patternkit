@@ -50,12 +50,11 @@ channel on Slack.
           lib/patternkit/src/atoms: {type: twig}
     ```
 
-    There are two different plugins currently available:
-    - PatternkitRESTLibrary `type: rest`
-    - PatternkitTwigLibrary (based on PatternkitJSONLibrary) `type: twig`
+    The primary plugin for usage at this time is: PatternkitTwigLibrary
+    (based on PatternkitJSONLibrary) `type: twig`
 
-   Use the former for dynamic REST based components, and the latter for locally
-   sourced Twig templates like those in a Drupal theme.
+    This plugin searches for locally sourced Twig templates like those in a
+    Drupal theme paired with a related JSON schema file.
 
 3. If not already present in the library, add companion JSON schema files to
    your templates so that Patternkit can display the editor to allow for
@@ -185,14 +184,6 @@ attributes in CKEditor but the pattern's template (e.g., Twig) does not strip
 those attributes, a user might, possibly save content with an `onclick`
 attribute, and that attribute would be rendered to the page.
 
-### Other settings
-
-The following settings are not available for configuration in the UI, so you
-must set them in config item `patternkit.settings` manually:
-
-* `patternkit_pl_host` - The PatternLab library host in the format
-  `scheme://hostname:port/`.
-
 ## Definitions
 
 Most of the thinking and vernacular used in Patternkit is inspired by
@@ -230,7 +221,7 @@ updated to match. This may be done on a per-block basis through the UI by
 editing the pattern block, or it may be done wholesale using this Drush command:
 
 ```bash
-drush patternkit:libUpdate
+drush patternkit:batch-update
 ```
 
 ### View all discovered patterns
@@ -259,16 +250,6 @@ This may be done easily from the commandline using the following command:
 drush patternkit:pattern:schema '@patternkit/atoms/example/src/example'
 ```
 
-## TODOs
-
-* Allow this module to close
-  out [this issue](https://github.com/drupal-pattern-lab/roadmap/issues/8).
-* Error handling.
-* More investigation into the appropriate handling of web component
-  configuration.
-* Finalize the CSS/JS management strategy.
-* More documentation.
-
 ## Dependencies
 
 * **drupal/block_content (Core Module)**: This module will auto-enable when
@@ -276,23 +257,8 @@ drush patternkit:pattern:schema '@patternkit/atoms/example/src/example'
 
 ## Optional Dependencies
 
-[PatternLab](https://github.com/pattern-lab/starterkit-twig-drupal-minimal)
-
-* Schema display support requires:
-  https://github.com/pattern-lab/patternlab-php-core/issues/117
-
-## D7 v2.0.0 & D8 Ecosystem
-
-* Exists to solve this issue:
-  https://github.com/drupal-pattern-lab/roadmap/issues/8
-* PatternLAB with Restful Extensions provides library + endpoints (Ported from
-  PatternKit)
-* PatternKit provides Drupal endpoint consumer (renamed from PKPlugins)
-
-## Legacy Ecosystem
-
-* PatternKit provides library + RESTful endpoints
-* PKPlugins provides Drupal endpoint consumer
+* **drupal/layout_builder (Core Module)**: This module provides the most common
+  method for creating and exposing Patternkit block content within pages.
 
 ## Development and Debugging
 
