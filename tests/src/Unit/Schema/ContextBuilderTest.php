@@ -4,6 +4,7 @@ namespace Drupal\Tests\patternkit\Unit\Schema;
 
 use Drupal\patternkit\Schema\ContextBuilder;
 use Drupal\Tests\UnitTestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
 use Swaggest\JsonSchema\Context;
 use Swaggest\JsonSchema\DataPreProcessor;
 use Swaggest\JsonSchema\RemoteRefProvider;
@@ -18,6 +19,8 @@ use Webmozart\Assert\InvalidArgumentException;
  * @group patternkit
  */
 class ContextBuilderTest extends UnitTestCase {
+
+  use ProphecyTrait;
 
   /**
    * The context builder service being tested.
@@ -183,6 +186,48 @@ class ContextBuilderTest extends UnitTestCase {
   }
 
   /**
+   * Validate configureContextDefaults doesn't override existing service values.
+   *
+   * @covers ::configureContextDefaults
+   * @covers ::applyOptions
+   * @covers ::validateOptions
+   * @uses \Drupal\patternkit\Schema\ContextBuilder::setDefaultOptions()
+   * @uses \Drupal\patternkit\Schema\ContextBuilder::setRemoteRefProvider()
+   * @uses \Drupal\patternkit\Schema\ContextBuilder::setDataPreProcessor()
+   */
+  public function testConfigureContextDefaultsWithPresets() {
+    // Initialize the default options to a known value.
+    $default_options = [
+      'applyDefaults' => TRUE,
+      'tolerateStrings' => TRUE,
+      'skipValidation' => FALSE,
+    ];
+    $this->contextBuilder->setDefaultOptions($default_options);
+
+    $refProvider = $this->prophesize(RemoteRefProvider::class)->reveal();
+    $this->contextBuilder->setRemoteRefProvider($refProvider);
+
+    $dataPreProcessor = $this->prophesize(DataPreProcessor::class)->reveal();
+    $this->contextBuilder->setDataPreProcessor($dataPreProcessor);
+
+    // Prepare a context with preconfigured elements that should not be
+    // overridden.
+    $preConfiguredRefProvider = $this->prophesize(RemoteRefProvider::class);
+    $preConfiguredDataPreProcessor = $this->prophesize(DataPreProcessor::class);
+    $context = new Context($preConfiguredRefProvider->reveal());
+    $context->setDataPreProcessor($preConfiguredDataPreProcessor->reveal());
+
+    // Confirm default options are configured.
+    $this->assertContextConfiguration(
+      $default_options + [
+        'refProvider' => $preConfiguredRefProvider->reveal(),
+        'dataPreProcessor' => $preConfiguredDataPreProcessor->reveal(),
+      ],
+      $this->contextBuilder->configureContextDefaults($context)
+    );
+  }
+
+  /**
    * @covers ::getConfiguredContext
    * @covers ::applyOptions
    * @covers ::validateOptions
@@ -275,12 +320,12 @@ class ContextBuilderTest extends UnitTestCase {
 
     // Confirm the assigned reference provider if an option is included.
     if (array_key_exists('refProvider', $expected)) {
-      $this->assertEquals($expected['refProvider'], $context->getRemoteRefProvider());
+      $this->assertSame($expected['refProvider'], $context->getRemoteRefProvider());
     }
 
     // Confirm the assigned data preprocessor if an option is included.
     if (array_key_exists('dataPreProcessor', $expected)) {
-      $this->assertEquals($expected['dataPreProcessor'], $context->getDataPreProcessor());
+      $this->assertSame($expected['dataPreProcessor'], $context->getDataPreProcessor());
     }
   }
 

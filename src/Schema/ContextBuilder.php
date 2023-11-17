@@ -175,10 +175,16 @@ class ContextBuilder {
    *   The provided Context with defaults applied.
    */
   public function configureContextDefaults(Context $context): Context {
-    $this->applyOptions($context, $this->defaultOptions + [
-      'refProvider' => $this->refProvider,
-      'dataPreProcessor' => $this->dataPreProcessor,
-    ]);
+    $options = $this->defaultOptions;
+
+    if ($context->remoteRefProvider === NULL) {
+      $options['refProvider'] = $this->refProvider;
+    }
+    if ($context->dataPreProcessor === NULL) {
+      $options['dataPreProcessor'] = $this->dataPreProcessor;
+    }
+
+    $this->applyOptions($context, $options);
 
     return $context;
   }
