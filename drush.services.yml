@@ -2,17 +2,24 @@ services:
   patternkit.commands:
     class: Drupal\patternkit\Commands\PatternkitCommands
     arguments:
-      - '@entity_type.manager'
-      - '@patternkit.pattern.repository'
       - '@cache_tags.invalidator'
-      - '@patternkit.helper.update'
-      - '%app.root%'
-      - '@patternkit.layout_batch_manager'
     tags:
       - { name: drush.command }
 
   patternkit.commands.inspection:
     class: Drupal\patternkit\Commands\InspectionCommands
     arguments: ['@patternkit.pattern.repository']
+    tags:
+      - { name: drush.command }
+
+  patternkit.commands.update:
+    class: Drupal\patternkit\Commands\UpdateCommands
+    arguments:
+      - '@entity_type.manager'
+      - '@patternkit.pattern.repository'
+      - '@patternkit.helper.update'
+      - '@patternkit.layout_batch_manager'
+      - '@plugin.manager.block'
+      - '%app.root%'
     tags:
       - { name: drush.command }

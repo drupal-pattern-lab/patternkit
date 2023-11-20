@@ -103,9 +103,9 @@ function patternkit_update_8001(&$sandbox) {
   }
 
   // Upgrades existing patterns.
-  $command = new PatternkitCommands();
-  $command->setLogger(\Drupal::logger('patternkit'));
-  $command->devUpdate();
+  /** @var \Drupal\patternkit\UpdateHelper $update_helper */
+  $update_helper = \Drupal::service('patternkit.helper.update');
+  $update_helper->updateAllPatternComponents();
 
   // Clears caches.
   $user_caches = [
