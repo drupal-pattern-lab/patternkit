@@ -1,0 +1,11 @@
+{% if media and media.0.image %}
+  {% include '@patternkit/components/media_image_embed/media_image_embed.twig' with {
+    'name': media.0.name,
+    'image': media.0.image,
+  } only %}
+{% elseif media and media.0.video %}
+  {% include '@patternkit/components/media_video_embed/media_video_embed.twig' with {
+    'name': media.0.name,
+    'video': media.0.video,
+  } only %}
+{% endif %}

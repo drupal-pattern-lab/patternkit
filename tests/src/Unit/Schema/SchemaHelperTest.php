@@ -221,6 +221,40 @@ class SchemaHelperTest extends UnitTestCase {
   }
 
   /**
+   * Verify the default schema is loaded if none is provided.
+   *
+   * @covers ::getCompositionSchema
+   * @uses \Drupal\patternkit\Schema\SchemaHelper::manuallyTestConstraints()
+   */
+  public function testGetCompositionSchemaLoadsDefaultSchema(): void {
+    // Prepare mock data to run on.
+    $schema = Schema::import($this->decodeJson($this->flatSchema));
+    $itemsSchema = $schema->getProperties()->breakpoints->items;
+
+    // Expect to load the default schema with no context passed in.
+    $this->contextBuilder->getDefaultContext()->shouldBeCalledOnce();
+
+    SchemaHelper::getCompositionSchema($itemsSchema, 'xs');
+  }
+
+  /**
+   * Verify the default schema is not loaded if one is provided.
+   *
+   * @covers ::getCompositionSchema
+   * @uses \Drupal\patternkit\Schema\SchemaHelper::manuallyTestConstraints()
+   */
+  public function testGetCompositionSchemaDoesNotLoadDefaultSchema(): void {
+    // Prepare mock data to run on.
+    $schema = Schema::import($this->decodeJson($this->flatSchema));
+    $itemsSchema = $schema->getProperties()->breakpoints->items;
+
+    // Expect not to load the default context with a provided context.
+    $this->contextBuilder->getDefaultContext()->shouldNotBeCalled();
+
+    SchemaHelper::getCompositionSchema($itemsSchema, 'xs', $this->context);
+  }
+
+  /**
    * Test expectations for throwing validation exceptions.
    *
    * @covers ::getCompositionSchema
@@ -238,9 +272,64 @@ class SchemaHelperTest extends UnitTestCase {
     $schema->getDocumentPath()->willReturn($documentPath)->shouldBeCalledOnce();
 
     $this->expectException(SchemaValidationException::class);
-    $this->expectExceptionMessage($exceptionMessage, 'Expected the exception message to contain the original exception message.');
-    $this->expectExceptionMessage($documentPath, 'Expected the exception message to contain the document path.');
+    $this->expectExceptionMessage($exceptionMessage);
+    $this->expectExceptionMessage($documentPath);
     SchemaHelper::getCompositionSchema($schema->reveal(), 'my_value');
+  }
+
+  /**
+   * @covers ::isValid
+   */
+  public function testIsValid(): void {
+    $valid_data = 'valid';
+    $invalid_data = 'invalid';
+
+    // Mock a context to pass in instead of loading the default.
+    $context = $this->prophesize(Context::class)->reveal();
+
+    $schema = $this->prophesize(Schema::class);
+    $schema->in($valid_data, $context)->willReturnArgument(0);
+    $schema->in($invalid_data, $context)->willThrow(new InvalidValue());
+
+    $this->assertTrue(SchemaHelper::isValid($schema->reveal(), $valid_data, $context));
+    $this->assertFalse(SchemaHelper::isValid($schema->reveal(), $invalid_data, $context));
+  }
+
+  /**
+   * Verify the default schema is loaded if none is provided.
+   *
+   * @covers ::isValid
+   */
+  public function testIsValidLoadsDefaultContext(): void {
+    $valid_data = 'valid';
+
+    $schema = $this->prophesize(Schema::class);
+    $schema->in($valid_data, Argument::type(Context::class))->willReturnArgument(0);
+
+    // Expect to load the default schema with no context passed in.
+    $this->contextBuilder->getDefaultContext()->shouldBeCalledOnce();
+
+    $this->assertTrue(SchemaHelper::isValid($schema->reveal(), $valid_data));
+  }
+
+  /**
+   * Verify the default schema is not loaded if one is provided.
+   *
+   * @covers ::isValid
+   */
+  public function testIsValidDoesNotLoadDefaultContext(): void {
+    $valid_data = 'valid';
+
+    $schema = $this->prophesize(Schema::class);
+    $schema->in($valid_data, Argument::type(Context::class))->willReturnArgument(0);
+
+    // Mock a context to pass in instead of loading the default.
+    $context = $this->prophesize(Context::class)->reveal();
+
+    // Expect not to load the default context with a provided context.
+    $this->contextBuilder->getDefaultContext()->shouldNotBeCalled();
+
+    $this->assertTrue(SchemaHelper::isValid($schema->reveal(), $valid_data, $context));
   }
 
 }

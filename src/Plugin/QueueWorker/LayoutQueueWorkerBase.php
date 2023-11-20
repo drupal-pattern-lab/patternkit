@@ -23,6 +23,7 @@ use Drupal\layout_builder\Entity\LayoutEntityDisplayInterface;
 use Drupal\layout_builder\LayoutEntityHelperTrait;
 use Drupal\layout_builder\LayoutTempstoreRepositoryInterface;
 use Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface;
+use Drupal\layout_builder\SectionStorageInterface;
 use Drupal\patternkit\LayoutHelper;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -157,30 +158,8 @@ abstract class LayoutQueueWorkerBase extends QueueWorkerBase implements Containe
           if ($section_storage = $this->getSectionStorageForEntity($entity)) {
             $this->processEntityLayout($section_storage, $entity, $data, $result);
 
-            // Update any drafted layouts that may exist.
-            if ($this->layoutTempstoreRepository->has($section_storage)) {
-              $display_id = $data['display_id'] = 'temp.' . $display_id;
-              $this->messenger()
-                ->addStatus($this->t('Updating temporary layout for overridden layout ID "@id"', [
-                  '@id' => $display_id,
-                ]));
-              $temp_storage = $this->layoutTempstoreRepository->get($section_storage);
-
-              // Capture results in a temporary array to prevent existing values
-              // from being overridden.
-              $temp_results = [];
-              $this->processEntityLayout($temp_storage, $entity, $data, $temp_results);
-
-              // Handle updates if changes were made to the temporary layout.
-              if ($temp_results['entities'] > 0) {
-                // Capture update statistics.
-                $result['blocks'] += $temp_results['blocks'];
-                $result['entities'] += $temp_results['entities'];
-
-                // Update the saved temporary layout.
-                $this->layoutTempstoreRepository->set($temp_storage);
-              }
-            }
+            // Process any drafted layouts that may exist.
+            $this->processTempstoreOverrideLayout($section_storage, $display_id, $data, $entity, $result);
           }
           else {
             $result['errors'] = 1;
@@ -210,29 +189,8 @@ abstract class LayoutQueueWorkerBase extends QueueWorkerBase implements Containe
         if ($section_storage = $this->getSectionStorageForEntity($display)) {
           $this->processDefaultLayout($section_storage, $data, $result);
 
-          // Update any drafted layouts that may exist.
-          if ($this->layoutTempstoreRepository->has($section_storage)) {
-            $display_id = $data['display_id'] = 'temp.' . $display_id;
-            $this->messenger()->addStatus($this->t('Updating temporary layout for default layout ID "@id"', [
-              '@id' => $display_id,
-            ]));
-            $temp_storage = $this->layoutTempstoreRepository->get($section_storage);
-
-            // Capture results in a temporary array to prevent existing values
-            // from being overridden.
-            $temp_results = [];
-            $this->processDefaultLayout($temp_storage, $data, $temp_results);
-
-            // Handle updates if changes were made to the temporary layout.
-            if ($temp_results['entities'] > 0) {
-              // Capture update statistics.
-              $result['blocks'] += $temp_results['blocks'];
-              $result['entities'] += $temp_results['entities'];
-
-              // Update the saved temporary layout.
-              $this->layoutTempstoreRepository->set($temp_storage);
-            }
-          }
+          // Process any drafted layouts that may exist.
+          $this->processTempstoreDefaultLayout($section_storage, $display_id, $data, $result);
         }
         else {
           $this->messenger()
@@ -243,6 +201,9 @@ abstract class LayoutQueueWorkerBase extends QueueWorkerBase implements Containe
       }
     }
     catch (\Exception $e) {
+      $this->messenger()
+        ->addError($this->t('Encountered error while processing display ID "@id".',
+          ['@id' => $display_id]));
       $variables = Error::decodeException($e);
       $this->logger->error('%type: @message in %function (line %line of %file).', $variables);
       $result['errors'] = 1;
@@ -328,6 +289,86 @@ abstract class LayoutQueueWorkerBase extends QueueWorkerBase implements Containe
       }
     }
     return $this->sectionStorageManager()->findByContext($contexts, new CacheableMetadata());
+  }
+
+  /**
+   * Process unsaved layouts for overridden layouts.
+   *
+   * @param \Drupal\layout_builder\SectionStorageInterface $section_storage
+   *   The original layout to load unsaved versions for processing.
+   * @param string $display_id
+   *   The display ID used for the original layout being processed.
+   * @param array $data
+   *   Processing data for the overall operation.
+   * @param \Drupal\Core\Entity\ContentEntityInterface $entity
+   *   The entity for the layout being processed.
+   * @param array $result
+   *   Result data for the current layout being processed. This is passed by
+   *   reference and may be altered directly.
+   */
+  protected function processTempstoreOverrideLayout(SectionStorageInterface $section_storage, string $display_id, array $data, ContentEntityInterface $entity, array &$result): void {
+    if ($this->layoutTempstoreRepository->has($section_storage)) {
+      $display_id = $data['display_id'] = 'temp.' . $display_id;
+      $this->messenger()
+        ->addStatus($this->t('Updating temporary layout for overridden layout ID "@id"', [
+          '@id' => $display_id,
+        ]));
+      $temp_storage = $this->layoutTempstoreRepository->get($section_storage);
+
+      // Capture results in a temporary array to prevent existing values
+      // from being overridden.
+      $temp_results = [];
+      $this->processEntityLayout($temp_storage, $entity, $data, $temp_results);
+
+      // Handle updates if changes were made to the temporary layout.
+      if ($temp_results['entities'] > 0) {
+        // Capture update statistics.
+        $result['blocks'] += $temp_results['blocks'];
+        $result['entities'] += $temp_results['entities'];
+
+        // Update the saved temporary layout.
+        $this->layoutTempstoreRepository->set($temp_storage);
+      }
+    }
+  }
+
+  /**
+   * Process unsaved layouts for default layouts.
+   *
+   * @param \Drupal\layout_builder\SectionStorageInterface $section_storage
+   *   The original layout to load unsaved versions for processing.
+   * @param string $display_id
+   *   The display ID used for the original layout being processed.
+   * @param array $data
+   *   Processing data for the overall operation.
+   * @param array $result
+   *   Result data for the current layout being processed. This is passed by
+   *   reference and may be altered directly.
+   */
+  protected function processTempstoreDefaultLayout(SectionStorageInterface $section_storage, string $display_id, array $data, array &$result): void {
+    if ($this->layoutTempstoreRepository->has($section_storage)) {
+      $display_id = $data['display_id'] = 'temp.' . $display_id;
+      $this->messenger()
+        ->addStatus($this->t('Updating temporary layout for default layout ID "@id"', [
+          '@id' => $display_id,
+        ]));
+      $temp_storage = $this->layoutTempstoreRepository->get($section_storage);
+
+      // Capture results in a temporary array to prevent existing values
+      // from being overridden.
+      $temp_results = [];
+      $this->processDefaultLayout($temp_storage, $data, $temp_results);
+
+      // Handle updates if changes were made to the temporary layout.
+      if ($temp_results['entities'] > 0) {
+        // Capture update statistics.
+        $result['blocks'] += $temp_results['blocks'];
+        $result['entities'] += $temp_results['entities'];
+
+        // Update the saved temporary layout.
+        $this->layoutTempstoreRepository->set($temp_storage);
+      }
+    }
   }
 
 }

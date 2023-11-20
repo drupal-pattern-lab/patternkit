@@ -55,6 +55,9 @@ class SchemaHelper {
    *   The schema to be tested.
    * @param mixed $value
    *   The value being assigned into the specified schema property.
+   * @param \Swaggest\JsonSchema\Context|null $context
+   *   (Optional) The context to be used during validation. If no context is
+   *   provided, the default context will be loaded.
    *
    * @return \Swaggest\JsonSchema\SchemaContract|null
    *   The schema that validates for the given value or NULL if one could not be
@@ -64,13 +67,16 @@ class SchemaHelper {
    *   Throws an exception if the given value fails to validate against the
    *   provided schema.
    */
-  public static function getCompositionSchema(SchemaContract $schema, $value): ?SchemaContract {
+  public static function getCompositionSchema(SchemaContract $schema, $value, ?Context $context = NULL): ?SchemaContract {
     try {
-      // Get a globally configured execution context for use in schema
-      // operations. This will ensure expected options as well as configured
-      // remote reference providers and data preprocessors are available.
-      /** @var \Swaggest\JsonSchema\Context $context */
-      $context = \Drupal::service('patternkit.schema.context_builder')->getDefaultContext();
+      if ($context === NULL) {
+        // Get a globally configured execution context for use in schema
+        // operations. This will ensure expected options as well as configured
+        // remote reference providers and data preprocessors are available.
+        $context = \Drupal::service('patternkit.schema.context_builder')
+          ->getDefaultContext();
+      }
+
       $validationResult = $schema->in($value, $context);
     }
     catch (InvalidValue $exception) {
@@ -94,6 +100,44 @@ class SchemaHelper {
     // traverse the constraints and identify what applied.
     else {
       return static::manuallyTestConstraints($value, $schema, $context);
+    }
+  }
+
+  /**
+   * Test data against a schema to determine if it validates.
+   *
+   * This is a helper method to test the validation process while catching
+   * thrown exceptions for invalid values.
+   *
+   * @param \Swaggest\JsonSchema\SchemaContract $schema
+   *   The schema to be tested.
+   * @param mixed $value
+   *   The value to test against the schema.
+   * @param \Swaggest\JsonSchema\Context|null $context
+   *   (Optional) The context to be used during validation. If no context is
+   *   provided, the default context will be loaded.
+   *
+   * @return bool
+   *   TRUE if the value validates for the schema, FALSE otherwise.
+   */
+  public static function isValid(SchemaContract $schema, $value, ?Context $context = NULL): bool {
+    if ($context === NULL) {
+      $context = \Drupal::service('patternkit.schema.context_builder')
+        ->getDefaultContext();
+    }
+
+    $isValid = FALSE;
+    try {
+      $validationResult = $schema->in($value, $context);
+      if ($validationResult) {
+        $isValid = TRUE;
+      }
+    }
+    catch (InvalidValue $ignored) {
+      // Ignore the exception and leave the validation result as FALSE.
+    }
+    finally {
+      return $isValid;
     }
   }
 

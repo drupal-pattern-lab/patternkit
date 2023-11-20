@@ -119,6 +119,12 @@ interface PatternInterface extends ContentEntityInterface {
   /**
    * Test whether a pattern schema has been bundled with dependencies.
    *
+   * Note: This may not always be trusted at this time. When a pattern is loaded
+   * from the database as a revision, the stored schema is used which may
+   * already be bundled. Either way, the flag for the pattern being bundled is
+   * left as FALSE since there is no way to determine if it was previously
+   * bundled.
+   *
    * @return bool
    *   True if the pattern schema has been bundled with all dependencies. False
    *   otherwise.

@@ -1,0 +1,5 @@
+patternkit_usage_tracking.reports:
+  title: Pattern usage
+  description: View pattern usage within site content.
+  parent: system.admin_reports
+  route_name: view.pattern_usage.page__site_report__node__active

@@ -1,0 +1,33 @@
+services:
+  pattern_usage.manager:
+    class: Drupal\patternkit_usage_tracking\PatternUsageManager
+    arguments: ['@entity_type.manager']
+    tags:
+      - { name: entity_track_storage }
+
+  pattern_usage.layout_tracker:
+    class: Drupal\patternkit_usage_tracking\LayoutUsageTracker
+    arguments:
+      - '@entity_type.manager'
+      - '@entity_field.manager'
+      - '@config.factory'
+      - '@pattern_usage.manager'
+      - '@patternkit.helper.layout'
+      - '@patternkit.pattern.detector'
+      - '@plugin.manager.layout_builder.section_storage'
+      - '@pattern_usage.revision_helper'
+
+  pattern_usage.revision_helper:
+    class: Drupal\patternkit_usage_tracking\UsageRevisionHelper
+    arguments:
+      - '@entity_type.manager'
+      - '@entity_field.manager'
+      - '@config.factory'
+      - '@pattern_usage.manager'
+      - '@patternkit.helper.layout'
+      - '@patternkit.pattern.detector'
+      - '@plugin.manager.layout_builder.section_storage'
+
+  pattern_usage.layout_batch_manager:
+    class: Drupal\patternkit_usage_tracking\BulkOperations\LayoutDiscoveryBatchManager
+    arguments: [ '@entity_type.manager', '@string_translation']

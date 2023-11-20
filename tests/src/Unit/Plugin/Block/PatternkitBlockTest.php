@@ -15,13 +15,13 @@ use Drupal\Core\Plugin\Context\ContextRepositoryInterface;
 use Drupal\Core\Utility\Token;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternInterface;
+use Drupal\patternkit\Entity\PatternkitBlock as EntityPatternkitBlock;
 use Drupal\patternkit\Event\PatternUpdateEvent;
 use Drupal\patternkit\PatternkitEnvironment;
 use Drupal\patternkit\PatternkitEvents;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\patternkit\PatternRepository;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock;
-use Drupal\patternkit\Entity\PatternkitBlock as EntityPatternkitBlock;
 use Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait;
 use Drupal\Tests\UnitTestCase;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -43,91 +43,91 @@ class PatternkitBlockTest extends UnitTestCase {
   /**
    * Controls the block cache.
    *
-   * @var \Drupal\Core\Block\BlockManagerInterface|\Drupal\Core\Block\BlockManager|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Block\BlockManager>
    */
   protected ObjectProphecy $blockManager;
 
   /**
    * The context handler service.
    *
-   * @var \Drupal\Core\Plugin\Context\ContextHandlerInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Plugin\Context\ContextHandlerInterface>
    */
   protected ObjectProphecy $contextHandler;
 
   /**
    * Allows adding all current contexts to the block plugin.
    *
-   * @var \Drupal\Core\Plugin\Context\ContextRepositoryInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Plugin\Context\ContextRepositoryInterface>
    */
   protected ObjectProphecy $contextRepository;
 
   /**
    * Entity storage for patternkit_pattern entities.
    *
-   * @var \Drupal\Core\Entity\EntityStorageInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Entity\EntityStorageInterface>
    */
   protected ObjectProphecy $patternStorage;
 
   /**
    * Entity storage for patternkit_block entities.
    *
-   * @var \Drupal\Core\Entity\EntityStorageInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Entity\EntityStorageInterface>
    */
   protected ObjectProphecy $blockStorage;
 
   /**
    * The pattern repository service for loading patterns.
    *
-   * @var \Drupal\patternkit\PatternRepository|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\PatternRepository>
    */
   protected ObjectProphecy $patternRepository;
 
   /**
    * Loads plugins for parsing and rendering patterns.
    *
-   * @var \Drupal\patternkit\PatternLibraryPluginManager|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\PatternLibraryPluginManager>
    */
   protected ObjectProphecy $patternLibraryPluginManager;
 
   /**
    * Encodes and decodes configuration for storage.
    *
-   * @var \Drupal\Component\Serialization\SerializationInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Component\Serialization\SerializationInterface>
    */
   protected ObjectProphecy $serializer;
 
   /**
    * Parses and replaces Drupal tokens.
    *
-   * @var \Drupal\Core\Utility\Token|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Utility\Token>
    */
   protected ObjectProphecy $token;
 
   /**
    * The language manager service.
    *
-   * @var \Drupal\Core\Language\LanguageManagerInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Language\LanguageManagerInterface>
    */
   protected ObjectProphecy $languageManager;
 
   /**
    * The event dispatcher service.
    *
-   * @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher>
    */
   protected ObjectProphecy $eventDispatcher;
 
   /**
    * The patternkit logger channel.
    *
-   * @var \Drupal\Core\Logger\LoggerChannelInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Logger\LoggerChannelInterface>
    */
   protected ObjectProphecy $logger;
 
   /**
    * The Patternkit environment service.
    *
-   * @var \Drupal\patternkit\PatternkitEnvironment|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\PatternkitEnvironment>
    */
   protected ObjectProphecy $patternkitEnvironment;
 
@@ -159,7 +159,7 @@ class PatternkitBlockTest extends UnitTestCase {
   /**
    * The default plugin definition values to use for plugin instantiations.
    *
-   * @var array
+   * @var array<string, mixed>
    *
    * @see \Drupal\Tests\patternkit\Unit\Plugin\Block\PatternkitBlockTest::getTestSubject()
    */
@@ -177,7 +177,7 @@ class PatternkitBlockTest extends UnitTestCase {
   /**
    * A mocked Pattern entity to be loaded in the plugin definition.
    *
-   * @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternInterface
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Entity\PatternInterface>
    */
   protected ObjectProphecy $defaultDefinitionPattern;
 
@@ -187,7 +187,7 @@ class PatternkitBlockTest extends UnitTestCase {
    * The key of the array should map to a lookup value for the mocked function
    * being overridden.
    *
-   * @var array
+   * @var array<string, mixed>
    *
    * @see \Drupal\patternkit\Plugin\Block\serialize()
    * @see https://akrabat.com/replacing-a-built-in-php-function-when-testing-a-component/
@@ -234,7 +234,7 @@ class PatternkitBlockTest extends UnitTestCase {
    * constructor to enable more customization of the dependencies per test
    * without as much boilerplate in each test case.
    *
-   * @param array $configuration
+   * @param array<string, mixed> $configuration
    *   (Optional) An associative array of configuration values to be passed into
    *   the plugin constructor during instantiation.
    *
@@ -273,11 +273,11 @@ class PatternkitBlockTest extends UnitTestCase {
    *   (Optional) An array of test class methods to be mocked. These methods
    *   will be marked for mocking, but expectations for them will still need
    *   to be configured on the returned instance.
-   * @param array $configuration
+   * @param array<string, mixed> $configuration
    *   (Optional) An associative array of configuration values to be passed into
    *   the plugin constructor during instantiation.
    *
-   * @return \PHPUnit\Framework\MockObject\MockObject|\Drupal\patternkit\Plugin\Block\PatternkitBlock
+   * @return \PHPUnit\Framework\MockObject\MockObject&\Drupal\patternkit\Plugin\Block\PatternkitBlock
    *   The mocked object with injected dependencies.
    */
   protected function getPartialMock(array $methods = [], array $configuration = []): MockObject {
@@ -618,7 +618,7 @@ class PatternkitBlockTest extends UnitTestCase {
     $pattern = $patternProphecy->reveal();
 
     // Expect the revision to be requested.
-    $this->patternStorage->loadRevision($configuration['pattern'] ?? '')
+    $this->patternStorage->loadRevision($configuration['pattern'])
       ->shouldBeCalledOnce()
       ->willReturn($pattern);
 
@@ -706,6 +706,7 @@ class PatternkitBlockTest extends UnitTestCase {
     $configData = (array) $this->getRandomGenerator()->object();
 
     $block = $this->getMockPatternkitBlockEntity($blockCacheData + [
+      'pattern_id' => self::DEFAULT_PATTERN_ID,
       'data' => $configData,
     ]);
 
@@ -967,7 +968,7 @@ class PatternkitBlockTest extends UnitTestCase {
     $plugin->saveBlockContent($new_revision, $duplicate_block);
 
     // The revision ID should only be changed if a new revision is saved.
-    $expectedRid = ($blockShouldBeSaved && $new_revision) ?
+    $expectedRid = ($blockShouldBeSaved && $new_revision && isset($newRid)) ?
       $newRid : $configuration['patternkit_block_rid'];
 
     $updatedConfiguration = $plugin->getConfiguration();
@@ -997,7 +998,7 @@ class PatternkitBlockTest extends UnitTestCase {
    * @covers ::__construct
    * @uses \Drupal\patternkit\Event\PatternUpdateEvent
    */
-  public function testUpdatePatternWithParameters() {
+  public function testUpdatePatternWithParameters(): void {
     /**
      * @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternInterface $cachedPattern
      * @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternInterface $basePattern
@@ -1234,7 +1235,7 @@ class PatternkitBlockTest extends UnitTestCase {
    * @covers ::getUpdatedPatternRevision
    * @covers ::__construct
    */
-  public function testUpdateEventDispatchingWithoutAlterations() {
+  public function testUpdateEventDispatchingWithoutAlterations(): void {
     /**
      * @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternInterface $cachedPattern
      * @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternInterface $basePattern
@@ -1291,7 +1292,7 @@ class PatternkitBlockTest extends UnitTestCase {
    * @see \Drupal\Tests\patternkit\Unit\Plugin\Block\PatternkitBlockTest::$mockedFunctions
    * @see \Drupal\patternkit\Plugin\Block\serialize()
    */
-  public function testUpdateEventDispatchingWithAlterations() {
+  public function testUpdateEventDispatchingWithAlterations(): void {
     /**
      * @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternInterface $cachedPattern
      * @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternInterface $basePattern
@@ -1367,7 +1368,11 @@ class PatternkitBlockTest extends UnitTestCase {
    * The pattern storage prophecy is also prepared to load the new pattern
    * revision if queried for the default revision ID.
    *
-   * @return \Prophecy\Prophecy\ObjectProphecy[]
+   * @return array{
+   *   'cached': \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Entity\PatternInterface>,
+   *   'base': \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Entity\PatternInterface>,
+   *   'new': \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Entity\PatternInterface>,
+   * }
    *   An associative array of pattern prophecies with the following keys:
    *   - 'cached': A pattern mocked as if loaded from the database and in need
    *     of updating.
@@ -1415,7 +1420,7 @@ class PatternkitBlockTest extends UnitTestCase {
   /**
    * Mock and return a query with provided results from pattern storage.
    *
-   * @param array $results
+   * @param array<int, int> $results
    *   (Optional) An array of ID-keyed results to return from the query. If no
    *   values are provided, results will default to a single entry matching the
    *   revision ID of mocked entities in prepareUpdatePatternDependencies().
@@ -1444,7 +1449,7 @@ use Drupal\Tests\patternkit\Unit\Plugin\Block\PatternkitBlockTest;
 /**
  * An overridden test function for validating serialized content.
  *
- * @param mixed $value
+ * @param string $value
  *   The value to be serialized.
  *
  * @return string
@@ -1454,5 +1459,6 @@ use Drupal\Tests\patternkit\Unit\Plugin\Block\PatternkitBlockTest;
  * @see https://akrabat.com/replacing-a-built-in-php-function-when-testing-a-component/
  */
 function serialize($value): string {
+  assert(is_string(PatternkitBlockTest::$mockedFunctions['serialize']));
   return PatternkitBlockTest::$mockedFunctions['serialize'];
 }

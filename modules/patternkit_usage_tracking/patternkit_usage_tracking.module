@@ -1,0 +1,54 @@
+<?php
+
+/**
+ * @file
+ * General functionality and hooks for Patternkit Usage Tracking.
+ */
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\patternkit_usage_tracking\PatternUsageEntityOperations;
+
+/**
+ * Implements hook_entity_insert().
+ */
+function patternkit_usage_tracking_entity_insert(EntityInterface $entity) {
+  /** @var \Drupal\patternkit_usage_tracking\PatternUsageEntityOperations $entity_operations */
+  $entity_operations = \Drupal::classResolver(PatternUsageEntityOperations::class);
+  $entity_operations->handleInsert($entity);
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function patternkit_usage_tracking_entity_update(EntityInterface $entity) {
+  /** @var \Drupal\patternkit_usage_tracking\PatternUsageEntityOperations $entity_operations */
+  $entity_operations = \Drupal::classResolver(PatternUsageEntityOperations::class);
+  $entity_operations->handleUpdate($entity);
+}
+
+/**
+ * Implements hook_entity_predelete().
+ */
+function patternkit_usage_tracking_entity_predelete(EntityInterface $entity) {
+  /** @var \Drupal\patternkit_usage_tracking\PatternUsageEntityOperations $entity_operations */
+  $entity_operations = \Drupal::classResolver(PatternUsageEntityOperations::class);
+  $entity_operations->handlePreDelete($entity);
+}
+
+/**
+ * Implements hook_entity_translation_delete().
+ */
+function patternkit_usage_tracking_entity_translation_delete(EntityInterface $translation) {
+  /** @var \Drupal\patternkit_usage_tracking\PatternUsageEntityOperations $entity_operations */
+  $entity_operations = \Drupal::classResolver(PatternUsageEntityOperations::class);
+  $entity_operations->handleTranslationDelete($translation);
+}
+
+/**
+ * Implements hook_entity_revision_delete().
+ */
+function patternkit_usage_tracking_entity_revision_delete(EntityInterface $entity) {
+  /** @var \Drupal\patternkit_usage_tracking\PatternUsageEntityOperations $entity_operations */
+  $entity_operations = \Drupal::classResolver(PatternUsageEntityOperations::class);
+  $entity_operations->handleRevisionDelete($entity);
+}

@@ -149,7 +149,7 @@ class PatternDependencyResolver {
     // Import the schema, but don't resolve references.
     UnresolvedSchema::import(json_decode($schema_json, FALSE, 512, JSON_THROW_ON_ERROR), $context);
 
-    return $observer->getExternalReferences([$pattern_id]);
+    return array_keys($observer->getExternalReferences([$pattern_id]));
   }
 
   /**

@@ -1,0 +1,34 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Media embed wrapper",
+    "description": "A method for wrapping a single media item of multiple types.",
+    "category": "component",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+            "enum": ["@patternkit/components/media_wrapper/media_wrapper"],
+            "readonly": true,
+            "options": {
+                "hidden": true
+            }
+        },
+        "media": {
+          "title": "Media asset",
+          "type": "array",
+          "maxItems": 1,
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "@patternkit/components/media_image_embed/media_image_embed"
+              },
+              {
+                "$ref": "@patternkit/components/media_video_embed/media_video_embed"
+              }
+            ]
+          }
+        }
+    },
+    "required": ["name"],
+    "additionalProperties": false
+}

@@ -16,6 +16,79 @@ use Prophecy\Prophecy\ObjectProphecy;
  * Provides methods to create and place patternkit blocks.
  *
  * This trait is meant to be used only by test classes.
+ *
+ * @phpstan-type EntityMockConfig array{
+ *   id?: int,
+ *   revision_id?: int,
+ *   language?: string,
+ *   uuid?: string,
+ *   is_new?: bool,
+ *   entity_type?: string,
+ *   bundle?: string,
+ *   label?: string,
+ *   contexts?: string[],
+ *   tags?: string[],
+ *   max-age?: int,
+ * }
+ * @phpstan-type BlockEntityMockConfig array{
+ *   pattern_id?: string|null,
+ *   data?: array<string, mixed>,
+ *   id?: int,
+ *   revision_id?: int,
+ *   language?: string,
+ *   uuid?: string,
+ *   is_new?: bool,
+ *   entity_type?: string,
+ *   bundle?: string,
+ *   label?: string,
+ *   contexts?: string[],
+ *   tags?: string[],
+ *   max-age?: int,
+ * }
+ * @phpstan-type PatternEntityMockConfig array{
+ *   hash?: string,
+ *   asset_id?: string,
+ *   name?: string,
+ *   version?: string,
+ *   library?: string,
+ *   category?: string,
+ *   description?: string,
+ *   library_plugin?: string,
+ *   path?: string,
+ *   schema?: string,
+ *   template?: string,
+ *   dependencies?: string[],
+ *   is_bundled?: bool,
+ *   id?: int|null,
+ *   revision_id?: int|null,
+ *   uuid?: string,
+ *   is_new?: bool,
+ *   entity_type?: string,
+ *   bundle?: string,
+ *   label?: string,
+ *   contexts?: string[],
+ *   tags?: string[],
+ *   max-age?: int,
+ * }
+ * @phpstan-type BlockEntityPlaceholder BlockEntityMockConfig|\Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Entity\PatternkitBlock>
+ * @phpstan-type PatternEntityPlaceholder PatternEntityMockConfig|\Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Entity\PatternInterface>
+ * @phpstan-type BlockPluginMockConfig array{
+ *   plugin_id?: string,
+ *   derivative_id?: string,
+ *   configuration?: array<string, mixed>,
+ *   block?: BlockEntityPlaceholder,
+ *   pattern?: PatternEntityPlaceholder,
+ *   base_pattern?: PatternEntityPlaceholder,
+ *   pattern_id?: string,
+ * }
+ * @phpstan-type BlockPluginPlaceholder BlockPluginMockConfig|\Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Plugin\Block\PatternkitBlock>
+ * @phpstan-type LBComponentMockConfig array{
+ *   plugin_id?: string,
+ *   theme?: string,
+ *   configuration?: array<string, mixed>,
+ *   plugin?: BlockPluginPlaceholder,
+ *   uuid?: string,
+ * }
  */
 trait PatternkitMockHelperTrait {
 
@@ -24,18 +97,27 @@ trait PatternkitMockHelperTrait {
   /**
    * Get a mock patternkit block plugin with given configuration.
    *
-   * @param array $values
+   * @param array{
+   *   plugin_id?: string,
+   *   derivative_id?: string,
+   *   configuration?: array<string, mixed>,
+   *   block?: \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Plugin\Block\PatternkitBlock>|array<string, mixed>,
+   *   pattern?: \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Entity\PatternInterface>|array<string, mixed>,
+   *   base_pattern?: \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Entity\PatternInterface>|array<string, mixed>,
+   *   pattern_id?: string,
+   * } $values
    *   An associative array of configuration values to assign to the mock's
    *   related methods.
    *
-   * @return \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Plugin\Block\PatternkitBlock
+   * @return \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Plugin\Block\PatternkitBlock>
    *   A configured prophecy for the patternkit block plugin.
+   *
+   * @phpstan-param BlockPluginMockConfig $values
    *
    * @see \Drupal\patternkit\Plugin\Block\PatternkitBlock
    */
   protected function getMockPatternkitBlockPlugin(array $values = []): ObjectProphecy {
     $plugin = $this->prophesize(BlockPatternkitBlock::class);
-
     $map = [
       'plugin_id' => 'getPluginId',
       'derivative_id' => 'getDerivativeId',
@@ -63,7 +145,7 @@ trait PatternkitMockHelperTrait {
     // Mock assignments for realistic behavior.
     $plugin->setConfiguration(Argument::type('array'))
       ->will(function (array $args) {
-        /** @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Plugin\Block\PatternkitBlock $this */
+        /** @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Plugin\Block\PatternkitBlock> $this */
         $this->getConfiguration()->willReturn($args[0]);
       });
 
@@ -73,12 +155,28 @@ trait PatternkitMockHelperTrait {
   /**
    * Get a mocked patternkit block entity with given configuration.
    *
-   * @param array $values
+   * @param array{
+   *   pattern_id?: string|null,
+   *   data?: array<string, mixed>,
+   *   id?: int,
+   *   revision_id?: int,
+   *   language?: string,
+   *   uuid?: string,
+   *   is_new?: bool,
+   *   entity_type?: string,
+   *   bundle?: string,
+   *   label?: string,
+   *   contexts?: string[],
+   *   tags?: string[],
+   *   max-age?: int,
+   * } $values
    *   An associative array of configuration values to assign to the mock's
    *   related methods.
    *
-   * @return \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternkitBlock
+   * @return \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Entity\PatternkitBlock>
    *   A configured prophecy for the patternkit block entity.
+   *
+   * @phpstan-param BlockEntityMockConfig $values
    *
    * @see \Drupal\patternkit\Entity\PatternkitBlock
    */
@@ -92,7 +190,6 @@ trait PatternkitMockHelperTrait {
       'is_new' => FALSE,
     ];
 
-    /** @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternkitBlock $block */
     $block = $this->getEntityProphecy(
       EntityPatternkitBlock::class,
       $map,
@@ -110,7 +207,7 @@ trait PatternkitMockHelperTrait {
     // Configure assignment behaviors for realistic interactions.
     $block->setPattern(Argument::type('string'))
       ->will(function (array $args) {
-        /** @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternkitBlock $this */
+        /** @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Entity\PatternkitBlock> $this */
         $this->getPattern()->willReturn($args[0]);
       });
 
@@ -135,12 +232,38 @@ trait PatternkitMockHelperTrait {
   /**
    * Get a mocked pattern entity with given configuration.
    *
-   * @param array $values
+   * @param array{
+   *   hash?: string,
+   *   asset_id?: string,
+   *   name?: string,
+   *   version?: string,
+   *   library?: string,
+   *   category?: string,
+   *   description?: string,
+   *   library_plugin?: string,
+   *   path?: string,
+   *   schema?: string,
+   *   template?: string,
+   *   dependencies?: string[],
+   *   is_bundled?: bool,
+   *   id?: int|null,
+   *   revision_id?: int|null,
+   *   uuid?: string,
+   *   is_new?: bool,
+   *   entity_type?: string,
+   *   bundle?: string,
+   *   label?: string,
+   *   contexts?: string[],
+   *   tags?: string[],
+   *   max-age?: int,
+   * } $values
    *   An associative array of configuration values to assign to the mock's
    *   related methods.
    *
-   * @return \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternInterface
+   * @return \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Entity\PatternInterface>
    *   A configured prophecy for the patternkit block entity.
+   *
+   * @phpstan-param PatternEntityMockConfig $values
    *
    * @see \Drupal\patternkit\Entity\PatternInterface
    */
@@ -175,7 +298,7 @@ trait PatternkitMockHelperTrait {
     // Configure assignment behaviors for realistic interactions.
     // @todo Configure more setter methods as needed for tests.
     $pattern->setBundled()->will(function (array $args) {
-      /** @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternInterface $this */
+      /** @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Entity\PatternInterface> $this */
       $this->isBundled()->willReturn($args[0] ?? TRUE);
     });
 
@@ -189,14 +312,19 @@ trait PatternkitMockHelperTrait {
    * different mock types through a test case argument without having to include
    * the conditional logic in the calling function.
    *
-   * @param string $type
+   * @param 'block'|'layout' $type
    *   The type of component to be mocked. Valid options are "block" or
    *   "layout".
-   * @param array $values
+   * @param array<string, mixed> $values
    *   An array of configuration values for the mock component.
    *
-   * @return \Prophecy\Prophecy\ObjectProphecy
+   * @return \Prophecy\Prophecy\ObjectProphecy<\Drupal\block\BlockInterface>|\Prophecy\Prophecy\ObjectProphecy<\Drupal\layout_builder\SectionComponent>
    *   The configured prophecy mock object.
+   *
+   * @template T of 'block'|'layout'
+   * @phpstan-param T $type
+   * @phpstan-param BlockPluginMockConfig|LBComponentMockConfig $values
+   * @phpstan-return (T is 'block' ? \Prophecy\Prophecy\ObjectProphecy<\Drupal\block\BlockInterface> : \Prophecy\Prophecy\ObjectProphecy<\Drupal\layout_builder\SectionComponent>)
    *
    * @see \Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait::getMockBlockComponent()
    * @see \Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait::getMockLayoutBuilderComponent()
@@ -210,6 +338,9 @@ trait PatternkitMockHelperTrait {
 
       case 'layout':
         return $this->getMockLayoutBuilderComponent($values);
+
+      default:
+        throw new \LogicException("Unknown mock component type '$type'");
     }
   }
 
@@ -221,12 +352,20 @@ trait PatternkitMockHelperTrait {
    * be mocked using
    * @link \Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait::getMockLayoutBuilderComponent @endlink.
    *
-   * @param array $values
+   * @param array{
+   *   plugin_id?: string,
+   *   theme?: string,
+   *   configuration?: array<string, mixed>,
+   *   plugin?: array<string, mixed>|\Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Plugin\Block\PatternkitBlock>,
+   *   uuid?: string,
+   * } $values
    *   An associative array of configuration values to assign to the mock's
    *   related methods.
    *
-   * @return \Prophecy\Prophecy\ObjectProphecy|\Drupal\block\BlockInterface
+   * @return \Prophecy\Prophecy\ObjectProphecy<\Drupal\block\BlockInterface>
    *   A configured prophecy for the block component.
+   *
+   * @phpstan-param LBComponentMockConfig $values
    *
    * @see \Drupal\block\BlockInterface
    * @see \Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait::getMockLayoutBuilderComponent()
@@ -253,7 +392,7 @@ trait PatternkitMockHelperTrait {
     $map_values = array_diff_key($values, array_flip([
       'configuration',
     ]));
-    /** @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\block\BlockInterface $component */
+    /** @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\block\BlockInterface> $component */
     $component = $this->mapValuesToMethods($component, $map, $map_values);
 
     if (isset($values['configuration'])) {
@@ -263,12 +402,12 @@ trait PatternkitMockHelperTrait {
     // Configure assignment behaviors for realistic interactions.
     $component->set('configuration', Argument::type('array'))
       ->will(function (array $args) {
-        /** @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\block\BlockInterface $this */
+        /** @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\block\BlockInterface> $this */
         $this->get('configuration')->willReturn($args[1]);
       });
     $component->set(Argument::type('string'), Argument::any())
       ->will(function (array $args) {
-        /** @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\block\BlockInterface $this */
+        /** @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\block\BlockInterface> $this */
         $this->get($args[0])->willReturn($args[1]);
       });
 
@@ -283,12 +422,20 @@ trait PatternkitMockHelperTrait {
    * UI which should instead be mocked using
    * @link \Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait::getMockBlockComponent() @endlink.
    *
-   * @param array $values
+   * @param array{
+   *   plugin_id?: string,
+   *   theme?: string,
+   *   configuration?: array<string, mixed>,
+   *   plugin?: array<string, mixed>|\Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Plugin\Block\PatternkitBlock>,
+   *   uuid?: string,
+   * } $values
    *   An associative array of configuration values to assign to the mock's
    *   related methods.
    *
-   * @return \Prophecy\Prophecy\ObjectProphecy|\Drupal\layout_builder\SectionComponent
+   * @return \Prophecy\Prophecy\ObjectProphecy<\Drupal\layout_builder\SectionComponent>
    *   A configured prophecy for the block component.
+   *
+   * @phpstan-param LBComponentMockConfig $values
    *
    * @see \Drupal\layout_builder\SectionComponent
    * @see \Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait::getMockBlockComponent()
@@ -296,7 +443,6 @@ trait PatternkitMockHelperTrait {
    */
   protected function getMockLayoutBuilderComponent(array $values = []): ObjectProphecy {
     $component = $this->prophesize(SectionComponent::class);
-
     $map = [
       'plugin_id' => 'getPluginId',
       'theme' => 'getTheme',
@@ -311,7 +457,7 @@ trait PatternkitMockHelperTrait {
       $values['plugin'] = $this->getMockPatternkitBlockPlugin($values['plugin']);
     }
 
-    /** @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\layout_builder\SectionComponent $component */
+    /** @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\layout_builder\SectionComponent> $component */
     $component = $this->mapValuesToMethods($component, $map, $values);
 
     // Configure multiple ways to access configuration if provided.
@@ -322,19 +468,19 @@ trait PatternkitMockHelperTrait {
     // Configure assignment behaviors for realistic interactions.
     $component->set('configuration', Argument::type('array'))
       ->will(function (array $args) {
-        /** @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\layout_builder\SectionComponent $this */
+        /** @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\layout_builder\SectionComponent> $this */
         $this->get('configuration')->willReturn($args[1]);
         $this->getConfiguration()->willReturn($args[1]);
       });
     $component->setConfiguration(Argument::type('array'))
       ->will(function (array $args) {
-        /** @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\layout_builder\SectionComponent $this */
+        /** @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\layout_builder\SectionComponent> $this */
         $this->get('configuration')->willReturn($args[1]);
         $this->getConfiguration()->willReturn($args[1]);
       });
     $component->set(Argument::type('string'), Argument::any())
       ->will(function (array $args) {
-        /** @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\layout_builder\SectionComponent $this */
+        /** @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\layout_builder\SectionComponent> $this */
         $this->get($args[0])->willReturn($args[1]);
       });
 
@@ -342,19 +488,59 @@ trait PatternkitMockHelperTrait {
   }
 
   /**
+   * Load static data into mocked layout builder section components.
+   *
+   * @param array<int, array<string, array<string, mixed>>> $data
+   *   Configuration data to be loaded into component mocks.
+   *   - Top-level data should be numerically keyed by the section ID.
+   *   - Within each section, individual components should be keyed by
+   *     a string value representing the component's UUID.
+   *   - Each component should provide data as specified by
+   *     @link self::getMockLayoutBuilderComponent()@endlink.
+   *
+   * @return array<string, \Drupal\layout_builder\SectionComponent>
+   *   An array of section component prophecy objects configured using the
+   *   provided data, and keyed by a layout path within the mocked layout data
+   *   in the form `<section_delta>.<component_uuid>`.
+   *
+   * @phpstan-param array<int, array<string, LBComponentMockConfig>> $data
+   *
+   * @see \Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait::getMockLayoutBuilderComponent()
+   */
+  protected function mockLayoutComponents(array $data): array {
+    $components = [];
+    foreach ($data as $section_delta => $section_components) {
+      foreach ($section_components as $uuid => $component_data) {
+        $path = $section_delta . '.' . $uuid;
+        $defaults = [
+          'uuid' => $uuid,
+        ];
+
+        // Create the mock component.
+        $component = $this->getMockLayoutBuilderComponent($component_data + $defaults);
+        $components[$path] = $component->reveal();
+      }
+    }
+
+    return $components;
+  }
+
+  /**
    * Mock an entity with support to configure common inspection values.
    *
-   * @param string $class
+   * @param class-string<T> $class
    *   The class name of the entity type to be mocked. This class is expected to
    *   extend @link \Drupal\Core\Entity\EntityInterface@endlink.
-   * @param string[] $map
+   * @param array<string, string> $map
    *   An associative array of methods for configuration keyed by a shared key
    *   in the $values parameter.
-   * @param array $values
+   * @param array<string, mixed> $values
    *   (optional) An array of values to map onto the entity mock.
    *
-   * @return \Prophecy\Prophecy\ObjectProphecy|\Drupal\Core\Entity\EntityInterface
+   * @return \Prophecy\Prophecy\ObjectProphecy<T>
    *   The configured prophecy for the specified entity class.
+   *
+   * @template T of \Drupal\Core\Entity\EntityInterface
    */
   private function getEntityProphecy(string $class, array $map = [], array $values = []): ObjectProphecy {
     assert(is_a($class, EntityInterface::class, TRUE));
@@ -388,10 +574,10 @@ trait PatternkitMockHelperTrait {
    *
    * @param \Prophecy\Prophecy\ObjectProphecy $prophecy
    *   The instantiated prophecy to be configured.
-   * @param string[] $map
+   * @param array<string, string> $map
    *   An associative array of methods for configuration keyed by a shared key
    *   in the $values parameter.
-   * @param array $values
+   * @param array<string, mixed> $values
    *   An associative array of values to map onto the prophecy by assigning the
    *   values as returns for the method indicated by the related entry in the
    *   $map parameter.

@@ -122,7 +122,6 @@ class PatternkitCommands extends DrushCommands {
    *
    * @param string|null $library_name
    *   (optional) The name of a library to limit updates to.
-   *
    * @option string $filter
    *   A string concatenation of entity type, bundle, and display mode for
    *   updates to be limited to. Example: 'node.article.default'. Fewer items

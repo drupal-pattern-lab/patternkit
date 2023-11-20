@@ -99,6 +99,14 @@ services:
       - '@entity_type.manager'
     calls:
       - ['setContextBuilder', ['@patternkit.schema.context_builder']]
+  patternkit.pattern.detector:
+    class: Drupal\patternkit\Utility\PatternDetector
+    arguments:
+      - '@patternkit.pattern.repository'
+      - '@patternkit.schema.schema_factory'
+      - '@patternkit.schema.context_builder'
+      - '@patternkit.schema.data_preprocessor.factory'
+      - '@patternkit.schema.data_preprocessor.defaults'
   plugin.manager.library.pattern:
     class: Drupal\patternkit\PatternLibraryPluginManager
     arguments: ['@container.namespaces', '@cache.discovery', '@module_handler', '@theme_handler']
