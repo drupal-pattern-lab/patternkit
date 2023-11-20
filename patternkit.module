@@ -5,10 +5,10 @@
  * Patternkit parses pattern libraries and ingests them into Drupal Blocks.
  */
 
-use Drupal\patternkit\PatternkitBlockEntityOperations;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Url;
+use Drupal\patternkit\PatternkitBlockEntityOperations;
 
 /**
  * Implements hook_help().

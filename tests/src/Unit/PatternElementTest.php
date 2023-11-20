@@ -3,16 +3,16 @@
 namespace Drupal\Tests\patternkit\Unit;
 
 use Drupal\Core\StringTranslation\TranslationInterface;
-use Drupal\patternkit\Exception\SchemaValidationException;
-use Drupal\patternkit\Exception\UnknownPatternException;
-use Drupal\patternkit\PatternRepository;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\patternkit\Element\Pattern;
 use Drupal\patternkit\Entity\PatternInterface;
+use Drupal\patternkit\Exception\SchemaValidationException;
+use Drupal\patternkit\Exception\UnknownPatternException;
 use Drupal\patternkit\PatternFieldProcessorPluginManager;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
+use Drupal\patternkit\PatternRepository;
 use Drupal\Tests\Core\Render\RendererTestBase;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Test functionality for the Pattern render element.

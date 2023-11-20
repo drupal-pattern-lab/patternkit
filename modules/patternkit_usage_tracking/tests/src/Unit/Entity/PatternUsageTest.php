@@ -16,6 +16,8 @@ use Drupal\Tests\UnitTestCase;
 class PatternUsageTest extends UnitTestCase {
 
   /**
+   * Test the parseUsagePath() method.
+   *
    * @param string $path
    *   The usage path to be parsed.
    * @param array{
@@ -95,15 +97,16 @@ class PatternUsageTest extends UnitTestCase {
    * Data provider for testParseUsagePath().
    */
   public function providerIsNested(): array {
-    $cases = [];
-
-    $cases[] = ['1.5137f6a8-018c-11ee-be56-0242ac120002:@patternkit/atoms/example_ref/src/example_ref', FALSE];
-    $cases[] = [
-      '2.5dcc2a9c-018c-11ee-be56-0242ac120002:@patternkit/atoms/example_ref/src/example_ref=>@patternkit/atoms/example/src/example',
-      TRUE,
+    return [
+      [
+        '1.5137f6a8-018c-11ee-be56-0242ac120002:@patternkit/atoms/example_ref/src/example_ref',
+        FALSE,
+      ],
+      [
+        '2.5dcc2a9c-018c-11ee-be56-0242ac120002:@patternkit/atoms/example_ref/src/example_ref=>@patternkit/atoms/example/src/example',
+        TRUE,
+      ],
     ];
-
-    return $cases;
   }
 
   /**

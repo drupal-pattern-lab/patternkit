@@ -639,7 +639,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
 
     // Log each of the exceptions.
     foreach ($exceptions as [$exception, $message, $context]) {
-      switch (true) {
+      switch (TRUE) {
         case $exception instanceof PluginNotFoundException:
         case $exception instanceof PluginException:
         case $exception instanceof SchemaException:
@@ -669,7 +669,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     }
   }
 
-    /**
+  /**
    * Get pattern default values general to the whole pattern library.
    *
    * @param \Drupal\patternkit\PatternLibrary $library
@@ -721,9 +721,9 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
       'assets' => [],
       'name' => $component_name,
     ];
-}
+  }
 
-    /**
+  /**
    * Determine a pattern category from library information.
    *
    * @param \Drupal\patternkit\PatternLibrary $library

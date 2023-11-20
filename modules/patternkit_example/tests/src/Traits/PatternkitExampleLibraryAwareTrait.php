@@ -148,15 +148,15 @@ trait PatternkitExampleLibraryAwareTrait {
         'path' => 'components/media_video_embed/media_video_embed',
       ] + $defaults,
       'components/media_wrapper/media_wrapper' => [
-          'name' => 'Media embed wrapper',
-          'title' => 'Media embed wrapper',
-          'category' => 'component',
-          'assets' => [
-            'twig' => $lib_path . 'components/media_wrapper/media_wrapper.twig',
-            'json' => $lib_path . 'components/media_wrapper/media_wrapper.json',
-          ],
-          'path' => 'components/media_wrapper/media_wrapper',
-        ] + $defaults,
+        'name' => 'Media embed wrapper',
+        'title' => 'Media embed wrapper',
+        'category' => 'component',
+        'assets' => [
+          'twig' => $lib_path . 'components/media_wrapper/media_wrapper.twig',
+          'json' => $lib_path . 'components/media_wrapper/media_wrapper.json',
+        ],
+        'path' => 'components/media_wrapper/media_wrapper',
+      ] + $defaults,
     ];
 
     return $expected;

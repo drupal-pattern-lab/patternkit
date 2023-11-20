@@ -7,10 +7,10 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\File\FileUrlGeneratorInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\State\StateInterface;
+use Drupal\patternkit\Asset\PatternLibraryParserInterface;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\JSONSchemaEditorTrait;
 use Drupal\patternkit\PatternEditorConfig;
-use Drupal\patternkit\Asset\PatternLibraryParserInterface;
 use Drupal\patternkit\PatternLibraryPluginDefault;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 

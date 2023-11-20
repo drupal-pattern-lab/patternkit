@@ -156,7 +156,7 @@ function patternkit_update_8003(&$sandbox) {
     ->setDescription(t('The machine name of the Patternkit pattern.'));
   $entity_definition_update_manager
     ->installFieldStorageDefinition('pattern_id',
-  'patternkit_block', 'patternkit', $pattern_id_field_definition);
+      'patternkit_block', 'patternkit', $pattern_id_field_definition);
 }
 
 /**
@@ -164,7 +164,8 @@ function patternkit_update_8003(&$sandbox) {
  */
 function patternkit_update_8004(&$sandbox) {
   $config_key = 'patternkit.settings';
-  $patternkit_module_path = \Drupal::service('extension.list.module')->getPath('patternkit');
+  $patternkit_module_path = \Drupal::service('extension.list.module')
+    ->getPath('patternkit');
   $source = new FileStorage($patternkit_module_path . '/config/install');
   $config_install = $source->read($config_key);
   $config_current = \Drupal::configFactory()->getEditable($config_key);
@@ -192,7 +193,8 @@ function patternkit_update_8004(&$sandbox) {
  */
 function patternkit_update_8005(&$sandbox) {
   $config_key = 'patternkit.settings';
-  $module_file_path = \Drupal::service('extension.list.module')->getPath('patternkit');
+  $module_file_path = \Drupal::service('extension.list.module')
+    ->getPath('patternkit');
   $source = new FileStorage($module_file_path . '/config/install');
   $config_install = $source->read($config_key);
   $config_current = \Drupal::configFactory()->getEditable($config_key);
@@ -263,7 +265,13 @@ function patternkit_update_9002(&$sandbox) {
     ->setRevisionable(TRUE);
 
   $original_values = $database->select($table_name)
-    ->fields($table_name, [$revision_id_key, 'hash', 'schema', 'template', 'version'])
+    ->fields($table_name, [
+      $revision_id_key,
+      'hash',
+      'schema',
+      'template',
+      'version',
+    ])
     ->execute()
     ->fetchAllAssoc($revision_id_key);
 

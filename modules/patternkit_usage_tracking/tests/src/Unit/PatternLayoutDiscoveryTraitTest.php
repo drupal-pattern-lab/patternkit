@@ -4,7 +4,6 @@ namespace Drupal\Tests\patternkit_usage_tracking\Unit;
 
 use Drupal\Core\Block\Plugin\Block\Broken;
 use Drupal\Core\Entity\ContentEntityInterface;
-use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\layout_builder\SectionListInterface;
 use Drupal\layout_builder\SectionStorageInterface;
 use Drupal\patternkit\Entity\PatternInterface;
@@ -13,7 +12,6 @@ use Drupal\patternkit\Utility\PatternDetector;
 use Drupal\patternkit_usage_tracking\PatternLayoutDiscoveryTrait;
 use Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;

@@ -4,8 +4,8 @@ namespace Drupal\Tests\patternkit\FunctionalJavascript;
 
 use Behat\Mink\Element\NodeElement;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
 use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
 use Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay;
 use Drupal\layout_builder\LayoutEntityHelperTrait;
 use Drupal\Tests\contextual\FunctionalJavascript\ContextualLinkClickTrait;

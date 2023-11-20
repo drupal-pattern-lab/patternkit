@@ -2,8 +2,8 @@
 
 namespace Drupal\patternkit;
 
-use Drupal\Core\Extension\Extension;
 use Drupal\Core\Asset\Exception\LibraryDefinitionMissingLicenseException;
+use Drupal\Core\Extension\Extension;
 
 /**
  * Wraps and provides defaults for an array of Patterns.

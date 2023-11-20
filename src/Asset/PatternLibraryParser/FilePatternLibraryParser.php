@@ -3,11 +3,11 @@
 namespace Drupal\patternkit\Asset\PatternLibraryParser;
 
 use Drupal\Core\Asset\Exception\InvalidLibraryFileException;
+use Drupal\patternkit\Asset\PatternLibraryParserBase;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\PatternLibraryJSONParserTrait;
-use Drupal\patternkit\Asset\PatternLibraryParserBase;
 
 /**
  * Parses a File pattern library collection into usable metadata.

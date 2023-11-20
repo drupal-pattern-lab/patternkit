@@ -50,8 +50,28 @@ class PatternUsageQueueWorker extends LayoutQueueWorkerBase {
   protected LayoutUsageTracker $layoutUsageTracker;
 
   /**
-   * {@inheritdoc}
+   * Constructs a PatternUsageQueueWorker object.
    *
+   * @param array<string, mixed> $configuration
+   *   A configuration array containing information about the plugin instance.
+   * @param string $plugin_id
+   *   The plugin_id for the plugin instance.
+   * @param mixed $plugin_definition
+   *   The plugin implementation definition.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager service.
+   * @param \Drupal\patternkit\LayoutHelper $layout_helper
+   *   The layout helper service.
+   * @param \Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface $section_storage_manager
+   *   The section storage plugin manager service.
+   * @param \Drupal\layout_builder\LayoutTempstoreRepositoryInterface $layout_tempstore_repository
+   *   The layout tempstore repository service.
+   * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
+   *   The logger channel to be used.
+   * @param \Drupal\Core\StringTranslation\TranslationInterface $string_translation
+   *   The string translation service.
+   * @param \Drupal\Core\Messenger\MessengerInterface $messenger
+   *   The messenger service.
    * @param \Drupal\patternkit_usage_tracking\PatternUsageManager $pattern_usage_manager
    *   The pattern usage tracking manager service.
    * @param \Drupal\patternkit_usage_tracking\LayoutUsageTracker $layout_usage_tracker

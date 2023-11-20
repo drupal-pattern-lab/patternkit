@@ -5,10 +5,10 @@
  * Post-update operations for the Patternkit module.
  */
 
-use Drupal\Core\StringTranslation\TranslatableMarkup;
-use Drupal\Core\Entity\EntityStorageException;
-use Drupal\Core\Utility\UpdateException;
 use Drupal\Component\Plugin\Exception\PluginException;
+use Drupal\Core\Entity\EntityStorageException;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
+use Drupal\Core\Utility\UpdateException;
 use Drupal\patternkit\Exception\UnknownPatternException;
 
 /**

@@ -390,7 +390,6 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     // Handle pattern updates if needed.
     $this->promptForPatternUpdates($form, $form_state);
 
-
     // @todo Re-enable the other formats like JSON and webcomponent.
     $form['presentation_style'] = [
       '#type'          => 'select',

@@ -16,7 +16,7 @@ interface PatternLibraryParserInterface {
    *
    * @param string $name
    *   The name of the pattern.
-   * @param array|object $data
+   * @param array|object $schema
    *   Configuration data for the pattern.
    *
    * @return \Drupal\patternkit\Entity\PatternInterface
@@ -61,7 +61,8 @@ interface PatternLibraryParserInterface {
    *   The patternkit pattern object to extend.
    *
    * @return \Drupal\patternkit\Entity\PatternInterface
-   *   The patternkit object representing the pattern..*/
+   *   The patternkit object representing the pattern.
+   */
   public function fetchFragmentAssets(string $subtype, object $config, object &$pk_obj): PatternInterface;
 
   /**

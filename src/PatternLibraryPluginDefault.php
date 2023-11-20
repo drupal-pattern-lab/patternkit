@@ -2,12 +2,12 @@
 
 namespace Drupal\patternkit;
 
-use Drupal\Component\Plugin\DependentPluginInterface;
-use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Component\Plugin\ConfigurableInterface;
+use Drupal\Component\Plugin\DependentPluginInterface;
 use Drupal\Component\Plugin\PluginBase;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\Core\Extension\Extension;
 use Drupal\Core\Messenger\MessengerTrait;

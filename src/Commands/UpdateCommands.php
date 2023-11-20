@@ -3,12 +3,10 @@
 namespace Drupal\patternkit\Commands;
 
 use Drupal\Core\Block\BlockManagerInterface;
-use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\patternkit\BulkOperations\LayoutDiscoveryBatchManager;
 use Drupal\patternkit\BulkOperations\Worker\LayoutDiscoveryBatchWorker;
-use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternRepository;
 use Drupal\patternkit\UpdateHelper;
 use Drush\Commands\DrushCommands;

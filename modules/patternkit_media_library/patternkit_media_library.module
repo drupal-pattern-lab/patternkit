@@ -26,7 +26,10 @@ function patternkit_media_library_form_layout_builder_configure_block_alter(&$fo
 
     // Expose media/field type mapping configuration to drive allowed types in
     // media modals.
-    $media_mapping = $config->get('media_mapping') ?? ['image_types' => [], 'video_types' => []];
+    $media_mapping = $config->get('media_mapping') ?? [
+      'image_types' => [],
+      'video_types' => [],
+    ];
     $form_attached['drupalSettings']['patternkitEditor']['mediaMapping'] = $media_mapping;
 
     $form['settings']['configuration']['#attached'] = $form_attached;
