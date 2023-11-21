@@ -9,6 +9,7 @@ use Drupal\patternkit\Asset\PatternDiscoveryInterface;
 use Drupal\Tests\patternkit\Kernel\PatternkitKernelTestBase;
 use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
 use Prophecy\Argument;
+use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 
 /**
@@ -19,6 +20,7 @@ use Prophecy\Prophecy\ObjectProphecy;
  */
 class PatternDiscoveryCacheTest extends PatternkitKernelTestBase {
 
+  use ProphecyTrait;
   use PatternkitExampleLibraryAwareTrait;
 
   /**

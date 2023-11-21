@@ -118,9 +118,8 @@ abstract class PatternkitBrowserTestBase extends WebDriverTestBase {
   protected function getLastLayoutBlockUuid(EntityInterface $entity): string {
     $sections = $this->getEntitySections($entity);
     $components = $sections[0]->getComponents();
-    end($components);
 
-    return key($components);
+    return array_key_last($components);
   }
 
   /**

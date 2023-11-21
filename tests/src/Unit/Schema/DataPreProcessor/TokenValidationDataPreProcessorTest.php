@@ -7,6 +7,7 @@ use Drupal\patternkit\Schema\DataPreProcessor\TokenValidationDataPreProcessor;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
+use Prophecy\PhpUnit\ProphecyTrait;
 use Swaggest\JsonSchema\Context;
 use Swaggest\JsonSchema\DataPreProcessor;
 use Swaggest\JsonSchema\Schema;
@@ -19,6 +20,7 @@ use Swaggest\JsonSchema\Schema;
  */
 class TokenValidationDataPreProcessorTest extends UnitTestCase {
 
+  use ProphecyTrait;
   use JsonDecodeTrait;
 
   /**

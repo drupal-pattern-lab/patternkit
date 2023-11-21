@@ -441,7 +441,7 @@ class UpdateHelper {
       $pattern_id = $plugin->getPatternId();
 
       // Stop here if this doesn't match the library filter.
-      if (isset($filter['library']) && stripos($pattern_id, $filter['library']) !== 0) {
+      if (isset($filter['library']) && stripos($pattern_id, (string) $filter['library']) !== 0) {
         $this->logger->info('Skipping block since pattern ID "@id" did not start with library filter "@filter".', [
           '@id' => $pattern_id,
           '@filter' => $filter['library'],
@@ -450,7 +450,7 @@ class UpdateHelper {
       }
 
       // Exclude any patterns not matching the pattern name filter if provided.
-      if (isset($filter['pattern']) && stripos($pattern_id, $filter['pattern']) !== 0) {
+      if (isset($filter['pattern']) && stripos($pattern_id, (string) $filter['pattern']) !== 0) {
         $this->logger->info('Skipping block since pattern ID "@id" did not match pattern filter "@filter".', [
           '@id' => $pattern_id,
           '@filter' => $filter['pattern'],

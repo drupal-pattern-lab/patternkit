@@ -103,7 +103,7 @@ class PatternUsage extends ContentEntityBase {
    */
   public function getLayoutPath(): string {
     $path = $this->get('path')->value;
-    return strstr($path, static::PATH_SEPARATOR, TRUE) ?: $path;
+    return strstr($path, (string) static::PATH_SEPARATOR, TRUE) ?: $path;
   }
 
   /**

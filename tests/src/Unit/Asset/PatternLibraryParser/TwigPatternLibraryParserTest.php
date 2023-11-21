@@ -16,6 +16,7 @@ use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
 use org\bovigo\vfs\vfsStream;
 use Prophecy\Argument;
 use Prophecy\Argument\Token\TokenInterface;
+use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Swaggest\JsonSchema\Context;
 use Swaggest\JsonSchema\InvalidValue;
@@ -33,6 +34,7 @@ use Swaggest\JsonSchema\InvalidValue;
  */
 class TwigPatternLibraryParserTest extends PatternLibraryParserTestBase {
 
+  use ProphecyTrait;
   use PatternkitExampleLibraryAwareTrait;
 
   /**

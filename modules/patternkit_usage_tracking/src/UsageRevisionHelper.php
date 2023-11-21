@@ -174,7 +174,7 @@ class UsageRevisionHelper {
         $saved_patterns[$uuid]['uuid'] = $uuid;
         $saved_patterns[$uuid]['layout_path'] = $record->getLayoutPath();
         $saved_patterns[$uuid]['pattern_id'] = $pattern_id;
-        $saved_patterns[$uuid]['nested'] = $saved_patterns[$uuid]['nested'] ?? [];
+        $saved_patterns[$uuid]['nested'] ??= [];
         $saved_patterns[$uuid]['record'] = $record;
       }
     }

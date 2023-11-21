@@ -7,6 +7,7 @@ use Drupal\patternkit\Asset\PatternLibraryParserInterface;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
 use org\bovigo\vfs\vfsStream;
+use Prophecy\PhpUnit\ProphecyTrait;
 
 /**
  * Tests for the PatternLibraryParserBase class.
@@ -17,6 +18,7 @@ use org\bovigo\vfs\vfsStream;
  */
 class PatternLibraryParserBaseTest extends PatternLibraryParserTestBase {
 
+  use ProphecyTrait;
   use PatternkitExampleLibraryAwareTrait;
 
   /**

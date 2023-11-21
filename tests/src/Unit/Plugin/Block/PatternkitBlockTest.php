@@ -742,7 +742,7 @@ class PatternkitBlockTest extends UnitTestCase {
     $this->assertSame($configData, $element['#config']);
     $this->assertEquals($contextValues, $element['#context']);
     $this->assertEqualsCanonicalizing(array_merge($blockCacheData['contexts'], $patternCacheData['contexts']), $element['#cache']['contexts']);
-    $this->assertEqualsCanonicalizing(array_merge($blockCacheData['tags'], $patternCacheData['tags']), $element['#cache']['tags']);
+    $this->assertEqualsCanonicalizing([...$blockCacheData['tags'], ...$patternCacheData['tags']], $element['#cache']['tags']);
     $this->assertEqualsCanonicalizing(100, $element['#cache']['max-age']);
     $this->assertEqualsCanonicalizing([], $element['#attached']);
   }
