@@ -192,7 +192,6 @@ class PatternElementTest extends RendererTestBase {
    *
    * @covers ::preRenderPatternElement
    * @covers ::getPatternLibraryPlugin
-   * @doesNotPerformAssertions
    */
   public function testPreRenderProcessesConfigValues() {
     // Create a unique config set for confirmation in the mock.

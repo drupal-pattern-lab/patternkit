@@ -100,6 +100,7 @@ class LibraryNamespaceResolverTest extends UnitTestCase {
   /**
    * @covers ::getLibraryFromNamespace
    * @group legacy
+   * @doesNotPerformAssertions
    */
   public function testLibraryDeprecationWarning() {
     $namespaceResolver = $this->getMockBuilder(LibraryNamespaceResolver::class)
