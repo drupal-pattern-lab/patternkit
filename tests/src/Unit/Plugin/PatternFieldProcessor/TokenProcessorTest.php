@@ -160,21 +160,50 @@ JSON;
    * @covers ::apply
    * @covers ::__construct
    */
-  public function testApply() {
+  public function testApplyReplace() {
     $schema_json = <<<JSON
       {
         "\$schema": "http://json-schema.org/draft-04/schema#",
-        "title": "Example with a basic text property",
-        "type": "object",
-        "properties": {
-          "text": {
-            "title": "Text",
-            "type": "string",
-            "options": {
-              "grid_columns": 4
-            }
-          }
-        }
+        "title": "Example with a plain text property",
+          "title": "Text",
+          "type": "string",
+          "format": "html"
+      }
+      JSON;
+    $schema = Schema::import(json_decode($schema_json));
+
+    $value = '<p>My [node:title] string</p>';
+    $randomTitle = $this->getRandomGenerator()->name();
+    $expected = str_replace('[node:title]', $randomTitle, $value);
+    $node = $this->createMock(NodeInterface::class);
+    $node->title = $randomTitle;
+
+    // Ensure the replacePlain method is not invoked for html formatted strings.
+    $this->token->expects($this->never())
+      ->method('replacePlain');
+
+    // Mock the token replacement with expected arguments.
+    $this->token->expects($this->once())
+      ->method('replace')
+      ->with($value, ['node' => $node], ['clear' => TRUE], $this->isInstanceOf(BubbleableMetadata::class))
+      ->willReturn($expected);
+
+    $result = $this->plugin->apply($schema, $value, ['node' => $node], new BubbleableMetadata());
+    $this->assertIsString($result);
+    $this->assertEquals($expected, $result);
+  }
+
+  /**
+   * @covers ::apply
+   * @covers ::__construct
+   */
+  public function testApplyReplacePlain() {
+    $schema_json = <<<JSON
+      {
+        "\$schema": "http://json-schema.org/draft-04/schema#",
+        "title": "Example with a plain text property",
+          "title": "Text",
+          "type": "string"
       }
       JSON;
     $schema = Schema::import(json_decode($schema_json));
@@ -185,14 +214,19 @@ JSON;
     $node = $this->createMock(NodeInterface::class);
     $node->title = $randomTitle;
 
-    // Mock the token replacement.
+    // Ensure the replace method is not invoked for plain text strings.
+    $this->token->expects($this->never())
+      ->method('replace');
+
+    // Mock the token replacement with expected arguments.
     $this->token->expects($this->once())
-      ->method('replace')
+      ->method('replacePlain')
+      ->with($value, ['node' => $node], ['clear' => TRUE], $this->isInstanceOf(BubbleableMetadata::class))
       ->willReturn($expected);
 
     $result = $this->plugin->apply($schema, $value, ['node' => $node], new BubbleableMetadata());
     $this->assertIsString($result);
-    $this->assertEquals("My $randomTitle string", $result);
+    $this->assertEquals($expected, $result);
   }
 
 }

@@ -240,6 +240,7 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
     // Prepare test values for identification in rendered output.
     $title = $this->getRandomGenerator()->sentences(3);
     $title_token = '[node:title]';
+    $optional_field_token = '[node:field_url]';
     $invalid_token = '[node:invalid_token]';
     $body_text = 'My body text with an invalid token: ';
 
@@ -247,6 +248,7 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
     $node = Node::create([
       'type' => 'article',
       'title' => $title,
+      'field_url' => '',
     ]);
     $node->save();
 
@@ -254,6 +256,7 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
     $config = [
       'text' => $title_token,
       'formatted_text' => $body_text . $invalid_token,
+      'image_url' => $optional_field_token
     ];
 
     // Assemble the pattern element for rendering.
@@ -274,8 +277,10 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
     // Confirm tokens with replacement values are not visible.
     $this->assertStringNotContainsString($title_token, $output);
 
-    // Confirm the invalid token is unchanged.
-    $this->assertStringContainsString($invalid_token, $output);
+    // Confirm the invalid token and token without a replacement value are both
+    // removed from the output.
+    $this->assertStringNotContainsString($invalid_token, $output);
+    $this->assertStringNotContainsString($optional_field_token, $output);
 
     // Confirm token replacement text is included as expected.
     $this->assertStringContainsString($title, $output, 'Title text was not replaced into token placement.');

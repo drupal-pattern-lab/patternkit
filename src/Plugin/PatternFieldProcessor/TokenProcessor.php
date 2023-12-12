@@ -83,7 +83,12 @@ class TokenProcessor extends PatternFieldProcessorBase {
    * {@inheritdoc}
    */
   public function apply(SchemaContract $propertySchema, $value, $context, BubbleableMetadata $bubbleableMetadata): string {
-    return $this->token->replace($value, $context, [], $bubbleableMetadata);
+    if (property_exists($propertySchema, 'format') && $propertySchema->format == 'html') {
+      return $this->token->replace($value, $context, ['clear' => TRUE], $bubbleableMetadata);
+    }
+    else {
+      return $this->token->replacePlain($value, $context, ['clear' => TRUE], $bubbleableMetadata);
+    }
   }
 
 }
