@@ -100,7 +100,6 @@ class LibraryNamespaceResolverTest extends UnitTestCase {
   /**
    * @covers ::getLibraryFromNamespace
    * @group legacy
-   * @doesNotPerformAssertions
    */
   public function testLibraryDeprecationWarning() {
     $namespaceResolver = $this->getMockBuilder(LibraryNamespaceResolver::class)
@@ -115,7 +114,15 @@ class LibraryNamespaceResolverTest extends UnitTestCase {
         'deprecated' => 'The %library_id% library is deprecated.',
       ]);
 
-    $this->expectDeprecation('The my_module/my_namespace library is deprecated.');
+    // Replace error handler to capture deprecation error and test it.
+    // See https://github.com/sebastianbergmann/phpunit/issues/5062#issuecomment-1446620312
+    set_error_handler(static function ($errno, $errstr): void {
+      restore_error_handler();
+      throw new \Exception($errstr, $errno);
+    }, E_ALL);
+    $this->expectException(\Exception::class);
+    $this->expectExceptionMessage('The my_module/my_namespace library is deprecated.');
+
     $namespaceResolver->getLibraryFromNamespace('@my_namespace');
   }
 
