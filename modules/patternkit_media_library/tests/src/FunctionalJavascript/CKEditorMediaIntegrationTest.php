@@ -23,7 +23,7 @@ class CKEditorMediaIntegrationTest extends PatternkitMediaLibraryBrowserTestBase
   /**
    * {@inheritdoc}
    */
-  static protected $modules = [
+  protected static $modules = [
     'patternkit_example',
     'ckeditor',
     'media_library',
@@ -35,7 +35,6 @@ class CKEditorMediaIntegrationTest extends PatternkitMediaLibraryBrowserTestBase
    * @var string[]
    */
   protected array $editorPermissions = [
-    'access administration pages',
     'configure any layout',
     'create and edit custom blocks',
     'bypass node access',

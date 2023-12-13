@@ -15,7 +15,7 @@ class PatternUpdateTest extends PatternkitBrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  static protected $modules = [
+  protected static $modules = [
     'patternkit_example',
   ];
 
@@ -85,7 +85,6 @@ class PatternUpdateTest extends PatternkitBrowserTestBase {
     $page = $this->getSession()->getPage();
 
     $account = $this->drupalCreateUser([
-      'access administration pages',
       'configure any layout',
       'bypass node access',
     ]);
@@ -157,7 +156,6 @@ class PatternUpdateTest extends PatternkitBrowserTestBase {
     $page = $this->getSession()->getPage();
 
     $account = $this->drupalCreateUser([
-      'access administration pages',
       'configure any layout',
       'bypass node access',
     ]);

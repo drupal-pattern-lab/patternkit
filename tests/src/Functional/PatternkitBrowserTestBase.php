@@ -21,7 +21,7 @@ abstract class PatternkitBrowserTestBase extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  static protected $modules = [
+  protected static $modules = [
     'patternkit',
     'layout_builder',
     'node',

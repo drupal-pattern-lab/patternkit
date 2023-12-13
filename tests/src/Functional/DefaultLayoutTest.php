@@ -12,7 +12,7 @@ class DefaultLayoutTest extends PatternkitBrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  static protected $modules = [
+  protected static $modules = [
     'patternkit_example',
     'field_ui',
   ];
@@ -25,7 +25,6 @@ class DefaultLayoutTest extends PatternkitBrowserTestBase {
     $page = $this->getSession()->getPage();
 
     $account = $this->drupalCreateUser([
-      'access administration pages',
       'administer node display',
       'configure any layout',
       'bypass node access',

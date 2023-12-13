@@ -36,7 +36,6 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
    * @var string[]
    */
   protected array $editorPermissions = [
-    'access administration pages',
     'configure any layout',
     'create and edit custom blocks',
     'bypass node access',

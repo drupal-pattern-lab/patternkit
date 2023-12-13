@@ -18,6 +18,7 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\patternkit\Commands\PatternkitCommands;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternRouteProvider;
+use Drupal\user\Entity\Role;
 use Drupal\views\EntityViewsData;
 
 /**
@@ -294,4 +295,21 @@ function patternkit_update_9002(&$sandbox) {
   }
 
   unset($transaction);
+}
+
+/**
+ * Grant user roles new 'administer patternkit' permission.
+ */
+function patternkit_update_9003() {
+  // Grant new permission to user roles that had the previous permission,
+  // `access administration pages`, to manage patternkit configuration.
+  $roles = user_role_names(FALSE, 'access administration pages');
+  if (!empty($roles)) {
+    foreach ($roles as $id => $name) {
+      /** @var \Drupal\user\RoleInterface $role */
+      $role = Role::load($id);
+      $role->grantPermission('administer patternkit');
+      $role->save();
+    }
+  }
 }

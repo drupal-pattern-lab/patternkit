@@ -19,7 +19,7 @@ class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  static protected $modules = [
+  protected static $modules = [
     'patternkit_example',
     'ckeditor5',
   ];

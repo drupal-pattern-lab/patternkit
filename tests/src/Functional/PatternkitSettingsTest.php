@@ -13,7 +13,7 @@ class PatternkitSettingsTest extends PatternkitBrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  static protected $modules = [
+  protected static $modules = [
     'patternkit_example',
   ];
 
@@ -21,7 +21,7 @@ class PatternkitSettingsTest extends PatternkitBrowserTestBase {
    * Test that the settings form loads as expected.
    */
   public function testPatternkitSettingsForm() {
-    $account = $this->drupalCreateUser(['access administration pages']);
+    $account = $this->drupalCreateUser(['administer patternkit']);
     $this->drupalLogin($account);
 
     $this->drupalGet('admin/config/user-interface/patternkit');

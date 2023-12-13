@@ -37,7 +37,7 @@ abstract class PatternkitBrowserTestBase extends WebDriverTestBase {
   /**
    * {@inheritdoc}
    */
-  static protected $modules = [
+  protected static $modules = [
     'patternkit',
     'layout_builder',
     'node',
@@ -98,7 +98,6 @@ abstract class PatternkitBrowserTestBase extends WebDriverTestBase {
 
     // Create an editorial user with preconfigured permissions.
     $this->editorUser = $this->drupalCreateUser([
-      'access administration pages',
       'access contextual links',
       'configure any layout',
       'create and edit custom blocks',

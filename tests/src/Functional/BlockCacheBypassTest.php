@@ -16,7 +16,7 @@ class BlockCacheBypassTest extends PatternkitBrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  static protected $modules = [
+  protected static $modules = [
     'patternkit_example',
     'patternkit_debug_test',
   ];
@@ -50,7 +50,6 @@ class BlockCacheBypassTest extends PatternkitBrowserTestBase {
     $page = $this->getSession()->getPage();
 
     $account = $this->drupalCreateUser([
-      'access administration pages',
       'configure any layout',
       'bypass node access',
     ]);

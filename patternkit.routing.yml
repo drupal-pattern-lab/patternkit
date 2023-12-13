@@ -74,7 +74,7 @@ patternkit.settings:
   options:
     _admin_route: TRUE
   requirements:
-    _permission: 'access administration pages'
+    _permission: 'administer patternkit'
 
 patternkit.settings.json_settings:
   path: '/admin/config/user-interface/patternkit/json'
@@ -85,4 +85,4 @@ patternkit.settings.json_settings:
   options:
     _admin_route: TRUE
   requirements:
-    _permission: 'access administration pages'
+    _permission: 'administer patternkit'

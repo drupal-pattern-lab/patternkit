@@ -15,7 +15,7 @@ abstract class PatternkitMediaLibraryBrowserTestBase extends PatternkitBrowserTe
   /**
    * {@inheritdoc}
    */
-  static protected $modules = [
+  protected static $modules = [
     'patternkit_media_library',
     'media_library',
   ];
