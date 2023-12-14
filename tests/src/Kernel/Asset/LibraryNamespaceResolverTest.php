@@ -2,6 +2,10 @@
 
 namespace Drupal\Tests\patternkit\Kernel\Asset;
 
+use Drupal\Core\Cache\CacheBackendInterface;
+use Drupal\Core\Cache\MemoryBackend;
+use Drupal\Core\DependencyInjection\ContainerBuilder;
+use Drupal\Core\DependencyInjection\ServiceModifierInterface;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\patternkit\Asset\LibraryNamespaceResolver;
 
@@ -11,7 +15,7 @@ use Drupal\patternkit\Asset\LibraryNamespaceResolver;
  * @coversDefaultClass \Drupal\patternkit\Asset\LibraryNamespaceResolver
  * @group patternkit
  */
-class LibraryNamespaceResolverTest extends KernelTestBase {
+class LibraryNamespaceResolverTest extends KernelTestBase implements ServiceModifierInterface {
 
   /**
    * {@inheritdoc}
@@ -26,9 +30,9 @@ class LibraryNamespaceResolverTest extends KernelTestBase {
   /**
    * The namespace resolver service being tested.
    *
-   * @var \Drupal\patternkit\Asset\LibraryNamespaceResolver
+   * @var \Drupal\Tests\patternkit\Kernel\Asset\TestLibraryNamespaceResolver
    */
-  protected LibraryNamespaceResolver $resolver;
+  protected TestLibraryNamespaceResolver $resolver;
 
   /**
    * {@inheritdoc}
@@ -37,6 +41,16 @@ class LibraryNamespaceResolverTest extends KernelTestBase {
     parent::setUp();
 
     $this->resolver = $this->container->get('patternkit.library.namespace_resolver');
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function alter(ContainerBuilder $container) {
+    // Override the service definition to use our extended test class.
+    $definition = $container->getDefinition('patternkit.library.namespace_resolver');
+    $definition->setClass(TestLibraryNamespaceResolver::class);
+    $container->setDefinition('patternkit.library.namespace_resolver', $definition);
   }
 
   /**
@@ -171,6 +185,50 @@ class LibraryNamespaceResolverTest extends KernelTestBase {
 
     // Expect an unknown library to return NULL.
     $this->assertNull($this->resolver->getLibraryFromNamespace('@unknown'));
+  }
+
+  /**
+   * Test the discovery process to ensure repeated invalidation isn't triggered.
+   *
+   * @covers ::getLibraryDefinitions
+   * @covers ::invalidateCache
+   */
+  public function testCacheInvalidationsDuringBuild(): void {
+    // Mock a functional cache backend to monitor for invalidation calls.
+    $cache = $this->getMockBuilder(MemoryBackend::class)
+      ->onlyMethods([
+        'invalidate',
+      ])
+      ->getMock();
+    $this->resolver->setCache($cache);
+
+    // Expect the invalidation to be called, at most, one time during a single
+    // cache build.
+    $cache->expects($this->atMost(1))
+      ->method('invalidate')
+      ->with(LibraryNamespaceResolver::PERSISTENT_CACHE_ID);
+
+    // Trigger discovery to monitor cache behavior.
+    $this->resolver->getLibraryDefinitions();
+  }
+
+}
+
+/**
+ * An overridden service to extend test access and manipulation.
+ *
+ * @internal
+ */
+class TestLibraryNamespaceResolver extends LibraryNamespaceResolver {
+
+  /**
+   * Set the cache backend to be used by the service.
+   *
+   * @param \Drupal\Core\Cache\CacheBackendInterface $cache
+   *   The cache backend service to be used.
+   */
+  public function setCache(CacheBackendInterface $cache): void {
+    $this->cache = $cache;
   }
 
 }

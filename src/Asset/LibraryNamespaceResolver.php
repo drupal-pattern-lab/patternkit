@@ -373,6 +373,17 @@ class LibraryNamespaceResolver extends CacheCollector implements LibraryNamespac
   }
 
   /**
+   * {@inheritdoc}
+   */
+  protected function invalidateCache() {
+    // Only update the cache expiration to invalidate the entry if we haven't
+    // already done so in this request.
+    if (!$this->cacheInvalidated) {
+      parent::invalidateCache();
+    }
+  }
+
+  /**
    * Rebuild the cache of library definitions.
    */
   public function rebuild(): void {
