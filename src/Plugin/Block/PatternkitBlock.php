@@ -595,20 +595,36 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    */
   public function build(): array {
-    $block = $this->getBlockEntity();
-    $pattern = $this->getPatternEntity();
+    try {
+      $pattern = $this->getPatternEntity();
+      $block = $this->getBlockEntity();
 
-    $element = [
-      '#type' => 'pattern',
-      '#pattern' => $pattern,
-      '#config' => $block->getData(),
-      '#context' => $this->getContextValues(),
-    ];
+      $element = [
+        '#type' => 'pattern',
+        '#pattern' => $pattern,
+        '#config' => $block->getData(),
+        '#context' => $this->getContextValues(),
+      ];
+    }
+    catch (\JsonException | EntityStorageException $exception) {
+      $element = [
+        '#type' => 'pattern_error',
+        '#pattern' => $pattern ?? $this->getPatternId(),
+        // Get the raw value for debugging output.
+        '#config' => !empty($block) ? $block->get('data')->value : [],
+        '#context' => $this->getContextValues(),
+        '#exception' => $exception,
+      ];
+    }
 
     // Capture cacheable metadata from dependencies.
     $metadata = new BubbleableMetadata();
-    $metadata->addCacheableDependency($pattern);
-    $metadata->addCacheableDependency($block);
+    if (!empty($pattern)) {
+      $metadata->addCacheableDependency($pattern);
+    }
+    if (!empty($block)) {
+      $metadata->addCacheableDependency($block);
+    }
     $metadata->applyTo($element);
 
     return $element;

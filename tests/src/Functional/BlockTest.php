@@ -128,4 +128,61 @@ class BlockTest extends PatternkitBrowserTestBase {
     $this->assertSession()->responseHeaderEquals('X-Drupal-Cache', 'HIT');
   }
 
+  /**
+   * Test behavior when block content fails JSON decoding.
+   *
+   * @covers \Drupal\patternkit\Plugin\Block\PatternkitBlock::build()
+   * @covers \Drupal\patternkit\Element\PatternError
+   */
+  public function testConfigDecodeException(): void {
+    // Place an example block in the layout.
+    $pattern_name = '@patternkit/atoms/example/src/example';
+    $block = $this->createPatternBlock($pattern_name, [
+      'text' => 'Pattern block title',
+      'formatted_text' => 'Pattern block body',
+      'image_url' => '',
+      'hidden' => 'Hidden text',
+    ]);
+    $block = $this->placePatternBlockInLayout(Node::load(1), $block);
+
+    // Override stored data with invalid data that won't decode.
+    $block_entity = $block->getBlockEntity();
+    $block_entity->set('data', 'INVALID DATA');
+    $block_entity->save();
+
+    // Expect the render failure to be caught and still allow the rest of the
+    // page to render.
+    $this->drupalGet('node/1');
+    $this->assertSession()->statusCodeEquals(200);
+    $this->assertSession()->pageTextContains('Failed to render pattern Example (@patternkit/atoms/example/src/example).');
+  }
+
+  /**
+   * Test behavior when block entity fails to load.
+   *
+   * @covers \Drupal\patternkit\Plugin\Block\PatternkitBlock::build()
+   * @covers \Drupal\patternkit\Element\PatternError
+   */
+  public function testBlockLoadFailure(): void {
+    // Place an example block in the layout.
+    $pattern_name = '@patternkit/atoms/example/src/example';
+    $block = $this->createPatternBlock($pattern_name, [
+      'text' => 'Pattern block title',
+      'formatted_text' => 'Pattern block body',
+      'image_url' => '',
+      'hidden' => 'Hidden text',
+    ]);
+    $block = $this->placePatternBlockInLayout(Node::load(1), $block);
+
+    // Delete the block entity, so it won't load successfully.
+    $block_entity = $block->getBlockEntity();
+    $block_entity->delete();
+
+    // Expect the render failure to be caught and still allow the rest of the
+    // page to render.
+    $this->drupalGet('node/1');
+    $this->assertSession()->statusCodeEquals(200);
+    $this->assertSession()->pageTextContains('Failed to render pattern Example (@patternkit/atoms/example/src/example).');
+  }
+
 }

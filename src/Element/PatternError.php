@@ -3,6 +3,7 @@
 namespace Drupal\patternkit\Element;
 
 use Drupal\Core\Render\Element\RenderElement;
+use Drupal\patternkit\Entity\Pattern;
 
 /**
  * Provides a render element to display in place of a pattern error.
@@ -68,14 +69,21 @@ class PatternError extends RenderElement {
    *   The modified element.
    */
   public function preRenderPatternErrorElement(array $element): array {
-    /** @var \Drupal\patternkit\Entity\Pattern $pattern */
     $pattern = $element['#pattern'];
+    if (is_string($pattern)) {
+      $message = $this->t('Failed to load pattern %pattern.', [
+        '%pattern' => $pattern,
+      ]);
+    }
+    else {
+      assert($pattern instanceof Pattern);
+      $message = $this->t('Failed to render pattern %pattern (%pattern_id).', [
+        '%pattern' => $pattern->getName(),
+        '%pattern_id' => $pattern->getAssetId(),
+      ]);
+    }
 
     // Return an error message to display in place of the rendered pattern.
-    $message = $this->t('Failed to render pattern %pattern (%pattern_id).', [
-      '%pattern' => $pattern->getName(),
-      '%pattern_id' => $pattern->getAssetId(),
-    ]);
     $element['message'] = [
       '#markup' => $message,
     ];

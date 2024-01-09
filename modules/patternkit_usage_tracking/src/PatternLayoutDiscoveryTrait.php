@@ -5,6 +5,7 @@ namespace Drupal\patternkit_usage_tracking;
 use Drupal\Component\Plugin\Exception\PluginException;
 use Drupal\Core\Block\Plugin\Block\Broken;
 use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Entity\EntityStorageException;
 use Drupal\layout_builder\LayoutEntityHelperTrait;
 use Drupal\layout_builder\SectionListInterface;
 use Drupal\patternkit\Entity\PatternInterface;
@@ -98,7 +99,7 @@ trait PatternLayoutDiscoveryTrait {
         assert($plugin instanceof PatternkitBlock);
         $pattern = $plugin->getPatternEntity();
         $block = $plugin->getBlockEntity();
-        $content = $block->get('data')->value;
+        $content = $block->get('data')->value ?? '';
 
         // Record patterns discovered within the content, including this pattern
         // itself.
@@ -106,7 +107,7 @@ trait PatternLayoutDiscoveryTrait {
         $record['layout_path'] .= PatternUsage::PATH_SEPARATOR . $record['pattern_id'];
         $record['nested'] = $this->getNestedPatterns($pattern, $content);
       }
-      catch (PluginException $pluginException) {
+      catch (EntityStorageException | PluginException $exception) {
         $record['pattern_id'] = 'Broken';
         $record['nested'] = [];
       }
