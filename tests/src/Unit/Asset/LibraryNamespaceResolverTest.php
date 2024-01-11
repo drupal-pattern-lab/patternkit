@@ -131,6 +131,7 @@ class LibraryNamespaceResolverTest extends UnitTestCase {
    *
    * @covers ::getLibrariesByExtension
    * @covers ::normalizeLibraryPatternData
+   * @covers ::invalidateCache
    * @covers ::__construct
    */
   public function testNormalizeLibraryPatternDataWithoutVersions() {

@@ -103,6 +103,7 @@ class SchemaRefObserverTest extends UnitTestCase {
    * @covers ::process
    * @covers ::processImport
    * @covers ::getReferences
+   * @covers ::trackReference
    * @covers ::__construct
    * @dataProvider providerGetReferences
    */
@@ -162,6 +163,7 @@ class SchemaRefObserverTest extends UnitTestCase {
    * @covers ::processImport
    * @covers ::getReferences
    * @covers ::getAssetFromReference
+   * @covers ::trackReference
    * @covers ::__construct
    * @uses \Drupal\patternkit\Schema\UnresolvedSchema
    */

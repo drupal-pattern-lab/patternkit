@@ -20,8 +20,6 @@ use Prophecy\Prophecy\ObjectProphecy;
  * Tests for the PatternLayoutDiscoveryTrait implementation.
  *
  * @coversDefaultClass \Drupal\patternkit_usage_tracking\PatternLayoutDiscoveryTrait
- * @covers ::setLayoutHelper
- * @covers ::setPatternDetector
  *
  * @group patternkit
  * @group patternkit_usage_tracking
