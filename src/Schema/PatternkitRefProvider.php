@@ -72,7 +72,13 @@ class PatternkitRefProvider implements RemoteRefProvider {
   }
 
   /**
-   * {@inheritdoc}
+   * Get schema data for the URL.
+   *
+   * @param string $url
+   *   The URL to request schema data for.
+   *
+   * @return \stdClass|false
+   *   Decoded JSON content for the $url resource or FALSE if unavailable.
    */
   public function getSchemaData($url) {
     // @todo Replace with str_starts_with() once a polyfill dependency is in place.

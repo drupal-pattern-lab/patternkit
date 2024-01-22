@@ -172,7 +172,6 @@ class LayoutBuilderCacheInvalidationTest extends PatternkitBrowserTestBase {
     // Edit the pattern block on Node 1.
     $this->drupalGet('node/1/layout');
     $assert->waitForElementVisible('css', static::PATTERN_BLOCK_LOCATOR);
-    /** @var \Behat\Mink\Element\NodeElement $pattern_block */
     $pattern_block = $page->findAll('css', static::PATTERN_BLOCK_LOCATOR)[0];
     $uuid = $pattern_block->getAttribute('data-layout-block-uuid');
     $block_css_locator = static::PATTERN_BLOCK_LOCATOR . "[data-layout-block-uuid=\"$uuid\"]";
@@ -235,7 +234,7 @@ class LayoutBuilderCacheInvalidationTest extends PatternkitBrowserTestBase {
     // enable the update process.
     $updated_template = 'UPDATED TEMPLATE: ' . $this->getRandomGenerator()->sentences(3);
     $num_updated = $this->updateCachedPatternData($pattern_revision_id, [
-      'hash' => $this->randomGenerator->string(32),
+      'hash' => $this->getRandomGenerator()->string(32),
       'template' => $updated_template,
     ]);
     $this->assertEquals(2, $num_updated, 'The revision and default pattern entries should have both been updated.');

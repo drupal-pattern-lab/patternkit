@@ -323,7 +323,6 @@ abstract class PatternkitBrowserTestBase extends WebDriverTestBase {
 
     $page->pressButton('Update');
     $assert_session->assertNoElementAfterWait('css', '#drupal-off-canvas');
-    $assert_session->assertWaitOnAjaxRequest();
 
     // Test for text in the first config value by default.
     $this->assertDialogClosedAndTextVisible(reset($new_config));

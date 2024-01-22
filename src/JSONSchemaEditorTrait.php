@@ -5,6 +5,7 @@ namespace Drupal\patternkit;
 use Drupal\ckeditor\Plugin\Editor\CKEditor;
 use Drupal\ckeditor5\Plugin\Editor\CKEditor5;
 use Drupal\Component\Serialization\SerializationInterface;
+use Drupal\Core\Asset\AssetQueryStringInterface;
 use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\File\FileUrlGeneratorInterface;
 use Drupal\Core\Logger\LoggerChannelTrait;
@@ -59,6 +60,13 @@ trait JSONSchemaEditorTrait {
   protected EditorManager $editorPluginManager;
 
   /**
+   * The query string service.
+   *
+   * @var \Drupal\Core\Asset\AssetQueryStringInterface
+   */
+  protected AssetQueryStringInterface $queryString;
+
+  /**
    * Returns a fully-qualified asset URL from a URI.
    *
    * @param string $uri
@@ -74,7 +82,7 @@ trait JSONSchemaEditorTrait {
   public function getLibraryAssetUrlFromUri(string $uri): string {
     $url = $this->fileUrlGenerator->generateAbsoluteString($uri);
     if ($url !== $uri) {
-      $query_string = $this->state->get('system.css_js_query_string') ?: '0';
+      $query_string = $this->getQueryString();
       $query_string_separator = (strpos($url, '?') !== FALSE) ? '&' : '?';
       $url = $this->fileUrlGenerator->transformRelative($url) . $query_string_separator . $query_string;
     }
@@ -96,6 +104,12 @@ trait JSONSchemaEditorTrait {
     $starting_json = $config !== NULL
       ? $this->serializer::encode($config->fields)
       : $config;
+
+    $query_string = $this->getQueryString();
+    if ($query_string === '0') {
+      $query_string = '';
+    }
+
     $theme = $this->config->get('patternkit_json_editor_theme');
     $icons = $this->config->get('patternkit_json_editor_icons');
     $editor_settings = [
@@ -109,7 +123,7 @@ trait JSONSchemaEditorTrait {
       'disablePropertiesButtons' => $this->config->get('patternkit_json_editor_disable_properties_buttons') ?? FALSE,
       'disableJsonEditButton' => $this->config->get('patternkit_json_editor_disable_edit_json_button') ?? TRUE,
       'ajaxCacheResponses' => $this->config->get('patternkit_json_editor_cache_schemas') ?? FALSE,
-      'ajaxCacheBuster' => $this->state->get('system.css_js_query_string') ?: '',
+      'ajaxCacheBuster' => $query_string,
     ];
 
     if (isset(PatternLibraryJSONForm::THEMES[$theme])) {
@@ -237,6 +251,31 @@ trait JSONSchemaEditorTrait {
    */
   protected function setEditorPluginManager(EditorManager $editor_plugin_manager) {
     $this->editorPluginManager = $editor_plugin_manager;
+  }
+
+  /**
+   * Get the request query string.
+   *
+   * @return string
+   *   The request query string.
+   */
+  protected function getQueryString(): string {
+    if (!empty($this->queryString)) {
+      return $this->queryString->get();
+    }
+    else {
+      return $this->state->get('system.css_js_query_string', '0');
+    }
+  }
+
+  /**
+   * Set the query string service.
+   *
+   * @param \Drupal\Core\Asset\AssetQueryStringInterface $query_string
+   *   The query string service.
+   */
+  protected function setQueryStringService(AssetQueryStringInterface $query_string): void {
+    $this->queryString = $query_string;
   }
 
 }

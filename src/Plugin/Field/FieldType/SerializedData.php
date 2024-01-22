@@ -14,7 +14,7 @@ use Drupal\Core\TypedData\DataDefinition;
  *   id = "serialized_data",
  *   label = @Translation("Serialized field data"),
  *   description = @Translation("A field containing a serialized string value."),
- *   category = @Translation("Field"),
+ *   category = "Field",
  * )
  */
 class SerializedData extends FieldItemBase {

@@ -4,6 +4,7 @@ namespace Drupal\patternkit\Form;
 
 use Drupal\Core\Cache\CacheCollectorInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Config\TypedConfigManagerInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\patternkit\Asset\LibraryNamespaceResolverInterface;
@@ -41,6 +42,8 @@ class PatternkitSettingsForm extends ConfigFormBase {
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The config factory service.
+   * @param \Drupal\Core\Config\TypedConfigManagerInterface $typed_config_manager
+   *   The typed config manager.
    * @param \Drupal\patternkit\Asset\LibraryNamespaceResolverInterface $libraryNamespaceResolver
    *   The library namespace resolver service.
    * @param \Drupal\patternkit\Asset\PatternDiscoveryInterface $patternDiscovery
@@ -48,13 +51,14 @@ class PatternkitSettingsForm extends ConfigFormBase {
    */
   public function __construct(
     ConfigFactoryInterface $config_factory,
+    TypedConfigManagerInterface $typed_config_manager,
     LibraryNamespaceResolverInterface $libraryNamespaceResolver,
     PatternDiscoveryInterface $patternDiscovery
   ) {
     $this->libraryNamespaceResolver = $libraryNamespaceResolver;
     $this->patternDiscovery = $patternDiscovery;
 
-    parent::__construct($config_factory);
+    parent::__construct($config_factory, $typed_config_manager);
   }
 
   /**
@@ -63,6 +67,7 @@ class PatternkitSettingsForm extends ConfigFormBase {
   public static function create(ContainerInterface $container): self {
     return new static(
       $container->get('config.factory'),
+      $container->get('config.typed'),
       $container->get('patternkit.library.namespace_resolver'),
       $container->get('patternkit.pattern.discovery'),
     );

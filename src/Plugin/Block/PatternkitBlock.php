@@ -41,7 +41,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
  * @Block(
  *   id = "patternkit_block",
  *   admin_label = @Translation("Patternkit block"),
- *   category = @Translation("Patternkit Reusable"),
+ *   category = "Patternkit Reusable",
  *   deriver = "Drupal\patternkit\Plugin\Derivative\PatternkitBlock"
  * )
  *

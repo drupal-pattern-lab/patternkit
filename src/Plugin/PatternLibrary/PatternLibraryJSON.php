@@ -20,6 +20,9 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @PatternLibrary(
  *   id = "json",
  * )
+ *
+ * @todo Remove 'state' service injection once Drupal 10.2 is baseline support.
+ *   See https://www.drupal.org/node/3358337.
  */
 class PatternLibraryJSON extends PatternLibraryPluginDefault implements ContainerFactoryPluginInterface {
 
@@ -101,6 +104,11 @@ class PatternLibraryJSON extends PatternLibraryPluginDefault implements Containe
     // Conditionally inject the editor plugin manager if it is available.
     if ($container->has('plugin.manager.editor')) {
       $plugin->setEditorPluginManager($container->get('plugin.manager.editor'));
+    }
+
+    // Conditionally inject the query string service if it is available.
+    if ($container->has('asset.query_string')) {
+      $plugin->setQueryStringService($container->get('asset.query_string'));
     }
 
     return $plugin;

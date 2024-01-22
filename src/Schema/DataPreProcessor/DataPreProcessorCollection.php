@@ -51,7 +51,17 @@ class DataPreProcessorCollection implements DataPreProcessor {
   }
 
   /**
-   * {@inheritdoc}
+   * Process the provided schema data.
+   *
+   * @param mixed $data
+   *   The original data prior to processing.
+   * @param \Swaggest\JsonSchema\Schema $schema
+   *   The related schema for the data being processed.
+   * @param bool $import
+   *   A boolean flag indicating if schema data is currently being imported.
+   *
+   * @return mixed
+   *   Processed data.
    */
   public function process($data, Schema $schema, $import = TRUE) {
     /**
