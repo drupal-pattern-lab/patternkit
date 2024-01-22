@@ -53,5 +53,15 @@
     "suggest": {
         "drupal/entity_browser": "Improves display for the patternkit_media_library module.",
         "drupal/media_entity_browser": "Improves display for the patternkit_media_library module."
+    },
+    "config": {
+        "allow-plugins": {
+            "composer/installers": true,
+            "php-http/discovery": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "phpstan/extension-installer": true,
+            "cweagans/composer-patches": true,
+            "drupal/core-composer-scaffold": true
+        }
     }
 }
