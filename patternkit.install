@@ -335,3 +335,26 @@ function patternkit_update_9004(): void {
     $config->save(TRUE);
   }
 }
+
+/**
+ * Remove deleted cache usage settings from configuration.
+ */
+function patternkit_update_9005(): void {
+  $removed_settings = [
+    'patternkit_cache_enabled',
+    'patternkit_render_cache',
+  ];
+
+  $config_key = 'patternkit.settings';
+  $config = \Drupal::configFactory()->getEditable($config_key);
+
+  if ($config) {
+    // Remove each setting from the saved values.
+    foreach ($removed_settings as $setting) {
+      $config->clear($setting);
+    }
+
+    // Save the changes.
+    $config->save(TRUE);
+  }
+}

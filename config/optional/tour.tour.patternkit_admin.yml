@@ -18,27 +18,3 @@ tips:
     weight: 1
     attributes:
       data-id: edit-patternkit-libraries
-  patternkit-library-cache:
-    id: patternkit-library-cache
-    plugin: text
-    label: 'Set library cache usage'
-    body: 'Controlled primarily by the Drupal discovery cache, this cache can be cleared with drush cr --cache-clear=discovery.'
-    weight: 2
-    attributes:
-      data-id: edit-patternkit-cache-enabled
-  patternkit-disk-cache:
-    id: patternkit-disk-cache
-    plugin: text
-    label: 'Set disk cache usage'
-    body: 'Useful for REST libraries, the disk cache controls if a request is made for new patterns on each page load.'
-    weight: 3
-    attributes:
-      data-id: edit-patternkit-render-cache
-  patternkit-ttl:
-    id: patternkit-ttl
-    plugin: text
-    label: 'Set Time-To-Live settings'
-    body: 'Limit the amount of time the Patternkit Disk cache will save REST API requested patterns before requesting a new one from the REST server.'
-    weight: 4
-    attributes:
-      data-id: edit-patternkit-default-module-ttl

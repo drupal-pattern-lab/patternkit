@@ -147,9 +147,7 @@ class LibraryTest extends UnitTestCase {
     // Mock injection dependencies.
     $this->cache = $this->createMock(CacheBackendInterface::class);
     $this->configFactory = $this->getConfigFactoryStub([
-      PatternkitSettingsForm::SETTINGS => [
-        'patternkit_cache_enabled' => FALSE,
-      ],
+      PatternkitSettingsForm::SETTINGS => [],
     ]);
     $this->libraryPluginManager = $this->createMock(PatternLibraryPluginManager::class);
     $this->lock = $this->createMock(LockBackendInterface::class);

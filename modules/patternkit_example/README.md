@@ -49,10 +49,6 @@ There are two different plugins currently available,
 
 Use the former for dynamic REST based components, and the latter for locally sourced.
 
-## Important Variables
-* ```patternkit_cache_enabled``` - Whether or not the metadata and render cache are enabled. (Disable during development)
-* ```patternkit_pl_host``` - The scheme://hostname:port/ of the PatternLab library host.
-
 ## TODOs
 * https://github.com/drupal-pattern-lab/roadmap/issues/8 Solve the problem of mapping Drupal fields to pattern Variables.
 * Error handling.

@@ -151,18 +151,6 @@ class PatternkitSettingsForm extends ConfigFormBase {
       ];
     }
 
-    $form['patternkit_cache_enabled'] = [
-      '#type' => 'checkbox',
-      '#title' => $this->t('Use the Patternkit Library Cache'),
-      '#default_value' => $config->get('patternkit_cache_enabled'),
-    ];
-
-    $form['patternkit_render_cache'] = [
-      '#type' => 'checkbox',
-      '#title' => $this->t('Use the Patternkit Disk Render Cache'),
-      '#default_value' => $config->get('patternkit_render_cache'),
-    ];
-
     return parent::buildForm($form, $form_state);
   }
 
@@ -187,13 +175,7 @@ class PatternkitSettingsForm extends ConfigFormBase {
     $config = $this->config(static::SETTINGS);
     $config
       ->set('patternkit_libraries', $form_state->getValue('patternkit_libraries'))
-      ->set('patternkit_cache_enabled', $form_state->getValue('patternkit_cache_enabled'))
-      ->set('patternkit_render_cache', $form_state->getValue('patternkit_render_cache'))
       ->save();
-    if ($form_state->getValue('patternkit_cache_enabled')
-      && !$config->get('patternkit_cache_enabled')) {
-      $this->rebuildCaches();
-    }
     $libraries = $this->libraryNamespaceResolver->getLibraryDefinitions();
     $count = count($libraries);
     $this->messenger()->addStatus($this->t('Rebuilt Patternkit Library Cache with @count libraries.', ['@count' => $count]));

@@ -2,9 +2,6 @@ patternkit.settings:
   type: config_object
   label: 'Patternkit Module Settings'
   mapping:
-    patternkit_cache_enabled:
-      type: boolean
-      label: 'Boolean that sets if the Patternkit cache is used or not.'
     patternkit_json_editor_css:
       type: string
       label: 'Comma-separated string of stylesheet files to load with the JSON Editor.'
@@ -51,7 +48,7 @@ block.settings.patternkit_block:*:
       label: 'Revision ID of the pattern in use on the block.'
     reusable:
       type: string
-      label: 'Reusable property of the pattern in use on the block.'      
+      label: 'Reusable property of the pattern in use on the block.'
     patternkit_block_id:
       type: integer
       label: 'ID of the Patternkit Block content entity.'
