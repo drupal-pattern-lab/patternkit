@@ -313,3 +313,25 @@ function patternkit_update_9003() {
     }
   }
 }
+
+/**
+ * Remove deleted shadow dom settings from configuration.
+ */
+function patternkit_update_9004(): void {
+  $removed_settings = [
+    'patternkit_json_editor_use_shadow_dom',
+  ];
+
+  $config_key = 'patternkit.settings';
+  $config = \Drupal::configFactory()->getEditable($config_key);
+
+  if ($config) {
+    // Remove each setting from the saved values.
+    foreach ($removed_settings as $setting) {
+      $config->clear($setting);
+    }
+
+    // Save the changes.
+    $config->save(TRUE);
+  }
+}

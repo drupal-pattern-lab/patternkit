@@ -43,8 +43,6 @@ class PatternLibraryJSONForm extends ConfigFormBase {
    * @see https://github.com/json-editor/json-editor
    *
    * @todo Move to yml config.
-   *
-   * @todo Materialize doesn't support the Shadow dom: figure out encapsulation.
    */
   public const THEMES = [
     'barebones' => [],
@@ -158,15 +156,6 @@ class PatternLibraryJSONForm extends ConfigFormBase {
       '#title' => $this->t('Add to the editor theme JS'),
       '#description' => $this->t('Enter a comma-separated list of additional JS to include.'),
       '#default_value' => $config->get('patternkit_json_editor_js'),
-    ];
-
-    $form['patternkit_json_editor_use_shadow_dom'] = [
-      '#type' => 'checkbox',
-      '#title' => $this->t('Use the Shadow DOM'),
-      '#description' => $this->t('Select whether to use the Shadow DOM for the JSON
-      Editor form. Most themes require the Shadow DOM, but most WYSIWYG editors
-      do not work with it.'),
-      '#default_value' => $config->get('patternkit_json_editor_use_shadow_dom') ?? TRUE,
     ];
 
     $form['patternkit_json_editor_disable_properties_buttons'] = [
@@ -298,7 +287,6 @@ class PatternLibraryJSONForm extends ConfigFormBase {
     $config->set('patternkit_json_editor_icons', $form_values['patternkit_json_editor_icons']);
     $config->set('patternkit_json_editor_css', $form_values['patternkit_json_editor_css']);
     $config->set('patternkit_json_editor_js', $form_values['patternkit_json_editor_js']);
-    $config->set('patternkit_json_editor_use_shadow_dom', (bool) $form_values['patternkit_json_editor_use_shadow_dom']);
     $config->set('patternkit_json_editor_disable_properties_buttons', (bool) $form_values['patternkit_json_editor_disable_properties_buttons']);
     $config->set('patternkit_json_editor_disable_edit_json_button', (bool) $form_values['patternkit_json_editor_disable_edit_json_button']);
     $config->set('patternkit_json_editor_cache_schemas', (bool) $form_values['patternkit_json_editor_cache_schemas']);

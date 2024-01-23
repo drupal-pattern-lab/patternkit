@@ -90,13 +90,6 @@ Drupal (which are set at `/admin/appearance`). The default JSON Editor theme is
 Cygnet (based on vanilla HTML but customized for Patternkit). Patternkit comes
 bundled with other themes, based on Bootstrap, Foundation, etc.
 
-#### Shadow DOM?
-
-Most of our bundled JSON Editor themes work under the assumption that Patternkit
-has loaded JSON Editor in the context of a shadow DOM. However, you can set
-Patternkit to load JSON Editor without a shadow DOM. The main reason to do this
-is to enable CKEditor for wysiwyg support (see below).
-
 #### WYSIWYG support
 
 A pattern can support WYSIWYG for fields in its JSON schema. To do this, the

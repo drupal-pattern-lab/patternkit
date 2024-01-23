@@ -87,16 +87,7 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
      }
      editor_dom += '<div id="editor_holder"></div>';
 
-     // We need to use a Shadow Dom to use themes, which has its own complications
-     // with other JS libraries trying to access editor components, for example WYSIWYG.
-     if (this.settings.useShadowDom) {
-       let shadow = this.attachShadow({mode: 'open'});
-       shadow.innerHTML += editor_dom;
-       this.editor_root = this.target[0].shadowRoot;
-     }
-     else {
-       this.target.html(editor_dom);
-     }
+     this.target.html(editor_dom);
    }
 
    setDefaults() {

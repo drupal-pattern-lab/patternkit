@@ -119,7 +119,6 @@ trait JSONSchemaEditorTrait {
       'startingJson' => $starting_json,
       'theme' => $theme,
       'wysiwygEditorName' => $this->config->get('patternkit_json_editor_wysiwyg') ?? '',
-      'useShadowDom' => $this->config->get('patternkit_json_editor_use_shadow_dom') ?? TRUE,
       'disablePropertiesButtons' => $this->config->get('patternkit_json_editor_disable_properties_buttons') ?? FALSE,
       'disableJsonEditButton' => $this->config->get('patternkit_json_editor_disable_edit_json_button') ?? TRUE,
       'ajaxCacheResponses' => $this->config->get('patternkit_json_editor_cache_schemas') ?? FALSE,
@@ -128,7 +127,7 @@ trait JSONSchemaEditorTrait {
 
     if (isset(PatternLibraryJSONForm::THEMES[$theme])) {
       $theme_info = PatternLibraryJSONForm::THEMES[$theme];
-      if (!$editor_settings['useShadowDom'] && !empty($theme_info['css_no_shadow_dom'])) {
+      if (!empty($theme_info['css_no_shadow_dom'])) {
         $editor_settings['themeStylesheet'] = $this->getLibraryAssetUrlFromUri($theme_info['css_no_shadow_dom']);
       }
       elseif (!empty($theme_info['css'])) {
