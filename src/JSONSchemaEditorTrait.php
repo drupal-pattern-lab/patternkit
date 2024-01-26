@@ -2,7 +2,6 @@
 
 namespace Drupal\patternkit;
 
-use Drupal\ckeditor\Plugin\Editor\CKEditor;
 use Drupal\ckeditor5\Plugin\Editor\CKEditor5;
 use Drupal\Component\Serialization\SerializationInterface;
 use Drupal\Core\Asset\AssetQueryStringInterface;
@@ -159,31 +158,35 @@ trait JSONSchemaEditorTrait {
     }
 
     $accepted_editors = [
-      'ckeditor',
       'ckeditor5',
     ];
-    if (in_array($this->config->get('patternkit_json_editor_wysiwyg'), $accepted_editors)) {
+    $editor = $this->config->get('patternkit_json_editor_wysiwyg');
+    if (in_array($editor, $accepted_editors)) {
       $selected_toolbar = $this->config->get('patternkit_json_editor_ckeditor_toolbar');
       if (!empty($selected_toolbar)) {
-        $editor = $this->config->get('patternkit_json_editor_wysiwyg');
         // The following code builds a CKEditor toolbar. Code stolen from
         // \Drupal\editor\Element::preRenderTextFormat.
         if ($editor === 'ckeditor5') {
           $ckeditor_instance = CKEditor5::create(\Drupal::getContainer(), [], 'ckeditor5', ['provider' => 'patternkit']);
         }
-        else {
-          $ckeditor_instance = CKEditor::create(\Drupal::getContainer(), [], 'ckeditor5', ['provider' => 'patternkit']);
+
+        if ($ckeditor_instance) {
+          /** @var \Drupal\editor\Entity\Editor $ckeditor_config */
+          $ckeditor_entity = Editor::load($selected_toolbar);
+          if ($ckeditor_entity && $ckeditor_entity->status()) {
+            $editor_settings['patternkitCKEditorConfig'] = $ckeditor_instance->getJSSettings($ckeditor_entity);
+            // Pushes the selected toolbar to drupalSettings, for use clientside
+            // in DrupalCKEditor5.afterInputReady.
+            $editor_settings['patternkitCKEditorConfig']['selected_toolbar'] = $selected_toolbar;
+          }
+          else {
+            $msg = $this->t('Missing Editor entity @name', ['@name' => $selected_toolbar]);
+            $this->getLogger('patternkit')->error($msg);
+            $this->messenger()->addError($msg);
+          }
         }
-        /** @var \Drupal\editor\Entity\Editor $ckeditor_config */
-        $ckeditor_entity = Editor::load($selected_toolbar);
-        if ($ckeditor_entity && $ckeditor_entity->status()) {
-          $editor_settings['patternkitCKEditorConfig'] = $ckeditor_instance->getJSSettings($ckeditor_entity);
-          // Pushes the selected toolbar to drupalSettings, so that client-side
-          // so that DrupalCKEditor.afterInputReady.
-          $editor_settings['patternkitCKEditorConfig']['selected_toolbar'] = $selected_toolbar;
-        }
         else {
-          $msg = $this->t('Missing Editor entity @name', ['@name' => $selected_toolbar]);
+          $msg = $this->t('Unable to create WYSIWYG editor instance for @name', ['@name' => $editor]);
           $this->getLogger('patternkit')->error($msg);
           $this->messenger()->addError($msg);
         }
@@ -215,10 +218,6 @@ trait JSONSchemaEditorTrait {
       switch ($editor) {
         case 'ckeditor5':
           $element['#attached']['library'][] = 'core/ckeditor5.editorClassic';
-          break;
-
-        case 'ckeditor':
-          $element['#attached']['library'][] = 'ckeditor/drupal.ckeditor';
           break;
       }
     }

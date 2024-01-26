@@ -106,7 +106,6 @@ class PatternLibraryJSONForm extends ConfigFormBase {
    * @see self::getAllowedWysiwygEditors()
    */
   public const EDITORS = [
-    'ckeditor' => 'CKEditor',
     'ckeditor5' => 'CKEditor5',
     'prosemirror' => 'ProseMirror',
     'quill' => 'Quill',
@@ -190,7 +189,6 @@ class PatternLibraryJSONForm extends ConfigFormBase {
     $ckeditor_toolbar_options = [];
     foreach ($this->entityTypeManager->getStorage('editor')->loadMultiple() as $editor) {
       $accepted_editors = [
-        'ckeditor',
         'ckeditor5',
       ];
       /** @var \Drupal\editor\EditorInterface $editor */
@@ -209,7 +207,6 @@ class PatternLibraryJSONForm extends ConfigFormBase {
       '#states' => [
         'visible' => [
           ':input[name="patternkit_json_editor_wysiwyg"]' => [
-            ['value' => 'ckeditor'],
             ['value' => 'ckeditor5'],
           ],
         ],
@@ -237,9 +234,6 @@ class PatternLibraryJSONForm extends ConfigFormBase {
     // enabled.
     $excluded = [];
 
-    if (!$this->moduleHandler->moduleExists('ckeditor')) {
-      $excluded[] = 'CKEditor';
-    }
     if (!$this->moduleHandler->moduleExists('ckeditor5')) {
       $excluded[] = 'CKEditor5';
     }
@@ -261,8 +255,9 @@ class PatternLibraryJSONForm extends ConfigFormBase {
     // Validate editor and WYSIWYG toolbar selections.
     $wysiwyg = $form_state->getValue('patternkit_json_editor_wysiwyg');
     $toolbar = $form_state->getValue('patternkit_json_editor_ckeditor_toolbar');
+    $supported_wysiwygs = ['ckeditor5'];
 
-    if ($toolbar && in_array($wysiwyg, ['ckeditor', 'ckeditor5'])) {
+    if ($toolbar && in_array($wysiwyg, $supported_wysiwygs)) {
       $editor = Editor::load($toolbar);
 
       if ($editor->getEditor() !== $wysiwyg) {

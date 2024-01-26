@@ -28,7 +28,6 @@
         "webmozart/path-util": "^2.1.0"
     },
     "require-dev": {
-        "drupal/ckeditor": "^1.0",
         "drupal/core-recommended": "^9 || ^10",
         "drupal/core-dev": "^9 || ^10",
         "drupal/devel": "^4.2 || ^5.0"

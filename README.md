@@ -126,57 +126,6 @@ Configure the text format to include the desired CKEditor buttons. Then, on
 `/admin/config/user-interface/patternkit/json`, you can select this text format
 in _CKEditor toolbar_.
 
-// TODO:  Include language about Patternkit processing text format filters once
-this feature has been implemented.
-
-##### CKEditor content filtering
-
-If using CKEditor as the wysiwyg plugin, you can configure the schema to allow
-or disallow certain HTML tags and attributes. This feature uses [CKEditor's
-content filtering
-system](https://ckeditor.com/docs/ckeditor4/latest/guide/dev_acf.html).
-
-###### Setting allowed content
-
-To set which content is allowed, use property `allowedContent` in the `options`
-key of your schema. The property's value will be passed as-is to CKEditor's
-`allowedContent` configuration ([expected
-format](https://ckeditor.com/docs/ckeditor4/latest/guide/dev_allowed_content_rules.html)).
-
-###### Setting disallowed content
-
-Conversely, to prevent certain content, use property `disallowedContent` in the
-`options` key of your schema. The property's value will be passed as-is to
-CKEditor's `disallowedContent` configuration ([expected
-format](https://ckeditor.com/docs/ckeditor4/latest/guide/dev_disallowed_content.html)).
-
-###### Example
-
-In this example, only links, bold/strong, and italic/emphasis tags are allowed.
-You can use any attributes on these elements (including class, style, and other
-attributes), except ones prefixed with `data-`.
-
-```json
-{
-  "formatted_text": {
-    "title": "Formatted Text",
-    "type": "string",
-    "format": "html",
-    "options": {
-      "wysiwyg": true,
-      "allowedContent": "a b strong em i[*](*){*}",
-      "disallowedContent": "*[data-*]"
-    }
-  }
-}
-```
-
-_Security note_: Filtering content at the CKEditor layer (i.e., at content
-entry) does not filter it when rendered. For example, if you disallow `onclick`
-attributes in CKEditor but the pattern's template (e.g., Twig) does not strip
-those attributes, a user might, possibly save content with an `onclick`
-attribute, and that attribute would be rendered to the page.
-
 ## Definitions
 
 Most of the thinking and vernacular used in Patternkit is inspired by

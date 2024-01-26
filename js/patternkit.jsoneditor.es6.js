@@ -19,7 +19,7 @@
  */
 
 import {patternkitEditorQuill} from './patternkit.jsoneditor.quill.es6.js';
-import {patternkitEditorCKEditor} from './patternkit.jsoneditor.ckeditor.es6';
+import {patternkitEditorCKEditor5} from './patternkit.jsoneditor.ckeditor5.es6';
 import {patternkitEditorCygnet} from './patternkit.jsoneditor.cygnet.es6.js';
 import {patternkitEditorProseMirror} from "./patternkit.jsoneditor.prosemirror.es6";
 import {patternkitEditorObject} from './patternkit.jsoneditor.editor.object.es6';
@@ -27,7 +27,7 @@ import {patternkitEditorArray} from './patternkit.jsoneditor.editor.array.es6';
 
 // Instantiates wysiwyg plugins.
 patternkitEditorQuill(jQuery, Drupal, JSONEditor);
-patternkitEditorCKEditor(jQuery, Drupal, JSONEditor);
+patternkitEditorCKEditor5(jQuery, Drupal, JSONEditor);
 patternkitEditorCygnet(jQuery, Drupal, JSONEditor);
 patternkitEditorProseMirror(jQuery, Drupal, JSONEditor);
 

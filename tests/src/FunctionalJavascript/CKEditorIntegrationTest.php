@@ -9,8 +9,6 @@ use Drupal\Tests\patternkit\Traits\CKEditor5IntegrationTestTrait;
  * End-to-end testing for patternkit block CKEditor integration.
  *
  * @group patternkit
- * @group legacy
- * @requires module ckeditor
  */
 class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
 

@@ -3,7 +3,7 @@
 /*globals jQuery:false */
 /*globals JSONEditor:false */
 /**
- * @file DrupalImageEditor class.
+ * @file DrupalCKEditor5 class.
  *
  * @external Drupal
  * @external jQuery
@@ -200,4 +200,34 @@ export class DrupalCKEditor5 extends JSONEditor.defaults.editors.string {
     }
   }
 
+}
+
+export function patternkitEditorCKEditor5($, Drupal, JSONEditor) {
+  'use strict';
+  Drupal.behaviors.patternkitEditorCKEditor = {
+    attach: function (context, settings) {
+      if (!window.JSONEditor || !drupalSettings.patternkitEditor) {
+        return;
+      }
+
+      JSONEditor.defaults.options.drupal_ckeditor = {
+        ckeditor_config: settings.patternkitEditor.patternkitCKEditorConfig || {}
+      };
+      if (drupalSettings.patternkitEditor.wysiwygEditorName === 'ckeditor5') {
+        JSONEditor.defaults.editors.drupal_ckeditor = DrupalCKEditor5;
+      }
+
+      JSONEditor.defaults.resolvers.unshift(function (schema) {
+        if (schema.type === 'string'
+          && schema.format === 'html'
+          && schema.options
+          && schema.options.wysiwyg
+          && (settings.patternkitEditor.wysiwygEditorName === 'ckeditor5')
+          // Ensures the Text format with CKEditor profile loaded okay.
+          && settings.patternkitEditor.patternkitCKEditorConfig) {
+          return 'drupal_ckeditor';
+        }
+      });
+    }
+  }
 }

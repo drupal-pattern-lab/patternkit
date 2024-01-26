@@ -358,3 +358,25 @@ function patternkit_update_9005(): void {
     $config->save(TRUE);
   }
 }
+
+/**
+ * Remove ckeditor4 usage from configuration.
+ */
+function patternkit_update_9006(): ?string {
+  $config_key = 'patternkit.settings';
+  $wysiwyg_setting = 'patternkit_json_editor_wysiwyg';
+  $config = \Drupal::configFactory()->getEditable($config_key);
+
+  if ($config && $config->get($wysiwyg_setting) === 'ckeditor') {
+    // Remove ckeditor and toolbar configuration.
+    $config->set($wysiwyg_setting, '');
+    $config->set('patternkit_json_editor_ckeditor_toolbar', '');
+
+    // Save the changes.
+    $config->save(TRUE);
+
+    return t('Patternkit configuration using CKEditor 4 was removed. These settings will need to be reconfigured.');
+  }
+
+  return NULL;
+}
