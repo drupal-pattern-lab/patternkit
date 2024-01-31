@@ -176,7 +176,9 @@ JSON;
     $randomTitle = $this->getRandomGenerator()->name();
     $expected = str_replace('[node:title]', $randomTitle, $value);
     $node = $this->createMock(NodeInterface::class);
-    $node->title = $randomTitle;
+    $node->method('get')
+      ->with('title')
+      ->willReturn($randomTitle);
 
     // Ensure the replacePlain method is not invoked for html formatted strings.
     $this->token->expects($this->never())
@@ -212,7 +214,9 @@ JSON;
     $randomTitle = $this->getRandomGenerator()->name();
     $expected = str_replace('[node:title]', $randomTitle, $value);
     $node = $this->createMock(NodeInterface::class);
-    $node->title = $randomTitle;
+    $node->method('get')
+      ->with('title')
+      ->willReturn($randomTitle);
 
     // Ensure the replace method is not invoked for plain text strings.
     $this->token->expects($this->never())

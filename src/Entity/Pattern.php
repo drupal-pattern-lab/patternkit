@@ -74,6 +74,20 @@ class Pattern extends ContentEntityBase implements PatternInterface {
   protected bool $bundled = FALSE;
 
   /**
+   * An array of the current Pattern instance's configuration values.
+   *
+   * @var array
+   */
+  public array $config = [];
+
+  /**
+   * An array of the current Pattern instance's contexts.
+   *
+   * @var array
+   */
+  public array $context = [];
+
+  /**
    * Constructs a new Pattern object, without permanently saving it.
    *
    * @param array $values

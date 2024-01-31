@@ -613,7 +613,7 @@ class UsageRevisionHelperTest extends UnitTestCase {
           'component_uuid' => $uuids[1],
           'pattern_id' => $patterns['nested'],
           'is_nested' => TRUE,
-          'content_path' => $nested_path = "$patterns[1]=>${patterns['nested']}",
+          'content_path' => $nested_path = "$patterns[1]=>{$patterns['nested']}",
           'layout_path' => "1.$uuids[1]:$nested_path",
         ],
       ],
@@ -696,7 +696,7 @@ class UsageRevisionHelperTest extends UnitTestCase {
         'register' => [
           [
             $patterns['nested'],
-            "1.$uuids[1]:" . ($nested_path = "$patterns[1]=>${patterns['nested']}"),
+            "1.$uuids[1]:" . ($nested_path = "$patterns[1]=>{$patterns['nested']}"),
           ],
         ],
         'update' => [
@@ -769,7 +769,7 @@ class UsageRevisionHelperTest extends UnitTestCase {
           'component_uuid' => $uuids[1],
           'pattern_id' => $patterns['nested'],
           'is_nested' => TRUE,
-          'content_path' => $nested_path = "$patterns[1]=>${patterns['nested']}",
+          'content_path' => $nested_path = "$patterns[1]=>{$patterns['nested']}",
           'layout_path' => "1.$uuids[1]:$nested_path",
         ],
       ],
@@ -848,7 +848,7 @@ class UsageRevisionHelperTest extends UnitTestCase {
           // Register the new nested pattern.
           [
             $patterns['nested'],
-            "1.$uuids[1]:" . ($nested_path = "$patterns[1]=>${patterns['nested']}"),
+            "1.$uuids[1]:" . ($nested_path = "$patterns[1]=>{$patterns['nested']}"),
           ],
         ],
         'update' => [
@@ -934,7 +934,7 @@ class UsageRevisionHelperTest extends UnitTestCase {
           // Register a new nested pattern within the updated component.
           [
             $patterns['nested'],
-            "2.$uuids[1]:" . ($new_nested_path = "$patterns[1]=>${patterns['nested']}"),
+            "2.$uuids[1]:" . ($new_nested_path = "$patterns[1]=>{$patterns['nested']}"),
           ],
         ],
         'update' => [

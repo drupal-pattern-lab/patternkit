@@ -37,6 +37,13 @@ class JSONSchemaEditorTraitTest extends UnitTestCase {
   protected ObjectProphecy $fileUrlGenerator;
 
   /**
+   * A mocked editor plugin manager service.
+   *
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\editor\Plugin\EditorManager>
+   */
+  protected ObjectProphecy $editorPluginManager;
+
+  /**
    * A mocked query string service.
    *
    * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Asset\AssetQueryStringInterface>

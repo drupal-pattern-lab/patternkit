@@ -14,6 +14,13 @@ use Drupal\Tests\UnitTestCase;
 class SchemaRefHandlerTest extends UnitTestCase {
 
   /**
+   * The schema ref handler instance being tested.
+   *
+   * @var \Drupal\patternkit\Schema\SchemaRefHandler
+   */
+  protected SchemaRefHandler $schemaRefHandler;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp(): void {

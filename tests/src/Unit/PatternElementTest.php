@@ -4,6 +4,7 @@ namespace Drupal\Tests\patternkit\Unit;
 
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\patternkit\Element\Pattern;
+use Drupal\patternkit\Entity\Pattern as EntityPattern;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Exception\SchemaValidationException;
 use Drupal\patternkit\Exception\UnknownPatternException;
@@ -173,7 +174,7 @@ class PatternElementTest extends RendererTestBase {
     ];
     $this->libraryPlugin->expects($this->once())
       ->method('render')
-      ->with($this->callback(function ($arg) use ($patternMock, $element) {
+      ->with($this->callback(function ($arg) use ($patternMock): bool {
         return $arg[0] == $patternMock;
       }))
       ->willReturn($returnValue);
@@ -283,7 +284,10 @@ class PatternElementTest extends RendererTestBase {
    *   A mocked pattern entity for testing.
    */
   protected function getPatternMock(): PatternInterface {
-    $patternMock = $this->createMock(PatternInterface::class);
+    // Mock the implementation class instead of the interface to sidestep
+    // assignment to dynamic property deprecation warnings for instance
+    // variables declared on the class.
+    $patternMock = $this->createMock(EntityPattern::class);
     $patternMock->expects($this->once())
       ->method('getCacheTags')
       ->willReturn([]);
