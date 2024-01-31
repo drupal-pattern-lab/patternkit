@@ -229,7 +229,7 @@ class PatternDiscoveryLoader {
    *
    * @throws \Symfony\Component\Serializer\Exception\ExceptionInterface
    *
-   * @deprecated
+   * @deprecated @phpcs:ignore
    *   Usage of the PatternLibrary class should be refactored and removed.
    *
    * @todo Refactor to remove usage of the PatternLibrary class.

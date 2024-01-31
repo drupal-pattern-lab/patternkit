@@ -68,7 +68,7 @@ class PatternkitForm extends ContentEntityForm {
         if (!$theme = $block->getTheme()) {
           $theme = $this->config('system.theme')->get('default');
         }
-        if (!$pattern = $block->getPattern()) {
+        if (!$block->getPattern()) {
           $block->setPattern($form_state->getValue('pattern'));
         }
         $form_state->setRedirect(

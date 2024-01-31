@@ -1,0 +1,15 @@
+#!/bin/bash
+
+#ddev-generated
+## Command provided by https://github.com/ddev/ddev-drupal-contrib
+## Description: Run phpunit inside the web container
+## Usage: phpunit [flags] [args]
+## Example: "ddev phpunit" or "ddev phpunit --stop-on-failure"
+## ProjectTypes: drupal8,drupal9,drupal10
+## ExecRaw: true
+
+if ! command -v phpunit >/dev/null; then
+  echo "phpunit is not available. You may need to 'ddev composer install'"
+  exit 1
+fi
+phpunit --printer="\Drupal\Tests\Listeners\HtmlOutputPrinter" --bootstrap $PWD/$DDEV_DOCROOT/core/tests/bootstrap.php --testdox $DDEV_DOCROOT/modules/custom "$@"

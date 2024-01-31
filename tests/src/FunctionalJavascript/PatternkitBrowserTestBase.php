@@ -12,6 +12,7 @@ use Drupal\Tests\contextual\FunctionalJavascript\ContextualLinkClickTrait;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\patternkit\Traits\SchemaFixtureTrait;
 use Drupal\user\UserInterface;
+use PHPUnit\Framework\AssertionFailedError;
 use PHPUnit\Framework\ExpectationFailedException;
 
 /**
@@ -165,20 +166,7 @@ abstract class PatternkitBrowserTestBase extends WebDriverTestBase {
       $this->assertNotNull($form, 'Unable to find block configuration form.');
     }
     catch (ExpectationFailedException $exception) {
-      $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
-      $caller_method = implode('__', [
-        $backtrace[1]['class'],
-        $backtrace[1]['function'],
-      ]);
-      $filename = "fail__$caller_method.jpg";
-
-      // Capture a screenshot to help with debugging.
-      $this->createScreenshot(\Drupal::root() . '/sites/default/files/simpletest/' . $filename);
-
-      // Output the HTML after AJAX requests to help with debugging.
-      $this->htmlOutput($this->getSession()->getPage()->getHtml());
-
-      throw $exception;
+      $this->handleFailure($exception);
     }
 
     return $form;
@@ -192,26 +180,13 @@ abstract class PatternkitBrowserTestBase extends WebDriverTestBase {
    */
   protected function waitForJsonEditorForm(): NodeElement {
     $assert_session = $this->assertSession();
-    $form = $assert_session->waitForElement('css', '.je-ready', 100000);
+    $form = $assert_session->waitForElement('css', '.je-ready', 20000);
 
     try {
       $this->assertNotEmpty($form, 'The JSON Editor form was not completely loaded.');
     }
     catch (ExpectationFailedException $exception) {
-      $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
-      $caller_method = implode('__', [
-        $backtrace[1]['class'],
-        $backtrace[1]['function'],
-      ]);
-      $filename = "fail__$caller_method.jpg";
-
-      // Capture a screenshot to help with debugging.
-      $this->createScreenshot(\Drupal::root() . '/sites/default/files/simpletest/' . $filename);
-
-      // Output the HTML after AJAX requests to help with debugging.
-      $this->htmlOutput($this->getSession()->getPage()->getHtml());
-
-      throw $exception;
+      $this->handleFailure($exception);
     }
 
     return $form;
@@ -367,6 +342,60 @@ abstract class PatternkitBrowserTestBase extends WebDriverTestBase {
     });
 
     return $value_changed ? $config_field->getValue() : FALSE;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function createScreenshot($filename, $set_background_color = TRUE) {
+    // Prefix the filename to put it into a consistent directory.
+    if (!str_starts_with($filename, \Drupal::root())) {
+      $filename = \Drupal::root() . '/sites/simpletest/browser_output/' . $filename;
+    }
+
+    parent::createScreenshot($filename, $set_background_color);
+  }
+
+  /**
+   * Handle unexpected failures with additional debug output.
+   *
+   * This method attempts to consistently handle unexpected failures with
+   * additional debug output exposed to ease troubleshooting. When executed,
+   * this method will produce the following output for debugging:
+   *
+   * - A screenshot in the browser output directory named after the failed
+   *   function call.
+   * - HTML output of the current page state in the browser output directory.
+   * - Thrown failure exceptions with JavaScript console errors if any are
+   *   discovered.
+   *
+   * @param \PHPUnit\Framework\AssertionFailedError $exception
+   *   The exception to be handled.
+   *
+   * @phpstan-return never-return
+   *
+   * @throws \PHPUnit\Framework\AssertionFailedError
+   */
+  protected function handleFailure(AssertionFailedError $exception): void {
+    $call_depth = 2;
+    $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, $call_depth + 1);
+    $caller_method = implode('__', [
+      // Replace backslashes in namespace references if any.
+      str_replace('\\', '__', $backtrace[$call_depth]['class']),
+      $backtrace[$call_depth]['function'],
+    ]);
+    $filename = "fail__$caller_method.jpg";
+
+    // Capture a screenshot to help with debugging.
+    $this->createScreenshot($filename);
+
+    // Output the HTML after AJAX requests to help with debugging.
+    $this->htmlOutput();
+
+    // Test for JavaScript console errors causing the failure.
+    $this->failOnJavaScriptErrors();
+
+    throw $exception;
   }
 
 }

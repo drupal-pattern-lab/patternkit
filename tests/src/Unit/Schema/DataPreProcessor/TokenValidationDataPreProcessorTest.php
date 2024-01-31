@@ -77,7 +77,7 @@ class TokenValidationDataPreProcessorTest extends UnitTestCase {
    * @covers ::__construct
    * @dataProvider providerProcess
    */
-  public function testProcess($data, string $schema_json, bool $import, bool $schema_should_change) {
+  public function testProcess($data, string $schema_json, bool $import, bool $schema_should_change): void {
     $schema = Schema::import($this->decodeJson($schema_json));
 
     $original_schema = clone $schema;
@@ -100,12 +100,9 @@ class TokenValidationDataPreProcessorTest extends UnitTestCase {
   /**
    * Data provider for testProcess.
    */
-  public function providerProcess() {
+  public function providerProcess(): array {
     $cases = [];
 
-    $data_object = (object) [
-      'string_property' => 'my_string',
-    ];
     $schema_json = '{ "type": "string" }';
 
     // String properties without a format should be unaffected.

@@ -15,7 +15,6 @@ use Drupal\Core\Entity\Sql\SqlContentEntityStorage;
 use Drupal\Core\Entity\Sql\SqlContentEntityStorageSchema;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
-use Drupal\patternkit\Commands\PatternkitCommands;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternRouteProvider;
 use Drupal\user\Entity\Role;

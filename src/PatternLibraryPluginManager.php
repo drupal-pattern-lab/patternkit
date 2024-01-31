@@ -95,13 +95,10 @@ class PatternLibraryPluginManager extends DefaultPluginManager implements Catego
     // Add the module or theme path to the 'path'.
     $provider = $definition->getProvider();
     if ($this->moduleHandler->moduleExists($provider)) {
-      $base_path = $this->moduleHandler->getModule($provider)->getPath();
+      $this->moduleHandler->getModule($provider)->getPath();
     }
     elseif ($this->themeHandler->themeExists($provider)) {
-      $base_path = $this->themeHandler->getTheme($provider)->getPath();
-    }
-    else {
-      $base_path = '';
+      $this->themeHandler->getTheme($provider)->getPath();
     }
   }
 

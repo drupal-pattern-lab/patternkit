@@ -1,0 +1,9 @@
+name: ddev-drupal-contrib
+repository: ddev/ddev-drupal-contrib
+version: 1.0.0-rc12
+install_date: "2023-11-29T13:13:21-06:00"
+project_files:
+    - commands
+    - config.contrib.yaml
+global_files: []
+removal_actions: []

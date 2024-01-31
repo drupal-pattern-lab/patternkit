@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="patternkit-module">
+  <file>.</file>
+  <arg name="extensions" value="php,module,inc,install,test,profile,theme,info"/>
+
+  <!-- Initially include all Drupal and DrupalPractice sniffs. -->
+  <rule ref="Drupal"/>
+  <rule ref="DrupalPractice"/>
+
+  <!-- A '-' is prefixed to each of these, so s becomes -s, etc. -->
+  <!-- Use 's' to print the full sniff name in the report. -->
+  <arg value="s"/>
+  <!-- Use 'p' to show progress during execution. -->
+  <arg value="p"/>
+  <arg value="-colors"/>
+  <arg name='report-width' value='120'/>
+
+  <!-- Exclude folders for third-party dependencies. -->
+  <exclude-pattern>*/bower_components/*</exclude-pattern>
+  <exclude-pattern>*/node_modules/*</exclude-pattern>
+  <exclude-pattern>*/vendor/*</exclude-pattern>
+
+  <!-- Exclude recursive symlink in tests module. -->
+  <exclude-pattern>./tests/modules/patternkit_test/lib</exclude-pattern>
+
+  <!-- Disable rules that are problematic or annoying to deal with. -->
+  <rule ref="Drupal.Commenting.FunctionComment.ParamMissingDefinition">
+    <!-- Don't redefine the $options param for every command. -->
+    <exclude-pattern>*Commands\.php</exclude-pattern>
+  </rule>
+
+</ruleset>

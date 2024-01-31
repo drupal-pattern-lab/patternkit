@@ -20,13 +20,7 @@ class PatternUsageTest extends UnitTestCase {
    *
    * @param string $path
    *   The usage path to be parsed.
-   * @param array{
-   *   section: int,
-   *   uuid: string,
-   *   content_path: string,
-   *   top_pattern: string,
-   *   nested_pattern?: string,
-   * } $expected
+   * @param array{section: int, uuid: string, content_path: string, top_pattern: string, nested_pattern?: string} $expected
    *   The expected parsed output for the usage path.
    *
    * @covers ::parseUsagePath

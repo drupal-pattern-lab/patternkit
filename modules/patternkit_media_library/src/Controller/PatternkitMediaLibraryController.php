@@ -11,6 +11,7 @@ use Drupal\media_library\MediaLibraryUiBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\InputBag as SymfonyInputBag;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * Controller for supporting media content selection in Patternkit.
@@ -106,10 +107,18 @@ class PatternkitMediaLibraryController extends ControllerBase {
    *   A render array of the media entity preview.
    *
    * @throws \Drupal\Core\Entity\EntityStorageException
+   * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
+   *   Throws an exception if the referenced media entity could not be found.
    */
   public function mediaPreview(string $uuid): array {
     $media = $this->entityRepository->loadEntityByUuid('media', $uuid);
-    return $this->mediaViewBuilder->view($media, 'media_library');
+
+    if ($media !== NULL) {
+      return $this->mediaViewBuilder->view($media, 'media_library');
+    }
+    else {
+      throw new NotFoundHttpException(sprintf('Unable to find media entity with UUID "%s".', $uuid));
+    }
   }
 
 }

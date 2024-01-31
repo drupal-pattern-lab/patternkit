@@ -1,3 +1,9 @@
 .cache
 js/globals**.js**
 node_modules
+
+# Ignore local environment files implemented via ddev/ddev-drupal-contrib.
+/vendor
+/web
+/.editorconfig
+/.gitattributes

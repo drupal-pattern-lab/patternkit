@@ -1005,7 +1005,11 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     // control over the flow of where the block is loaded from to better manage
     // duplication if needed.
     if (!empty($this->configuration['block_serialized'])) {
-      $block = unserialize($this->configuration['block_serialized']);
+      $block = unserialize($this->configuration['block_serialized'], [
+        'allowed_classes' => [
+          EntityPatternkitBlock::class,
+        ],
+      ]);
       assert($block instanceof EntityPatternkitBlock);
     }
 
@@ -1107,7 +1111,11 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     // in that value.
     if (isset($configuration['block_serialized'])) {
       // Return this one immediately since it's the working copy.
-      return $this->blockEntity = unserialize($configuration['block_serialized']);
+      return $this->blockEntity = unserialize($this->configuration['block_serialized'], [
+        'allowed_classes' => [
+          EntityPatternkitBlock::class,
+        ],
+      ]);
     }
     // Load the defined revision if available.
     elseif (isset($configuration['patternkit_block_rid'])

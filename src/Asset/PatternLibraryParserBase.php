@@ -208,8 +208,8 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     // @todo Request failure handling.
     $pk_obj = \Drupal::service('serialization.json')->decode($result->getBody()->getContents());
 
-    $dir = "public://patternkit/$subtype/{$config->instance_id}";
-    if (!\Drupal::service('file_system')->prepareDirectory($dir, FileSystem::CREATE_DIRECTORY)) {
+    $dir = "public://patternkit/$subtype/$config->instance_id";
+    if (!\Drupal::service('file_system')->prepareDirectory($dir, FileSystemInterface::CREATE_DIRECTORY)) {
       // @todo Failure handling.
       \Drupal::service('messenger')->addMessage(
         t(
@@ -235,7 +235,6 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
       ));
     }
 
-    $weight = 100;
     $assets = [];
 
     // Normalize the object for easier processing.
@@ -275,7 +274,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
       $assets['css'] = $pk_obj->global_assets->css;
     }
 
-    foreach ($assets as $asset_type => $urls) {
+    foreach ($assets as $urls) {
       foreach ($urls as $asset_url) {
         // If the asset is being loaded with arbitrary scheme, assume external.
         $pos = strpos($asset_url, '//');

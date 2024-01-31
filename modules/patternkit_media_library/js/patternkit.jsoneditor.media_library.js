@@ -167,13 +167,12 @@ var DrupalMediaEditor = /*#__PURE__*/function (_JSONEditor$AbstractE) {
     key: "previewMediaToken",
     value: function previewMediaToken(token) {
       var attributes = this.parseMediaToken(token);
-      console.log(attributes);
       var uuid = attributes['entity-uuid'];
 
       if (uuid != null) {
-        var preview_url = '/patternkit_media_library/preview/' + uuid;
+        var preview_path = 'patternkit_media_library/preview/' + uuid;
         var ajax_options = {
-          url: preview_url,
+          url: Drupal.url(preview_path),
           base: this.container_id,
           wrapper: this.container_id + '--preview',
           method: 'html'

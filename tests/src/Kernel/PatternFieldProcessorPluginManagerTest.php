@@ -256,7 +256,7 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
     $config = [
       'text' => $title_token,
       'formatted_text' => $body_text . $invalid_token,
-      'image_url' => $optional_field_token
+      'image_url' => $optional_field_token,
     ];
 
     // Assemble the pattern element for rendering.

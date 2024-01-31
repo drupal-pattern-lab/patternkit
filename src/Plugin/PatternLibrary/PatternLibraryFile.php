@@ -87,12 +87,11 @@ class PatternLibraryFile extends PatternLibraryPluginDefault implements Containe
         $template = '@' . $pattern->url . '#/' . $template;
       }
       $namespace = '';
-      $file = $template;
       // If a namespace is provided, break it up.
-      if (strpos($template, '@') === 0) {
-        [$namespace, $file] = explode('#', $template);
+      if (str_starts_with($template, '@')) {
+        [$namespace] = explode('#', $template);
       }
-      $bare = basename($file);
+
       /** @var \Drupal\Core\Template\TwigEnvironment $twig */
       $twig       = \Drupal::service('twig');
       $template   = $twig->load("$namespace/$pattern->filename");

@@ -26,12 +26,7 @@ trait PatternUsageAssertionTrait {
    *   The entity ID for the tracked source entity.
    * @param string $pattern_name
    *   The tracked pattern name to search for.
-   * @param array{
-   *   source_revision_id?: int,
-   *   source_langcode?: string,
-   *   path?: string,
-   *   component_uuid?: string,
-   * } $additional_properties
+   * @param array{source_revision_id?: int, source_langcode?: string, path?: string, component_uuid?: string} $additional_properties
    *   (Optional) An associative array of additional properties to filter usage
    *   results by. Options for these filters include:
    *   - source_revision_id: The revision ID of the source entity.
@@ -54,12 +49,7 @@ trait PatternUsageAssertionTrait {
    *   The entity to find related usage records for.
    * @param string $pattern_name
    *   The tracked pattern name to search for.
-   * @param array{
-   *   source_revision_id?: int,
-   *   source_langcode?: string,
-   *   path?: string,
-   *   component_uuid?: string,
-   * } $additional_properties
+   * @param array{source_revision_id?: int, source_langcode?: string, path?: string, component_uuid?: string} $additional_properties
    *   (Optional) An associative array of additional properties to filter usage
    *   results by. Options for these filters include:
    *   - source_revision_id: The revision ID of the source entity.
@@ -85,12 +75,7 @@ trait PatternUsageAssertionTrait {
    *   The entity ID for the tracked source entity.
    * @param string $pattern_name
    *   The tracked pattern name to search for.
-   * @param array{
-   *   source_revision_id?: int,
-   *   source_langcode?: string,
-   *   path?: string,
-   *   component_uuid?: string,
-   * } $additional_properties
+   * @param array{source_revision_id?: int, source_langcode?: string, path?: string, component_uuid?: string} $additional_properties
    *   (Optional) An associative array of additional properties to filter usage
    *   results by. Options for these filters include:
    *   - source_revision_id: The revision ID of the source entity.
@@ -113,12 +98,7 @@ trait PatternUsageAssertionTrait {
    *   The entity to find related usage records for.
    * @param string $pattern_name
    *   The tracked pattern name to search for.
-   * @param array{
-   *   source_revision_id?: int,
-   *   source_langcode?: string,
-   *   path?: string,
-   *   component_uuid?: string,
-   * } $additional_properties
+   * @param array{source_revision_id?: int, source_langcode?: string, path?: string, component_uuid?: string} $additional_properties
    *   (Optional) An associative array of additional properties to filter usage
    *   results by. Options for these filters include:
    *   - source_revision_id: The revision ID of the source entity.
@@ -144,12 +124,7 @@ trait PatternUsageAssertionTrait {
    *   The entity ID for the tracked source entity.
    * @param string $pattern_name
    *   The tracked pattern name to search for.
-   * @param array{
-   *   source_revision_id?: int,
-   *   source_langcode?: string,
-   *   path?: string,
-   *   component_uuid?: string,
-   * } $additional_properties
+   * @param array{source_revision_id?: int, source_langcode?: string, path?: string, component_uuid?: string} $additional_properties
    *   (Optional) An associative array of additional properties to filter usage
    *   results by. Options for these filters include:
    *   - source_revision_id: The revision ID of the source entity.

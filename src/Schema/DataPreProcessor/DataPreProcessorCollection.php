@@ -64,11 +64,8 @@ class DataPreProcessorCollection implements DataPreProcessor {
    *   Processed data.
    */
   public function process($data, Schema $schema, $import = TRUE) {
-    /**
-     * @var int $priority
-     * @var \Swaggest\JsonSchema\DataPreProcessor[] $group
-     */
-    foreach ($this->preprocessors as $priority => $group) {
+    /** @var \Swaggest\JsonSchema\DataPreProcessor[] $group */
+    foreach ($this->preprocessors as $group) {
       foreach ($group as $dataPreProcessor) {
         $data = $dataPreProcessor->process($data, $schema, $import);
       }

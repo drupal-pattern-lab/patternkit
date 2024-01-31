@@ -6,7 +6,6 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\editor\Entity\Editor;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -258,7 +257,8 @@ class PatternLibraryJSONForm extends ConfigFormBase {
     $supported_wysiwygs = ['ckeditor5'];
 
     if ($toolbar && in_array($wysiwyg, $supported_wysiwygs)) {
-      $editor = Editor::load($toolbar);
+      $editor_storage = $this->entityTypeManager->getStorage('editor');
+      $editor = $editor_storage->load($toolbar);
 
       if ($editor->getEditor() !== $wysiwyg) {
         $form_state->setErrorByName('patternkit_json_editor_ckeditor_toolbar', $this->t(

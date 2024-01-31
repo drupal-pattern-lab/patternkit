@@ -8,6 +8,7 @@ use Drupal\media\MediaInterface;
 use Drupal\Tests\media\Traits\MediaTypeCreationTrait;
 use Drupal\Tests\patternkit\FunctionalJavascript\PatternkitBrowserTestBase;
 use Drupal\Tests\TestFileCreationTrait;
+use PHPUnit\Framework\ExpectationFailedException;
 
 /**
  * A base class for testing patternkit media library functionality.
@@ -84,7 +85,14 @@ abstract class PatternkitMediaLibraryBrowserTestBase extends PatternkitBrowserTe
    */
   protected function assertElementExistsAfterWait($selector, $locator, $timeout = 10000) {
     $element = $this->assertSession()->waitForElement($selector, $locator, $timeout);
-    $this->assertNotEmpty($element);
+
+    try {
+      $this->assertNotEmpty($element);
+    }
+    catch (ExpectationFailedException $exception) {
+      $this->handleFailure($exception);
+    }
+
     return $element;
   }
 

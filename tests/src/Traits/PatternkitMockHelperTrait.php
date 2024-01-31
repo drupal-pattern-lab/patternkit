@@ -97,15 +97,7 @@ trait PatternkitMockHelperTrait {
   /**
    * Get a mock patternkit block plugin with given configuration.
    *
-   * @param array{
-   *   plugin_id?: string,
-   *   derivative_id?: string,
-   *   configuration?: array<string, mixed>,
-   *   block?: \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Plugin\Block\PatternkitBlock>|array<string, mixed>,
-   *   pattern?: \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Entity\PatternInterface>|array<string, mixed>,
-   *   base_pattern?: \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Entity\PatternInterface>|array<string, mixed>,
-   *   pattern_id?: string,
-   * } $values
+   * @param array<string, mixed> $values
    *   An associative array of configuration values to assign to the mock's
    *   related methods.
    *
@@ -155,21 +147,7 @@ trait PatternkitMockHelperTrait {
   /**
    * Get a mocked patternkit block entity with given configuration.
    *
-   * @param array{
-   *   pattern_id?: string|null,
-   *   data?: array<string, mixed>,
-   *   id?: int,
-   *   revision_id?: int,
-   *   language?: string,
-   *   uuid?: string,
-   *   is_new?: bool,
-   *   entity_type?: string,
-   *   bundle?: string,
-   *   label?: string,
-   *   contexts?: string[],
-   *   tags?: string[],
-   *   max-age?: int,
-   * } $values
+   * @param array<string, mixed> $values
    *   An associative array of configuration values to assign to the mock's
    *   related methods.
    *
@@ -232,31 +210,7 @@ trait PatternkitMockHelperTrait {
   /**
    * Get a mocked pattern entity with given configuration.
    *
-   * @param array{
-   *   hash?: string,
-   *   asset_id?: string,
-   *   name?: string,
-   *   version?: string,
-   *   library?: string,
-   *   category?: string,
-   *   description?: string,
-   *   library_plugin?: string,
-   *   path?: string,
-   *   schema?: string,
-   *   template?: string,
-   *   dependencies?: string[],
-   *   is_bundled?: bool,
-   *   id?: int|null,
-   *   revision_id?: int|null,
-   *   uuid?: string,
-   *   is_new?: bool,
-   *   entity_type?: string,
-   *   bundle?: string,
-   *   label?: string,
-   *   contexts?: string[],
-   *   tags?: string[],
-   *   max-age?: int,
-   * } $values
+   * @param array<string, mixed> $values
    *   An associative array of configuration values to assign to the mock's
    *   related methods.
    *
@@ -352,13 +306,7 @@ trait PatternkitMockHelperTrait {
    * be mocked using
    * @link \Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait::getMockLayoutBuilderComponent @endlink.
    *
-   * @param array{
-   *   plugin_id?: string,
-   *   theme?: string,
-   *   configuration?: array<string, mixed>,
-   *   plugin?: array<string, mixed>|\Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Plugin\Block\PatternkitBlock>,
-   *   uuid?: string,
-   * } $values
+   * @param array<string, mixed> $values
    *   An associative array of configuration values to assign to the mock's
    *   related methods.
    *
@@ -422,13 +370,7 @@ trait PatternkitMockHelperTrait {
    * UI which should instead be mocked using
    * @link \Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait::getMockBlockComponent() @endlink.
    *
-   * @param array{
-   *   plugin_id?: string,
-   *   theme?: string,
-   *   configuration?: array<string, mixed>,
-   *   plugin?: array<string, mixed>|\Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Plugin\Block\PatternkitBlock>,
-   *   uuid?: string,
-   * } $values
+   * @param array<string, mixed> $values
    *   An associative array of configuration values to assign to the mock's
    *   related methods.
    *

@@ -112,6 +112,7 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
     $this->assertElementExistsAfterWait('css', '.js-media-library-view');
 
     // @todo Validate the title of the modal as well.
+    // @phpcs:ignore
     // $assert->elementTextContains('css', '.ui-dialog .ui-dialog-title', 'Select image');
     $assert->elementTextContains('css', '.js-media-library-view', 'Super fancy image');
     $this->selectMediaItem(0);
@@ -170,6 +171,7 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
     $this->assertElementExistsAfterWait('css', '.js-media-library-view');
 
     // @todo Validate the title of the modal as well.
+    // @phpcs:ignore
     // $assert->elementTextContains('css', '.ui-dialog .ui-dialog-title', 'Select video');
     $assert->elementTextContains('css', '.js-media-library-view', 'Intensely engaging video');
     $this->selectMediaItem(0);
@@ -407,7 +409,6 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
    */
   public function testImageMediaSelectionWithoutConfiguration(): void {
     $assert = $this->assertSession();
-    $page = $this->getSession()->getPage();
 
     // Configure without any selected image bundles.
     $this->setMediaMappingConfiguration([]);
@@ -430,7 +431,6 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
    */
   public function testImageUrlSelectionWithoutConfiguration(): void {
     $assert = $this->assertSession();
-    $page = $this->getSession()->getPage();
 
     // Configure without any selected image bundles.
     $this->setMediaMappingConfiguration([]);
@@ -453,7 +453,6 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
    */
   public function testVideoMediaSelectionWithoutConfiguration(): void {
     $assert = $this->assertSession();
-    $page = $this->getSession()->getPage();
 
     // Configure without any selected video bundles.
     $this->setMediaMappingConfiguration([], []);

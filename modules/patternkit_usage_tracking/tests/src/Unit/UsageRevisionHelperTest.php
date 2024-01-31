@@ -934,7 +934,7 @@ class UsageRevisionHelperTest extends UnitTestCase {
           // Register a new nested pattern within the updated component.
           [
             $patterns['nested'],
-            "2.$uuids[1]:" . ($new_nested_path = "$patterns[1]=>{$patterns['nested']}"),
+            "2.$uuids[1]:" . "$patterns[1]=>{$patterns['nested']}",
           ],
         ],
         'update' => [
@@ -1088,13 +1088,7 @@ class UsageRevisionHelperTest extends UnitTestCase {
   /**
    * Load static data into mocked pattern usage records.
    *
-   * @param List<array{
-   *   component_uuid: string,
-   *   pattern_id: string,
-   *   layout_path: string,
-   *   is_nested?: bool,
-   *   content_path?: string,
-   * }> $loaded_records
+   * @param List<array{component_uuid: string, pattern_id: string, layout_path: string, is_nested?: bool, content_path?: string}> $loaded_records
    *   An array of static record data to configure into loaded prophecy objects
    *   for individual pattern usage records. Each entry should be an associative
    *   array specifying the following keys and values:
@@ -1112,11 +1106,7 @@ class UsageRevisionHelperTest extends UnitTestCase {
    *     component's content where a pattern usage was found. This is required
    *     if 'is_nested' is set to TRUE.
    *
-   * @return array{
-   *   all: array<string, \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit_usage_tracking\Entity\PatternUsage>>,
-   *   top: array<string, \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit_usage_tracking\Entity\PatternUsage>>,
-   *   nested: array<string, \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit_usage_tracking\Entity\PatternUsage>>,
-   * }
+   * @return array{all: array<string, \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit_usage_tracking\Entity\PatternUsage>>, top: array<string, \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit_usage_tracking\Entity\PatternUsage>>, nested: array<string, \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit_usage_tracking\Entity\PatternUsage>>}
    *   An associative array containing all record prophecies keyed into separate
    *   lists. <strong>All record prophecies are un-revealed</strong> to allow
    *   for further expectations to be specified. <strong>Each record will need

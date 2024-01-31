@@ -100,7 +100,7 @@ class PatternkitSettingsForm extends ConfigFormBase {
       '#sticky' => TRUE,
     ];
     $library_options = $config->get('patternkit_libraries') ?? [];
-    foreach ($libraries as $namespace => $library) {
+    foreach ($libraries as $library) {
       if (empty($library['patterns'])) {
         continue;
       }

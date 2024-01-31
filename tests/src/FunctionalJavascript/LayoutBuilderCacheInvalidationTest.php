@@ -320,7 +320,6 @@ class LayoutBuilderCacheInvalidationTest extends PatternkitBrowserTestBase {
    */
   protected function placeExampleBlock(NodeInterface $node, array $content): PatternkitBlock {
     $page = $this->getSession()->getPage();
-    $assert = $this->assertSession();
 
     $pattern_name = '[Patternkit] Example';
     $nid = $node->id();
@@ -344,9 +343,9 @@ class LayoutBuilderCacheInvalidationTest extends PatternkitBrowserTestBase {
     $latest_revision_id = $this->nodeStorage->getLatestRevisionId($node->id());
     $node = $this->nodeStorage->loadRevision($latest_revision_id);
 
-    /** @var \Drupal\layout_builder\SectionComponent $component */
     $sections = $this->getEntitySections($node);
     $components = $sections[0]->getComponents();
+    /** @var \Drupal\layout_builder\SectionComponent $component */
     $component = end($components);
     /** @var \Drupal\patternkit\Plugin\Block\PatternkitBlock $plugin */
     $plugin = $component->getPlugin();

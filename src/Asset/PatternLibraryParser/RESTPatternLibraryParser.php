@@ -150,7 +150,7 @@ class RESTPatternLibraryParser {
       $assets['css'] = $pk_obj->global_assets->css;
     }
 
-    foreach ($assets as $asset_type => $urls) {
+    foreach ($assets as $urls) {
       foreach ($urls as $asset_url) {
         // If the asset is being loaded with arbitrary scheme, assume external.
         $pos = strpos($asset_url, '//');

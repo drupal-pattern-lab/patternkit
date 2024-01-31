@@ -100,13 +100,12 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
    */
   previewMediaToken(token) {
     const attributes = this.parseMediaToken(token);
-    console.log(attributes);
     const uuid = attributes['entity-uuid'];
 
     if (uuid != null) {
-      const preview_url = '/patternkit_media_library/preview/' + uuid;
+      const preview_path = 'patternkit_media_library/preview/' + uuid;
       const ajax_options = {
-        url: preview_url,
+        url: Drupal.url(preview_path),
         base: this.container_id,
         wrapper: this.container_id + '--preview',
         method: 'html'

@@ -386,7 +386,7 @@ class LayoutDiscoveryBatchWorker implements ContainerInjectionInterface {
         break;
 
       default:
-        throw new \InvalidArgumentException(t('Unknown revision mode "@option".', ['@option' => $this->revisionMode]));
+        throw new \InvalidArgumentException(sprintf('Unknown revision mode "%s".', $this->revisionMode));
     }
 
     return $query;

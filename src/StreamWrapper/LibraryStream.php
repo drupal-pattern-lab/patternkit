@@ -35,8 +35,7 @@ class LibraryStream extends PublicStream {
     $asset_resolver = \Drupal::service('asset.resolver');
     [$extension, $library, $type_level] = explode('/', $uri);
     // @todo Allow retrieving specific filenames and css levels.
-    $filename = substr($uri, strlen($extension . $library . $type_level));
-    [$type, $level] = array_pad(explode('.', $type_level), 2, NULL);
+    $type = strstr($type_level, '.', TRUE) ?: $type_level;
     // Resolve the attached libraries into asset collections.
     $assets = new AttachedAssets();
     $assets->setLibraries(["$extension/$library"]);

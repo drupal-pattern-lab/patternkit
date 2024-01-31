@@ -742,7 +742,10 @@ class PatternkitBlockTest extends UnitTestCase {
     $this->assertSame($configData, $element['#config']);
     $this->assertEquals($contextValues, $element['#context']);
     $this->assertEqualsCanonicalizing(array_merge($blockCacheData['contexts'], $patternCacheData['contexts']), $element['#cache']['contexts']);
-    $this->assertEqualsCanonicalizing([...$blockCacheData['tags'], ...$patternCacheData['tags']], $element['#cache']['tags']);
+    $this->assertEqualsCanonicalizing([
+      ...$blockCacheData['tags'],
+      ...$patternCacheData['tags'],
+    ], $element['#cache']['tags']);
     $this->assertEqualsCanonicalizing(100, $element['#cache']['max-age']);
     $this->assertEqualsCanonicalizing([], $element['#attached']);
   }
@@ -1368,17 +1371,19 @@ class PatternkitBlockTest extends UnitTestCase {
    * The pattern storage prophecy is also prepared to load the new pattern
    * revision if queried for the default revision ID.
    *
-   * @return array{
-   *   'cached': \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Entity\PatternInterface>,
-   *   'base': \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Entity\PatternInterface>,
-   *   'new': \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Entity\PatternInterface>,
-   * }
+   * @return array{string: \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Entity\PatternInterface>}
    *   An associative array of pattern prophecies with the following keys:
    *   - 'cached': A pattern mocked as if loaded from the database and in need
    *     of updating.
    *   - 'base': A mocked base pattern that is an updated version of the cached
    *     pattern mock.
    *   - 'new': A mocked pattern representing an updated revision.
+   *
+   * @phpstan-return array{
+   *    'cached': \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Entity\PatternInterface>,
+   *    'base': \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Entity\PatternInterface>,
+   *    'new': \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Entity\PatternInterface>,
+   *  }
    */
   protected function prepareUpdatePatternDependencies(): array {
     // Mock a cached Pattern with an older hash.

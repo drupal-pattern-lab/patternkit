@@ -261,13 +261,7 @@ class UsageRevisionHelper {
    *   The entity containing the layout and component being updated.
    * @param string $uuid
    *   The UUID for the layout component being updated.
-   * @param array{
-   *   uuid: string,
-   *   layout_path: string,
-   *   pattern_id: string,
-   *   nested: array<string, \Drupal\patternkit_usage_tracking\Entity\PatternUsage>,
-   *   record: \Drupal\patternkit_usage_tracking\Entity\PatternUsage,
-   * } $saved_component
+   * @param array{uuid: string, layout_path: string, pattern_id: string, nested: array<string, \Drupal\patternkit_usage_tracking\Entity\PatternUsage>, record: \Drupal\patternkit_usage_tracking\Entity\PatternUsage} $saved_component
    *   An associative array of previously saved usage records for the component
    *   being updated. Usage data is organized within the following keys:
    *   - uuid: The UUID of the containing component.
@@ -294,7 +288,7 @@ class UsageRevisionHelper {
     $record = &$saved_component['record'];
 
     // Did the layout path change, such as moving a block to a new section?
-    if ($layout_changed = $saved_component['layout_path'] !== $edited_component['layout_path']) {
+    if ($saved_component['layout_path'] !== $edited_component['layout_path']) {
       // Update the saved record to use the new layout path.
       $record->setPath($edited_component['layout_path']);
     }

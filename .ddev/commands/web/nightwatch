@@ -1,0 +1,11 @@
+#!/bin/bash
+
+#ddev-generated
+## Command provided by https://github.com/ddev/ddev-drupal-contrib
+## Description: Run nightwatch inside the web container
+## Usage: nightwatch [flags] [args]
+## Example: "ddev nightwatch"
+## ProjectTypes: drupal8,drupal9,drupal10
+## ExecRaw: true
+
+yarn --cwd "$DDEV_DOCROOT/core" test:nightwatch  "$DDEV_COMPOSER_ROOT/$DDEV_DOCROOT/modules/custom/" "$@"
