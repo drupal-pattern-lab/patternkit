@@ -82,7 +82,7 @@ trait JSONSchemaEditorTrait {
     $url = $this->fileUrlGenerator->generateAbsoluteString($uri);
     if ($url !== $uri) {
       $query_string = $this->getQueryString();
-      $query_string_separator = (strpos($url, '?') !== FALSE) ? '&' : '?';
+      $query_string_separator = str_contains($url, '?') ? '&' : '?';
       $url = $this->fileUrlGenerator->transformRelative($url) . $query_string_separator . $query_string;
     }
     return $url;
@@ -157,42 +157,6 @@ trait JSONSchemaEditorTrait {
       }
     }
 
-    $accepted_editors = [
-      'ckeditor5',
-    ];
-    $editor = $this->config->get('patternkit_json_editor_wysiwyg');
-    if (in_array($editor, $accepted_editors)) {
-      $selected_toolbar = $this->config->get('patternkit_json_editor_ckeditor_toolbar');
-      if (!empty($selected_toolbar)) {
-        // The following code builds a CKEditor toolbar. Code stolen from
-        // \Drupal\editor\Element::preRenderTextFormat.
-        if ($editor === 'ckeditor5') {
-          $ckeditor_instance = CKEditor5::create(\Drupal::getContainer(), [], 'ckeditor5', ['provider' => 'patternkit']);
-        }
-
-        if ($ckeditor_instance) {
-          /** @var \Drupal\editor\Entity\Editor $ckeditor_config */
-          $ckeditor_entity = Editor::load($selected_toolbar);
-          if ($ckeditor_entity && $ckeditor_entity->status()) {
-            $editor_settings['patternkitCKEditorConfig'] = $ckeditor_instance->getJSSettings($ckeditor_entity);
-            // Pushes the selected toolbar to drupalSettings, for use clientside
-            // in DrupalCKEditor5.afterInputReady.
-            $editor_settings['patternkitCKEditorConfig']['selected_toolbar'] = $selected_toolbar;
-          }
-          else {
-            $msg = $this->t('Missing Editor entity @name', ['@name' => $selected_toolbar]);
-            $this->getLogger('patternkit')->error($msg);
-            $this->messenger()->addError($msg);
-          }
-        }
-        else {
-          $msg = $this->t('Unable to create WYSIWYG editor instance for @name', ['@name' => $editor]);
-          $this->getLogger('patternkit')->error($msg);
-          $this->messenger()->addError($msg);
-        }
-      }
-    }
-
     // @todo Move to own JS file & Drupal Settings config var.
     $element = [
       '#type'     => 'html_tag',
@@ -212,14 +176,74 @@ trait JSONSchemaEditorTrait {
       ],
     ];
 
-    if (!empty($editor)) {
-      $element['#attached']['library'][] = 'editor/drupal.editor';
+    $this->prepareWysiwygEditor($element);
 
-      switch ($editor) {
-        case 'ckeditor5':
-          $element['#attached']['library'][] = 'core/ckeditor5.editorClassic';
-          break;
+    return $element;
+  }
+
+  /**
+   * Load and attach dependencies for selected WYSIWYG editors.
+   *
+   * @param array $element
+   *   The render element for the JSONEditor form element. This value is passed
+   *   by reference and altered directly.
+   */
+  protected function prepareWysiwygEditor(array &$element): void {
+    $accepted_editors = [
+      'ckeditor5' => CKEditor5::class,
+    ];
+    $editor = $this->config->get('patternkit_json_editor_wysiwyg');
+    if (empty($editor) || !is_string($editor) || !array_key_exists($editor, $accepted_editors)) {
+      // Stop here if an accepted editor was not selected.
+      return;
+    }
+
+    if (empty($selected_toolbar = $this->config->get('patternkit_json_editor_ckeditor_toolbar'))) {
+      // Stop here if no toolbar was selected.
+      return;
+    }
+
+    // Attempt to load the editor for the selected toolbar.
+    if (class_exists($accepted_editors[$editor])) {
+      $ckeditor_instance = $accepted_editors[$editor]::create(\Drupal::getContainer(), [], $editor, ['provider' => 'patternkit']);
+    }
+    else {
+      // Log the error and stop here if the editor could not be loaded.
+      $msg = $this->t('Unable to load class for editor %editor. Expected to find %class.', [
+        '%editor' => $editor,
+        '%class' => $accepted_editors[$editor],
+      ]);
+      $this->getLogger('patternkit')->error($msg);
+      $this->messenger()->addError($msg);
+      return;
+    }
+
+    if ($ckeditor_instance) {
+      /** @var \Drupal\editor\Entity\Editor $ckeditor_entity */
+      $ckeditor_entity = Editor::load($selected_toolbar);
+      if ($ckeditor_entity && $ckeditor_entity->status()) {
+        $editor_settings = &$element['#attached']['drupalSettings']['patternkitEditor'];
+        $editor_settings['patternkitCKEditorConfig'] = $ckeditor_instance->getJSSettings($ckeditor_entity);
+        // Pushes the selected toolbar to drupalSettings, for use clientside
+        // in DrupalCKEditor5.afterInputReady.
+        $editor_settings['patternkitCKEditorConfig']['selected_toolbar'] = $selected_toolbar;
       }
+      else {
+        $msg = $this->t('Missing Editor entity @name', ['@name' => $selected_toolbar]);
+        $this->getLogger('patternkit')->error($msg);
+        $this->messenger()->addError($msg);
+      }
+    }
+    else {
+      $msg = $this->t('Unable to create WYSIWYG editor instance for @name', ['@name' => $editor]);
+      $this->getLogger('patternkit')->error($msg);
+      $this->messenger()->addError($msg);
+    }
+
+    // Attach library dependencies.
+    $element['#attached']['library'][] = 'editor/drupal.editor';
+    if ($editor == 'ckeditor5') {
+      $element['#attached']['library'][] = 'core/ckeditor5.editorClassic';
     }
 
     // Attaches attachments for the selected editor.
@@ -227,8 +251,6 @@ trait JSONSchemaEditorTrait {
       $attachments = $editor_plugin_manager->getAttachments([$selected_toolbar]);
       $element['#attached'] = BubbleableMetadata::mergeAttachments($element['#attached'], $attachments);
     }
-
-    return $element;
   }
 
   /**
@@ -247,7 +269,7 @@ trait JSONSchemaEditorTrait {
    * @param \Drupal\editor\Plugin\EditorManager $editor_plugin_manager
    *   The editor plugin manager service.
    */
-  protected function setEditorPluginManager(EditorManager $editor_plugin_manager) {
+  protected function setEditorPluginManager(EditorManager $editor_plugin_manager): void {
     $this->editorPluginManager = $editor_plugin_manager;
   }
 
