@@ -99,7 +99,7 @@ class LibraryNamespaceResolverTest extends KernelTestBase implements ServiceModi
    */
   public function testLibraryCachePersistence() {
     // Ensure the cache is starting empty.
-    $cache = $this->container->get('cache.discovery');
+    $cache = $this->container->get('cache.patternkit');
     $cache->delete(LibraryNamespaceResolver::PERSISTENT_CACHE_ID);
 
     // Load all library definitions which should prepare all data for caching.
@@ -125,7 +125,7 @@ class LibraryNamespaceResolverTest extends KernelTestBase implements ServiceModi
     ];
 
     // Seed the cache data.
-    $cache = $this->container->get('cache.discovery');
+    $cache = $this->container->get('cache.patternkit');
     $cache->set(LibraryNamespaceResolver::PERSISTENT_CACHE_ID, $cache_seed);
 
     $definitions = $this->resolver->getLibraryDefinitions();
@@ -151,7 +151,7 @@ class LibraryNamespaceResolverTest extends KernelTestBase implements ServiceModi
     $cache_seed = [
       '@unknown' => (array) $this->getRandomGenerator()->object(),
     ];
-    $cache = $this->container->get('cache.discovery');
+    $cache = $this->container->get('cache.patternkit');
     $cache->set(LibraryNamespaceResolver::PERSISTENT_CACHE_ID, $cache_seed);
 
     // Expect the requested library to be returned successfully.
@@ -175,7 +175,7 @@ class LibraryNamespaceResolverTest extends KernelTestBase implements ServiceModi
    */
   public function testCacheMissResults() {
     // Ensure the cache is starting empty.
-    $cache = $this->container->get('cache.discovery');
+    $cache = $this->container->get('cache.patternkit');
     $cache->delete(LibraryNamespaceResolver::PERSISTENT_CACHE_ID);
 
     // Expect a valid library to return successfully.

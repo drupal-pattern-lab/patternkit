@@ -97,7 +97,7 @@ class PatternDiscoveryCacheTest extends PatternkitKernelTestBase {
    */
   public function testClearCachedDefinitions(): void {
     /** @var \Drupal\Core\Cache\CacheBackendInterface $cache */
-    $cache = $this->container->get('cache.discovery');
+    $cache = $this->container->get('cache.patternkit');
 
     $namespaces = [
       '@patternkit',

@@ -31,7 +31,7 @@ services:
       - { name: path_processor_inbound, priority: 200 }
   patternkit.asset.library:
     class: Drupal\patternkit\Asset\Library
-    arguments: ['@cache.discovery', '@config.factory', '@lock', '@patternkit.pattern.discovery', '@patternkit.library.namespace_resolver']
+    arguments: ['@cache.patternkit', '@config.factory', '@lock', '@patternkit.pattern.discovery', '@patternkit.library.namespace_resolver']
     deprecated: 'The "%service_id%" service is deprecated. Use "patternkit.library.namespace_resolver" or "patternkit.pattern.discovery" instead.'
   patternkit.asset.library.parser.base:
     abstract: true
@@ -61,7 +61,7 @@ services:
     arguments:
       - '@service_container'
       - '@library.discovery'
-      - '@cache.discovery'
+      - '@cache.patternkit'
       - '@lock'
       - '@stream_wrapper_manager'
     tags:
@@ -71,7 +71,7 @@ services:
     arguments:
       - '@patternkit.pattern.discovery.loader'
       - '@patternkit.library.namespace_resolver'
-      - '@cache.discovery'
+      - '@cache.patternkit'
       - '@logger.channel.patternkit'
       - '@patternkit.environment'
   patternkit.pattern.discovery.loader:
@@ -183,6 +183,12 @@ services:
     arguments:
       - '@patternkit.schema.schema_factory'
     public: false
+  cache.patternkit:
+    class: Drupal\Core\Cache\CacheBackendInterface
+    tags:
+      - { name: cache.bin }
+    factory: [ '@cache_factory', 'get' ]
+    arguments: [patternkit]
 
   # Collect default data preprocessors for general usage.
   patternkit.schema.data_preprocessor.defaults:
