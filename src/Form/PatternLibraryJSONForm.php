@@ -177,6 +177,13 @@ class PatternLibraryJSONForm extends ConfigFormBase {
       '#default_value' => $config->get('patternkit_json_editor_cache_schemas') ?? FALSE,
     ];
 
+    $form['patternkit_json_editor_token_clear'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Replace empty token values'),
+      '#description' => $this->t('Remove tokens from text if they cannot be replaced with a value.'),
+      '#default_value' => $config->get('patternkit_json_editor_token_clear') ?? FALSE,
+    ];
+
     $form['patternkit_json_editor_wysiwyg'] = [
       '#type' => 'select',
       '#title' => $this->t('WYSIWYG editor'),
@@ -285,6 +292,7 @@ class PatternLibraryJSONForm extends ConfigFormBase {
     $config->set('patternkit_json_editor_disable_properties_buttons', (bool) $form_values['patternkit_json_editor_disable_properties_buttons']);
     $config->set('patternkit_json_editor_disable_edit_json_button', (bool) $form_values['patternkit_json_editor_disable_edit_json_button']);
     $config->set('patternkit_json_editor_cache_schemas', (bool) $form_values['patternkit_json_editor_cache_schemas']);
+    $config->set('patternkit_json_editor_token_clear', (bool) $form_values['patternkit_json_editor_token_clear']);
     $config->set('patternkit_json_editor_wysiwyg', $form_values['patternkit_json_editor_wysiwyg']);
     $config->set('patternkit_json_editor_ckeditor_toolbar', $form_values['patternkit_json_editor_ckeditor_toolbar']);
     $config->save();

@@ -2,12 +2,14 @@
 
 namespace Drupal\Tests\patternkit\Unit\Plugin\PatternFieldProcessor;
 
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Template\TwigEnvironment;
 use Drupal\Core\Utility\Token;
 use Drupal\node\NodeInterface;
 use Drupal\patternkit\Plugin\PatternFieldProcessor\TokenProcessor;
 use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\MockObject\MockObject;
 use Swaggest\JsonSchema\Schema;
 use Swaggest\JsonSchema\SchemaContract;
 
@@ -41,6 +43,13 @@ class TokenProcessorTest extends UnitTestCase {
   protected TokenProcessor $plugin;
 
   /**
+   * A mock config factory for accessing patternkit settings.
+   *
+   * @var \PHPUnit\Framework\MockObject\MockObject|\Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected MockObject|ConfigFactoryInterface $configFactory;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp(): void {
@@ -48,10 +57,20 @@ class TokenProcessorTest extends UnitTestCase {
 
     $this->token = $this->createMock(Token::class);
     $this->twig = $this->createMock(TwigEnvironment::class);
+    $this->configFactory = $this->getConfigFactoryStub([
+      'patternkit.settings' => [
+        'patternkit_json_editor_token_clear' => TRUE,
+      ],
+    ]);
 
     // Instantiate the plugin for testing.
-    $this->plugin = new TokenProcessor([], 'token', [],
-      $this->token, $this->twig);
+    $this->plugin = new TokenProcessor(
+      [],
+      'token',
+      [],
+      $this->configFactory->get('patternkit.settings'),
+      $this->token,
+      $this->twig);
   }
 
   /**

@@ -2,6 +2,7 @@
 
 namespace Drupal\patternkit\Plugin\PatternFieldProcessor;
 
+use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Template\TwigEnvironment;
 use Drupal\Core\Utility\Token;
@@ -18,6 +19,13 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * )
  */
 class TokenProcessor extends PatternFieldProcessorBase {
+
+  /**
+   * Global settings for the Patternkit module.
+   *
+   * @var \Drupal\Core\Config\ImmutableConfig
+   */
+  protected ImmutableConfig $patternkitSettings;
 
   /**
    * Parses and replaces Drupal tokens.
@@ -42,14 +50,17 @@ class TokenProcessor extends PatternFieldProcessorBase {
    *   The plugin identifier.
    * @param mixed $plugin_definition
    *   The plugin definition.
+   * @param \Drupal\Core\Config\ImmutableConfig $patternkitSettings
+   *   Globally configured settings for the Patternkit module.
    * @param \Drupal\Core\Utility\Token $token
    *   The token service for processing tokens.
    * @param \Drupal\Core\Template\TwigEnvironment $twig
    *   The Twig environment service.
    */
-  public function __construct(array $configuration, string $plugin_id, $plugin_definition, Token $token, TwigEnvironment $twig) {
+  public function __construct(array $configuration, string $plugin_id, $plugin_definition, ImmutableConfig $patternkitSettings, Token $token, TwigEnvironment $twig) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
+    $this->patternkitSettings = $patternkitSettings;
     $this->token = $token;
     $this->twig = $twig;
   }
@@ -58,6 +69,9 @@ class TokenProcessor extends PatternFieldProcessorBase {
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): self {
+    /** @var \Drupal\Core\Config\ConfigFactoryInterface $configFactory */
+    $configFactory = $container->get('config.factory');
+    $settings = $configFactory->get('patternkit.settings');
     /** @var \Drupal\Core\Utility\Token $token */
     $token = $container->get('token');
     /** @var \Drupal\Core\Template\TwigEnvironment $twig */
@@ -66,6 +80,7 @@ class TokenProcessor extends PatternFieldProcessorBase {
       $configuration,
       $plugin_id,
       $plugin_definition,
+      $settings,
       $token,
       $twig,
     );
@@ -83,11 +98,14 @@ class TokenProcessor extends PatternFieldProcessorBase {
    * {@inheritdoc}
    */
   public function apply(SchemaContract $propertySchema, $value, $context, BubbleableMetadata $bubbleableMetadata): string {
+    $options = [
+      'clear' => $this->patternkitSettings->get('patternkit_json_editor_token_clear'),
+    ];
     if (property_exists($propertySchema, 'format') && $propertySchema->format == 'html') {
-      return $this->token->replace($value, $context, ['clear' => TRUE], $bubbleableMetadata);
+      return $this->token->replace($value, $context, $options, $bubbleableMetadata);
     }
     else {
-      return $this->token->replacePlain($value, $context, ['clear' => TRUE], $bubbleableMetadata);
+      return $this->token->replacePlain($value, $context, $options, $bubbleableMetadata);
     }
   }
 

@@ -379,3 +379,20 @@ function patternkit_update_9006(): ?string {
 
   return NULL;
 }
+
+/**
+ * Add token clear option to configuration.
+ */
+function patternkit_update_9007(): ?string {
+  $config = \Drupal::configFactory()->getEditable('patternkit.settings');
+
+  // Only set the new setting if it doesn't exist yet.
+  if ($config && $config->get('patternkit_json_editor_token_clear') === NULL) {
+    $config->set('patternkit_json_editor_token_clear', FALSE);
+    $config->save(TRUE);
+
+    return t('Patternkit configuration updated with default value for token clear option.');
+  }
+
+  return NULL;
+}

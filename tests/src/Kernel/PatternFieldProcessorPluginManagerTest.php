@@ -4,7 +4,6 @@ namespace Drupal\Tests\patternkit\Kernel;
 
 use Drupal\Core\Render\RendererInterface;
 use Drupal\filter\Entity\FilterFormat;
-use Drupal\KernelTests\KernelTestBase;
 use Drupal\node\Entity\Node;
 use Drupal\patternkit\Asset\PatternDiscoveryInterface;
 use Drupal\patternkit\Entity\Pattern;
@@ -19,7 +18,7 @@ use Drupal\Tests\patternkit\Traits\MetadataTestTrait;
  *
  * @group patternkit
  */
-class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
+class PatternFieldProcessorPluginManagerTest extends PatternkitKernelTestBase {
 
   use MetadataTestTrait;
 
@@ -27,9 +26,7 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
    * {@inheritdoc}
    */
   protected static $modules = [
-    'patternkit',
     'patternkit_example',
-    'text',
     'system',
     'node',
     'user',
@@ -41,7 +38,7 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
    *
    * @var \Drupal\patternkit\PatternFieldProcessorPluginManager
    */
-  protected $pluginManager;
+  protected PatternFieldProcessorPluginManager $pluginManager;
 
   /**
    * The pattern discovery service.
@@ -236,6 +233,80 @@ class PatternFieldProcessorPluginManagerTest extends KernelTestBase {
     $id = '@patternkit/atoms/example/src/example';
     $example_pattern = $this->loadPattern($id);
     $this->assertInstanceOf(PatternInterface::class, $example_pattern);
+
+    // Prepare test values for identification in rendered output.
+    $title = $this->getRandomGenerator()->sentences(3);
+    $title_token = '[node:title]';
+    $optional_field_token = '[node:field_url]';
+    $invalid_token = '[node:invalid_token]';
+    $body_text = 'My body text with an invalid token: ';
+
+    // Prepare the node to use for token replacement context.
+    $node = Node::create([
+      'type' => 'article',
+      'title' => $title,
+      'field_url' => '',
+    ]);
+    $node->save();
+
+    // Prepare pattern config values.
+    $config = [
+      'text' => $title_token,
+      'formatted_text' => $body_text . $invalid_token,
+      'image_url' => $optional_field_token,
+    ];
+
+    // Assemble the pattern element for rendering.
+    $element = [
+      '#type' => 'pattern',
+      '#pattern' => $example_pattern,
+      '#config' => $config,
+      '#context' => [
+        'node' => $node,
+      ],
+    ];
+
+    $output = $this->renderer->renderRoot($element);
+
+    // Confirm raw template content is included.
+    $this->assertStringContainsString('Sample twig template', $output);
+
+    // Confirm tokens with replacement values are not visible.
+    $this->assertStringNotContainsString($title_token, $output);
+
+    // Expect the invalid token and token without a replacement value are both
+    // unaffected within the output.
+    $this->assertStringContainsString($invalid_token, $output);
+    $this->assertStringContainsString($optional_field_token, $output);
+
+    // Confirm token replacement text is included as expected.
+    $this->assertStringContainsString($title, $output, 'Title text was not replaced into token placement.');
+    $this->assertStringContainsString($body_text, $output, 'Body content was not output.');
+
+    $this->assertBubbleableMetadata($element, [
+      'tags' => array_merge(
+        ['pattern:' . $id],
+        $node->getCacheTags(),
+      ),
+    ]);
+  }
+
+  /**
+   * Test token replacement handling for invalid tokens with clearing enabled.
+   *
+   * @covers \Drupal\patternkit\PatternFieldProcessorPluginManager::processSchemaValues
+   * @covers \Drupal\patternkit\Plugin\PatternFieldProcessor\TokenProcessor::apply
+   */
+  public function testTokenReplacementProcessorWithInvalidTokensWithClear() {
+    // Load our pattern instance.
+    $id = '@patternkit/atoms/example/src/example';
+    $example_pattern = $this->loadPattern($id);
+    $this->assertInstanceOf(PatternInterface::class, $example_pattern);
+
+    // Enable the clear option in patternkit settings.
+    $config = $this->config('patternkit.settings');
+    $config->set('patternkit_json_editor_token_clear', TRUE);
+    $config->save();
 
     // Prepare test values for identification in rendered output.
     $title = $this->getRandomGenerator()->sentences(3);
