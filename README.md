@@ -114,8 +114,6 @@ plugin to use. Options:
 
 * CKEditor (preferred)
   * Pick a Drupal text format in _CKEditor toolbar_ (see below for details)
-* ProseMirror
-* Quill
 
 ##### Text format CKEditor configuration
 

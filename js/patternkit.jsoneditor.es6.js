@@ -18,18 +18,14 @@
  * @todo .patternkit-editor-target .card all: initial
  */
 
-import {patternkitEditorQuill} from './patternkit.jsoneditor.quill.es6.js';
 import {patternkitEditorCKEditor5} from './patternkit.jsoneditor.ckeditor5.es6';
 import {patternkitEditorCygnet} from './patternkit.jsoneditor.cygnet.es6.js';
-import {patternkitEditorProseMirror} from "./patternkit.jsoneditor.prosemirror.es6";
 import {patternkitEditorObject} from './patternkit.jsoneditor.editor.object.es6';
 import {patternkitEditorArray} from './patternkit.jsoneditor.editor.array.es6';
 
 // Instantiates wysiwyg plugins.
-patternkitEditorQuill(jQuery, Drupal, JSONEditor);
 patternkitEditorCKEditor5(jQuery, Drupal, JSONEditor);
 patternkitEditorCygnet(jQuery, Drupal, JSONEditor);
-patternkitEditorProseMirror(jQuery, Drupal, JSONEditor);
 
 // Overrides the object and array json-editor editors, to customize certain
 // methods.  The only use case so far is to trigger toggling of items by
@@ -191,12 +187,6 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
 
    saveSchema() {
      $('#schema_instance_config').val(JSON.stringify(window.patternkitEditor.getValue()));
-
-     // Material Design JS doesn't update fields on ready event.
-     // We call it to make up for that gap.
-     if (window.M) {
-       window.M.updateTextFields();
-     }
    }
 
    onReady() {
@@ -213,12 +203,6 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
      }
      catch (e) {
        window.console.error(e);
-     }
-
-     // Material Design JS doesn't update fields on ready event.
-     // We call it to make up for that gap.
-     if (window.M) {
-       window.M.updateTextFields();
      }
 
      this.hideLoadingIndicator();

@@ -46,33 +46,9 @@ class PatternLibraryJSONForm extends ConfigFormBase {
   public const THEMES = [
     'barebones' => [],
     'html' => [],
-    'jqueryui' => [
-      'css' => 'https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css',
-    ],
-    'bootstrap2' => [
-      'css' => 'https://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css',
-    ],
-    'bootstrap3' => [
-      'css' => 'https://netdna.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css',
-    ],
-    'bootstrap4' => [
-      'css' => 'library://patternkit/patternkit.jsoneditor.theme.bootstrap4/css',
-    ],
     'cygnet' => [
       'css' => 'library://patternkit/cygnet/css',
       'css_no_shadow_dom' => 'library://patternkit/cygnet_no_shadow_dom/css',
-    ],
-    'foundation3' => [
-      'css' => 'https://cdnjs.cloudflare.com/ajax/libs/foundation/3.2.5/stylesheets/foundation.css',
-    ],
-    'foundation4' => [
-      'css' => 'https://cdnjs.cloudflare.com/ajax/libs/foundation/4.3.2/css/foundation.min.css',
-    ],
-    'foundation5' => [
-      'css' => 'https://cdnjs.cloudflare.com/ajax/libs/foundation/5.5.3/css/foundation.min.css',
-    ],
-    'foundation6' => [
-      'css' => 'https://cdnjs.cloudflare.com/ajax/libs/foundation/6.2.4/foundation.min.css',
     ],
   ];
 
@@ -88,10 +64,6 @@ class PatternLibraryJSONForm extends ConfigFormBase {
   public const ICONS = [
     'none' => '',
     'jqueryui' => '',
-    'bootstrap2' => '',
-    'bootstrap3' => '',
-    'foundation2' => 'https://cdnjs.cloudflare.com/ajax/libs/foundicons/2.0/stylesheets/general_foundicons.css',
-    'foundation3' => 'https://cdnjs.cloudflare.com/ajax/libs/foundicons/3.0.0/foundation-icons.css',
     'fontawesome3' => 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/3.2.1/css/font-awesome.css',
     'fontawesome4' => 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.3/css/font-awesome.css',
     'fontawesome5' => 'https://use.fontawesome.com/releases/v5.6.1/css/all.css',
@@ -106,8 +78,6 @@ class PatternLibraryJSONForm extends ConfigFormBase {
    */
   public const EDITORS = [
     'ckeditor5' => 'CKEditor5',
-    'prosemirror' => 'ProseMirror',
-    'quill' => 'Quill',
   ];
 
   /**
@@ -128,7 +98,7 @@ class PatternLibraryJSONForm extends ConfigFormBase {
 
     $themes = array_keys(static::THEMES);
     $form['patternkit_json_editor_theme'] = [
-      '#type' => 'select',
+      '#type' => 'hidden',
       '#title' => $this->t('Select the JSON Editor Theme'),
       '#options' => array_combine($themes, $themes),
       '#default_value' => $config->get('patternkit_json_editor_theme'),

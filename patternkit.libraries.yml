@@ -30,24 +30,6 @@ patternkit.jsoneditor:
     - core/jquery
     - core/once
     - patternkit/jsoneditor
-    - patternkit/quill
-
-patternkit.jsoneditor.theme.bootstrap4:
-  version: v4.0.0
-  css:
-    theme:
-      css/bootstrap.min.css: {minified: true}
-      css/quill.snow.css: { }
-
-quill:
-  version: VERSION
-  js:
-    js/quill.min.js: {minified: true}
-
-quill.dev:
-  version: VERSION
-  js:
-    js/quill.js: {}
 
 cygnet:
   version: VERSION

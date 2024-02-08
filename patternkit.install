@@ -17,6 +17,7 @@ use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternRouteProvider;
+use Drupal\patternkit\Form\PatternLibraryJSONForm;
 use Drupal\user\Entity\Role;
 use Drupal\views\EntityViewsData;
 
@@ -392,6 +393,67 @@ function patternkit_update_9007(): ?string {
     $config->save(TRUE);
 
     return t('Patternkit configuration updated with default value for token clear option.');
+  }
+
+  return NULL;
+}
+
+/**
+ * Replace theme selections that were removed.
+ */
+function patternkit_update_10001(): void {
+  $config_key = 'patternkit.settings';
+  $theme_key = 'patternkit_json_editor_theme';
+  $default_theme = 'cygnet';
+
+  $config = \Drupal::configFactory()->getEditable($config_key);
+
+  if ($config) {
+    $selected_theme = $config->get($theme_key);
+
+    if (!isset(PatternLibraryJSONForm::THEMES[$selected_theme])) {
+      $config->set($theme_key, $default_theme);
+      $config->save(TRUE);
+    }
+  }
+}
+
+/**
+ * Clear Patternkit icon selections that were removed.
+ */
+function patternkit_update_10002(): void {
+  $config_key = 'patternkit.settings';
+  $setting = 'patternkit_json_editor_icons';
+
+  $config = \Drupal::configFactory()->getEditable($config_key);
+
+  if ($config) {
+    $selected = $config->get($setting);
+
+    if (!isset(PatternLibraryJSONForm::ICONS[$selected])) {
+      $config->clear($setting);
+      $config->save(TRUE);
+    }
+  }
+}
+
+/**
+ * Reset configuration for removed WYSIWYG editors.
+ */
+function patternkit_update_10003(): ?string {
+  $config_key = 'patternkit.settings';
+  $wysiwyg_setting = 'patternkit_json_editor_wysiwyg';
+  $config = \Drupal::configFactory()->getEditable($config_key);
+
+  if ($config && !isset(PatternLibraryJSONForm::EDITORS[$config->get($wysiwyg_setting)])) {
+    // Remove ckeditor and toolbar configuration.
+    $config->clear($wysiwyg_setting);
+    $config->clear('patternkit_json_editor_ckeditor_toolbar');
+
+    // Save the changes.
+    $config->save(TRUE);
+
+    return t('Patternkit configuration using removed editors was found. These settings will need to be reconfigured.');
   }
 
   return NULL;
