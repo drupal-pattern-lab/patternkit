@@ -43,10 +43,6 @@ class cygnetTheme extends JSONEditor.AbstractTheme {
       title = text;
     }
 
-    if (text == "Object Properties") {
-      text = "Properties";
-    }
-
     return super.setButtonText(button, text, icon, title);
   }
 

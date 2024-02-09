@@ -97,8 +97,13 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
      JSONEditor.defaults.options.ajax_cache_responses = this.settings.ajaxCacheResponses;
      JSONEditor.defaults.options.ajax_cache_buster = this.settings.ajaxCacheBuster;
      JSONEditor.defaults.options.disable_properties = this.settings.disablePropertiesButtons;
+
      // Overrides alert message when removing an item.
-     JSONEditor.defaults.languages.en.button_delete_node_warning = 'Are you sure you want to remove this item?'
+     JSONEditor.defaults.languages.en.button_delete_node_warning = Drupal.t('Are you sure you want to remove this item?');
+
+     // Override object properties button text for user friendliness.
+     JSONEditor.defaults.languages.en.button_properties = Drupal.t('Properties');
+     JSONEditor.defaults.languages.en.button_object_properties = Drupal.t('Properties');
 
      // Uses Handlebars template engine so that we can use logic in
      // `headerTemplate` property in schemas.

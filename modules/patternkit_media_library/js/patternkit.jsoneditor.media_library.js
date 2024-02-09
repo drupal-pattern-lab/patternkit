@@ -211,7 +211,7 @@ var DrupalMediaEditor = /*#__PURE__*/function (_JSONEditor$AbstractE) {
     value: function build() {
       this.title = this.header = this.label = this.theme.getFormInputLabel(this.getTitle(), this.isRequired());
       this.input = this.theme.getFormInputField('text');
-      this.button = this.getButton(this.path + '-media', 'upload', this.options.button_text);
+      this.button = this.getButton(this.options.button_text, 'upload', this.options.button_text);
       this.addUploader();
       this.addPreview();
     }

@@ -393,10 +393,6 @@ var cygnetTheme = /*#__PURE__*/function (_JSONEditor$AbstractT) {
         title = text;
       }
 
-      if (text == "Object Properties") {
-        text = "Properties";
-      }
-
       return _get(_getPrototypeOf(cygnetTheme.prototype), "setButtonText", this).call(this, button, text, icon, title);
     }
   }, {
@@ -1187,7 +1183,10 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
         JSONEditor.defaults.options.ajax_cache_buster = this.settings.ajaxCacheBuster;
         JSONEditor.defaults.options.disable_properties = this.settings.disablePropertiesButtons; // Overrides alert message when removing an item.
 
-        JSONEditor.defaults.languages.en.button_delete_node_warning = 'Are you sure you want to remove this item?'; // Uses Handlebars template engine so that we can use logic in
+        JSONEditor.defaults.languages.en.button_delete_node_warning = Drupal.t('Are you sure you want to remove this item?'); // Override object properties button text for user friendliness.
+
+        JSONEditor.defaults.languages.en.button_properties = Drupal.t('Properties');
+        JSONEditor.defaults.languages.en.button_object_properties = Drupal.t('Properties'); // Uses Handlebars template engine so that we can use logic in
         // `headerTemplate` property in schemas.
 
         JSONEditor.defaults.options.template = 'handlebars'; // @todo Loop through all editor plugins and add them at runtime.
