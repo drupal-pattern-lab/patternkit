@@ -76,32 +76,9 @@ class PatternLibraryParserTestBase extends KernelTestBase {
   }
 
   /**
-   * Test asset fetching.
-   *
-   * @covers ::fetchAssets
-   */
-  public function testFetchAssets() {
-    $this->markTestIncomplete('Test not yet implemented.');
-  }
-
-  /**
    * @covers ::fetchPatternAssets
    */
   public function testFetchPatternAssets() {
-    $this->markTestIncomplete('Test not yet implemented.');
-  }
-
-  /**
-   * @covers ::fetchSingleAsset
-   */
-  public function testFetchSingleAsset() {
-    $this->markTestIncomplete('Test not yet implemented.');
-  }
-
-  /**
-   * @covers ::fetchFragmentAssets
-   */
-  public function testFetchFragmentAssets() {
     $this->markTestIncomplete('Test not yet implemented.');
   }
 

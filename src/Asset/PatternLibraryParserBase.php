@@ -11,8 +11,6 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ExtensionPathResolver;
 use Drupal\Core\Extension\ModuleHandlerInterface;
-use Drupal\Core\File\FileSystem;
-use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -190,107 +188,6 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
   }
 
   /**
-   * Implements fetchAssets().
-   *
-   * {@inheritdoc}
-   *
-   * @todo Finish implementation.
-   */
-  public static function fetchAssets(string $subtype, object $config): PatternInterface {
-    $patternkit_host = \Drupal::config('patternkit.settings')
-      ->get('patternkit_pl_host') ?: 'http://localhost:9001';
-
-    $url = $patternkit_host . '/api/render/json';
-    $result = \Drupal::httpClient()->post($url)
-      ->withHeader('Content-Type', 'application/json')
-      ->withBody($config->rawJSON);
-
-    // @todo Request failure handling.
-    $pk_obj = \Drupal::service('serialization.json')->decode($result->getBody()->getContents());
-
-    $dir = "public://patternkit/$subtype/$config->instance_id";
-    if (!\Drupal::service('file_system')->prepareDirectory($dir, FileSystemInterface::CREATE_DIRECTORY)) {
-      // @todo Failure handling.
-      \Drupal::service('messenger')->addMessage(
-        t(
-        "Unable to create folder (@dir) to contain the pklugins artifacts.",
-          ['@dir' => $dir]
-      ));
-    }
-
-    // Fetch the body html artifact.
-    $save_result = \Drupal::service('file_system')->saveData(
-      $pk_obj->body,
-      "$dir/manifest.json",
-      FileSystemInterface::EXISTS_REPLACE
-    );
-    $pk_obj->body = $save_result;
-
-    if ($save_result === FALSE) {
-      // @todo Failure handling.
-      \Drupal::service('messenger')->addMessage(
-        t(
-        "Unable to create static archive of the JSON pklugins artifact for @subtype.",
-          ['@subtype' => $subtype]
-      ));
-    }
-
-    $assets = [];
-
-    // Normalize the object for easier processing.
-    if (!empty($pk_obj->assets)) {
-      $pk_obj->assets->js->early;
-      $pk_obj->assets->js->deferred;
-      $pk_obj->assets->css->list;
-      $pk_obj->assets->css->shared;
-    }
-    else {
-      $pk_obj->assets->js->early = $pk_obj->global_assets->js;
-      $pk_obj->assets->js->deferred = $pk_obj->global_assets->footer_js;
-      $pk_obj->assets->css->list = $pk_obj->global_assets->css;
-      $pk_obj->assets->css->shared = [];
-    }
-
-    if (!empty($pk_obj->assets)) {
-      $assets['js'] = array_merge(
-        $pk_obj->assets->js->early,
-        $pk_obj->assets->js->deferred
-      );
-
-      $assets['css'] = $pk_obj->assets->css->list;
-      // Fetch and update the assets in the shared dependency list.
-      if (!empty($pk_obj->assets->css->shared)) {
-        foreach ($pk_obj->assets->css->shared as $asset) {
-          $assets['css'][] = $asset->src;
-        }
-      }
-    }
-    else {
-      $assets['js'] = array_merge(
-        $pk_obj->global_assets->js,
-        $pk_obj->global_assets->footer_js
-      );
-
-      $assets['css'] = $pk_obj->global_assets->css;
-    }
-
-    foreach ($assets as $urls) {
-      foreach ($urls as $asset_url) {
-        // If the asset is being loaded with arbitrary scheme, assume external.
-        $pos = strpos($asset_url, '//');
-        if ($pos !== FALSE && $pos <= 11) {
-          continue;
-        }
-
-        $save_result = static::fetchSingleAsset($dir, $pk_obj->path, $asset_url);
-        $pk_obj->raw_assets[$asset_url] = $save_result;
-      }
-    }
-
-    return $pk_obj;
-  }
-
-  /**
    * {@inheritdoc}
    *
    * @todo Add support for twig lib attachments such as JS and images.
@@ -319,231 +216,6 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     }
 
     return $assets;
-  }
-
-  /**
-   * {@inheritdoc}
-   *
-   * @todo Finish implementation.
-   */
-  public static function fetchSingleAsset(string $dir, string $asset_prefix, string $asset_url) {
-    $patternkit_host = \Drupal::config('patternkit.settings')
-      ->get('patternkit_pl_host') ?: 'http://localhost:9001';
-
-    // Leading double slashes eliminated above, leaving only relatives.
-    $path = "$dir/" . dirname(trim($asset_url, '.'));
-    $filename = basename(trim($asset_url, '.'));
-
-    if (!\Drupal::service('file_system')->prepareDirectory($path, FileSystem::CREATE_DIRECTORY)) {
-      \Drupal::service('messenger')->addMessage(
-        t(
-        "Unable to create folder (@path) to contain the plugin artifacts.",
-          ['@path' => $path]
-      ));
-    }
-
-    // Generate the full path to the source asset.
-    $full_asset_url = $patternkit_host
-      . preg_replace('/^\\.\\//', $asset_prefix . '/', $asset_url);
-
-    // What follows is for store/cache model.
-    $asset_src = \Drupal::httpClient()->get($full_asset_url);
-    // May consider some way of doing this
-    // $dest_path = "$dir/" . md5($asset_src->data) . ".$asset_type";.
-    $dest_path = $path . $filename;
-
-    $save_result = \Drupal::service('file_system')->saveData(
-      $asset_src->getBody()->getContents(),
-      $dest_path,
-      FileSystemInterface::EXISTS_REPLACE
-    );
-
-    if ($save_result === FALSE) {
-      // @todo handle failure.
-      return FALSE;
-    }
-
-    // Convert stream wrapper to relative path, if appropriate.
-    $scheme = StreamWrapperManagerInterface::getScheme($save_result);
-    if ($scheme && \Drupal::service('stream_wrapper_manager')->isValidScheme($scheme)) {
-      $wrapper = \Drupal::service('stream_wrapper_manager')->getViaScheme($scheme);
-      $save_result = $wrapper->getDirectoryPath()
-        . '/'
-        . \Drupal::service('stream_wrapper_manager')::getTarget(
-      $save_result);
-    }
-    return $save_result;
-  }
-
-  /**
-   * Implements fetchFragmentAssets.
-   *
-   * {@inheritdoc}
-   *
-   * @todo Finish implementation.
-   */
-  public function fetchFragmentAssets($subtype, object $config, object &$pk_obj): PatternInterface {
-    $patternkit_host = \Drupal::config('patternkit')->get(
-      'patternkit_pl_host') ?: 'http://localhost:9001';
-
-    $url = $patternkit_host . '/api/render/html';
-    $result = \Drupal::httpClient()->post(
-      $url)->withHeader('Content-Type', 'application/json')
-      ->withBody($config->rawJSON);
-
-    // @todo Request failure handling.
-    $pk_obj->pattern = $subtype;
-
-    $dir = "public://patternkit/$subtype/{$config->instance_id}";
-    if (!\Drupal::service('file_system')->prepareDirectory($dir, FileSystem::CREATE_DIRECTORY)) {
-      \Drupal::service('messenger')->addMessage(
-        $this->t(
-          'Unable to create folder or save metadata/assets for plugin @plugin',
-          ['@plugin' => $subtype]
-        ));
-      \Drupal::logger('patternkit')->error(
-        'Unable to create folder or save metadata/assets for plugin @plugin',
-        ['@plugin' => $subtype]);
-    }
-
-    // Fetch the body html artifact.
-    $save_result = \Drupal::service('file_system')->saveData(
-      $result->getBody()->getContents(),
-      "$dir/body.html",
-      FileSystemInterface::EXISTS_REPLACE
-    );
-
-    // Convert stream wrapper to relative path, if appropriate.
-    $scheme = StreamWrapperManagerInterface::getScheme($save_result);
-    if ($scheme && \Drupal::service('stream_wrapper_manager')->isValidScheme($scheme)) {
-      $wrapper = \Drupal::service('stream_wrapper_manager')->getViaScheme($scheme);
-      $save_result = $wrapper->getDirectoryPath() . "/" . \Drupal::service('stream_wrapper_manager')::getTarget(
-          $save_result
-        );
-    }
-
-    $pk_obj->body = $save_result;
-
-    if ($save_result === FALSE) {
-      \Drupal::service('messenger')->addMessage(
-        $this->t(
-          'Unable to save metadata/assets for plugin @plugin',
-          ['@plugin' => $subtype]
-        ));
-      \Drupal::logger('patternkit')->error(
-        'Unable to save metadata/assets for plugin @plugin',
-        ['@plugin' => $subtype]);
-      // @todo Handle this error gracefully.
-    }
-
-    foreach (['early', 'deferred'] as $stage) {
-      foreach ($pk_obj->assets->js->{$stage} as $asset_fragment) {
-        $path = $pk_obj->raw_assets[$asset_fragment];
-
-        if (substr($path, 0, 19) === 'public://patternkit/') {
-          $pk_obj->attachments['js'][$path] = [
-            'type'   => 'file',
-            'scope'  => $stage === 'early' ? 'header' : 'footer',
-            'group'  => JS_DEFAULT,
-            'weight' => 0,
-          ];
-        }
-        else {
-          $pk_obj->attachments['js'][$path] = [
-            'type'   => 'external',
-            'scope'  => $stage === 'early' ? 'header' : 'footer',
-            'group'  => JS_DEFAULT,
-            'weight' => 0,
-          ];
-        }
-      }
-    }
-
-    foreach ($pk_obj->assets->css->list as $asset_fragment) {
-      $path = $pk_obj->raw_assets[$asset_fragment];
-
-      if (substr($path, 0, 19) === 'public://patternkit/') {
-        $pk_obj->attachments['css'][$path] = [
-          'type'   => 'file',
-          'scope'  => 'header',
-          'group'  => JS_DEFAULT,
-          'weight' => 0,
-        ];
-      }
-      else {
-        $pk_obj->attachments['css'][$path] = [
-          'type'   => 'external',
-          'scope'  => 'header',
-          'group'  => JS_DEFAULT,
-          'weight' => 0,
-        ];
-      }
-    }
-
-    foreach ($pk_obj->assets->css->shared as $asset_fragment) {
-      $path = $pk_obj->raw_assets[$asset_fragment->src];
-
-      if (substr($path, 0, 19) === 'public://patternkit/') {
-        $pk_obj->attachments['css'][$path] = [
-          'type'   => 'file',
-          'scope'  => 'header',
-          'group'  => JS_DEFAULT,
-          'weight' => 0,
-        ];
-      }
-      else {
-        $pk_obj->attachments['css'][$path] = [
-          'type'   => 'external',
-          'scope'  => 'header',
-          'group'  => JS_DEFAULT,
-          'weight' => 0,
-        ];
-      }
-    }
-
-    return $this->patternStorage->create((array) $pk_obj);
-  }
-
-  /**
-   * Merge js dependency arrays.
-   *
-   * Adds $js2 to $js1 and returns the merged array.
-   *
-   * @param array $js1
-   *   First array.
-   * @param array $js2
-   *   Second array.
-   *
-   * @return array
-   *   The merged array.
-   */
-  public function mergeJs(array $js1, array $js2): array {
-    $ret = [];
-
-    $x = 0;
-    if (!empty($js1)) {
-      foreach ($js1 as $key => $val) {
-        // If this is a 'setting' or 'inline' it will be numeric.
-        if (is_numeric($key)) {
-          $ret[$x++] = $val;
-        }
-        else {
-          $ret[$key] = $val;
-        }
-      }
-    }
-    if (!empty($js2)) {
-      foreach ($js2 as $key => $val) {
-        // If this is a 'setting' or 'inline' it will be numeric.
-        if (is_numeric($key)) {
-          $ret[$x++] = $val;
-        }
-        else {
-          $ret[$key] = $val;
-        }
-      }
-    }
-    return $ret;
   }
 
   /**
@@ -584,7 +256,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
         $e,
         'Unable to load plugin "%plugin" for pattern "%pattern": @exception',
         [
-          '%plugin' => $pattern->getLibraryPluginId(),
+          '%plugin' => isset($pattern) ? $pattern->getLibraryPluginId() : '',
           '%pattern' => $pattern_name,
           '@exception' => $e->getMessage(),
         ],
@@ -685,14 +357,12 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     $collection_info = $pattern_collections[$library_path];
 
     // Prepare pattern value defaults for all items in this library.
-    $library_defaults = [
+    return [
       'category'        => $collection_info['category'] ?? '',
       'library'         => $library->id(),
       'libraryPluginId' => $this->getPluginId(),
       'version'         => $library->version ?: static::VERSION_PLACEHOLDER,
     ];
-
-    return $library_defaults;
   }
 
   /**

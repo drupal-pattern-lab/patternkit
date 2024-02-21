@@ -17,6 +17,11 @@ class FilePatternLibraryParser extends PatternLibraryParserBase {
   use PatternLibraryJSONParserTrait;
 
   /**
+   * The plugin ID for this parser plugin to be referenced from patterns.
+   */
+  protected const PLUGIN_ID = 'file';
+
+  /**
    * {@inheritdoc}
    */
   public function fetchPatternAssets(PatternInterface $pattern, PatternEditorConfig $config = NULL): array {
@@ -127,6 +132,13 @@ class FilePatternLibraryParser extends PatternLibraryParserBase {
       $metadata[$pattern_type] = $pattern;
     }
     return $metadata;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getPluginId(): string {
+    return static::PLUGIN_ID;
   }
 
 }

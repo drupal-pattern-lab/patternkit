@@ -39,48 +39,6 @@ interface PatternLibraryParserInterface {
   public static function discoverComponents(string $path, array $filter = []): array;
 
   /**
-   * Fetch and cache assets to render this pattern.
-   *
-   * @param string $subtype
-   *   Pattern machine name.
-   * @param object $config
-   *   Configuration object for this instance of the pattern.
-   *
-   * @return \Drupal\patternkit\Entity\PatternInterface
-   *   The patternkit object of interest.*/
-  public static function fetchAssets(string $subtype, object $config): PatternInterface;
-
-  /**
-   * Fetch and cache assets to render this pattern.
-   *
-   * @param string $subtype
-   *   Pattern machine name.
-   * @param object $config
-   *   Configuration object for this instance of the pattern.
-   * @param object $pk_obj
-   *   The patternkit pattern object to extend.
-   *
-   * @return \Drupal\patternkit\Entity\PatternInterface
-   *   The patternkit object representing the pattern.
-   */
-  public function fetchFragmentAssets(string $subtype, object $config, object &$pk_obj): PatternInterface;
-
-  /**
-   * Fetch a single asset from the patternkit platform.
-   *
-   * @param string $dir
-   *   The path to put the file under.
-   * @param string $asset_prefix
-   *   A prefix to add to the asset.
-   * @param string $asset_url
-   *   Relative path of the asset to the pattern folder.
-   *
-   * @return bool|string
-   *   FALSE on failure, stream path on success.
-   */
-  public static function fetchSingleAsset(string $dir, string $asset_prefix, string $asset_url);
-
-  /**
    * Fetches all assets for a pattern.
    *
    * @param \Drupal\patternkit\Entity\PatternInterface $pattern
@@ -141,5 +99,13 @@ interface PatternLibraryParserInterface {
    *   Thrown when a parser exception was thrown.
    */
   public function parsePatternLibraryInfo(PatternLibrary $library, string $path): array;
+
+  /**
+   * Get the plugin ID for patterns discovered with this parser.
+   *
+   * @return string
+   *   The plugin ID for patterns discovered with this parser.
+   */
+  public function getPluginId(): string;
 
 }

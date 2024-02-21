@@ -21,7 +21,7 @@ class JSONPatternLibraryParser extends PatternLibraryParserBase {
   use PatternLibraryJSONParserTrait;
 
   /**
-   * The plug ID for this parser plugin to be referenced from patterns.
+   * The plugin ID for this parser plugin to be referenced from patterns.
    */
   protected const PLUGIN_ID = 'json';
 
@@ -207,10 +207,7 @@ class JSONPatternLibraryParser extends PatternLibraryParserBase {
   }
 
   /**
-   * Get the plugin ID for patterns discovered with this parser.
-   *
-   * @return string
-   *   The plugin ID for pattern discovered with this parser.
+   * {@inheritdoc}
    */
   public function getPluginId(): string {
     return static::PLUGIN_ID;
