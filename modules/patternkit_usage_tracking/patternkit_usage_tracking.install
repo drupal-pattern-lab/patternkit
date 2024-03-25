@@ -1,0 +1,17 @@
+<?php
+
+/**
+ * @file
+ * Install file for the patternkit_usage_tracking module.
+ */
+
+use Drupal\patternkit_usage_tracking\BulkOperations\LayoutUsageTrackingBatchManager;
+
+/**
+ * Implements hook_uninstall().
+ */
+function patternkit_usage_tracking_uninstall(bool $is_syncing): void {
+  // Cleanup the scanning results collection value if it exists.
+  \Drupal::keyValue(LayoutUsageTrackingBatchManager::RESULTS_COLLECTION)
+    ->deleteAll();
+}

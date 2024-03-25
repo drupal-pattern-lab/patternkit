@@ -27,11 +27,16 @@ class PatternUsageViewsData extends EntityViewsData {
       'id' => 'standard',
       'label' => $this->t('Source node revision'),
       'title' => $this->t('Source node revision'),
-      // Restrict this relationship to only node-specific records.
       'extra' => [
+        // Restrict this relationship to only node-specific records.
         [
           'left_field' => 'source_entity_type',
           'value' => 'node',
+        ],
+        // Match the usage record with the correct source translation.
+        [
+          'left_field' => 'source_langcode',
+          'field' => 'langcode',
         ],
       ],
     ];
@@ -49,11 +54,16 @@ class PatternUsageViewsData extends EntityViewsData {
       'id' => 'standard',
       'label' => $this->t('Active source node'),
       'title' => $this->t('Active source node'),
-      // Restrict this relationship to only node-specific records.
       'extra' => [
+        // Restrict this relationship to only node-specific records.
         [
           'left_field' => 'source_entity_type',
           'value' => 'node',
+        ],
+        // Match the usage record with the correct source translation.
+        [
+          'left_field' => 'source_langcode',
+          'field' => 'langcode',
         ],
       ],
     ];

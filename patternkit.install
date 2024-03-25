@@ -15,6 +15,7 @@ use Drupal\Core\Entity\Sql\SqlContentEntityStorage;
 use Drupal\Core\Entity\Sql\SqlContentEntityStorageSchema;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
+use Drupal\patternkit\BulkOperations\LayoutUpdateBatchManager;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternRouteProvider;
 use Drupal\patternkit\Form\PatternLibraryJSONForm;
@@ -37,6 +38,15 @@ function patternkit_requirements($phase): array {
   }
 
   return $requirements;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function patternkit_uninstall(bool $is_syncing): void {
+  // Cleanup the update results collection value if it exists.
+  \Drupal::keyValue(LayoutUpdateBatchManager::RESULTS_COLLECTION)
+    ->deleteAll();
 }
 
 /**

@@ -155,6 +155,13 @@ abstract class LayoutQueueWorkerBase extends QueueWorkerBase implements Containe
       if (isset($data['entity_id'])) {
         if ($entity = $this->getEntity($entity_type_id, $data['entity_id'], $data['entity_revision_id'] ?? NULL)) {
           assert($entity instanceof ContentEntityInterface);
+
+          // Load the correct translation if one was specified.
+          if (isset($data['language'])) {
+            $langcode = $data['language'];
+            $entity = $entity->getTranslation($langcode);
+          }
+
           if ($section_storage = $this->getSectionStorageForEntity($entity)) {
             $this->processEntityLayout($section_storage, $entity, $data, $result);
 

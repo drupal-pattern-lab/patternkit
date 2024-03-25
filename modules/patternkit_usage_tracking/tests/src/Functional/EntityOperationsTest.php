@@ -35,7 +35,6 @@ class EntityOperationsTest extends PatternkitBrowserTestBase {
     'patternkit_usage_tracking',
   ];
 
-
   /**
    * Storage handler for pattern_usage content.
    *

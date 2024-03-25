@@ -7,6 +7,7 @@ use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Language\LanguageInterface;
 use Drupal\layout_builder\SectionListInterface;
 use Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface;
 use Drupal\patternkit\Entity\PatternInterface;
@@ -80,6 +81,13 @@ class UsageRevisionHelperTest extends UnitTestCase {
   protected ObjectProphecy $entity;
 
   /**
+   * An instance of the UsageRevisionHelper service being tested.
+   *
+   * @var \Drupal\patternkit_usage_tracking\UsageRevisionHelper
+   */
+  protected UsageRevisionHelper $usageRevisionHelper;
+
+  /**
    * A log of callback executions with arguments for testing callbacks.
    *
    * Since PHPUnit mocking does not support multiple predictions to the same
@@ -111,25 +119,12 @@ class UsageRevisionHelperTest extends UnitTestCase {
     $entity_type->isRevisionable()->willReturn(TRUE);
     $this->entity->getEntityType()->willReturn($entity_type->reveal());
     $this->entity->isDefaultRevision()->willReturn(TRUE);
-  }
 
-  /**
-   * A helper method to instantiate an instance of the subject being tested.
-   *
-   * This allows for late instantiation of the prophecy objects passed into the
-   * constructor to enable more customization of the dependencies per test
-   * without as much boilerplate in each test case.
-   *
-   * @return \Drupal\patternkit_usage_tracking\UsageRevisionHelper
-   *   An instantiated instance of the test subject with all configured
-   *   dependency mocks injected appropriately.
-   */
-  protected function getTestSubject(): UsageRevisionHelper {
     $entityTypeManager = $this->prophesize(EntityTypeManagerInterface::class);
     $entityFieldManager = $this->prophesize(EntityFieldManagerInterface::class);
     $configFactory = $this->prophesize(ConfigFactoryInterface::class);
 
-    return new UsageRevisionHelper(
+    $this->usageRevisionHelper = new UsageRevisionHelper(
       $entityTypeManager->reveal(),
       $entityFieldManager->reveal(),
       $configFactory->reveal(),
@@ -236,8 +231,8 @@ class UsageRevisionHelperTest extends UnitTestCase {
     $this->usageManager->loadByEntity($this->entity->reveal())
       ->willReturn(array_map(fn ($record) => $record->reveal(), $all_records));
 
-    $tracker = $this->getTestSubject();
-    $actual = $tracker->loadPreviouslyTrackedPatterns($this->entity->reveal());
+    $actual = $this->usageRevisionHelper
+      ->loadPreviouslyTrackedPatterns($this->entity->reveal());
 
     // The expected returned structure includes the record objects themselves,
     // but these aren't available in the data provider. This requires them to be
@@ -396,6 +391,7 @@ class UsageRevisionHelperTest extends UnitTestCase {
    * @covers ::loadPreviouslyTrackedPatterns
    * @covers ::trackChanges
    * @covers ::shouldTrackEntity
+   * @covers ::updateRelatedTranslations
    * @covers ::__construct
    * @covers ::<protected>
    * @covers \Drupal\patternkit_usage_tracking\PatternLayoutDiscoveryTrait
@@ -405,6 +401,13 @@ class UsageRevisionHelperTest extends UnitTestCase {
   public function testTrackOnEntityUpdate(array $edited_data, array $loaded_records, array $expected_calls, array $nested_content_mapping = []): void {
     $new_revision_id = rand(0, 100);
     $this->entity->getRevisionId()->willReturn($new_revision_id);
+
+    // Prepare for loading translations.
+    $language = $this->prophesize(LanguageInterface::class);
+    $language->getId()->willReturn($langcode = 'en');
+    $this->entity->language()->willReturn($language->reveal());
+    $this->entity->isTranslatable()->willReturn(TRUE);
+    $this->entity->getTranslationLanguages()->willReturn(['en' => $language->reveal()]);
 
     // Load mocked update data.
     $layout = $this->mockLayoutWithData($edited_data);
@@ -970,6 +973,7 @@ class UsageRevisionHelperTest extends UnitTestCase {
 
   /**
    * @covers ::trackChanges
+   * @covers ::__construct
    */
   public function testTrackChanges(): void {
     $random = $this->getRandomGenerator();

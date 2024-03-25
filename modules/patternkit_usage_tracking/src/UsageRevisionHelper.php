@@ -89,6 +89,8 @@ class UsageRevisionHelper {
    *   TRUE if the entity should be tracked, FALSE otherwise.
    */
   public function shouldTrackEntity(ContentEntityInterface $entity): bool {
+    // Don't track changes if no layout is defined or this is not the default
+    // revision.
     return $this->isLayoutCompatibleEntity($entity) &&
       $entity->getEntityType()->isRevisionable() &&
       $entity->isDefaultRevision();
@@ -105,12 +107,9 @@ class UsageRevisionHelper {
       return;
     }
 
-    // Don't track if this entity doesn't have an overridden layout.
+    // Abort if this entity or revision is not something we should track changes
+    // for.
     if (!$this->shouldTrackEntity($entity)) {
-      // This may be an update where a layout was discarded, so existing entries
-      // may exist and need to be removed.
-      $this->trackingStorage->deleteByEntity($entity);
-
       return;
     }
 
@@ -132,6 +131,10 @@ class UsageRevisionHelper {
       $delete_component,
       $update_component
     );
+
+    // Update revision IDs for records on other translations that may have been
+    // affected.
+    $this->updateRelatedTranslations($entity);
   }
 
   /**
@@ -372,6 +375,47 @@ class UsageRevisionHelper {
     return function (...$arguments) use ($callback, $curried_arguments) {
       return call_user_func($callback, ...$curried_arguments, ...$arguments);
     };
+  }
+
+  /**
+   * Update usage records on related translations to point to new revision IDs.
+   *
+   * When the content of an entity translation is updated, the active revision
+   * ID for all translations may have been changed leading to usage records in
+   * layouts on those translations no longer pointing to the latest revision. In
+   * this scenario, the revision IDs referenced in the related usgae records
+   * will need to be updated as well.
+   *
+   * @param \Drupal\Core\Entity\ContentEntityInterface $entity
+   *   The entity being updated with the affected translation loaded.
+   *
+   * @throws \Drupal\Core\Entity\EntityStorageException
+   *
+   * @todo Review interaction with moderation workflows and changes to revision
+   *   IDs across translations.
+   */
+  protected function updateRelatedTranslations(ContentEntityInterface $entity): void {
+    if ($entity->isTranslatable()) {
+      $updated_language = $entity->language();
+      $all_translations = array_keys($entity->getTranslationLanguages());
+      $affected_translations = array_diff($all_translations, [$updated_language->getId()]);
+
+      // Identify the new revision ID all existing records should be updated to
+      // reference.
+      $updated_revision_id = $entity->getRevisionId();
+
+      foreach ($affected_translations as $langcode) {
+        // Load existing usage records for the affected translation.
+        $translated_entity = $entity->getTranslation($langcode);
+        $records = $this->trackingStorage->loadByEntity($translated_entity);
+
+        // Update the revision ID for each record.
+        foreach ($records as $record) {
+          $record->set('source_revision_id', $updated_revision_id);
+          $record->save();
+        }
+      }
+    }
   }
 
 }

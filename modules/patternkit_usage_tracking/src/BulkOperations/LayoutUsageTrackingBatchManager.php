@@ -8,8 +8,21 @@ use Drupal\patternkit_usage_tracking\BulkOperations\Worker\LayoutUsageBatchWorke
 
 /**
  * Batching service for scanning pattern usages within layouts.
+ *
+ * @phpstan-type ResultSet array{
+ *   blocks: int,
+ *   entities: int,
+ *   errors: int,
+ *   num_tracked, int,
+ *   display_id: string,
+ * }
  */
 class LayoutUsageTrackingBatchManager extends LayoutUpdateBatchManager {
+
+  /**
+   * {@inheritdoc}
+   */
+  const RESULTS_COLLECTION = 'patternkit.usage_scan';
 
   /**
    * {@inheritdoc}
@@ -45,6 +58,9 @@ class LayoutUsageTrackingBatchManager extends LayoutUpdateBatchManager {
         $num_tracked += $display_results['num_tracked'] ?? 0;
         $errors += $display_results['errors'] ?? 0;
       });
+
+      // Record results for detailed reporting.
+      static::recordResults($results);
 
       \Drupal::messenger()->addStatus(t('Processed @total and discovered @usages with @errors.', [
         '@total' => $t->formatPlural(count($results), '1 layout', '@count layouts'),

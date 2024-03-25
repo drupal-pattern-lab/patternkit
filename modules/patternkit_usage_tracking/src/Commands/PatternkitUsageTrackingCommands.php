@@ -2,10 +2,12 @@
 
 namespace Drupal\patternkit_usage_tracking\Commands;
 
+use Consolidation\OutputFormatters\StructuredData\RowsOfFields;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\patternkit_usage_tracking\BulkOperations\LayoutDiscoveryBatchManager;
+use Drupal\patternkit_usage_tracking\BulkOperations\LayoutUsageTrackingBatchManager;
 use Drush\Commands\DrushCommands;
 use Symfony\Component\Console\Exception\InvalidArgumentException;
 
@@ -96,6 +98,32 @@ class PatternkitUsageTrackingCommands extends DrushCommands {
 
     $this->batchManager->populateQueue(5, $update_options);
     drush_backend_batch_process();
+  }
+
+  /**
+   * View results from the last execution of batch scanning.
+   *
+   * @usage drush pkuscan-results
+   *   List the scan results for the last scan operation.
+   * @usage drush pkuscan-results --filter='num_tracked!=0'
+   *   List results for all displays with discovered blocks.
+   *
+   * @command patternkit:usage:results
+   * @aliases pkuscan-results
+   *
+   * @field-labels
+   *   display_id: Display ID
+   *   blocks: Blocks
+   *   entities: Layouts
+   *   errors: Errors
+   *   num_tracked: Tracked
+   * @default-table-fields display_id,num_tracked,errors
+   * @filter-default-field display_id
+   */
+  public function batchScanResults(): RowsOfFields {
+    $results = LayoutUsageTrackingBatchManager::getMostRecentResults();
+
+    return new RowsOfFields($results);
   }
 
 }

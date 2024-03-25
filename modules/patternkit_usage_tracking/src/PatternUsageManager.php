@@ -140,16 +140,64 @@ class PatternUsageManager {
   public function loadByEntity(ContentEntityInterface $entity): array {
     $storage = $this->storage();
 
-    // Get the revision ID for the version that was initially loaded instead of
-    // the current revision ID since there will be no matches for a new revision
-    // if an update just occurred.
-    $revision_id = $entity->getLoadedRevisionId();
+    // Identify the most recent source revision ID for usage records on this
+    // entity to ensure updates are captured even if the most recent entity
+    // revision was not the default published revision the stored records may
+    // be referencing.
+    $revision_id = $this->getLastRecordedRevisionIdByEntity($entity);
 
-    return $storage->loadByProperties([
-      'source_entity_type' => $entity->getEntityTypeId(),
-      'source_id' => $entity->id(),
-      'source_revision_id' => $revision_id,
-    ]);
+    if ($revision_id !== NULL) {
+      $filters = [
+        'source_entity_type' => $entity->getEntityTypeId(),
+        'source_id' => $entity->id(),
+        'source_revision_id' => $revision_id,
+      ];
+
+      if ($entity->isTranslatable()) {
+        $language = $entity->language();
+        $filters['source_langcode'] = $language->getId();
+      }
+
+      return $storage->loadByProperties($filters);
+    }
+    else {
+      return [];
+    }
+  }
+
+  /**
+   * Identify the most recent revision ID for a source entity in usage records.
+   *
+   * @param \Drupal\Core\Entity\ContentEntityInterface $entity
+   *   The source entity to find usage records for. The loaded translation will
+   *   be identified to determine the specific language to load as well.
+   *
+   * @return int|null
+   *   The most recent revision ID for the source entity found in usage records,
+   *   or NULL if no usage records for the source entity and translation
+   *   language are found.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   */
+  protected function getLastRecordedRevisionIdByEntity(ContentEntityInterface $entity): ?int {
+    $storage = $this->storage();
+
+    $query = $storage->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('source_entity_type', $entity->getEntityTypeId())
+      ->condition('source_langcode', $entity->language()->getId())
+      ->sort('source_revision_id', 'DESC')
+      ->range(0, 1);
+
+    $results = $query->execute();
+
+    if (!empty($results)) {
+      $record = $storage->load(reset($results));
+      $revision_id = ($record !== NULL) ? $record->get('source_revision_id')->value : NULL;
+    }
+
+    return $revision_id ?? NULL;
   }
 
   /**

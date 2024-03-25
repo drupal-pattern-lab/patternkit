@@ -7,8 +7,21 @@ use Drupal\patternkit\BulkOperations\Worker\LayoutUpdateBatchWorker;
 
 /**
  * Batching service for updating pattern blocks within layouts.
+ *
+ * @phpstan-type ResultSet array{
+ *   blocks: int,
+ *   entities: int,
+ *   errors: int,
+ *   display_id: string,
+ * }
+ * @phpstan-type ResultList List<ResultSet>
  */
 class LayoutUpdateBatchManager {
+
+  /**
+   * The name of the key-value store collection capturing results.
+   */
+  const RESULTS_COLLECTION = 'patternkit.update';
 
   /**
    * Generate a batch for running queued update operations.
@@ -73,12 +86,16 @@ class LayoutUpdateBatchManager {
     if ($success) {
       $t = \Drupal::translation();
 
-      // Sum all changes.
+      // Sum all changes and track for reporting.
       $blocks = $layouts = 0;
       array_walk($results, function (array $display_results) use (&$blocks, &$layouts) {
+        // Sum all changes for this display.
         $blocks += $display_results['blocks'];
         $layouts += $display_results['entities'];
       });
+
+      // Record results for detailed reporting.
+      static::recordResults($results);
 
       \Drupal::messenger()->addStatus(t('Processed @total with updates made to @blocks on @layouts.', [
         '@total' => $t->formatPlural(count($results), '1 layout', '@count layouts'),
@@ -99,6 +116,34 @@ class LayoutUpdateBatchManager {
         )
       );
     }
+  }
+
+  /**
+   * Store batch results in temporary storage for later review and reporting.
+   *
+   * @param List<array<string, string|int>> $results
+   *   The array of results assembled from batch operations.
+   *
+   * @phpstan-param ResultList $results
+   */
+  protected static function recordResults(array $results): void {
+    $store = \Drupal::keyValue(static::RESULTS_COLLECTION);
+
+    $store->set('results', $results);
+  }
+
+  /**
+   * Get most recently saved batch update results.
+   *
+   * @return array
+   *   An array of results from the last batch update operation.
+   *
+   * @phpstan-return ResultList
+   */
+  public static function getMostRecentResults(): array {
+    $store = \Drupal::keyValue(static::RESULTS_COLLECTION);
+
+    return $store->get('results', []);
   }
 
   /**

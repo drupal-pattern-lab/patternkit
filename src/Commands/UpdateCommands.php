@@ -2,10 +2,12 @@
 
 namespace Drupal\patternkit\Commands;
 
+use Consolidation\OutputFormatters\StructuredData\RowsOfFields;
 use Drupal\Core\Block\BlockManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\patternkit\BulkOperations\LayoutDiscoveryBatchManager;
+use Drupal\patternkit\BulkOperations\LayoutUpdateBatchManager;
 use Drupal\patternkit\BulkOperations\Worker\LayoutDiscoveryBatchWorker;
 use Drupal\patternkit\PatternRepository;
 use Drupal\patternkit\UpdateHelper;
@@ -255,6 +257,31 @@ class UpdateCommands extends DrushCommands {
 
     $this->layoutBatchManager->populateQueue(5, $update_options);
     drush_backend_batch_process();
+  }
+
+  /**
+   * View results from the last execution of batch updates.
+   *
+   * @usage drush pkbu-results
+   *   List the update results for the last update operation.
+   * @usage drush pkbu-results --filter='blocks!=0'
+   *   List results for all displays with updated blocks.
+   *
+   * @command patternkit:batch-update:results
+   * @aliases pkbu-results
+   *
+   * @field-labels
+   *   display_id: Display ID
+   *   blocks: Blocks Updated
+   *   entities: Layouts Updated
+   *   errors: Errors
+   * @default-table-fields display_id,blocks,entities,errors
+   * @filter-default-field display_id
+   */
+  public function batchUpdateResults(): RowsOfFields {
+    $results = LayoutUpdateBatchManager::getMostRecentResults();
+
+    return new RowsOfFields($results);
   }
 
   /**

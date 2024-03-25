@@ -8,11 +8,13 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\Query\QueryInterface;
+use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\Queue\QueueInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\StringTranslation\TranslationInterface;
+use Drupal\Core\TypedData\TranslatableInterface;
 use Drupal\Core\Utility\Error;
 use Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay;
 use Drupal\layout_builder\Plugin\SectionStorage\OverridesSectionStorage;
@@ -211,6 +213,8 @@ class LayoutDiscoveryBatchWorker implements ContainerInjectionInterface {
     // Parse batching options.
     $this->parseOptions($options);
 
+    $translatable = $this->entityType->isTranslatable();
+
     // First pass, populate the sandbox.
     if (empty($context['sandbox']['total'])) {
       $this->initializeSandbox($context);
@@ -239,9 +243,21 @@ class LayoutDiscoveryBatchWorker implements ContainerInjectionInterface {
             // Only queue for processing if the current entity is applicable
             // for this display.
             if ($display->getTargetBundle() == $entity->bundle()) {
-              $queue_item = $this->createQueueItem($display, $entity_id, ($this->shouldProcessRevisions ? $revision_id : NULL));
-              $context['results']['discovered_displays'][$queue_item['display_id']] = $queue_item;
-              $this->queue->createItem($queue_item);
+              // Identify all available translations for processing.
+              if ($translatable && $entity instanceof TranslatableInterface) {
+                // Only record the language codes.
+                $languages = array_keys($entity->getTranslationLanguages());
+              }
+              else {
+                $languages = [LanguageInterface::LANGCODE_NOT_SPECIFIED];
+              }
+
+              // Queue a task for each translation.
+              foreach ($languages as $language) {
+                $queue_item = $this->createQueueItem($display, $language, $entity_id, ($this->shouldProcessRevisions ? $revision_id : NULL));
+                $context['results']['discovered_displays'][$queue_item['display_id']] = $queue_item;
+                $this->queue->createItem($queue_item);
+              }
             }
           }
 
@@ -397,16 +413,18 @@ class LayoutDiscoveryBatchWorker implements ContainerInjectionInterface {
    *
    * @param \Drupal\Core\Entity\Display\EntityViewDisplayInterface $display
    *   The display entity being queued for updating.
+   * @param string|null $language
+   *   (optional) The language code for the entity display to be processed.
    * @param int|null $entity_id
-   *   (optional) The id for a specific entity to updated if applicable.
+   *   (optional) The id for a specific entity to update if applicable.
    * @param int|null $revision_id
-   *   (optional) The revision id for a specific entity to updated if
+   *   (optional) The revision id for a specific entity to update if
    *   applicable.
    *
    * @return array
    *   A prepared array of display data for queued processing.
    */
-  public function createQueueItem(EntityViewDisplayInterface $display, ?int $entity_id = NULL, ?int $revision_id = NULL): array {
+  public function createQueueItem(EntityViewDisplayInterface $display, ?string $language = NULL, ?int $entity_id = NULL, ?int $revision_id = NULL): array {
     // Assemble a unique display ID for each item.
     if (empty($entity_id)) {
       // If no entity ID is provided, this is the default display for a bundle.
@@ -420,6 +438,7 @@ class LayoutDiscoveryBatchWorker implements ContainerInjectionInterface {
         $display->getTargetEntityTypeId(),
         $display->getTargetBundle(),
         $display->getMode(),
+        $language,
         $entity_id . (empty($revision_id) ? '' : ":$revision_id"),
       ]);
     }
@@ -430,6 +449,7 @@ class LayoutDiscoveryBatchWorker implements ContainerInjectionInterface {
       'layout_plugin' => $layout_plugin,
       'entity_type' => $display->getTargetEntityTypeId(),
       'entity_bundle' => $display->getTargetBundle(),
+      'language' => $language,
       'entity_id' => $entity_id,
       'entity_revision_id' => $revision_id,
       'filter' => $this->filters,

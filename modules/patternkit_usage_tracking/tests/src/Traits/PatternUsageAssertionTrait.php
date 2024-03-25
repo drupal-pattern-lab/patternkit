@@ -88,7 +88,10 @@ trait PatternUsageAssertionTrait {
   protected function assertNotTrackedPatternUsage(string $source_entity_type, int $entity_id, string $pattern_name, array $additional_properties = [], string $message = ''): void {
     $records = $this->queryUsageByProperties($source_entity_type, $entity_id, $pattern_name, $additional_properties);
 
-    $this->assertEmpty($records, $message);
+    $plural = (count($records) == 1) ? 'entry' : 'entries';
+    $message_details = sprintf(' Found %s unexpected %s.', count($records), $plural);
+
+    $this->assertEmpty($records, $message . $message_details);
   }
 
   /**
