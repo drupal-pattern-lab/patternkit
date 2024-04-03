@@ -1,31 +1,13 @@
 ################
-# DrupalCI GitLabCI template
-#
-# Gitlab-ci.yml to replicate DrupalCI testing for Contrib
-#
-# With thanks to:
-#   * The GitLab Acceleration Initiative participants
-#   * DrupalSpoons
-################
-
-################
-# Guidelines
-#
-# This template is designed to give any Contrib maintainer everything they need to test, without requiring modification. It is also designed to keep up to date with Core Development automatically through the use of include files that can be centrally maintained.
-#
-# However, you can modify this template if you have additional needs for your project.
+# GitLabCI configuration for the Patternkit module.
 ################
 
 ################
 # Includes
 #
-# Additional configuration can be provided through includes.
-# One advantage of include files is that if they are updated upstream, the changes affect all pipelines using that include.
-#
 # Includes can be overridden by re-declaring anything provided in an include, here in gitlab-ci.yml
 # https://docs.gitlab.com/ee/ci/yaml/includes.html#override-included-configuration-values
 ################
-
 include:
   ################
   # DrupalCI includes:
@@ -36,10 +18,18 @@ include:
     ref: $_GITLAB_TEMPLATES_REF
     file:
       - '/includes/include.drupalci.main.yml'
-      # EXPERIMENTAL: For Drupal 7, remove the above line and uncomment the below.
-      # - '/includes/include.drupalci.main-d7.yml'
       - '/includes/include.drupalci.variables.yml'
       - '/includes/include.drupalci.workflows.yml'
+
+  ################
+  # Optional CI includes:
+  # Additional CI steps to be conditionally included if specified in a given CI environment. This allows for task
+  # customization in other environments without affecting execution on the Drupal GitLab CI runners.
+  ################
+  - project: $_ADDITIONAL_STEPS_REPO
+    file: stages/default.yml
+    rules:
+      - if: $_ADDITIONAL_STEPS_REPO
 
 ################
 # Pipeline configuration variables
@@ -48,8 +38,19 @@ include:
 #
 # Docs at https://git.drupalcode.org/project/gitlab_templates/-/blob/1.0.x/includes/include.drupalci.variables.yml
 ################
-# variables:
-#   SKIP_ESLINT: '1'
+variables:
+  # Expose environment variables for convenience since we have no secrets specified here.
+  _SHOW_ENVIRONMENT_VARIABLES:
+    value: '1'
+
+  # Uncomment below to temporarily skip stages.
+  # SKIP_COMPOSER_LINT: '1'
+  # SKIP_PHPCS: '1'
+  # SKIP_PHPSTAN: '1'
+  # SKIP_STYLELINT: '1'
+  # SKIP_ESLINT: '1'
+  # SKIP_CSPELL: '1'
+  # SKIP_PHPUNIT: '1'
 
 ################
 # Pipeline job customization
@@ -61,49 +62,3 @@ include:
 
 phpcs:
   allow_failure: false
-
-###################################################################################
-#
-#                                        *
-#                                       /(
-#                                      ((((,
-#                                    /(((((((
-#                                   ((((((((((*
-#                                ,(((((((((((((((
-#                              ,(((((((((((((((((((
-#                            ((((((((((((((((((((((((*
-#                         *(((((((((((((((((((((((((((((
-#                       ((((((((((((((((((((((((((((((((((*
-#                    *((((((((((((((((((  .((((((((((((((((((
-#                  ((((((((((((((((((.       /(((((((((((((((((*
-#                /(((((((((((((((((            .(((((((((((((((((,
-#             ,((((((((((((((((((                 ((((((((((((((((((
-#           .((((((((((((((((((((                   .(((((((((((((((((
-#          (((((((((((((((((((((((                     ((((((((((((((((/
-#        (((((((((((((((((((((((((((/                    ,(((((((((((((((*
-#      .((((((((((((((/  /(((((((((((((.                   ,(((((((((((((((
-#     *((((((((((((((      ,(((((((((((((/                   *((((((((((((((.
-#    ((((((((((((((,          /(((((((((((((.                  ((((((((((((((,
-#   (((((((((((((/              ,(((((((((((((*                 ,(((((((((((((,
-#  *(((((((((((((                .(((((((((((((((                ,(((((((((((((
-#  ((((((((((((/                /((((((((((((((((((.              ,((((((((((((/
-# (((((((((((((              *(((((((((((((((((((((((*             *((((((((((((
-# (((((((((((((            ,(((((((((((((..(((((((((((((           *((((((((((((
-# ((((((((((((,          /((((((((((((*      /((((((((((((/         ((((((((((((
-# (((((((((((((        /((((((((((((/          (((((((((((((*       ((((((((((((
-# (((((((((((((/     /((((((((((((               ,((((((((((((,    *((((((((((((
-#  ((((((((((((((  *(((((((((((/                   *((((((((((((.  ((((((((((((/
-#  *((((((((((((((((((((((((((,                      /(((((((((((((((((((((((((
-#   (((((((((((((((((((((((((                         ((((((((((((((((((((((((,
-#   .(((((((((((((((((((((((/                         ,(((((((((((((((((((((((
-#     ((((((((((((((((((((((/                         ,(((((((((((((((((((((/
-#      *(((((((((((((((((((((                         (((((((((((((((((((((,
-#       ,(((((((((((((((((((((,                      ((((((((((((((((((((/
-#         ,(((((((((((((((((((((*                  /((((((((((((((((((((
-#            ((((((((((((((((((((((,           ,/((((((((((((((((((((,
-#              ,(((((((((((((((((((((((((((((((((((((((((((((((((((
-#                 .(((((((((((((((((((((((((((((((((((((((((((((
-#                     .((((((((((((((((((((((((((((((((((((,.
-#                          .,(((((((((((((((((((((((((.
-#
-###################################################################################
