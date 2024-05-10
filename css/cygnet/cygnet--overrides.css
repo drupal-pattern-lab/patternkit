@@ -1,13 +1,13 @@
 #drupal-off-canvas [data-theme=cygnet] label {
     color: inherit;
+    font-family: RedHatText, Helvetica, Arial, sans-serif;
     font-size: inherit;
     font-weight: inherit;
     line-height: inherit;
-    font-family: 'RedHatText', Helvetica, Arial, sans-serif;
 }
 
 #drupal-off-canvas [data-theme=cygnet] button {
-    font-family: 'RedHatText', Helvetica, Arial, sans-serif;
+    font-family: RedHatText, Helvetica, Arial, sans-serif;
 }
 
 /* Updates display and margin of OL and UL within editor area to ensure

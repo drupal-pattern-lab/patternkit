@@ -1,18 +1,18 @@
 [data-theme=cygnet] {
-  font-family: 'RedHatText', Helvetica, Arial, sans-serif;
-  font-weight: 300;
-  color: #151515;
   margin-top: 32px;
+  color: #151515;
+  font-family: RedHatText, Helvetica, Arial, sans-serif;
+  font-weight: 300;
 }
 
 [data-theme=cygnet] a {
-  color: #0066cc;
+  color: #06c;
 }
 
 [data-theme=cygnet] h3 {
   margin: 0 0 16px 0;
-  font-weight: 300;
   font-size: 18px;
+  font-weight: 300;
 }
 
 [data-theme=cygnet] h3 > label {
@@ -34,10 +34,10 @@
 
 .je-cygnet-form-input-label {
   display: block;
-  font-family: 'RedHatDisplay', Helvetica, Arial, sans-serif;
-  font-weight: 700;
-  font-size: 14px;
   padding-bottom: 4px;
+  font-family: RedHatDisplay, Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
 }
 
 [data-theme=cygnet] p.je-cygnet-form-input-label {
@@ -47,9 +47,9 @@
 #patternkit-editor-target [data-theme=cygnet] label.required::after,
 [data-theme=cygnet] label.required::after {
   display: inline;
-  content: "*";
-  color: #ee0000;
   padding-left: 4px;
+  content: "*";
+  color: #e00;
 }
 
 .je-cygnet-indented-panel {
@@ -60,21 +60,21 @@
 [data-theme=cygnet] input[type=url],
 [data-theme=cygnet] select,
 [data-theme=cygnet] textarea {
-  width: 100% !important;
   box-sizing: border-box;
+  width: 100% !important;
+  margin-bottom: 4px !important;
+  margin-left: 0 !important;
+  padding: 4px 8px !important;
   border: 1px solid #d2d2d2;
   border-bottom: 1px solid #6a6e73;
-  margin-left: 0 !important;
-  margin-bottom: 4px !important;
-  padding: 4px 8px !important;
   background-color: #fff !important;
-  font-family: 'RedHatText', Helvetica, Arial, sans-serif;
+  font-family: RedHatText, Helvetica, Arial, sans-serif;
   font-size: 16px;
 }
 
 [data-theme=cygnet] select {
-  font-style: normal !important;
   font-size: 16px !important;
+  font-style: normal !important;
 }
 
 [data-theme=cygnet] input[type=text],
@@ -90,10 +90,10 @@
 
 [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] .je-cygnet-indented-panel,
 [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] .je-cygnet-indented-panel {
-  border: 1px solid #d2d2d2 !important;
   padding: 16px 16px 0 16px !important;
-  background-color: #f0f0f0;
+  border: 1px solid #d2d2d2 !important;
   border-radius: 3px;
+  background-color: #f0f0f0;
 }
 
 /* White background on objects beneath the second-level objects and arrays. */
@@ -106,7 +106,7 @@
 [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel .je-cygnet-indented-panel,
 [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] > .je-cygnet-indented-panel .je-cygnet-indented-panel {
   padding: 16px 16px 0 16px !important;
-  background-color: #ffffff;
+  background-color: #fff;
 }
 
 /* Objects and arrays nested two layers beneath the second level have no padding or borders.  */
@@ -129,8 +129,8 @@
 }
 
 [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] .je-cygnet-indented-panel > .je-cygnet-indented-panel {
-  border: 0 !important;
   margin-left: 0 !important;
+  border: 0 !important;
 }
 
 /* Indent second-level rows. */
@@ -153,10 +153,10 @@
 /* White background on second-level objects */
 
 [data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel > [data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > div > .je-cygnet-indented-panel {
-  border: 1px solid #d2d2d2 !important;
-  background-color: #ffffff;
-  border-radius: 3px;
   margin-left: 20px !important;
+  border: 1px solid #d2d2d2 !important;
+  border-radius: 3px;
+  background-color: #fff;
 }
 
 .je-cygnet-indented-panel .je-cygnet-indented-panel h3 {
@@ -189,8 +189,8 @@
 
 .je-cygnet-child-editor-holder > .je-cygnet-indented-panel {
   margin-bottom: 0;
-  padding-bottom: 0 !important;
   padding-top: 0 !important;
+  padding-bottom: 0 !important;
 }
 
 .je-cygnet-child-editor-holder > p {
@@ -213,10 +213,10 @@
 /* Apply borders to panels inside a nested array. */
 
 [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="array"] > .je-cygnet-indented-panel [data-schematype=array] > .je-cygnet-indented-panel > div > .je-cygnet-indented-panel > div > .je-cygnet-child-editor-holder > .je-cygnet-indented-panel {
-  padding: 16px !important;
-  border: 1px solid #d2d2d2 !important;
   margin-bottom: 16px;
   margin-left: 36px !important;
+  padding: 16px !important;
+  border: 1px solid #d2d2d2 !important;
 }
 
 [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="array"] > .je-cygnet-indented-panel [data-schematype=array] > .je-cygnet-indented-panel > div > .je-cygnet-indented-panel > div > .je-cygnet-child-editor-holder > .je-cygnet-indented-panel > div > div > .row {
@@ -227,18 +227,19 @@
 /* https://heydonworks.com/article/the-flexbox-holy-albatross/ */
 
 [data-theme=cygnet] .row {
+  --multiplier: calc(30rem - 100%);
+
   display: flex;
   flex-wrap: wrap;
-  --multiplier: calc(30rem - 100%);
   gap: 10px;
   margin-left: 20px;
 }
 
 [data-theme=cygnet] .row > div {
+  flex-basis: calc(var(--multiplier) * 999);
+  flex-grow: 1;
   min-width: 48%;
   max-width: 100%;
-  flex-grow: 1;
-  flex-basis: calc(var(--multiplier) * 999);
   margin-bottom: 8px;
 }
 
@@ -266,58 +267,58 @@
 }
 
 [data-theme=cygnet] button {
-  font-family: 'RedHatDisplay', Helvetica, Arial, sans-serif;
-  color: #0066cc;
-  border: 1px solid #0066cc;
-  border-radius: 3px;
-  background-color: #ffffff;
-  font-size: 14px;
   padding: 6px 16px;
+  color: #06c;
+  border: 1px solid #06c;
+  border-radius: 3px;
+  background-color: #fff;
+  font-family: RedHatDisplay, Helvetica, Arial, sans-serif;
+  font-size: 14px;
 }
 
 [data-theme=cygnet] button:hover {
-  background-color: #0066cc;
-  color: #ffffff;
+  color: #fff;
+  background-color: #06c;
 }
 
 [data-theme=cygnet] button[title=Collapse],
 [data-theme=cygnet] button[title=Expand] {
+  padding: 0;
   border: 0;
   border-radius: 3px;
   background-color: transparent;
-  padding: 0;
 }
 
 .je-cygnet-header-button-holder {
-  padding: 8px 0 0 0;
   margin-left: 20px;
+  padding: 8px 0 0 0;
 }
 
 [data-theme=cygnet] .json-editor-btn-add {
-  border: 1px solid #0066cc;
-  background-color: #0066cc;
-  color: #ffffff;
   margin-bottom: 16px;
+  color: #fff;
+  border: 1px solid #06c;
+  background-color: #06c;
 }
 
 [data-theme=cygnet] .json-editor-btn-subtract,
 [data-theme=cygnet] .json-editor-btn-delete {
-  border: 1px solid #ee0000;
-  color: #ee0000;
-  margin-left: 16px;
   margin-bottom: 16px;
+  margin-left: 16px;
+  color: #e00;
+  border: 1px solid #e00;
 }
 
 [data-theme=cygnet] .json-editor-btn-subtract:hover,
 [data-theme=cygnet] .json-editor-btn-delete:hover {
-  background-color: #ee0000;
-  color: #ffffff;
+  color: #fff;
+  background-color: #e00;
 }
 
 [data-theme=cygnet] .json-editor-btn-moveup,
 [data-theme=cygnet] .json-editor-btn-movedown {
-  margin-left: 16px;
   margin-bottom: 16px;
+  margin-left: 16px;
 }
 
 [data-theme=cygnet] .json-editor-btntype-toggle {
@@ -327,30 +328,30 @@
 /* Accordion styles. */
 
 [data-theme=cygnet] button[title=Collapse]::before {
-  content: " ";
-  cursor: pointer;
-  display: inline-block;
   position: relative;
   top: 3px;
+  display: inline-block;
   width: 7px;
   height: 7px;
+  content: " ";
+  cursor: pointer;
+  -webkit-transform: rotate(45deg);
+  transform: rotate(45deg);
   border: solid #151515;
   border-width: 0 1.75px 1.75px 0;
-  transform: rotate(45deg);
-  -webkit-transform: rotate(45deg);
 }
 
 [data-theme=cygnet] button[title=Expand]::before {
-  content: " ";
-  cursor: pointer;
-  display: inline-block;
   position: relative;
+  display: inline-block;
   width: 7px;
   height: 7px;
+  content: " ";
+  cursor: pointer;
+  -webkit-transform: rotate(315deg);
+  transform: rotate(315deg);
   border: solid #151515;
   border-width: 0 1.75px 1.75px 0;
-  transform: rotate(315deg);
-  -webkit-transform: rotate(315deg);
 }
 
 [data-theme=cygnet] button[title=Collapse] > span,
@@ -417,10 +418,10 @@
 }
 
 .je-cygnet-tabs {
-  display: flex;
   position: relative;
-  margin-top: 20px;
   left: 20px;
+  display: flex;
+  margin-top: 20px;
 }
 .je-cygnet-tabs__holder {
   width: 165px;
@@ -430,12 +431,12 @@
 }
 
 .je-cygnet-tab {
+  text-align: left !important;
   border: 0 !important;
   border-left: 1px solid #d2d2d2 !important;
   border-radius: 0 !important;
   font-size: 16px;
   font-weight: 300 !important;
-  text-align: left !important;
 }
 
 .je-cygnet-tab,
@@ -445,7 +446,7 @@
 
 .je-cygnet-tab--active {
   padding: 14px 16px 16px;
-  border-left: 2px solid #ee0000 !important;
+  border-left: 2px solid #e00 !important;
 }
 
 .je-cygnet-tab--inactive {
