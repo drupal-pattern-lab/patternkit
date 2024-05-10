@@ -69,7 +69,7 @@ class UsageRevisionHelper {
     PatternUsageManager $tracking_storage,
     LayoutHelper $layout_helper,
     PatternDetector $pattern_detector,
-    SectionStorageManagerInterface $section_storage_manager
+    SectionStorageManagerInterface $section_storage_manager,
   ) {
     $this->entityTypeManager = $entity_type_manager;
     $this->entityFieldManager = $entity_field_manager;
@@ -225,7 +225,7 @@ class UsageRevisionHelper {
     array $new,
     callable $insert_callback,
     callable $delete_callback,
-    ?callable $update_callback = NULL
+    ?callable $update_callback = NULL,
   ): void {
     $insertions = array_diff_key($new, $original);
     foreach ($insertions as $key => $inserted) {

@@ -99,7 +99,7 @@ class Pattern extends RenderElement implements ContainerFactoryPluginInterface {
     $plugin_definition,
     PatternFieldProcessorPluginManager $fieldProcessorPluginManager,
     PatternLibraryPluginManager $libraryPluginManager,
-    PatternRepository $patternRepository
+    PatternRepository $patternRepository,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 

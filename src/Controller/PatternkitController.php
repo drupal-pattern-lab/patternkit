@@ -66,7 +66,7 @@ class PatternkitController extends ControllerBase {
     EntityStorageInterface $patternkit_block_storage,
     PatternRepository $pattern_repository,
     ThemeHandlerInterface $theme_handler,
-    Request $request
+    Request $request,
   ) {
     $this->blockStorage = $patternkit_block_storage;
     $this->patternRepository = $pattern_repository;

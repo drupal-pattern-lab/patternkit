@@ -52,7 +52,7 @@ class PatternkitMediaLibraryController extends ControllerBase {
   public function __construct(
     MediaLibraryUiBuilder $media_library_builder,
     EntityRepositoryInterface $entity_repository,
-    EntityViewBuilderInterface $media_view_builder
+    EntityViewBuilderInterface $media_view_builder,
   ) {
     $this->mediaLibraryUiBuilder = $media_library_builder;
     $this->entityRepository = $entity_repository;

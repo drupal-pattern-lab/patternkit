@@ -68,7 +68,7 @@ class PatternDetector {
     SchemaFactory $schema_factory,
     ContextBuilder $context_builder,
     DataPreProcessorFactory $factory,
-    DataPreProcessorCollection $default_processors
+    DataPreProcessorCollection $default_processors,
   ) {
     $this->patternRepository = $repository;
     $this->schemaFactory = $schema_factory;

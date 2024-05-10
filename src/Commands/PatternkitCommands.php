@@ -27,7 +27,7 @@ class PatternkitCommands extends DrushCommands {
    *   The cache tags invalidator service.
    */
   public function __construct(
-    CacheTagsInvalidatorInterface $cacheTagsInvalidator
+    CacheTagsInvalidatorInterface $cacheTagsInvalidator,
   ) {
     parent::__construct();
 

@@ -25,7 +25,7 @@ class TwigPatternLibraryParser extends JSONPatternLibraryParser {
    */
   public function fetchPatternAssets(
     PatternInterface $pattern,
-    PatternEditorConfig $config = NULL
+    PatternEditorConfig $config = NULL,
   ): array {
     $assets = parent::fetchPatternAssets($pattern, $config);
 

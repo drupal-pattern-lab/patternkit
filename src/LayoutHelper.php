@@ -105,7 +105,7 @@ class LayoutHelper {
     PatternRepository $patternRepository,
     LoggerChannelInterface $logger,
     ?LayoutTempstoreRepositoryInterface $layoutTempstoreRepository,
-    ?SectionStorageManagerInterface $sectionStorageManager
+    ?SectionStorageManagerInterface $sectionStorageManager,
   ) {
     if ($layoutTempstoreRepository === NULL || $sectionStorageManager === NULL) {
       throw new MissingDependencyException("Layout Builder is required to use the 'patternkit.helper.layout' service.");

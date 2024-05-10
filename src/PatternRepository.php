@@ -77,7 +77,7 @@ class PatternRepository {
     PatternDiscoveryInterface $discovery,
     PatternDependencyResolver $dependencyResolver,
     DataPreProcessorFactory $dataPreProcessorFactory,
-    EntityTypeManagerInterface $entityTypeManager
+    EntityTypeManagerInterface $entityTypeManager,
   ) {
     $this->discovery = $discovery;
     $this->dependencyResolver = $dependencyResolver;

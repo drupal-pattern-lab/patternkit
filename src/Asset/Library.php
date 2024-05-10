@@ -128,7 +128,7 @@ class Library extends CacheCollector implements LibraryInterface, ContainerInjec
     ConfigFactoryInterface $config_factory,
     LockBackendInterface $lock,
     PatternDiscoveryInterface $pattern_discovery,
-    LibraryNamespaceResolverInterface $library_namespace_resolver
+    LibraryNamespaceResolverInterface $library_namespace_resolver,
   ) {
     $this->config = $config_factory->get(PatternkitSettingsForm::SETTINGS);
     $this->patternDiscovery = $pattern_discovery;

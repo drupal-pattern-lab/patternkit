@@ -155,7 +155,7 @@ class LayoutDiscoveryBatchWorker implements ContainerInjectionInterface {
     EntityTypeManagerInterface $entity_type_manager,
     QueueFactory $queue_factory,
     LoggerChannelInterface $logger_channel,
-    TranslationInterface $translation
+    TranslationInterface $translation,
   ) {
     $this->entityTypeManager = $entity_type_manager;
     $this->queueFactory = $queue_factory;

@@ -63,7 +63,7 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager {
     ModuleHandlerInterface $module_handler,
     SerializationInterface $serializer,
     SchemaWalkerFactory $schemaWalkerFactory,
-    LoggerChannelInterface $loggerChannel
+    LoggerChannelInterface $loggerChannel,
   ) {
     parent::__construct(
       'Plugin/PatternFieldProcessor',

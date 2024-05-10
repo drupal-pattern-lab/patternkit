@@ -63,7 +63,7 @@ abstract class LayoutOperationsBatchWorkerBase implements ContainerInjectionInte
     QueueFactory $queue_factory,
     QueueWorkerManagerInterface $queue_worker_manager,
     LoggerChannelInterface $logger_channel,
-    TranslationInterface $translation
+    TranslationInterface $translation,
   ) {
     $this->queueFactory = $queue_factory;
     $this->queueWorkerManager = $queue_worker_manager;

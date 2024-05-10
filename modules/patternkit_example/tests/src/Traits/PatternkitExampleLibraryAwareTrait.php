@@ -174,10 +174,13 @@ trait PatternkitExampleLibraryAwareTrait {
    * @return array
    *   An array of expected files for each known pattern.
    */
-  protected function getExpectedFiles(string $root, array $extensions = [
-    'json',
-    'twig',
-  ]): array {
+  protected function getExpectedFiles(
+    string $root,
+    array $extensions = [
+      'json',
+      'twig',
+    ],
+  ): array {
     $expected = [];
     foreach ($this->examplePatterns as $name => $pattern_path) {
       $pattern = [];

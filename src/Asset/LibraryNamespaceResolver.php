@@ -88,7 +88,7 @@ class LibraryNamespaceResolver extends CacheCollector implements LibraryNamespac
     LibraryDiscoveryInterface $libraryDiscovery,
     CacheBackendInterface $cache,
     LockBackendInterface $lock,
-    StreamWrapperManagerInterface $streamWrapperManager
+    StreamWrapperManagerInterface $streamWrapperManager,
   ) {
     $this->container = $container;
     $this->libraryDiscovery = $libraryDiscovery;

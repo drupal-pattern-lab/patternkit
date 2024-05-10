@@ -89,7 +89,7 @@ class PatternUsageQueueWorker extends LayoutQueueWorkerBase {
     TranslationInterface $string_translation,
     MessengerInterface $messenger,
     PatternUsageManager $pattern_usage_manager,
-    LayoutUsageTracker $layout_usage_tracker
+    LayoutUsageTracker $layout_usage_tracker,
   ) {
     parent::__construct(
       $configuration,

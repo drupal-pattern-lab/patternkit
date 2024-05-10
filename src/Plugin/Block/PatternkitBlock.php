@@ -213,7 +213,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     Token $token,
     LanguageManagerInterface $language_manager,
     EventDispatcherInterface $event_dispatcher,
-    LoggerChannelInterface $logger
+    LoggerChannelInterface $logger,
   ) {
     $this->blockManager = $block_manager;
     $this->contextHandler = $context_handler;
@@ -242,7 +242,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     ContainerInterface $container,
     array $configuration,
     $plugin_id,
-    $plugin_definition
+    $plugin_definition,
   ): self {
     $entity_type_manager = $container->get('entity_type.manager');
 

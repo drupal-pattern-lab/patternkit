@@ -76,7 +76,7 @@ class PatternDependencyResolver {
     PatternDiscoveryInterface $patternDiscovery,
     EntityTypeManagerInterface $entityTypeManager,
     DataPreProcessorFactory $dataPreProcessorFactory,
-    LoggerChannelInterface $logger
+    LoggerChannelInterface $logger,
   ) {
     $this->patternDiscovery = $patternDiscovery;
     $this->entityTypeManager = $entityTypeManager;

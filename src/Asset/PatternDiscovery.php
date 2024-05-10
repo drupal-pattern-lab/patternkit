@@ -92,7 +92,7 @@ class PatternDiscovery implements PatternDiscoveryInterface, PatternkitEnvironme
     LibraryNamespaceResolverInterface $resolver,
     CacheBackendInterface $cache_backend,
     LoggerChannelInterface $logger,
-    PatternkitEnvironment $environment
+    PatternkitEnvironment $environment,
   ) {
     $this->loader = $loader;
     $this->resolver = $resolver;

@@ -73,7 +73,7 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
     LoggerChannelInterface $logger,
     PatternRepository $pattern_repository,
     EntityStorageInterface $pattern_storage,
-    EntityStorageInterface $block_storage
+    EntityStorageInterface $block_storage,
   ) {
     $this->config = $config;
     $this->logger = $logger;

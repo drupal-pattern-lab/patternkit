@@ -89,7 +89,7 @@ class UpdateHelper {
     EntityTypeManagerInterface $entityTypeManager,
     KeyValueExpirableFactoryInterface $keyValueExpirable,
     ModuleHandlerInterface $moduleHandler,
-    LoggerChannelInterface $logger
+    LoggerChannelInterface $logger,
   ) {
     $this->entityTypeManager = $entityTypeManager;
     $this->blockStorage = $entityTypeManager->getStorage('patternkit_block');

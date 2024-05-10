@@ -86,7 +86,7 @@ class UpdateCommands extends DrushCommands {
     UpdateHelper $updateHelper,
     LayoutDiscoveryBatchManager $layoutBatchManager,
     BlockManagerInterface $blockManager,
-    string $root
+    string $root,
   ) {
     parent::__construct();
 
@@ -141,10 +141,13 @@ class UpdateCommands extends DrushCommands {
    *
    * @see self::batchUpdate()
    */
-  public function libUpdate(string $library_name = NULL, $options = [
-    'filter' => self::REQ,
-    'pattern' => self::REQ,
-  ]): string {
+  public function libUpdate(
+    string $library_name = NULL,
+    $options = [
+      'filter' => self::REQ,
+      'pattern' => self::REQ,
+    ],
+  ): string {
     // Fail early if the library name filter isn't prefixed.
     if ($library_name !== NULL && !str_starts_with($library_name, '@')) {
       throw new CommandFailedException('When using a library name filter, the library name should always include the "@" prefix. For example: "@patternkit"');
@@ -214,12 +217,15 @@ class UpdateCommands extends DrushCommands {
    * @command patternkit:batch-update
    * @aliases pkbu
    */
-  public function batchUpdate(string $library_name = NULL, $options = [
-    'filter' => self::REQ,
-    'pattern' => self::REQ,
-    'revisions' => LayoutDiscoveryBatchWorker::REVISION_MODE_DEFAULT,
-    'no-run-queue' => FALSE,
-  ]) {
+  public function batchUpdate(
+    string $library_name = NULL,
+    $options = [
+      'filter' => self::REQ,
+      'pattern' => self::REQ,
+      'revisions' => LayoutDiscoveryBatchWorker::REVISION_MODE_DEFAULT,
+      'no-run-queue' => FALSE,
+    ],
+  ) {
     // Validate the selected revision mode.
     $revision_modes = [
       LayoutDiscoveryBatchWorker::REVISION_MODE_DEFAULT,

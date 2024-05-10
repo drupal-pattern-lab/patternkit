@@ -191,7 +191,7 @@ class PatternDiscoveryLoaderTest extends UnitTestCase {
     array $library_definition,
     array $plugin_data,
     $expected,
-    ?callable $expectations_callback = NULL
+    ?callable $expectations_callback = NULL,
   ): void {
     // Use the callback to set up case-specific expectations if provided.
     if ($expectations_callback) {

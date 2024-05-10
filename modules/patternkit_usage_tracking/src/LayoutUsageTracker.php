@@ -83,7 +83,7 @@ class LayoutUsageTracker {
     LayoutHelper $layout_helper,
     PatternDetector $pattern_detector,
     SectionStorageManagerInterface $section_storage_manager,
-    UsageRevisionHelper $revision_helper
+    UsageRevisionHelper $revision_helper,
   ) {
     $this->entityTypeManager = $entity_type_manager;
     $this->entityFieldManager = $entity_field_manager;

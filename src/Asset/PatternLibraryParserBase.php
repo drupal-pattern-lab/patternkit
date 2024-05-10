@@ -119,7 +119,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     EntityTypeManagerInterface $entity_type_manager,
     DataPreProcessorFactory $dataPreProcessorFactory,
     PatternDependencyResolver $patternDependencyResolver,
-    LoggerChannelInterface $logger
+    LoggerChannelInterface $logger,
   ) {
     parent::__construct($root, $module_handler, $theme_manager, $stream_wrapper, $libraries_directory_file_finder, $extension_path_resolver);
 

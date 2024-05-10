@@ -41,7 +41,7 @@ class PatternkitTranslateBlockForm extends TranslateBlockForm {
     ModuleHandlerInterface $module_handler,
     TypedConfigManagerInterface $typed_config_manager,
     EntityTypeManagerInterface $entity_type_manager,
-    LoggerChannelFactoryInterface $logger_factory
+    LoggerChannelFactoryInterface $logger_factory,
   ) {
     parent::__construct($layout_tempstore_repository, $module_handler, $typed_config_manager);
     $this->entityTypeManager = $entity_type_manager;

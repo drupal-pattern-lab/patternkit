@@ -76,7 +76,7 @@ abstract class PatternLibraryPluginDefault extends PluginBase implements Configu
     ConfigFactoryInterface $config_factory,
     array $configuration,
     $plugin_id,
-    $plugin_definition
+    $plugin_definition,
   ) {
     $this->config = $config_factory->get(PatternkitSettingsForm::SETTINGS);
     $this->root = $root;

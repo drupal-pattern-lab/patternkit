@@ -181,7 +181,7 @@ class TestJSONSchemaEditorTrait {
    */
   public function __construct(
     StateInterface $state,
-    FileUrlGeneratorInterface $fileUrlGenerator
+    FileUrlGeneratorInterface $fileUrlGenerator,
   ) {
     $this->state = $state;
     $this->fileUrlGenerator = $fileUrlGenerator;

@@ -71,10 +71,12 @@ class PatternkitUsageTrackingCommands extends DrushCommands {
    * @command patternkit:usage:scan
    * @aliases pkuscan
    */
-  public function batchScan($options = [
-    'revisions' => 'default',
-    'no-run-queue' => FALSE,
-  ]) {
+  public function batchScan(
+    $options = [
+      'revisions' => 'default',
+      'no-run-queue' => FALSE,
+    ],
+  ) {
     // Confirm whether execution should continue if usage data already exists.
     if ($this->usageStorage->hasData()) {
       if (!$this->confirm(dt('Usage data already exists. Re-running the usage scanning operation improperly may result in duplication of records. Would you like to continue?'))) {

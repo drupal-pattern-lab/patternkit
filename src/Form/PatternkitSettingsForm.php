@@ -53,7 +53,7 @@ class PatternkitSettingsForm extends ConfigFormBase {
     ConfigFactoryInterface $config_factory,
     TypedConfigManagerInterface $typed_config_manager,
     LibraryNamespaceResolverInterface $libraryNamespaceResolver,
-    PatternDiscoveryInterface $patternDiscovery
+    PatternDiscoveryInterface $patternDiscovery,
   ) {
     $this->libraryNamespaceResolver = $libraryNamespaceResolver;
     $this->patternDiscovery = $patternDiscovery;

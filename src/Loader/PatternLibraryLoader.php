@@ -24,7 +24,7 @@ class PatternLibraryLoader extends FilesystemLoader {
   public function __construct(
     $paths,
     LoggerInterface $logger,
-    LibraryNamespaceResolverInterface $libraryNamespaceResolver
+    LibraryNamespaceResolverInterface $libraryNamespaceResolver,
   ) {
     parent::__construct($paths);
 

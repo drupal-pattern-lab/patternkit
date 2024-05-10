@@ -94,7 +94,7 @@ abstract class LayoutQueueWorkerBase extends QueueWorkerBase implements Containe
     LayoutTempstoreRepositoryInterface $layout_tempstore_repository,
     LoggerChannelInterface $logger,
     TranslationInterface $string_translation,
-    MessengerInterface $messenger
+    MessengerInterface $messenger,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->entityTypeManager = $entity_type_manager;

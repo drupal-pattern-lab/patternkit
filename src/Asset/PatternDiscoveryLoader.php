@@ -75,7 +75,7 @@ class PatternDiscoveryLoader {
     LibraryNamespaceResolverInterface $namespaceResolver,
     PatternLibraryPluginManager $libraryPluginManager,
     LoggerInterface $logger,
-    SerializerInterface $serializer = NULL
+    SerializerInterface $serializer = NULL,
   ) {
     $this->namespaceResolver = $namespaceResolver;
     $this->libraryPluginManager = $libraryPluginManager;

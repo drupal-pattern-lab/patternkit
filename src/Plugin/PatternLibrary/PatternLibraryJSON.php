@@ -60,7 +60,7 @@ class PatternLibraryJSON extends PatternLibraryPluginDefault implements Containe
     FileUrlGeneratorInterface $file_url_generator,
     array $configuration,
     string $plugin_id,
-    $plugin_definition
+    $plugin_definition,
   ) {
     $this->serializer = $serializer;
     $this->state = $state;
