@@ -3,3 +3,4 @@
 /js/nonmin/*
 /modules/patternkit_media_library/js/*.js
 !/modules/patternkit_media_library/js/*.es6.js
+/tests/modules/patternkit_test/lib/patternkit

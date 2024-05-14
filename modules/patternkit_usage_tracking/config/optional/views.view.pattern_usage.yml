@@ -77,7 +77,7 @@ display:
           settings:
             link_to_entity: true
           group_column: value
-          group_columns: {  }
+          group_columns: {}
           group_rows: true
           delta_limit: 0
           delta_offset: 0
@@ -139,9 +139,9 @@ display:
           hide_alter_empty: true
           click_sort_column: value
           type: string
-          settings: {  }
+          settings: {}
           group_column: value
-          group_columns: {  }
+          group_columns: {}
           group_rows: true
           delta_limit: 0
           delta_offset: 0
@@ -203,9 +203,9 @@ display:
           hide_alter_empty: true
           click_sort_column: value
           type: string
-          settings: {  }
+          settings: {}
           group_column: value
-          group_columns: {  }
+          group_columns: {}
           group_rows: true
           delta_limit: 0
           delta_offset: 0
@@ -270,7 +270,7 @@ display:
           settings:
             native_language: false
           group_column: value
-          group_columns: {  }
+          group_columns: {}
           group_rows: true
           delta_limit: 0
           delta_offset: 0
@@ -336,7 +336,7 @@ display:
             thousand_separator: ''
             prefix_suffix: false
           group_column: value
-          group_columns: {  }
+          group_columns: {}
           group_rows: true
           delta_limit: 0
           delta_offset: 0
@@ -402,7 +402,7 @@ display:
             thousand_separator: ''
             prefix_suffix: true
           group_column: value
-          group_columns: {  }
+          group_columns: {}
           group_rows: true
           delta_limit: 0
           delta_offset: 0
@@ -448,8 +448,8 @@ display:
           perm: 'access site reports'
       cache:
         type: none
-        options: {  }
-      empty: {  }
+        options: {}
+      empty: {}
       sorts:
         source_id:
           id: source_id
@@ -466,7 +466,7 @@ display:
             label: ''
             field_identifier: ''
           exposed: false
-      arguments: {  }
+      arguments: {}
       filters:
         pattern_name:
           id: pattern_name
@@ -489,7 +489,7 @@ display:
             use_operator: false
             operator: pattern_name_op
             operator_limit_selection: false
-            operator_list: {  }
+            operator_list: {}
             identifier: pattern_name
             required: false
             remember: true
@@ -510,8 +510,8 @@ display:
             multiple: false
             remember: false
             default_group: All
-            default_group_multiple: {  }
-            group_items: {  }
+            default_group_multiple: {}
+            group_items: {}
         source_langcode:
           id: source_langcode
           table: pattern_usage
@@ -523,7 +523,7 @@ display:
           entity_field: source_langcode
           plugin_id: language
           operator: in
-          value: {  }
+          value: {}
           group: 1
           exposed: true
           expose:
@@ -533,7 +533,7 @@ display:
             use_operator: false
             operator: source_langcode_op
             operator_limit_selection: false
-            operator_list: {  }
+            operator_list: {}
             identifier: language
             required: false
             remember: false
@@ -554,8 +554,8 @@ display:
             multiple: false
             remember: false
             default_group: All
-            default_group_multiple: {  }
-            group_items: {  }
+            default_group_multiple: {}
+            group_items: {}
         source_id:
           id: source_id
           table: pattern_usage
@@ -580,7 +580,7 @@ display:
             use_operator: false
             operator: source_id_op
             operator_limit_selection: false
-            operator_list: {  }
+            operator_list: {}
             identifier: node_id
             required: false
             remember: false
@@ -603,8 +603,8 @@ display:
             multiple: false
             remember: false
             default_group: All
-            default_group_multiple: {  }
-            group_items: {  }
+            default_group_multiple: {}
+            group_items: {}
       style:
         type: table
       row:
@@ -616,7 +616,7 @@ display:
           disable_sql_rewrite: false
           distinct: false
           replica: false
-          query_tags: {  }
+          query_tags: {}
       relationships:
         active_node_revision_id:
           id: active_node_revision_id
@@ -629,9 +629,9 @@ display:
           entity_field: source_revision_id
           plugin_id: standard
           required: true
-      header: {  }
-      footer: {  }
-      display_extenders: {  }
+      header: {}
+      footer: {}
+      display_extenders: {}
     cache_metadata:
       max-age: -1
       contexts:
@@ -640,7 +640,7 @@ display:
         - url
         - url.query_args
         - user.permissions
-      tags: {  }
+      tags: {}
   page__site_report__node__active:
     id: page__site_report__node__active
     display_title: 'Node usage report'
@@ -648,7 +648,7 @@ display:
     position: 1
     display_options:
       display_description: 'A report page listing usage records on active Node revisions.'
-      display_extenders: {  }
+      display_extenders: {}
       path: admin/reports/pattern-usage/active-nodes
       menu:
         type: 'default tab'
@@ -672,4 +672,4 @@ display:
         - url
         - url.query_args
         - user.permissions
-      tags: {  }
+      tags: {}

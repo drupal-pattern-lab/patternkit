@@ -7,8 +7,7 @@ id: patternkit_block
 label: 'Patternkit Layout Builder Add Block page'
 module: patternkit
 routes:
-  -
-    route_name: layout_builder.add_block
+  - route_name: layout_builder.add_block
 tips:
   patternkit-context-node:
     id: patternkit-context-node

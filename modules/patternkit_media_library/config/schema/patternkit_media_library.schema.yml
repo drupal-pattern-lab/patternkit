@@ -14,13 +14,13 @@ patternkit_media_library.settings:
           label: 'Media types allowed for selection in image fields.'
           sequence:
             type: string
-            label: "Media type"
+            label: 'Media type'
         video_types:
           type: sequence
           label: 'Media types allowed for selection in video fields.'
           sequence:
             type: string
-            label: "Media type"
+            label: 'Media type'
     media_display_mode:
       type: string
       label: 'Display mode for media selected in pattern blocks.'

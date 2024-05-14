@@ -7,8 +7,7 @@ id: patternkit_admin
 label: 'Patternkit admin settings page'
 module: patternkit
 routes:
-  -
-    route_name: patternkit.settings
+  - route_name: patternkit.settings
 tips:
   patternkit-libraries:
     id: patternkit-libraries

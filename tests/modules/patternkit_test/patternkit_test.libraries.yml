@@ -1,11 +1,11 @@
 patternkit_twig:
   css:
     theme:
-      lib/patternkit/dist/patternkit.css: { }
+      lib/patternkit/dist/patternkit.css: {}
   js:
-    lib/patternkit/dist/patternkit.min.js: { }
+    lib/patternkit/dist/patternkit.min.js: {}
   patterns:
-    lib/patternkit/src: {plugin: twig}
+    lib/patternkit/src: { plugin: twig }
 
 patternkit_json:
   css:
@@ -14,4 +14,4 @@ patternkit_json:
   js:
     lib/patternkit/dist/patternkit.min.js: {}
   patterns:
-    lib/patternkit/src: {plugin: json}
+    lib/patternkit/src: { plugin: json }

@@ -30,4 +30,4 @@ services:
 
   pattern_usage.layout_batch_manager:
     class: Drupal\patternkit_usage_tracking\BulkOperations\LayoutDiscoveryBatchManager
-    arguments: [ '@entity_type.manager', '@string_translation']
+    arguments: ['@entity_type.manager', '@string_translation']

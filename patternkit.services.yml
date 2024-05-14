@@ -1,13 +1,11 @@
 parameters:
   # Configuration options to influence behavior of the Patternkit modules.
   patternkit.config:
-
     # This may be enabled to toggle debug features in the module.
     debug: false
 
     # Various operational features of the module may be toggled here.
     features:
-
       # Enable this to bypass cache loading of pattern definitions and
       # rediscover patterns during every request.
       bypass_pattern_cache: false
@@ -24,14 +22,19 @@ services:
     arguments: ['patternkit']
   logger.channel.patternkit_batch:
     parent: logger.channel_base
-    arguments: [ 'patternkit.batch' ]
+    arguments: ['patternkit.batch']
   path_processor.patterns:
     class: Drupal\patternkit\PathProcessor\PathProcessorPatterns
     tags:
       - { name: path_processor_inbound, priority: 200 }
   patternkit.asset.library:
     class: Drupal\patternkit\Asset\Library
-    arguments: ['@cache.patternkit', '@config.factory', '@lock', '@patternkit.pattern.discovery', '@patternkit.library.namespace_resolver']
+    arguments:
+      - '@cache.patternkit'
+      - '@config.factory'
+      - '@lock'
+      - '@patternkit.pattern.discovery'
+      - '@patternkit.library.namespace_resolver'
     deprecated: 'The "%service_id%" service is deprecated. Use "patternkit.library.namespace_resolver" or "patternkit.pattern.discovery" instead.'
   patternkit.asset.library.parser.base:
     abstract: true
@@ -109,7 +112,11 @@ services:
       - '@patternkit.schema.data_preprocessor.defaults'
   plugin.manager.library.pattern:
     class: Drupal\patternkit\PatternLibraryPluginManager
-    arguments: ['@container.namespaces', '@cache.discovery', '@module_handler', '@theme_handler']
+    arguments:
+      - '@container.namespaces'
+      - '@cache.discovery'
+      - '@module_handler'
+      - '@theme_handler'
   stream_wrapper.library:
     class: Drupal\patternkit\StreamWrapper\LibraryStream
     tags:
@@ -123,7 +130,10 @@ services:
     # We use '.' instead of '@app.root' as the path for non-namespaced template
     # files so that they match the relative paths of templates loaded via the
     # theme registry or via Twig namespaces.
-    arguments: ['.', '@logger.channel.patternkit', '@patternkit.library.namespace_resolver']
+    arguments:
+      - '.'
+      - '@logger.channel.patternkit'
+      - '@patternkit.library.namespace_resolver'
     tags:
       - { name: twig.loader, priority: 100 }
   patternkit.helper.update:
@@ -144,14 +154,14 @@ services:
       - '@?plugin.manager.layout_builder.section_storage'
   patternkit.layout_batch_manager:
     class: Drupal\patternkit\BulkOperations\LayoutDiscoveryBatchManager
-    arguments: [ '@entity_type.manager', '@string_translation']
+    arguments: ['@entity_type.manager', '@string_translation']
   patternkit.translate_layout_builder_block:
     class: Drupal\patternkit\Routing\PatternkitTranslateBlockFormRouteSubscriber
     tags:
       - { name: event_subscriber }
   patternkit.environment:
-      class: Drupal\patternkit\PatternkitEnvironment
-      arguments: ['%patternkit.config%']
+    class: Drupal\patternkit\PatternkitEnvironment
+    arguments: ['%patternkit.config%']
   plugin.manager.pattern_field_processor:
     class: Drupal\patternkit\PatternFieldProcessorPluginManager
     arguments:
@@ -187,20 +197,28 @@ services:
     class: Drupal\Core\Cache\CacheBackendInterface
     tags:
       - { name: cache.bin }
-    factory: [ '@cache_factory', 'get' ]
+    factory: ['@cache_factory', 'get']
     arguments: [patternkit]
 
   # Collect default data preprocessors for general usage.
   patternkit.schema.data_preprocessor.defaults:
     class: Drupal\patternkit\Schema\DataPreProcessor\DataPreProcessorCollection
     tags:
-      - { name: 'service_collector', tag: 'default_schema_data_preprocessor', call: 'addPreProcessor'}
+      - {
+          name: 'service_collector',
+          tag: 'default_schema_data_preprocessor',
+          call: 'addPreProcessor',
+        }
 
   # Define schema data preprocessors used for various operations.
   patternkit.schema.data_preprocessor.factory:
     class: Drupal\patternkit\Schema\DataPreProcessorFactory
     tags:
-      - { name: 'service_collector', tag: 'schema_data_preprocessor', call: 'addPreProcessor' }
+      - {
+          name: 'service_collector',
+          tag: 'schema_data_preprocessor',
+          call: 'addPreProcessor',
+        }
   patternkit.schema.data_preprocessor.objects:
     class: Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor
     tags:

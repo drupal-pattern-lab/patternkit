@@ -1,10 +1,10 @@
-patternkit_json_editor_css: ""
-patternkit_json_editor_icons: ""
-patternkit_json_editor_js: ""
+patternkit_json_editor_css: ''
+patternkit_json_editor_icons: ''
+patternkit_json_editor_js: ''
 patternkit_json_editor_theme: cygnet
 patternkit_libraries: []
-patternkit_json_editor_wysiwyg: ""
-patternkit_json_editor_ckeditor_toolbar: ""
+patternkit_json_editor_wysiwyg: ''
+patternkit_json_editor_ckeditor_toolbar: ''
 patternkit_json_editor_token_clear: false
 patternkit_json_editor_disable_properties_buttons: false
 patternkit_json_editor_disable_edit_json_button: true

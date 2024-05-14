@@ -5,4 +5,4 @@ patternkit:
   js:
     lib/patternkit/dist/patternkit.min.js: {}
   patterns:
-    lib/patternkit/src: {plugin: twig}
+    lib/patternkit/src: { plugin: twig }
