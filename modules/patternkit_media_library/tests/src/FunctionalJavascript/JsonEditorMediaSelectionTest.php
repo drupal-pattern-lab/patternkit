@@ -219,6 +219,8 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
 
     // Wait for the JSON Editor form to load.
     $this->waitForJsonEditorForm();
+    $page->fillField('root[text]', 'PK Example block');
+    $page->fillField('root[formatted_text]', 'Pattern block body');
 
     // Press the media selection button.
     $button = $assert->waitForButton('Select/Upload image');
@@ -250,6 +252,8 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
 
     // Confirm the pattern is rendered on the Node display.
     $this->drupalGet('node/1');
+    $assert->pageTextContains('PK Example block');
+    $assert->pageTextContains('Pattern block body');
     $assert->elementExists('css', 'img[src="' . $file_uri . '"]');
 
     // Get block ID to return to edit form.
@@ -339,6 +343,45 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
     $this->waitForJsonEditorForm();
     $assert->fieldValueEquals('root[image][image]', $image_media_token);
     $assert->fieldValueEquals('root[video][video]', $video_media_token);
+  }
+
+  /**
+   * Test the workflow for adding media from media wrapper library.
+   */
+  public function testMediaWrapperSelection(): void {
+    $assert = $this->assertSession();
+    $page = $this->getSession()->getPage();
+
+    $pattern_name = '[Patternkit] Media embed wrapper';
+
+    // Override the Node layout and place a patternkit block.
+    $this->drupalGet('node/1/layout');
+    $this->addPatternBlock($pattern_name);
+
+    // Wait for the JSON Editor form to load.
+    $this->waitForJsonEditorForm();
+
+    // Press the Add item button.
+    $page->pressButton('Add item');
+    $page->pressButton('Select/Upload image');
+
+    // Wait for the library modal.
+    $this->assertElementExistsAfterWait('css', '.js-media-library-view');
+
+    $assert->elementTextContains('css', '.js-media-library-view', 'Super fancy image');
+    $this->selectMediaItem(0);
+    $buttons = $this->assertElementExistsAfterWait('css', '#drupal-modal .form-actions');
+    $buttons->findButton('Insert selected')->press();
+
+    $assert->waitForElementRemoved('css', '.js-media-library-view');
+
+    // Save the layout to confirm it displays as expected.
+    $page->pressButton('Add block');
+    $page->pressButton('Save layout');
+
+    // Confirm the pattern is rendered on the Node display.
+    $this->drupalGet('node/1');
+    $assert->elementExists('css', '.patternkit-media-image-embed--component img');
   }
 
   /**
@@ -468,6 +511,29 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
 
     // Wait and confirm the upload button was not added.
     $assert->assertNoElementAfterWait('css', 'div[data-schemapath="root.video"] button');
+  }
+
+  /**
+   * Test media selection for combined image/video media.
+   */
+  public function testMediaCombinedSelectionWithoutConfiguration(): void {
+    $assert = $this->assertSession();
+
+    // Configure without any selected image bundles.
+    $this->setMediaMappingConfiguration([]);
+
+    $pattern_name = '[Patternkit] Media combined embed';
+
+    // Override the Node layout and place a patternkit block.
+    $this->drupalGet('node/1/layout');
+    $this->addPatternBlock($pattern_name);
+
+    // Wait for the JSON Editor form to load.
+    $this->waitForJsonEditorForm();
+
+    // Wait and confirm the upload image/video button was not added.
+    $assert->assertNoElementAfterWait('css', 'div[data-schemapath="root.video.video"] button');
+    $assert->assertNoElementAfterWait('css', 'div[data-schemapath="root.image.image"] button');
   }
 
   /**

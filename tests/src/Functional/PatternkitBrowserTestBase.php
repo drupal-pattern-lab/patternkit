@@ -77,6 +77,15 @@ abstract class PatternkitBrowserTestBase extends BrowserTestBase {
       ->enableLayoutBuilder()
       ->setOverridable()
       ->save();
+
+    // Create an editorial user with preconfigured permissions.
+    $this->editorUser = $this->drupalCreateUser([
+      'access administration pages',
+      'configure any layout',
+      'create and edit custom blocks',
+      'bypass node access',
+    ]);
+
   }
 
 }
