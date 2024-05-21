@@ -2,4 +2,6 @@ Example twig template with include and reference.
 
 <div>{{- text|striptags('') -}}</div>
 
-{% include '@patternkit/atoms/example/src/example.twig' with nested_reference %}
+{% if nested_reference is defined and nested_reference is not null %}
+    {% include '@patternkit/atoms/example/src/example.twig' with nested_reference %}
+{% endif %}
