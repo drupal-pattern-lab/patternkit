@@ -537,6 +537,32 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
   }
 
   /**
+   * Test media selection for image media wrapper without selected media types.
+   */
+  public function testMediaWrapperSelectionWithoutConfiguration(): void {
+    $assert = $this->assertSession();
+    $page = $this->getSession()->getPage();
+
+    // Configure without any selected image bundles.
+    $this->setMediaMappingConfiguration([]);
+
+    $pattern_name = '[Patternkit] Media embed wrapper';
+
+    // Override the Node layout and place a patternkit block.
+    $this->drupalGet('node/1/layout');
+    $this->addPatternBlock($pattern_name);
+
+    // Wait for the JSON Editor form to load.
+    $this->waitForJsonEditorForm();
+
+    // Press the Add item button.
+    $page->pressButton('Add item');
+
+    // Wait and confirm the upload image button was not added.
+    $assert->assertNoElementAfterWait('css', 'div[data-schemapath="root.media.0.image"] button');
+  }
+
+  /**
    * Set configuration for selectable media types in Patternkit patterns.
    *
    * @param string[] $image_types
