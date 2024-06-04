@@ -20,6 +20,8 @@ include:
       - '/includes/include.drupalci.main.yml'
       - '/includes/include.drupalci.variables.yml'
       - '/includes/include.drupalci.workflows.yml'
+      # Always include hidden variables for consistent behavior across all CI environments.
+      - '/includes/include.drupalci.hidden-variables.yml'
 
   ################
   # Optional CI includes:
