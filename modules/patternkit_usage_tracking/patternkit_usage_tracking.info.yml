@@ -2,7 +2,7 @@ name: Patternkit Usage Tracking
 description: Adds tracking for where patterns are in use.
 type: module
 package: Presentation Framework
-core_version_requirement: ^10
+core_version_requirement: ^10 || ^11
 dependencies:
   - patternkit:patternkit
   - drupal:layout_builder

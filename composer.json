@@ -18,16 +18,16 @@
         "ext-json": "*",
         "marcj/topsort": "^2.0.0",
         "swaggest/json-schema": "^0.12",
-        "symfony/finder": "^4 || ^5 || ^6",
-        "symfony/serializer": "^4 || ^5 || ^6",
-        "symfony/property-access": "^4 || ^5 || ^6",
-        "symfony/yaml": "^4 || ^5 || ^6",
+        "symfony/finder": "^5.4 || ^6 || ^7",
+        "symfony/serializer": "^6 || ^7",
+        "symfony/property-access": "^5.4 || ^6 || ^7",
+        "symfony/yaml": "^5.4 || ^6 || ^7",
         "webmozart/assert": "^1.0",
         "webmozart/path-util": "^2.1.0"
     },
     "require-dev": {
-        "drupal/core-recommended": "^9 || ^10",
-        "drupal/core-dev": "^9 || ^10",
+        "drupal/core-recommended": "^10 || ^11",
+        "drupal/core-dev": "^10 || ^11",
         "drupal/devel": "^4.2 || ^5.0"
     },
     "extra": {
