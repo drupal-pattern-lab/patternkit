@@ -73,7 +73,7 @@ class PatternkitControllerTest extends PatternkitKernelTestBase {
     $this->assertInstanceOf(JsonResponse::class, $response);
     $this->assertEquals('200', $response->getStatusCode());
 
-    $content = $this->decodeJson($response->getContent());
+    $content = static::decodeJson($response->getContent());
     $this->assertFalse(isset($content->error));
   }
 
@@ -90,7 +90,7 @@ class PatternkitControllerTest extends PatternkitKernelTestBase {
     $this->assertInstanceOf(JsonResponse::class, $response);
     $this->assertEquals('404', $response->getStatusCode());
 
-    $content = $this->decodeJson($response->getContent());
+    $content = static::decodeJson($response->getContent());
     $this->assertTrue(isset($content->error));
     $this->assertEquals('No known pattern definition for "@unknown/pattern".', $content->error);
   }
@@ -113,7 +113,7 @@ class PatternkitControllerTest extends PatternkitKernelTestBase {
     $this->assertInstanceOf(JsonResponse::class, $response);
     $this->assertEquals('200', $response->getStatusCode());
 
-    $content = $this->decodeJson($response->getContent());
+    $content = static::decodeJson($response->getContent());
     $this->assertFalse(isset($content->error));
     $this->assertJsonStringEqualsJsonFile($schema_path, $response->getContent());
   }
@@ -135,7 +135,7 @@ class PatternkitControllerTest extends PatternkitKernelTestBase {
     $this->assertInstanceOf(JsonResponse::class, $response);
     $this->assertEquals('404', $response->getStatusCode());
 
-    $content = $this->decodeJson($response->getContent());
+    $content = static::decodeJson($response->getContent());
     $this->assertTrue(isset($content->error));
     $this->assertEquals('No known pattern definition for "@unknown/pattern".', $content->error);
   }

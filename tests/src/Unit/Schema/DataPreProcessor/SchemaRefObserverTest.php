@@ -35,7 +35,7 @@ class SchemaRefObserverTest extends UnitTestCase {
    *
    * @var string
    */
-  protected string $schemaWithReferenceJson = <<<JSON
+  protected static string $schemaWithReferenceJson = <<<JSON
     {
       "\$schema": "http://json-schema.org/draft-04/schema#",
       "category": "test",
@@ -108,7 +108,7 @@ class SchemaRefObserverTest extends UnitTestCase {
    * @dataProvider providerGetReferences
    */
   public function testGetReferences(string $schema_json, array $expected_references): void {
-    $schema_data = $this->decodeJson($schema_json);
+    $schema_data = static::decodeJson($schema_json);
     UnresolvedSchema::import($schema_data, $this->context);
 
     $references = $this->observer->getReferences();
@@ -123,11 +123,11 @@ class SchemaRefObserverTest extends UnitTestCase {
   /**
    * Data provider for testGetReferences().
    */
-  public function providerGetReferences(): array {
+  public static function providerGetReferences(): array {
     $cases = [];
 
     $cases['one reference'] = [
-      $this->schemaWithReferenceJson,
+      static::$schemaWithReferenceJson,
       [
         '@my/example/reference',
       ],
@@ -221,7 +221,7 @@ class SchemaRefObserverTest extends UnitTestCase {
     $this->context->setDataPreProcessor($this->observer);
 
     // Run the import to collect observed references for testing.
-    $schema_data = $this->decodeJson($schema_json);
+    $schema_data = static::decodeJson($schema_json);
     UnresolvedSchema::import($schema_data, $this->context);
 
     $this->assertEquals([
@@ -261,7 +261,7 @@ class SchemaRefObserverTest extends UnitTestCase {
   /**
    * Data provider for testGetExternalReferencesDuringImport().
    */
-  public function providerGetExternalReferencesDuringImport(): array {
+  public static function providerGetExternalReferencesDuringImport(): array {
     $cases = [];
 
     // Confirm results with no exclusions provided.
@@ -331,7 +331,7 @@ class SchemaRefObserverTest extends UnitTestCase {
   /**
    * Data provider.
    */
-  public function providerGetExternalReferencesDuringImportWithUnresolvedReferences(): array {
+  public static function providerGetExternalReferencesDuringImportWithUnresolvedReferences(): array {
     $cases = [];
 
     // Confirm results with no exclusions provided.
@@ -441,7 +441,7 @@ class SchemaRefObserverTest extends UnitTestCase {
     $this->context->setRemoteRefProvider($ref_provider);
 
     // Import the schema for validation usage.
-    $schema_data = $this->decodeJson($this->schemaWithReferenceJson);
+    $schema_data = static::decodeJson(static::$schemaWithReferenceJson);
     $schema = Schema::import($schema_data, $this->context);
 
     // Reset all references discovered during import.
@@ -456,7 +456,7 @@ class SchemaRefObserverTest extends UnitTestCase {
         }
       }
       JSON;
-    $schema->out($this->decodeJson($content), $this->context);
+    $schema->out(static::decodeJson($content), $this->context);
 
     $this->assertEquals(['@my/example/reference'],
       $this->observer->getReferences());

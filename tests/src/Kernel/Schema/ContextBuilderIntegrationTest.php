@@ -47,7 +47,7 @@ class ContextBuilderIntegrationTest extends KernelTestBase {
    */
   public function testDefaultContextSchemaValidation(string $schema_json, $config): void {
     $default_context = $this->contextBuilder->getDefaultContext();
-    $schema = Schema::import($this->decodeJson($schema_json), $default_context);
+    $schema = Schema::import(static::decodeJson($schema_json), $default_context);
 
     $this->assertNotNull($schema->in($config, $default_context));
   }
@@ -55,7 +55,7 @@ class ContextBuilderIntegrationTest extends KernelTestBase {
   /**
    * Data provider for testDefaultContextSchemaValidation().
    */
-  public function providerDefaultContextSchemaValidation(): array {
+  public static function providerDefaultContextSchemaValidation(): array {
     $cases = [];
 
     // Test object coercion requiring the 'objects' preprocessor.

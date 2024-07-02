@@ -36,7 +36,7 @@ class SchemaWalkerTest extends UnitTestCase {
    *
    * @var string
    */
-  protected string $simpleRefSchemaJson = <<<JSON
+  protected static string $simpleRefSchemaJson = <<<JSON
     {
       "\$schema": "http://json-schema.org/draft-04/schema#",
       "category": "atom",
@@ -56,104 +56,104 @@ class SchemaWalkerTest extends UnitTestCase {
    *
    * @var string
    */
-  protected string $expandedRefSchemaJson = <<<JSON
-{
-  "\$schema": "http://json-schema.org/draft-04/schema#",
-  "category": "atom",
-  "title": "Example reference property",
-  "type": "object",
-  "format": "grid",
-  "properties": {
-    "text_reference": {
-      "\$ref": "/api/patternkit/patternkit/refs/text?asset=schema"
-    },
-    "number_reference": {
-      "\$ref": "/api/patternkit/patternkit/refs/number?asset=schema"
-    },
-    "object_reference": {
-      "\$ref": "/api/patternkit/patternkit/refs/object?asset=schema"
-    },
-    "reference_with_path": {
-      "\$ref": "/api/patternkit/patternkit/refs/object?asset=schema#/properties/text"
+  protected static string $expandedRefSchemaJson = <<<JSON
+    {
+      "\$schema": "http://json-schema.org/draft-04/schema#",
+      "category": "atom",
+      "title": "Example reference property",
+      "type": "object",
+      "format": "grid",
+      "properties": {
+        "text_reference": {
+          "\$ref": "/api/patternkit/patternkit/refs/text?asset=schema"
+        },
+        "number_reference": {
+          "\$ref": "/api/patternkit/patternkit/refs/number?asset=schema"
+        },
+        "object_reference": {
+          "\$ref": "/api/patternkit/patternkit/refs/object?asset=schema"
+        },
+        "reference_with_path": {
+          "\$ref": "/api/patternkit/patternkit/refs/object?asset=schema#/properties/text"
+        }
+      }
     }
-  }
-}
-JSON;
+    JSON;
 
   /**
    * A testing schema with an array of anyOf references.
    *
    * @var string
    */
-  protected string $arrayRefSchemaJson = <<<JSON
-{
-  "\$schema": "http://json-schema.org/draft-04/schema#",
-  "category": "atom",
-  "title": "Array Example With References",
-  "type": "object",
-  "properties": {
-    "references": {
-      "title": "Example reference items",
-      "type": "array",
-      "items": {
-        "anyOf": [
-          { "\$ref": "/api/patternkit/patternkit/refs/text?asset=schema" },
-          { "\$ref": "/api/patternkit/patternkit/refs/number?asset=schema" },
-          { "\$ref": "/api/patternkit/patternkit/refs/object?asset=schema" }
-        ]
+  protected static string $arrayRefSchemaJson = <<<JSON
+    {
+      "\$schema": "http://json-schema.org/draft-04/schema#",
+      "category": "atom",
+      "title": "Array Example With References",
+      "type": "object",
+      "properties": {
+        "references": {
+          "title": "Example reference items",
+          "type": "array",
+          "items": {
+            "anyOf": [
+              { "\$ref": "/api/patternkit/patternkit/refs/text?asset=schema" },
+              { "\$ref": "/api/patternkit/patternkit/refs/number?asset=schema" },
+              { "\$ref": "/api/patternkit/patternkit/refs/object?asset=schema" }
+            ]
+          }
+        }
       }
     }
-  }
-}
-JSON;
+    JSON;
 
   /**
    * A testing schema with a basic text property.
    *
    * @var string
    */
-  protected string $simpleTextSchemaJson = <<<JSON
-{
-  "title": "Text property",
-  "type": "string"
-}
-JSON;
+  protected static string $simpleTextSchemaJson = <<<JSON
+    {
+      "title": "Text property",
+      "type": "string"
+    }
+    JSON;
 
   /**
    * A testing schema with a basic number property.
    *
    * @var string
    */
-  protected string $simpleNumberSchemaJson = <<<JSON
-{
-  "title": "Number property",
-  "type": "number"
-}
-JSON;
+  protected static string $simpleNumberSchemaJson = <<<JSON
+    {
+      "title": "Number property",
+      "type": "number"
+    }
+    JSON;
 
   /**
    * A testing schema with a nested object property.
    *
    * @var string
    */
-  protected string $simpleObjectSchemaJson = <<<JSON
-{
-  "title": "Object property",
-  "type": "object",
-  "properties": {
-    "text": {
-      "type": "string"
+  protected static string $simpleObjectSchemaJson = <<<JSON
+    {
+      "title": "Object property",
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        }
+      }
     }
-  }
-}
-JSON;
+    JSON;
 
   /**
    * Test iteration over a schema without references.
    *
    * @covers ::__construct
    */
-  public function testBasicIteration() {
+  public function testBasicIteration(): void {
     $flat_schema_json = <<<JSON
       {
         "\$schema": "http://json-schema.org/draft-04/schema#",
@@ -269,16 +269,16 @@ JSON;
    * @uses \Swaggest\JsonSchema\Context
    * @uses \Swaggest\JsonSchema\Schema
    */
-  public function testIteratingReferences() {
+  public function testIteratingReferences(): void {
     $this->refProvider = $this->prophesize(PatternkitRefProvider::class);
 
     // Register simple schemas for references.
     $this->refProvider->getSchemaData('/api/patternkit/patternkit/refs/text?asset=schema')
-      ->willReturn($this->decodeJson($this->simpleTextSchemaJson));
+      ->willReturn(static::decodeJson(static::$simpleTextSchemaJson));
     $this->refProvider->getSchemaData('/api/patternkit/patternkit/refs/number?asset=schema')
-      ->willReturn($this->decodeJson($this->simpleNumberSchemaJson));
+      ->willReturn(static::decodeJson(static::$simpleNumberSchemaJson));
     $this->refProvider->getSchemaData('/api/patternkit/patternkit/refs/object?asset=schema')
-      ->willReturn($this->decodeJson($this->simpleObjectSchemaJson));
+      ->willReturn(static::decodeJson(static::$simpleObjectSchemaJson));
 
     $values = [
       'text_reference' => $this->getRandomGenerator()->string(),
@@ -301,7 +301,7 @@ JSON;
 
     // Prepare a context using the test reference provider.
     $context = new Context($this->refProvider->reveal());
-    $schema = Schema::import(json_decode($this->expandedRefSchemaJson), $context);
+    $schema = Schema::import(json_decode(static::$expandedRefSchemaJson), $context);
     $walker = new SchemaWalker($schema, $values);
 
     $expectation_index = 0;

@@ -91,7 +91,7 @@ class TwigPatternLibraryParserTest extends PatternLibraryParserTestBase {
   /**
    * Data provider for testCreatePattern().
    */
-  public function providerCreatePattern() {
+  public static function providerCreatePattern() {
     $cases = [];
 
     $cases['no title'] = [
@@ -196,7 +196,7 @@ class TwigPatternLibraryParserTest extends PatternLibraryParserTestBase {
     // Prepare the unresolved schema returned while normalizing the schema.
     $unresolved_schema = $this->prophesize(UnresolvedSchema::class);
     $unresolved_schema->jsonSerialize()
-      ->willReturn($this->decodeJson($json));
+      ->willReturn(static::decodeJson($json));
 
     // Mock dependencies for schema normalization.
     $normalizer = $this->prophesize(RefNormalizerDataPreProcessor::class);

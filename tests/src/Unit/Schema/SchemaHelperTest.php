@@ -46,7 +46,7 @@ class SchemaHelperTest extends UnitTestCase {
    *
    * @var string
    */
-  protected string $flatSchema = <<<JSON
+  protected static string $flatSchema = <<<JSON
     {
       "\$schema": "http://json-schema.org/draft-04/schema#",
       "category": "atom",
@@ -165,8 +165,8 @@ class SchemaHelperTest extends UnitTestCase {
   /**
    * Data provider for testIsCompositionSchema.
    */
-  public function providerIsCompositionSchema(): array {
-    $schema = Schema::import($this->decodeJson($this->flatSchema));
+  public static function providerIsCompositionSchema(): array {
+    $schema = Schema::import(static::decodeJson(static::$flatSchema));
 
     $cases = [];
 
@@ -190,7 +190,7 @@ class SchemaHelperTest extends UnitTestCase {
    * @covers ::manuallyTestConstraints
    */
   public function testGetCompositionSchema() {
-    $schema = Schema::import($this->decodeJson($this->flatSchema));
+    $schema = Schema::import(static::decodeJson(static::$flatSchema));
     $itemsSchema = $schema->getProperties()->breakpoints->items;
 
     $valueSchema = SchemaHelper::getCompositionSchema($itemsSchema, 'xs');
@@ -228,7 +228,7 @@ class SchemaHelperTest extends UnitTestCase {
    */
   public function testGetCompositionSchemaLoadsDefaultSchema(): void {
     // Prepare mock data to run on.
-    $schema = Schema::import($this->decodeJson($this->flatSchema));
+    $schema = Schema::import(static::decodeJson(static::$flatSchema));
     $itemsSchema = $schema->getProperties()->breakpoints->items;
 
     // Expect to load the default schema with no context passed in.
@@ -245,7 +245,7 @@ class SchemaHelperTest extends UnitTestCase {
    */
   public function testGetCompositionSchemaDoesNotLoadDefaultSchema(): void {
     // Prepare mock data to run on.
-    $schema = Schema::import($this->decodeJson($this->flatSchema));
+    $schema = Schema::import(static::decodeJson(static::$flatSchema));
     $itemsSchema = $schema->getProperties()->breakpoints->items;
 
     // Expect not to load the default context with a provided context.

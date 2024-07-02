@@ -69,7 +69,7 @@ class PatternDiscoveryLoaderTest extends UnitTestCase {
    *
    * @var array<string, string|mixed>
    */
-  protected array $libraryDefinition = [
+  protected static array $libraryDefinition = [
     'id' => 'example',
     'extension' => 'patternkit_example',
     'extensionType' => 'module',
@@ -91,7 +91,7 @@ class PatternDiscoveryLoaderTest extends UnitTestCase {
    *
    * @see \Drupal\Tests\patternkit\Unit\Asset\PatternDiscoveryLoaderTest::$mockPatternDiscovery
    */
-  protected array $mockPatternData = [
+  protected static array $mockPatternData = [
     'my_pattern' => ['abcd' => 'efg'],
     'my_second_pattern' => ['hijk' => 'lmnop'],
   ];
@@ -103,7 +103,7 @@ class PatternDiscoveryLoaderTest extends UnitTestCase {
    *
    * @see \Drupal\Tests\patternkit\Unit\Asset\PatternDiscoveryLoaderTest::$mockPatternData
    */
-  protected array $mockPatternDiscovery = [
+  protected static array $mockPatternDiscovery = [
     '@example/my_pattern' => ['abcd' => 'efg'],
     '@example/my_second_pattern' => ['hijk' => 'lmnop'],
   ];
@@ -150,9 +150,9 @@ class PatternDiscoveryLoaderTest extends UnitTestCase {
    *     returned from the plugin.
    */
   protected function setDefaultExpectations(array $overrides = []): void {
-    $library_definition = $overrides['library_definition'] ?? $this->libraryDefinition;
+    $library_definition = $overrides['library_definition'] ?? static::$libraryDefinition;
     $plugin_id = $overrides['plugin_id'] ?? 'twig';
-    $plugin_data = $overrides['plugin_data'] ?? $this->mockPatternData;
+    $plugin_data = $overrides['plugin_data'] ?? static::$mockPatternData;
 
     $this->libraryNamespaceResolver
       ->getLibraryFromNamespace('@example')
@@ -210,11 +210,11 @@ class PatternDiscoveryLoaderTest extends UnitTestCase {
   /**
    * Data provider for testGetPatternsByNamespace.
    */
-  public function providerGetPatternsByNamespace(): array {
+  public static function providerGetPatternsByNamespace(): array {
     $cases = [];
 
     $cases['no patterns found'] = [
-      $this->libraryDefinition,
+      static::$libraryDefinition,
       // No pattern data discovered.
       [],
       // No pattern results returned.
@@ -229,12 +229,12 @@ class PatternDiscoveryLoaderTest extends UnitTestCase {
     ];
 
     $cases['some patterns discovered'] = [
-      $this->libraryDefinition,
-      $this->mockPatternData,
-      $this->mockPatternDiscovery,
+      static::$libraryDefinition,
+      static::$mockPatternData,
+      static::$mockPatternDiscovery,
     ];
 
-    $libraryDefinition = $this->libraryDefinition;
+    $libraryDefinition = static::$libraryDefinition;
     unset($libraryDefinition['patterns']['my/pattern/path']['data']);
     $cases['no path set'] = [
       $libraryDefinition,
@@ -262,7 +262,7 @@ class PatternDiscoveryLoaderTest extends UnitTestCase {
     // Override the pattern definition to look for a more specific plugin that
     // is unavailable. It should fall back to the known 'twig' plugin and follow
     // expected behavior from there on.
-    $library_definition = $this->libraryDefinition;
+    $library_definition = static::$libraryDefinition;
     $library_definition['patterns']['my/pattern/path']['plugin'] = 'twig.unknown';
 
     $this->setDefaultExpectations([
@@ -273,7 +273,7 @@ class PatternDiscoveryLoaderTest extends UnitTestCase {
       ->willThrow(new PluginException('Unknown plugin'))->shouldBeCalledOnce();
 
     $actual = $this->loader->getPatternsByNamespace('@example');
-    $this->assertEquals($this->mockPatternDiscovery, $actual);
+    $this->assertEquals(static::$mockPatternDiscovery, $actual);
   }
 
   /**
@@ -286,7 +286,7 @@ class PatternDiscoveryLoaderTest extends UnitTestCase {
     // Override the pattern definition to look for a more specific plugin that
     // is unavailable. It should fall back to the known 'twig' plugin and follow
     // expected behavior from there on.
-    $library_definition = $this->libraryDefinition;
+    $library_definition = static::$libraryDefinition;
     $library_definition['patterns']['my/pattern/path']['plugin'] = 'missing_plugin.unknown';
 
     $this->setDefaultExpectations([
@@ -316,7 +316,7 @@ class PatternDiscoveryLoaderTest extends UnitTestCase {
   public function testPluginExceptionWithoutFallback2(): void {
     // Override the pattern definition to look for an unavailable plugin. This
     // should cause an exception to be thrown.
-    $library_definition = $this->libraryDefinition;
+    $library_definition = static::$libraryDefinition;
     $library_definition['patterns']['my/pattern/path']['plugin'] = 'missing_plugin';
 
     $this->setDefaultExpectations([
@@ -352,7 +352,7 @@ class PatternDiscoveryLoaderTest extends UnitTestCase {
       ->willReturn($library_plugin_definitions);
 
     // Unset the plugin definition to trigger the expected warning.
-    $library_definition = $this->libraryDefinition;
+    $library_definition = static::$libraryDefinition;
     unset($library_definition['patterns']['my/pattern/path']['plugin']);
 
     $this->setDefaultExpectations([
@@ -371,7 +371,7 @@ class PatternDiscoveryLoaderTest extends UnitTestCase {
       ->shouldBeCalledOnce();
 
     $actual = $this->loader->getPatternsByNamespace('@example');
-    $this->assertEquals($this->mockPatternDiscovery, $actual);
+    $this->assertEquals(static::$mockPatternDiscovery, $actual);
   }
 
   /**
@@ -381,7 +381,7 @@ class PatternDiscoveryLoaderTest extends UnitTestCase {
    */
   public function testWithoutLibraryVersion(): void {
     // Unset the library version.
-    $library_definition = $this->libraryDefinition;
+    $library_definition = static::$libraryDefinition;
     unset($library_definition['version']);
 
     $this->setDefaultExpectations([
@@ -389,7 +389,7 @@ class PatternDiscoveryLoaderTest extends UnitTestCase {
     ]);
 
     $actual = $this->loader->getPatternsByNamespace('@example');
-    $this->assertEquals($this->mockPatternDiscovery, $actual);
+    $this->assertEquals(static::$mockPatternDiscovery, $actual);
   }
 
 }

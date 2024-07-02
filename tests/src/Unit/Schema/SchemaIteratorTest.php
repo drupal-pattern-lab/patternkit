@@ -160,7 +160,7 @@ class SchemaIteratorTest extends UnitTestCase {
       ],
     ];
 
-    $schema = Schema::import($this->decodeJson($this->flatSchema));
+    $schema = Schema::import(static::decodeJson($this->flatSchema));
     $iterator = new SchemaIterator($schema, $values);
 
     // Test the first string property and value.
@@ -241,7 +241,7 @@ class SchemaIteratorTest extends UnitTestCase {
       ],
     ];
 
-    $schema = Schema::import($this->decodeJson($this->flatSchema));
+    $schema = Schema::import(static::decodeJson($this->flatSchema));
     $iterator = new SchemaIterator($schema, $values);
 
     $this->assertEquals($schema, $iterator->getSchema());
@@ -270,7 +270,7 @@ class SchemaIteratorTest extends UnitTestCase {
       ],
     ];
 
-    $schema = Schema::import($this->decodeJson($this->flatSchema));
+    $schema = Schema::import(static::decodeJson($this->flatSchema));
     $iterator = new SchemaIterator($schema, $values);
 
     $this->assertEquals('test', $iterator->current());
@@ -305,7 +305,7 @@ class SchemaIteratorTest extends UnitTestCase {
       ],
     ];
 
-    $schema = Schema::import($this->decodeJson($this->flatSchema));
+    $schema = Schema::import(static::decodeJson($this->flatSchema));
     $iterator = new SchemaIterator($schema, $values);
 
     $this->assertEquals('test', $iterator->current());
@@ -346,7 +346,7 @@ class SchemaIteratorTest extends UnitTestCase {
       ],
     ];
 
-    $schema = Schema::import($this->decodeJson($schema_json));
+    $schema = Schema::import(static::decodeJson($schema_json));
     $iterator = new SchemaIterator($schema, $values);
 
     $this->assertEquals('references_array', $iterator->key());

@@ -70,7 +70,7 @@ class PatternDetectorIntegrationTest extends PatternkitKernelTestBase {
   /**
    * Data provider for testPatternDetection().
    */
-  public function providerPatternDetection(): array {
+  public static function providerPatternDetection(): array {
     $cases = [];
 
     $cases['simple nested reference'] = [

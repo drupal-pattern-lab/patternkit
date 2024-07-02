@@ -44,7 +44,7 @@ class SchemaRefHandlerTest extends UnitTestCase {
   /**
    * Data provider for testParseNormalizedSchemaReference.
    */
-  public function providerParseNormalizedSchemaReference(): array {
+  public static function providerParseNormalizedSchemaReference(): array {
     $cases = [];
 
     $normalized = '/api/patternkit/patternkit/atoms/example/src/example?asset=schema';
@@ -122,7 +122,7 @@ class SchemaRefHandlerTest extends UnitTestCase {
   /**
    * Data provider for testParseNamespacedSchemaReference.
    */
-  public function providerParseNamespacedSchemaReference(): array {
+  public static function providerParseNamespacedSchemaReference(): array {
     $cases = [];
 
     $ref = '@patternkit/atoms/example/src/example';
@@ -202,7 +202,7 @@ class SchemaRefHandlerTest extends UnitTestCase {
   /**
    * Data provider for testNormalizeNamespacedSchemaReference.
    */
-  public function providerNormalizeNamespacedSchemaReference(): array {
+  public static function providerNormalizeNamespacedSchemaReference(): array {
     $cases = [];
 
     $ref = '@patternkit/atoms/example/src/example';

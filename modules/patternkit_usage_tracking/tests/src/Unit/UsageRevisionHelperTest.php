@@ -18,6 +18,7 @@ use Drupal\patternkit_usage_tracking\PatternUsageManager;
 use Drupal\patternkit_usage_tracking\UsageRevisionHelper;
 use Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait;
 use Drupal\Tests\UnitTestCase;
+use Drupal\TestTools\Random;
 use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -264,9 +265,8 @@ class UsageRevisionHelperTest extends UnitTestCase {
   /**
    * Data provider for testLoadPreviouslyTrackedPatterns().
    */
-  public function providerLoadPreviouslyTrackedPatterns(): array {
+  public static function providerLoadPreviouslyTrackedPatterns(): array {
     $cases = [];
-    $random = $this->getRandomGenerator();
 
     $uuids = [];
     $patterns = [];
@@ -281,8 +281,8 @@ class UsageRevisionHelperTest extends UnitTestCase {
           'top_pattern' => "$patterns[0]",
         ],
         [
-          'component_uuid' => $uuids[1] = 'uuid_' . $random->string(),
-          'pattern_id' => $patterns[1] = '@pattern_' . $random->string(),
+          'component_uuid' => $uuids[1] = 'uuid_' . Random::string(),
+          'pattern_id' => $patterns[1] = '@pattern_' . Random::string(),
           'layout_path' => "1.$uuids[1]:$patterns[1]",
           'content_path' => "$patterns[1]",
           'top_pattern' => "$patterns[1]",
@@ -315,7 +315,7 @@ class UsageRevisionHelperTest extends UnitTestCase {
         // Define 1 top-level component that will contain 1 nested usage.
         [
           'component_uuid' => $uuids[0] = 'uuid_' . rand(),
-          'pattern_id' => $patterns[0] = '@pattern_' . $random->string(),
+          'pattern_id' => $patterns[0] = '@pattern_' . Random::string(),
           'layout_path' => "1.$uuids[0]:$patterns[0]",
           'content_path' => "$patterns[0]",
           'top_pattern' => "$patterns[0]",
@@ -323,7 +323,7 @@ class UsageRevisionHelperTest extends UnitTestCase {
         // Nest one usage within the first top-level component.
         [
           'component_uuid' => $uuids[0],
-          'pattern_id' => $patterns[1] = '@pattern_' . $random->string(),
+          'pattern_id' => $patterns[1] = '@pattern_' . Random::string(),
           'layout_path' => "1.$uuids[0]:$patterns[0]=>$patterns[1]",
           'is_nested' => TRUE,
           'content_path' => "$patterns[0]=>$patterns[1]",
@@ -334,7 +334,7 @@ class UsageRevisionHelperTest extends UnitTestCase {
         // Define a second component that will contain multiple nested usages.
         [
           'component_uuid' => $uuids[1] = 'uuid_' . rand(),
-          'pattern_id' => $patterns[2] = '@pattern_' . $random->string(),
+          'pattern_id' => $patterns[2] = '@pattern_' . Random::string(),
           'layout_path' => "1.$uuids[1]:$patterns[2]",
           'content_path' => "$patterns[2]",
           'top_pattern' => "$patterns[2]",
@@ -342,7 +342,7 @@ class UsageRevisionHelperTest extends UnitTestCase {
         // Define multiple nested usages within the second component.
         [
           'component_uuid' => $uuids[1],
-          'pattern_id' => $patterns[3] = '@pattern_' . $random->string(),
+          'pattern_id' => $patterns[3] = '@pattern_' . Random::string(),
           'layout_path' => "1.$uuids[1]:$patterns[2]=>$patterns[3]",
           'is_nested' => TRUE,
           'content_path' => "$patterns[2]=>$patterns[3]",
@@ -351,7 +351,7 @@ class UsageRevisionHelperTest extends UnitTestCase {
         ],
         [
           'component_uuid' => $uuids[1],
-          'pattern_id' => $patterns[4] = '@pattern_' . $random->string(),
+          'pattern_id' => $patterns[4] = '@pattern_' . Random::string(),
           'layout_path' => "1.$uuids[1]:$patterns[2]=>$patterns[4]",
           'is_nested' => TRUE,
           'content_path' => "$patterns[2]=>$patterns[4]",
@@ -507,8 +507,7 @@ class UsageRevisionHelperTest extends UnitTestCase {
    *   }>,
    * }>
    */
-  public function providerTrackOnEntityUpdate(): array {
-    $random = $this->getRandomGenerator();
+  public static function providerTrackOnEntityUpdate(): array {
     $cases = [];
 
     $uuids = $patterns = [];
@@ -585,7 +584,7 @@ class UsageRevisionHelperTest extends UnitTestCase {
             'plugin' => [
               'block' => [
                 'data' => $nested_content = [
-                  'reference' => $random->string(),
+                  'reference' => Random::string(),
                 ],
               ],
               'pattern' => [
@@ -666,7 +665,7 @@ class UsageRevisionHelperTest extends UnitTestCase {
             'plugin' => [
               'block' => [
                 'data' => $nested_content = [
-                  'reference' => $random->string(),
+                  'reference' => Random::string(),
                 ],
               ],
               'pattern' => [
@@ -741,7 +740,7 @@ class UsageRevisionHelperTest extends UnitTestCase {
             'plugin' => [
               'block' => [
                 'data' => $nested_content = [
-                  'reference' => $random->string(),
+                  'reference' => Random::string(),
                 ],
               ],
               'pattern' => [
@@ -820,7 +819,7 @@ class UsageRevisionHelperTest extends UnitTestCase {
             'plugin' => [
               'block' => [
                 'data' => $nested_content = [
-                  'reference' => $random->string(),
+                  'reference' => Random::string(),
                 ],
               ],
               'pattern' => [
@@ -887,7 +886,7 @@ class UsageRevisionHelperTest extends UnitTestCase {
               'block' => [
                 // Add a nested pattern.
                 'data' => $nested_content = [
-                  'reference' => $random->string(),
+                  'reference' => Random::string(),
                 ],
               ],
               'pattern' => [

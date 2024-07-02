@@ -78,7 +78,7 @@ class TokenValidationDataPreProcessorTest extends UnitTestCase {
    * @dataProvider providerProcess
    */
   public function testProcess($data, string $schema_json, bool $import, bool $schema_should_change): void {
-    $schema = Schema::import($this->decodeJson($schema_json));
+    $schema = Schema::import(static::decodeJson($schema_json));
 
     $original_schema = clone $schema;
 
@@ -100,7 +100,7 @@ class TokenValidationDataPreProcessorTest extends UnitTestCase {
   /**
    * Data provider for testProcess.
    */
-  public function providerProcess(): array {
+  public static function providerProcess(): array {
     $cases = [];
 
     $schema_json = '{ "type": "string" }';

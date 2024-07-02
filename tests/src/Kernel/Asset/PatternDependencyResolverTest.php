@@ -88,7 +88,7 @@ class PatternDependencyResolverTest extends KernelTestBase {
   /**
    * Data provider for testGetSchemaDependencies().
    */
-  public function providerGetSchemaDependencies() {
+  public static function providerGetSchemaDependencies() {
     $cases = [];
 
     $schema_with_reference = <<<JSON

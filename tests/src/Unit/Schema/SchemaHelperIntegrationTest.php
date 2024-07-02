@@ -174,7 +174,7 @@ class SchemaHelperIntegrationTest extends UnitTestCase {
     $this->context = new Context();
     $this->context->setDataPreProcessor(new ObjectCoercionDataPreProcessor());
 
-    $schema = Schema::import($this->decodeJson($this->flatSchema));
+    $schema = Schema::import(static::decodeJson($this->flatSchema));
     $propertySchema = $schema->getProperties()->nested_items->items;
 
     // A simple string value should validate and return the expected schema.
@@ -182,12 +182,12 @@ class SchemaHelperIntegrationTest extends UnitTestCase {
     $this->assertEquals($propertySchema->anyOf[1], $result, 'The expected composition rule was not identified.');
 
     // It should successfully validate when provided with an object.
-    $result = SchemaHelper::getCompositionSchema($propertySchema, $this->decodeJson('{ }'));
+    $result = SchemaHelper::getCompositionSchema($propertySchema, static::decodeJson('{ }'));
     $this->assertEquals($propertySchema->anyOf[0], $result, 'The expected composition rule was not identified.');
 
     // If flexible casting is not supported this will fail validation when
     // provided with an object cast as an array.
-    $result = SchemaHelper::getCompositionSchema($propertySchema, $this->decodeJson('{ }', JSON_OBJECT_AS_ARRAY));
+    $result = SchemaHelper::getCompositionSchema($propertySchema, static::decodeJson('{ }', JSON_OBJECT_AS_ARRAY));
     $this->assertEquals($propertySchema->anyOf[0], $result, 'The expected composition rule was not identified.');
   }
 

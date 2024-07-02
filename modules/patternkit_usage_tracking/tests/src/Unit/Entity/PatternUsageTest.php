@@ -43,7 +43,7 @@ class PatternUsageTest extends UnitTestCase {
   /**
    * Data provider for testParseUsagePath().
    */
-  public function providerParseUsagePath(): array {
+  public static function providerParseUsagePath(): array {
     $cases = [];
 
     $cases['without nested reference'] = [
@@ -90,7 +90,7 @@ class PatternUsageTest extends UnitTestCase {
   /**
    * Data provider for testParseUsagePath().
    */
-  public function providerIsNested(): array {
+  public static function providerIsNested(): array {
     return [
       [
         '1.5137f6a8-018c-11ee-be56-0242ac120002:@patternkit/atoms/example_ref/src/example_ref',
@@ -123,7 +123,7 @@ class PatternUsageTest extends UnitTestCase {
   /**
    * Data provider for testParseUsagePath().
    */
-  public function providerGetLayoutPath(): array {
+  public static function providerGetLayoutPath(): array {
     $cases = [];
 
     $cases[] = [
@@ -192,7 +192,7 @@ class PatternUsageTest extends UnitTestCase {
   /**
    * Data provider for testGetContentPath().
    */
-  public function providerGetContentPath(): array {
+  public static function providerGetContentPath(): array {
     $cases = [];
 
     $cases[] = [
@@ -229,7 +229,7 @@ class PatternUsageTest extends UnitTestCase {
   /**
    * Data provider for testGetComponentUuidDefaultValue().
    */
-  public function providerGetComponentUuidDefaultValue(): array {
+  public static function providerGetComponentUuidDefaultValue(): array {
     $cases = [];
 
     $cases[] = [

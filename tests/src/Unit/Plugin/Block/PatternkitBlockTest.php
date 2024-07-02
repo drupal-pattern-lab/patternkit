@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\patternkit\Unit\Plugin\Block;
 
-use Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher;
 use Drupal\Component\Serialization\SerializationInterface;
 use Drupal\Core\Block\BlockManager;
 use Drupal\Core\Entity\EntityStorageException;
@@ -28,6 +27,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Tests for the PatternkitBlock block plugin.
@@ -113,7 +113,7 @@ class PatternkitBlockTest extends UnitTestCase {
   /**
    * The event dispatcher service.
    *
-   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher>
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Symfony\Component\EventDispatcher\EventDispatcherInterface>
    */
   protected ObjectProphecy $eventDispatcher;
 
@@ -210,7 +210,7 @@ class PatternkitBlockTest extends UnitTestCase {
     $this->serializer = $this->prophesize(SerializationInterface::class);
     $this->token = $this->prophesize(Token::class);
     $this->languageManager = $this->prophesize(LanguageManagerInterface::class);
-    $this->eventDispatcher = $this->prophesize(ContainerAwareEventDispatcher::class);
+    $this->eventDispatcher = $this->prophesize(EventDispatcherInterface::class);
     $this->logger = $this->prophesize(LoggerChannelInterface::class);
     $this->patternkitEnvironment = $this->prophesize(PatternkitEnvironment::class);
 
@@ -982,7 +982,7 @@ class PatternkitBlockTest extends UnitTestCase {
   /**
    * Data provider for testSaveBlockContent().
    */
-  public function providerSaveBlockContent(): array {
+  public static function providerSaveBlockContent(): array {
     $cases = [];
 
     $cases[] = [TRUE, TRUE];

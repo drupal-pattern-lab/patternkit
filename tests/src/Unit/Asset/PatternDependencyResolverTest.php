@@ -36,28 +36,28 @@ class PatternDependencyResolverTest extends UnitTestCase {
   /**
    * The pattern discovery service.
    *
-   * @var \Drupal\patternkit\Asset\PatternDiscoveryInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Asset\PatternDiscoveryInterface>
    */
   protected ObjectProphecy $patternDiscovery;
 
   /**
    * The entity type manager service.
    *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Entity\EntityTypeManagerInterface>
    */
   protected ObjectProphecy $entityTypeManager;
 
   /**
    * The entity storage handler for the 'patternkit_pattern' entity.
    *
-   * @var \Drupal\Core\Entity\EntityStorageInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Entity\EntityStorageInterface>
    */
   protected ObjectProphecy $patternStorage;
 
   /**
    * The schema data preprocessor factory service.
    *
-   * @var \Drupal\patternkit\Schema\DataPreProcessorFactory|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Schema\DataPreProcessorFactory>
    */
   protected ObjectProphecy $dataPreProcessorFactory;
 
@@ -71,7 +71,7 @@ class PatternDependencyResolverTest extends UnitTestCase {
   /**
    * The patternkit logger channel.
    *
-   * @var \Drupal\Core\Logger\LoggerChannelInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Logger\LoggerChannelInterface>
    */
   protected ObjectProphecy $logger;
 
@@ -80,7 +80,7 @@ class PatternDependencyResolverTest extends UnitTestCase {
    *
    * @var array
    */
-  protected array $patternDependencies = [
+  protected static array $patternDependencies = [
     '@pattern/1' => [],
     '@pattern/2' => ['@pattern/1'],
     '@pattern/3' => ['@pattern/1', '@pattern/2'],
@@ -149,18 +149,18 @@ class PatternDependencyResolverTest extends UnitTestCase {
   /**
    * Data provider for testResolvePatternDependencies.
    */
-  public function providerResolvePatternDependencies() {
+  public static function providerResolvePatternDependencies(): array {
     $cases = [];
 
     $cases['no dependencies'] = [
-      $this->patternDependencies,
+      static::$patternDependencies,
       '@pattern/1',
       [],
       [],
     ];
 
     $cases['one dependency'] = [
-      $this->patternDependencies,
+      static::$patternDependencies,
       '@pattern/2',
       [],
       [
@@ -169,7 +169,7 @@ class PatternDependencyResolverTest extends UnitTestCase {
     ];
 
     $cases['one dependency with known dependencies'] = [
-      $this->patternDependencies,
+      static::$patternDependencies,
       '@pattern/2',
       [
         '@pattern/1',
@@ -178,7 +178,7 @@ class PatternDependencyResolverTest extends UnitTestCase {
     ];
 
     $cases['redundant dependencies'] = [
-      $this->patternDependencies,
+      static::$patternDependencies,
       '@pattern/3',
       [],
       [
@@ -188,14 +188,14 @@ class PatternDependencyResolverTest extends UnitTestCase {
     ];
 
     $cases['circular dependency'] = [
-      $this->patternDependencies,
+      static::$patternDependencies,
       '@pattern/4',
       [],
       [],
     ];
 
     $cases['full depth dependencies'] = [
-      $this->patternDependencies,
+      static::$patternDependencies,
       '@pattern/5',
       [],
       [
@@ -218,7 +218,7 @@ class PatternDependencyResolverTest extends UnitTestCase {
    * @uses \Drupal\patternkit\Asset\PatternDependencyResolver::resolvePatternDependencies()
    */
   public function testGetOrderedDependencies() {
-    $this->resolver->setDependencies($this->patternDependencies);
+    $this->resolver->setDependencies(static::$patternDependencies);
 
     $ordered_dependencies = $this->resolver->getOrderedDependencies('@pattern/5');
 

@@ -281,7 +281,7 @@ class ContextBuilderTest extends UnitTestCase {
   /**
    * Data provider for testOptionValidation().
    */
-  public function providerOptionValidation() {
+  public static function providerOptionValidation() {
     $cases = [];
 
     $cases['invalid ref provider'] = [

@@ -6,6 +6,7 @@ use Drupal\patternkit\Schema\UnresolvedSchema;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
+use Prophecy\Prophecy\ObjectProphecy;
 use Swaggest\JsonSchema\Context;
 use Swaggest\JsonSchema\Exception\ObjectException;
 use Swaggest\JsonSchema\RemoteRefProvider;
@@ -30,7 +31,7 @@ class UnresolvedSchemaTest extends UnitTestCase {
    *
    * @var string
    */
-  protected string $schemaWithReferenceJson = <<<JSON
+  protected static string $schemaWithReferenceJson = <<<JSON
     {
       "\$schema": "http://json-schema.org/draft-04/schema#",
       "category": "test",
@@ -49,7 +50,7 @@ class UnresolvedSchemaTest extends UnitTestCase {
    *
    * @var string
    */
-  protected string $referencedSchemaJson = <<<JSON
+  protected static string $referencedSchemaJson = <<<JSON
       {
         "type": "object",
         "properties": {
@@ -67,9 +68,9 @@ class UnresolvedSchemaTest extends UnitTestCase {
   /**
    * The mocked reference provider.
    *
-   * @var \Swaggest\JsonSchema\RemoteRefProvider|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Swaggest\JsonSchema\RemoteRefProvider>
    */
-  protected $refProvider;
+  protected ObjectProphecy $refProvider;
 
   /**
    * {@inheritdoc}
@@ -88,7 +89,7 @@ class UnresolvedSchemaTest extends UnitTestCase {
    * @uses \Drupal\patternkit\Schema\UnresolvedSchema::disableAutomaticDereferencing()
    * @uses \Drupal\patternkit\Schema\UnresolvedSchema::setUpProperties()
    */
-  public function testImport() {
+  public function testImport(): UnresolvedSchema {
     $this->refProvider->getSchemaData('@my/example/reference')
       ->willReturn((object) [])
       ->shouldNotBeCalled();
@@ -97,7 +98,7 @@ class UnresolvedSchemaTest extends UnitTestCase {
     $context->setRemoteRefProvider($this->refProvider->reveal());
     $context->dereference = FALSE;
 
-    $schema_data = $this->decodeJson($this->schemaWithReferenceJson);
+    $schema_data = static::decodeJson(static::$schemaWithReferenceJson);
 
     $schema = UnresolvedSchema::import($schema_data, $context);
 
@@ -116,8 +117,8 @@ class UnresolvedSchemaTest extends UnitTestCase {
    * @covers ::jsonSerialize
    * @dataProvider providerImportScenarios
    */
-  public function testImportScenarios(string $json) {
-    $schema_data = $this->decodeJson($json);
+  public function testImportScenarios(string $json): void {
+    $schema_data = static::decodeJson($json);
     $schema = UnresolvedSchema::import($schema_data);
     $this->assertJsonStringEqualsJsonString($json, json_encode($schema));
   }
@@ -125,7 +126,7 @@ class UnresolvedSchemaTest extends UnitTestCase {
   /**
    * Data provider for testImportScenarios().
    */
-  public function providerImportScenarios() {
+  public static function providerImportScenarios(): array {
     $cases = [];
 
     $cases['ref only object'] = [
@@ -141,7 +142,7 @@ class UnresolvedSchemaTest extends UnitTestCase {
           }
         }
       }
-    JSON;
+      JSON;
     $cases['ref object property'] = [$json];
 
     $json = <<<JSON
@@ -158,7 +159,7 @@ class UnresolvedSchemaTest extends UnitTestCase {
           }
         }
       }
-    JSON;
+      JSON;
     $cases['with resolved references'] = [$json];
 
     return $cases;
@@ -171,9 +172,9 @@ class UnresolvedSchemaTest extends UnitTestCase {
    * @covers ::jsonSerialize
    * @depends testImport
    */
-  public function testResolve(UnresolvedSchema $schema) {
+  public function testResolve(UnresolvedSchema $schema): SchemaContract {
     $this->refProvider->getSchemaData('@my/example/reference')
-      ->willReturn($this->decodeJson($this->referencedSchemaJson))
+      ->willReturn(static::decodeJson(static::$referencedSchemaJson))
       ->shouldBeCalled();
 
     $context = new Context();
@@ -195,7 +196,7 @@ class UnresolvedSchemaTest extends UnitTestCase {
    * @coversNothing
    * @depends testResolve
    */
-  public function testResolvedValidation(SchemaContract $schema) {
+  public function testResolvedValidation(SchemaContract $schema): void {
     $valid_data = <<<JSON
       {
         "reference_property": {
@@ -214,7 +215,7 @@ class UnresolvedSchemaTest extends UnitTestCase {
       JSON;
 
     // This should succeed.
-    $data = $this->decodeJson($valid_data);
+    $data = static::decodeJson($valid_data);
     $result = $schema->out($data);
     $this->assertEquals($data, $result);
 
@@ -222,7 +223,7 @@ class UnresolvedSchemaTest extends UnitTestCase {
     $this->expectException(ObjectException::class);
     $this->expectExceptionMessage("Additional properties not allowed");
 
-    $data = $this->decodeJson($invalid_data);
+    $data = static::decodeJson($invalid_data);
     $schema->out($data);
   }
 
@@ -234,7 +235,7 @@ class UnresolvedSchemaTest extends UnitTestCase {
    * @covers ::setUpProperties
    * @covers ::jsonSerialize
    */
-  public function testImportSideEffects() {
+  public function testImportSideEffects(): void {
     // Confirm state before execution.
     $defaultSchema = Schema::schema();
     $refProperty = $defaultSchema->getProperties()->ref;
@@ -243,7 +244,7 @@ class UnresolvedSchemaTest extends UnitTestCase {
 
     $context = new Context();
     $context->dereference = FALSE;
-    $schema = UnresolvedSchema::import($this->decodeJson($this->schemaWithReferenceJson), $context);
+    $schema = UnresolvedSchema::import(static::decodeJson(static::$schemaWithReferenceJson), $context);
 
     // Confirm reference-handling behaved as expected.
     $export = json_encode($schema, JSON_PRETTY_PRINT);
@@ -263,7 +264,7 @@ class UnresolvedSchemaTest extends UnitTestCase {
    * @uses \Drupal\patternkit\Schema\UnresolvedSchema::import
    * @uses \Drupal\patternkit\Schema\UnresolvedSchema::setUpProperties
    */
-  public function testJsonSerialize() {
+  public function testJsonSerialize(): void {
     $json = <<<JSON
       {
         "type": "object",
@@ -285,7 +286,7 @@ class UnresolvedSchemaTest extends UnitTestCase {
     // Enable dereferencing to load the local reference in place.
     $context->dereference = TRUE;
 
-    $schema = UnresolvedSchema::import($this->decodeJson($json), $context);
+    $schema = UnresolvedSchema::import(static::decodeJson($json), $context);
 
     $this->assertJsonStringEqualsJsonString($json, json_encode($schema, JSON_PRETTY_PRINT));
   }

@@ -239,7 +239,7 @@ class PatternkitBlockEntityOperationsTest extends UnitTestCase {
   /**
    * Data provider for testHandlePresaveOperationFlags().
    */
-  public function providerHandlePresaveOperationFlags(): array {
+  public static function providerHandlePresaveOperationFlags(): array {
     $cases = [];
 
     $cases[] = [TRUE, TRUE];

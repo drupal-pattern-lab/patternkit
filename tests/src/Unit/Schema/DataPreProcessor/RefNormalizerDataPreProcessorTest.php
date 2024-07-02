@@ -107,7 +107,7 @@ class RefNormalizerDataPreProcessorTest extends UnitTestCase {
       ->shouldBeCalledOnce();
 
     $context = $this->getContext();
-    $schema = UnresolvedSchema::import($this->decodeJson($this->schemaWithReferenceJson), $context);
+    $schema = UnresolvedSchema::import(static::decodeJson($this->schemaWithReferenceJson), $context);
     $json = json_encode($schema, JSON_PRETTY_PRINT);
 
     $this->assertStringNotContainsString('@my\/example\/reference', $json);

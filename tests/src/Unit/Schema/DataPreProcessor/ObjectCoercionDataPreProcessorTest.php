@@ -40,7 +40,7 @@ class ObjectCoercionDataPreProcessorTest extends UnitTestCase {
    *
    * @var string
    */
-  protected string $simpleRefSchemaJson = <<<JSON
+  protected static string $simpleRefSchemaJson = <<<JSON
     {
       "\$schema": "http://json-schema.org/draft-04/schema#",
       "category": "atom",
@@ -60,7 +60,7 @@ class ObjectCoercionDataPreProcessorTest extends UnitTestCase {
    *
    * @var string
    */
-  protected string $expandedRefSchemaJson = <<<JSON
+  protected static string $expandedRefSchemaJson = <<<JSON
     {
       "\$schema": "http://json-schema.org/draft-04/schema#",
       "category": "atom",
@@ -89,7 +89,7 @@ class ObjectCoercionDataPreProcessorTest extends UnitTestCase {
    *
    * @var string
    */
-  protected string $arrayRefSchemaJson = <<<JSON
+  protected static string $arrayRefSchemaJson = <<<JSON
     {
       "\$schema": "http://json-schema.org/draft-04/schema#",
       "category": "atom",
@@ -116,7 +116,7 @@ class ObjectCoercionDataPreProcessorTest extends UnitTestCase {
    *
    * @var string
    */
-  protected string $simpleTextSchemaJson = <<<JSON
+  protected static string $simpleTextSchemaJson = <<<JSON
     {
       "title": "Text property",
       "type": "string"
@@ -128,7 +128,7 @@ class ObjectCoercionDataPreProcessorTest extends UnitTestCase {
    *
    * @var string
    */
-  protected string $simpleNumberSchemaJson = <<<JSON
+  protected static string $simpleNumberSchemaJson = <<<JSON
     {
       "title": "Number property",
       "type": "number"
@@ -140,7 +140,7 @@ class ObjectCoercionDataPreProcessorTest extends UnitTestCase {
    *
    * @var string
    */
-  protected string $simpleObjectSchemaJson = <<<JSON
+  protected static string $simpleObjectSchemaJson = <<<JSON
     {
       "title": "Object property",
       "type": "object",
@@ -161,7 +161,7 @@ class ObjectCoercionDataPreProcessorTest extends UnitTestCase {
    *
    * @var string
    */
-  protected string $ambiguousObjectSchemaJson = <<<JSON
+  protected static string $ambiguousObjectSchemaJson = <<<JSON
     {
       "title": "Ambiguous property",
       "type": "object",
@@ -186,10 +186,10 @@ class ObjectCoercionDataPreProcessorTest extends UnitTestCase {
 
     // Register simple schemas for references.
     $refProvider = new Preloaded();
-    $refProvider->setSchemaData('/api/patternkit/patternkit/refs/text?asset=schema', $this->decodeJson($this->simpleTextSchemaJson));
-    $refProvider->setSchemaData('/api/patternkit/patternkit/refs/number?asset=schema', $this->decodeJson($this->simpleNumberSchemaJson));
-    $refProvider->setSchemaData('/api/patternkit/patternkit/refs/object?asset=schema', $this->decodeJson($this->simpleObjectSchemaJson));
-    $refProvider->setSchemaData('/api/patternkit/patternkit/refs/array_ref?asset=schema', $this->decodeJson($this->arrayRefSchemaJson));
+    $refProvider->setSchemaData('/api/patternkit/patternkit/refs/text?asset=schema', static::decodeJson(static::$simpleTextSchemaJson));
+    $refProvider->setSchemaData('/api/patternkit/patternkit/refs/number?asset=schema', static::decodeJson(static::$simpleNumberSchemaJson));
+    $refProvider->setSchemaData('/api/patternkit/patternkit/refs/object?asset=schema', static::decodeJson(static::$simpleObjectSchemaJson));
+    $refProvider->setSchemaData('/api/patternkit/patternkit/refs/array_ref?asset=schema', static::decodeJson(static::$arrayRefSchemaJson));
 
     $this->dataPreProcessor = new ObjectCoercionDataPreProcessor();
     $this->context = new Context($refProvider);
@@ -208,7 +208,7 @@ class ObjectCoercionDataPreProcessorTest extends UnitTestCase {
   /**
    * Data provider for testProcess().
    */
-  public function providerProcess(): array {
+  public static function providerProcess(): array {
     $cases = [];
 
     $objectSchemaJson = <<<JSON
@@ -221,7 +221,7 @@ class ObjectCoercionDataPreProcessorTest extends UnitTestCase {
         }
       }
       JSON;
-    $objectSchema = Schema::import($this->decodeJson($objectSchemaJson));
+    $objectSchema = Schema::import(static::decodeJson($objectSchemaJson));
     $cases[] = [
       (object) [
         'text' => 'my text',
@@ -252,7 +252,7 @@ class ObjectCoercionDataPreProcessorTest extends UnitTestCase {
         }
       }
       JSON;
-    $arraySchema = Schema::import($this->decodeJson($arraySchemaJson));
+    $arraySchema = Schema::import(static::decodeJson($arraySchemaJson));
     $cases[] = [
       (object) [
         'text' => 'my text',
@@ -283,11 +283,11 @@ class ObjectCoercionDataPreProcessorTest extends UnitTestCase {
    * @dataProvider providerSchemaValidation
    */
   public function testSchemaValidation(string $schema, $value) {
-    $schema = Schema::import($this->decodeJson($schema), $this->context);
+    $schema = Schema::import(static::decodeJson($schema), $this->context);
 
     // Decode the values for validation if a string was given.
     if (is_string($value)) {
-      $value = $this->decodeJson($value);
+      $value = static::decodeJson($value);
     }
     $result = $schema->out($value, $this->context);
 
@@ -297,34 +297,34 @@ class ObjectCoercionDataPreProcessorTest extends UnitTestCase {
   /**
    * Data provider for testProcess().
    */
-  public function providerSchemaValidation() {
+  public static function providerSchemaValidation(): array {
     $cases = [];
 
     $cases['simple_object'] = [
-      $this->simpleObjectSchemaJson,
+      static::$simpleObjectSchemaJson,
       '{ "text": "my text" }',
     ];
 
     // Test validation with empty objects that may get cast as empty arrays.
     $ambiguous_object_config = '{"nested_value": {}}';
     $cases['ambiguous_object'] = [
-      $this->ambiguousObjectSchemaJson,
-      $this->decodeJson($ambiguous_object_config),
+      static::$ambiguousObjectSchemaJson,
+      static::decodeJson($ambiguous_object_config),
     ];
     $cases['ambiguous_object_associative'] = [
-      $this->ambiguousObjectSchemaJson,
-      $this->decodeJson($ambiguous_object_config, JSON_OBJECT_AS_ARRAY),
+      static::$ambiguousObjectSchemaJson,
+      static::decodeJson($ambiguous_object_config, JSON_OBJECT_AS_ARRAY),
     ];
 
     // Test validation with empty objects through a reference.
     $ambiguous_ref_object_config = '{"object_reference": {} }';
     $cases['ambiguous_object_reference'] = [
-      $this->expandedRefSchemaJson,
-      $this->decodeJson($ambiguous_ref_object_config),
+      static::$expandedRefSchemaJson,
+      static::decodeJson($ambiguous_ref_object_config),
     ];
     $cases['ambiguous_object_reference_associative'] = [
-      $this->expandedRefSchemaJson,
-      $this->decodeJson($ambiguous_ref_object_config, JSON_OBJECT_AS_ARRAY),
+      static::$expandedRefSchemaJson,
+      static::decodeJson($ambiguous_ref_object_config, JSON_OBJECT_AS_ARRAY),
     ];
 
     $nested_ref_object_config = <<<JSON
@@ -344,12 +344,12 @@ class ObjectCoercionDataPreProcessorTest extends UnitTestCase {
       }
       JSON;
     $cases['nested_object_reference'] = [
-      $this->expandedRefSchemaJson,
-      $this->decodeJson($nested_ref_object_config),
+      static::$expandedRefSchemaJson,
+      static::decodeJson($nested_ref_object_config),
     ];
     $cases['nested_object_reference_associative'] = [
-      $this->expandedRefSchemaJson,
-      $this->decodeJson($nested_ref_object_config, JSON_OBJECT_AS_ARRAY),
+      static::$expandedRefSchemaJson,
+      static::decodeJson($nested_ref_object_config, JSON_OBJECT_AS_ARRAY),
     ];
 
     return $cases;

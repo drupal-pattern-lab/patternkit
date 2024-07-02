@@ -4,6 +4,7 @@ namespace Drupal\Tests\patternkit\Unit;
 
 use Drupal\patternkit\PatternkitEnvironment;
 use Drupal\Tests\UnitTestCase;
+use Drupal\TestTools\Random;
 
 /**
  * Test the PatternkitEnvironment class.
@@ -52,7 +53,7 @@ class PatternkitEnvironmentTest extends UnitTestCase {
   /**
    * Data provider for testGetFeatureOption.
    */
-  public function providerGetFeatureOption() {
+  public static function providerGetFeatureOption() {
     $cases = [];
 
     $cases['no config boolean option'] = [
@@ -65,7 +66,7 @@ class PatternkitEnvironmentTest extends UnitTestCase {
     $cases['no config complex option'] = [
       [],
       'my_feature',
-      $default = (array) $this->getRandomGenerator()->object(),
+      $default = (array) Random::object(),
       $default,
     ];
 

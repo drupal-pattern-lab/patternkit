@@ -87,69 +87,69 @@ class TokenProcessorTest extends UnitTestCase {
   /**
    * Data provider for the applies test.
    */
-  public function providerApplies() {
+  public static function providerApplies() {
     $schema_json = <<<JSON
-{
-  "\$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "Example with multiple property types",
-  "type": "object",
-  "properties": {
-    "text": {
-      "title": "Text",
-      "type": "string",
-      "options": {
-        "grid_columns": 4
-      }
-    },
-    "formatted_text": {
-      "title": "Formatted Text",
-      "type": "string",
-      "format": "html",
-      "options": {
-        "wysiwyg": true
-      }
-    },
-    "image": {
-      "title": "Image Object",
-      "type": "object",
-      "properties": {
-        "image_url": {
-          "title": "Image URL",
-          "type": "string",
-          "format": "image",
-          "options": {
-            "grid_columns": 6
+      {
+        "\$schema": "http://json-schema.org/draft-04/schema#",
+        "title": "Example with multiple property types",
+        "type": "object",
+        "properties": {
+          "text": {
+            "title": "Text",
+            "type": "string",
+            "options": {
+              "grid_columns": 4
+            }
+          },
+          "formatted_text": {
+            "title": "Formatted Text",
+            "type": "string",
+            "format": "html",
+            "options": {
+              "wysiwyg": true
+            }
+          },
+          "image": {
+            "title": "Image Object",
+            "type": "object",
+            "properties": {
+              "image_url": {
+                "title": "Image URL",
+                "type": "string",
+                "format": "image",
+                "options": {
+                  "grid_columns": 6
+                }
+              }
+            }
+          },
+          "amount": {
+            "title": "Amount",
+            "type": "number"
+          },
+          "breakpoints": {
+            "title": "Breakpoints",
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "title": "",
+                  "type": "string",
+                  "enum": [
+                    "",
+                    "xxs",
+                    "xs",
+                    "sm",
+                    "md",
+                    "lg"
+                  ]
+                }
+              ]
+            }
           }
         }
       }
-    },
-    "amount": {
-      "title": "Amount",
-      "type": "number"
-    },
-    "breakpoints": {
-      "title": "Breakpoints",
-      "type": "array",
-      "items": {
-        "anyOf": [
-          {
-            "title": "",
-            "type": "string",
-            "enum": [
-              "",
-              "xxs",
-              "xs",
-              "sm",
-              "md",
-              "lg"
-            ]
-          }
-        ]
-      }
-    }
-  }
-}
-JSON;
+      JSON;
     $schema = Schema::import(json_decode($schema_json));
     $properties = $schema->getProperties();
 

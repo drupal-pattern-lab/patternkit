@@ -22,6 +22,7 @@ use Drupal\patternkit\Plugin\Block\PatternkitBlock as BlockPatternkitBlock;
 use Drupal\patternkit\UpdateHelper;
 use Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait;
 use Drupal\Tests\UnitTestCase;
+use Drupal\TestTools\Random;
 use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -187,7 +188,7 @@ class UpdateHelperTest extends UnitTestCase {
   /**
    * Data provider for the testIsPatternkitComponent() test.
    */
-  public function providerIsPatternkitComponent(): array {
+  public static function providerIsPatternkitComponent(): array {
     $cases = [];
 
     $cases[] = ['patternkit:patternkit_example_src_example', TRUE];
@@ -220,14 +221,11 @@ class UpdateHelperTest extends UnitTestCase {
   /**
    * Data provider for the testGetBlockFromComponent() test.
    */
-  public function providerGetBlockFromComponent(): array {
-    $cases = [];
-
-    $cases['entity exists'] = [TRUE];
-
-    $cases['entity does not exist'] = [FALSE];
-
-    return $cases;
+  public static function providerGetBlockFromComponent(): array {
+    return [
+      'entity exists' => [TRUE],
+      'entity does not exist' => [FALSE],
+    ];
   }
 
   /**
@@ -499,7 +497,7 @@ class UpdateHelperTest extends UnitTestCase {
   /**
    * Data provider for the testUpdateBlockComponentPatternWithFailures() test.
    */
-  public function providerUpdateBlockComponentPatternWithFailures(): array {
+  public static function providerUpdateBlockComponentPatternWithFailures(): array {
     $scenarios = [
       'failure to load block entity',
       'exception loading block entity',
@@ -680,7 +678,7 @@ class UpdateHelperTest extends UnitTestCase {
   /**
    * Data provider for the testUpdateAllPatternComponentsWithFilters() test.
    */
-  public function providerUpdateAllPatternComponentsWithFilters(): array {
+  public static function providerUpdateAllPatternComponentsWithFilters(): array {
     $cases = [];
 
     $cases['entity type filter'] = [
@@ -769,10 +767,10 @@ class UpdateHelperTest extends UnitTestCase {
   /**
    * Data provider for the testFilterComponent() test.
    */
-  public function providerFilterComponent(): array {
+  public static function providerFilterComponent(): array {
     $cases = [];
 
-    $derivative_id = $this->getRandomGenerator()->string();
+    $derivative_id = Random::string();
 
     // Test a valid block with no filters.
     $cases['no filter'] = [
@@ -958,7 +956,7 @@ class UpdateHelperTest extends UnitTestCase {
   /**
    * Data provider for the testFilterComponentWithErrors() test.
    */
-  public function providerFilterComponentWithErrors(): array {
+  public static function providerFilterComponentWithErrors(): array {
     $scenarios = [
       'not a patternkit component',
       'broken block',

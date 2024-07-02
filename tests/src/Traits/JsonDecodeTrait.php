@@ -22,7 +22,7 @@ trait JsonDecodeTrait {
    *
    * @throws \JsonException
    */
-  protected function decodeJson(string $schema, bool $associative = FALSE) {
+  protected static function decodeJson(string $schema, bool $associative = FALSE): mixed {
     return json_decode($schema, $associative, 512, JSON_THROW_ON_ERROR);
   }
 

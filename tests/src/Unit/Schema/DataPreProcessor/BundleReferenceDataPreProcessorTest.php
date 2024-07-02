@@ -74,7 +74,7 @@ class BundleReferenceDataPreProcessorTest extends UnitTestCase {
   /**
    * Data provider for testProcess().
    */
-  public function providerProcess(): array {
+  public static function providerProcess(): array {
     $cases = [];
 
     $cases['object reference'] = [

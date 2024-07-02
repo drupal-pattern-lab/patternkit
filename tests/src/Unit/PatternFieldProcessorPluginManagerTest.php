@@ -322,7 +322,7 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
    * @todo Add test cases for array items.
    * @todo Add test cases for anyOf properties.
    */
-  public function providerTraverseSchema(): array {
+  public static function providerTraverseSchema(): array {
     $cases = [];
 
     $flat_schema_json = <<<JSON
@@ -403,46 +403,46 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
     $expectationsCallback = function (MockObject $processor, $context, $metadata) {
       // Set expectations for how and with what arguments the applies method
       // will be called.
-      $processor->expects($this->exactly(6))
+      $processor->expects(static::exactly(6))
         ->method('applies')
         ->willReturn(TRUE);
 
       // Set expectations for how and with what the apply method will be called.
-      $processor->expects($this->exactly(6))
+      $processor->expects(static::exactly(6))
         ->method('apply')
         ->withConsecutive(
           [
-            $this->isInstanceOf(SchemaContract::class),
+            static::isInstanceOf(SchemaContract::class),
             'test',
             $context,
             $metadata,
           ],
           [
-            $this->isInstanceOf(SchemaContract::class),
+            static::isInstanceOf(SchemaContract::class),
             ['image_url' => 'abc123'],
             $context,
             $metadata,
           ],
           [
-            $this->isInstanceOf(SchemaContract::class),
+            static::isInstanceOf(SchemaContract::class),
             'abc123',
             $context,
             $metadata,
           ],
           [
-            $this->isInstanceOf(SchemaContract::class),
-            $this->arrayHasKey(0),
+            static::isInstanceOf(SchemaContract::class),
+            static::arrayHasKey(0),
             $context,
             $metadata,
           ],
           [
-            $this->isInstanceOf(SchemaContract::class),
+            static::isInstanceOf(SchemaContract::class),
             'xs',
             $context,
             $metadata,
           ],
           [
-            $this->isInstanceOf(SchemaContract::class),
+            static::isInstanceOf(SchemaContract::class),
             'lg',
             $context,
             $metadata,
@@ -792,15 +792,15 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
       ->willReturnMap([
         [
           '/api/patternkit/patternkit/refs/text?asset=schema',
-          $this->decodeJson($text_schema),
+          static::decodeJson($text_schema),
         ],
         [
           '/api/patternkit/patternkit/refs/number?asset=schema',
-          $this->decodeJson($number_schema),
+          static::decodeJson($number_schema),
         ],
         [
           '/api/patternkit/patternkit/refs/object?asset=schema',
-          $this->decodeJson($object_schema),
+          static::decodeJson($object_schema),
         ],
       ]);
 

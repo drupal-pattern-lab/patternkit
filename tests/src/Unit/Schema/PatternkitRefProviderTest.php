@@ -35,21 +35,21 @@ class PatternkitRefProviderTest extends UnitTestCase {
   /**
    * The pattern repository service for loading patterns.
    *
-   * @var \Drupal\patternkit\PatternRepository|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\PatternRepository>
    */
   protected ObjectProphecy $patternRepository;
 
   /**
    * The mocked SchemaRefHandler service.
    *
-   * @var \Drupal\patternkit\Schema\SchemaRefHandler|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Schema\SchemaRefHandler>
    */
   protected ObjectProphecy $schemaRefHandler;
 
   /**
    * The mocked patternkit logger channel.
    *
-   * @var \Drupal\Core\Logger\LoggerChannelInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Logger\LoggerChannelInterface>
    */
   protected ObjectProphecy $logger;
 
@@ -58,7 +58,7 @@ class PatternkitRefProviderTest extends UnitTestCase {
    *
    * @var string
    */
-  protected string $simpleRefSchemaJson = <<<JSON
+  protected static string $simpleRefSchemaJson = <<<JSON
     {
       "\$schema": "http://json-schema.org/draft-04/schema#",
       "category": "atom",
@@ -78,7 +78,7 @@ class PatternkitRefProviderTest extends UnitTestCase {
    *
    * @var string
    */
-  protected string $invalidRefSchemaJson = <<<JSON
+  protected static string $invalidRefSchemaJson = <<<JSON
     {
       "\$schema": "http://json-schema.org/draft-04/schema#",
       "category": "atom",
@@ -98,7 +98,7 @@ class PatternkitRefProviderTest extends UnitTestCase {
    *
    * @var string
    */
-  protected string $arrayRefSchemaJson = <<<JSON
+  protected static string $arrayRefSchemaJson = <<<JSON
     {
       "\$schema": "http://json-schema.org/draft-04/schema#",
       "category": "atom",
@@ -125,7 +125,7 @@ class PatternkitRefProviderTest extends UnitTestCase {
    *
    * @var string
    */
-  protected string $simpleTextSchemaJson = <<<JSON
+  protected static string $simpleTextSchemaJson = <<<JSON
     {
       "\$schema": "http://json-schema.org/draft-04/schema#",
       "title": "Text property",
@@ -138,7 +138,7 @@ class PatternkitRefProviderTest extends UnitTestCase {
    *
    * @var string
    */
-  protected string $simpleNumberSchemaJson = <<<JSON
+  protected static string $simpleNumberSchemaJson = <<<JSON
     {
       "\$schema": "http://json-schema.org/draft-04/schema#",
       "title": "Number property",
@@ -151,7 +151,7 @@ class PatternkitRefProviderTest extends UnitTestCase {
    *
    * @var string
    */
-  protected string $simpleObjectSchemaJson = <<<JSON
+  protected static string $simpleObjectSchemaJson = <<<JSON
     {
       "\$schema": "http://json-schema.org/draft-04/schema#",
       "title": "Object property",
@@ -175,9 +175,9 @@ class PatternkitRefProviderTest extends UnitTestCase {
     $this->logger = $this->prophesize(LoggerChannelInterface::class);
 
     // Register simple schemas for references.
-    $this->createMockPattern('@patternkit/refs/text', $this->simpleTextSchemaJson);
-    $this->createMockPattern('@patternkit/refs/number', $this->simpleNumberSchemaJson);
-    $this->createMockPattern('@patternkit/refs/object', $this->simpleObjectSchemaJson);
+    $this->createMockPattern('@patternkit/refs/text', static::$simpleTextSchemaJson);
+    $this->createMockPattern('@patternkit/refs/number', static::$simpleNumberSchemaJson);
+    $this->createMockPattern('@patternkit/refs/object', static::$simpleObjectSchemaJson);
 
     $this->schemaRefHandler->parseNamespacedSchemaReference(Argument::containingString('@patternkit/refs/text'))
       ->willReturn(['asset_id' => '@patternkit/refs/text']);
@@ -220,52 +220,52 @@ class PatternkitRefProviderTest extends UnitTestCase {
   /**
    * Data provider for ::testGetSchemaData.
    */
-  public function providerGetSchemaData(): array {
+  public static function providerGetSchemaData(): array {
     $cases = [];
 
     // Test loading simple schemas directly.
     $cases['simple_text_schema'] = [
       '/api/patternkit/patternkit/refs/text?asset=schema',
-      $this->decodeJson($this->simpleTextSchemaJson),
+      static::decodeJson(static::$simpleTextSchemaJson),
     ];
     $cases['simple_text_schema_namespaced'] = [
       '@patternkit/refs/text',
-      $this->decodeJson($this->simpleTextSchemaJson),
+      static::decodeJson(static::$simpleTextSchemaJson),
     ];
     $cases['simple_number_schema'] = [
       '/api/patternkit/patternkit/refs/number?asset=schema',
-      $this->decodeJson($this->simpleNumberSchemaJson),
+      static::decodeJson(static::$simpleNumberSchemaJson),
     ];
     $cases['simple_number_schema_namespaced'] = [
       '@patternkit/refs/number',
-      $this->decodeJson($this->simpleNumberSchemaJson),
+      static::decodeJson(static::$simpleNumberSchemaJson),
     ];
     $cases['simple_object_schema'] = [
       '/api/patternkit/patternkit/refs/object?asset=schema',
-      $this->decodeJson($this->simpleObjectSchemaJson),
+      static::decodeJson(static::$simpleObjectSchemaJson),
     ];
     $cases['simple_object_schema_namespaced'] = [
       '@patternkit/refs/object',
-      $this->decodeJson($this->simpleObjectSchemaJson),
+      static::decodeJson(static::$simpleObjectSchemaJson),
     ];
 
     // Test loading a schema with a local path defined.
     // Expected behavior is that the local path is ignored at this point.
     $cases['object_with_path'] = [
       '/api/patternkit/patternkit/refs/object?asset=schema#/properties/text',
-      $this->decodeJson($this->simpleObjectSchemaJson),
+      static::decodeJson(static::$simpleObjectSchemaJson),
     ];
     $cases['object_with_path_namespaced'] = [
       '@patternkit/refs/object#/properties/text',
-      $this->decodeJson($this->simpleObjectSchemaJson),
+      static::decodeJson(static::$simpleObjectSchemaJson),
     ];
     $cases['object_with_invalid_path'] = [
       '/api/patternkit/patternkit/refs/object?asset=schema#/properties/undefined_property',
-      $this->decodeJson($this->simpleObjectSchemaJson),
+      static::decodeJson(static::$simpleObjectSchemaJson),
     ];
     $cases['object_with_invalid_path_namespaced'] = [
       '@patternkit/refs/object#/properties/undefined_property',
-      $this->decodeJson($this->simpleObjectSchemaJson),
+      static::decodeJson(static::$simpleObjectSchemaJson),
     ];
 
     // Test loading an unregistered pattern.
