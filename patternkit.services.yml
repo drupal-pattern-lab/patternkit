@@ -50,6 +50,7 @@ services:
       - '@patternkit.schema.data_preprocessor.factory'
       - '@patternkit.pattern.dependency_resolver'
       - '@logger.channel.patternkit'
+      - '@?plugin.manager.sdc'
   patternkit.asset.library.parser.file:
     parent: patternkit.asset.library.parser.base
     class: Drupal\patternkit\Asset\PatternLibraryParser\FilePatternLibraryParser

@@ -8,6 +8,7 @@ use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\patternkit\Traits\PatternkitBlockHelperTrait;
 use Drupal\Tests\patternkit\Traits\SchemaFixtureTrait;
+use Drupal\user\UserInterface;
 
 /**
  * A base class for all patternkit browser tests.
@@ -46,6 +47,13 @@ abstract class PatternkitBrowserTestBase extends BrowserTestBase {
    * @var \Drupal\Core\Entity\EntityStorageInterface
    */
   protected EntityStorageInterface $patternStorage;
+
+  /**
+   * A test user with editor permissions.
+   *
+   * @var \Drupal\user\UserInterface
+   */
+  protected UserInterface $editorUser;
 
   /**
    * {@inheritdoc}

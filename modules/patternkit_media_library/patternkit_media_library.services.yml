@@ -4,3 +4,5 @@ services:
     arguments:
       - '@entity_type.manager'
       - '@file_url_generator'
+    tags:
+      - { name: media_library.opener }

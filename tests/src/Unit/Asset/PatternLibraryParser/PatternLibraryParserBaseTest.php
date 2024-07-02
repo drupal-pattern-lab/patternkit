@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\patternkit\Unit\Asset\PatternLibraryParser;
 
+use Drupal\Core\Theme\ComponentPluginManager;
 use Drupal\patternkit\Asset\PatternLibraryParserBase;
 use Drupal\patternkit\Asset\PatternLibraryParserInterface;
 use Drupal\patternkit\Entity\PatternInterface;
@@ -35,6 +36,10 @@ class PatternLibraryParserBaseTest extends PatternLibraryParserTestBase {
     $this->entityTypeManager->getStorage('patternkit_pattern')
       ->willReturn($this->patternStorage->reveal());
 
+    if (class_exists(ComponentPluginManager::class)) {
+      $componentPluginManager = $this->prophesize(ComponentPluginManager::class);
+    }
+
     return $this->getMockForAbstractClass(PatternLibraryParserBase::class, [
       $this->serializer->reveal(),
       $this->vfsRoot->url(),
@@ -47,6 +52,7 @@ class PatternLibraryParserBaseTest extends PatternLibraryParserTestBase {
       $this->dataPreProcessorFactory->reveal(),
       $this->patternDependencyResolver->reveal(),
       $this->logger->reveal(),
+      isset($componentPluginManager) ? $componentPluginManager->reveal() : NULL,
     ]);
   }
 

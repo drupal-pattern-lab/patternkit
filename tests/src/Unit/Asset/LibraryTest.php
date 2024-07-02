@@ -167,9 +167,8 @@ class LibraryTest extends UnitTestCase {
     );
 
     // Prepare and mock services called from the container.
-    $this->streamWrapperManager = new StreamWrapperManager();
-
     $this->container = new ContainerBuilder();
+    $this->streamWrapperManager = new StreamWrapperManager($this->container);
     $this->container->set('stream_wrapper_manager', $this->streamWrapperManager);
     \Drupal::setContainer($this->container);
   }

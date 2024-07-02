@@ -12,6 +12,7 @@ use Drupal\Core\Extension\ExtensionPathResolver;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
+use Drupal\Core\Theme\ComponentPluginManager;
 use Drupal\Core\Theme\ThemeManagerInterface;
 use Drupal\patternkit\Asset\PatternDependencyResolver;
 use Drupal\patternkit\Asset\PatternLibraryParserInterface;
@@ -44,86 +45,93 @@ abstract class PatternLibraryParserTestBase extends UnitTestCase {
   /**
    * The module handler service.
    *
-   * @var \Drupal\Core\Extension\ModuleHandlerInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Extension\ModuleHandlerInterface>
    */
   protected ObjectProphecy $moduleHandler;
 
   /**
    * The theme manager service.
    *
-   * @var \Drupal\Core\Theme\ThemeManagerInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Theme\ThemeManagerInterface>
    */
   protected ObjectProphecy $themeManager;
 
   /**
    * A serializer service.
    *
-   * @var \Drupal\Component\Serialization\SerializationInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Component\Serialization\SerializationInterface>
    */
   protected ObjectProphecy $serializer;
 
   /**
    * The stream wrapper manager service.
    *
-   * @var \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\StreamWrapper\StreamWrapperManagerInterface>
    */
   protected ObjectProphecy $streamWrapperManager;
 
   /**
    * The library directory file finder service.
    *
-   * @var \Drupal\Core\Asset\LibrariesDirectoryFileFinder|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Asset\LibrariesDirectoryFileFinder>
    */
   protected ObjectProphecy $librariesDirectoryFileFinder;
 
   /**
    * The extension path resolver service.
    *
-   * @var \Drupal\Core\Extension\ExtensionPathResolver|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Extension\ExtensionPathResolver>
    */
   protected ObjectProphecy $extensionPathResolver;
 
   /**
    * The entity type manager service.
    *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Entity\EntityTypeManagerInterface>
    */
   protected ObjectProphecy $entityTypeManager;
 
   /**
    * The pattern storage handler.
    *
-   * @var \Drupal\Core\Entity\EntityStorageInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Entity\EntityStorageInterface>
    */
   protected ObjectProphecy $patternStorage;
 
   /**
    * The schema data preprocessor factory service.
    *
-   * @var \Drupal\patternkit\Schema\DataPreProcessorFactory|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Schema\DataPreProcessorFactory>
    */
   protected ObjectProphecy $dataPreProcessorFactory;
 
   /**
    * The pattern dependency resolver service.
    *
-   * @var \Drupal\patternkit\Asset\PatternDependencyResolver|ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Asset\PatternDependencyResolver>
    */
   protected ObjectProphecy $patternDependencyResolver;
 
   /**
    * The patternkit logger channel.
    *
-   * @var \Drupal\Core\Logger\LoggerChannelInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Logger\LoggerChannelInterface>
    */
   protected ObjectProphecy $logger;
 
   /**
    * The pattern environment service.
    *
-   * @var \Drupal\patternkit\PatternkitEnvironment|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\PatternkitEnvironment>
    */
   protected ObjectProphecy $environment;
+
+  /**
+   * The component plugin manager service if it exists.
+   *
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Theme\ComponentPluginManager>|null
+   */
+  protected ?ObjectProphecy $componentPluginManager;
 
   /**
    * The pattern library parser being tested.
@@ -178,6 +186,8 @@ abstract class PatternLibraryParserTestBase extends UnitTestCase {
     $this->logger = $this->prophesize(LoggerChannelInterface::class);
     $this->environment = $this->prophesize(PatternkitEnvironment::class);
     $this->environment->isDebug()->willReturn(FALSE);
+    $this->componentPluginManager = class_exists(ComponentPluginManager::class) ?
+      $this->prophesize(ComponentPluginManager::class) : NULL;
 
     $this->entityTypeManager->getStorage('patternkit_pattern')
       ->willReturn($this->patternStorage->reveal());
@@ -205,6 +215,7 @@ abstract class PatternLibraryParserTestBase extends UnitTestCase {
       $this->dataPreProcessorFactory->reveal(),
       $this->patternDependencyResolver->reveal(),
       $this->logger->reveal(),
+      is_null($this->componentPluginManager) ? NULL : $this->componentPluginManager->reveal(),
     );
 
     if ($parser instanceof PatternkitEnvironmentAwareInterface) {
@@ -235,6 +246,7 @@ abstract class PatternLibraryParserTestBase extends UnitTestCase {
         $this->dataPreProcessorFactory->reveal(),
         $this->patternDependencyResolver->reveal(),
         $this->logger->reveal(),
+        is_null($this->componentPluginManager) ? NULL : $this->componentPluginManager->reveal(),
       ]);
   }
 

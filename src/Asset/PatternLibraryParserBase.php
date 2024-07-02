@@ -14,6 +14,7 @@ use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Theme\ComponentPluginManager;
 use Drupal\Core\Theme\ThemeManagerInterface;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Exception\PatternAssetException;
@@ -45,39 +46,11 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
   protected const DEFAULT_CATEGORY = 'default';
 
   /**
-   * Serializes and de-serializes data.
-   *
-   * @var \Drupal\Component\Serialization\SerializationInterface
-   */
-  protected SerializationInterface $serializer;
-
-  /**
    * The entity storage handler for the patternkit_pattern entity.
    *
    * @var \Drupal\Core\Entity\EntityStorageInterface
    */
   protected EntityStorageInterface $patternStorage;
-
-  /**
-   * The schema data preprocessor factory service.
-   *
-   * @var \Drupal\patternkit\Schema\DataPreProcessorFactory
-   */
-  protected DataPreProcessorFactory $dataPreProcessorFactory;
-
-  /**
-   * The pattern dependency resolver service.
-   *
-   * @var \Drupal\patternkit\Asset\PatternDependencyResolver
-   */
-  protected PatternDependencyResolver $patternDependencyResolver;
-
-  /**
-   * The patternkit logger channel.
-   *
-   * @var \Drupal\Core\Logger\LoggerChannelInterface
-   */
-  protected LoggerChannelInterface $logger;
 
   /**
    * Constructor for PatternLibraryParser implementations.
@@ -104,12 +77,14 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
    *   The pattern dependency resolver service.
    * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
    *   The patternkit logger channel.
+   * @param \Drupal\Core\Theme\ComponentPluginManager|null $componentPluginManager
+   *   The theme component plugin manager if available.
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
   public function __construct(
-    SerializationInterface $serializer,
+    protected SerializationInterface $serializer,
     string $root,
     ModuleHandlerInterface $module_handler,
     ThemeManagerInterface $theme_manager,
@@ -117,17 +92,22 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     LibrariesDirectoryFileFinder $libraries_directory_file_finder,
     ExtensionPathResolver $extension_path_resolver,
     EntityTypeManagerInterface $entity_type_manager,
-    DataPreProcessorFactory $dataPreProcessorFactory,
-    PatternDependencyResolver $patternDependencyResolver,
-    LoggerChannelInterface $logger,
+    protected DataPreProcessorFactory $dataPreProcessorFactory,
+    protected PatternDependencyResolver $patternDependencyResolver,
+    protected LoggerChannelInterface $logger,
+    ?ComponentPluginManager $componentPluginManager = NULL,
   ) {
-    parent::__construct($root, $module_handler, $theme_manager, $stream_wrapper, $libraries_directory_file_finder, $extension_path_resolver);
+    parent::__construct(
+      $root,
+      $module_handler,
+      $theme_manager,
+      $stream_wrapper,
+      $libraries_directory_file_finder,
+      $extension_path_resolver,
+      $componentPluginManager,
+    );
 
-    $this->serializer = $serializer;
     $this->patternStorage = $entity_type_manager->getStorage('patternkit_pattern');
-    $this->dataPreProcessorFactory = $dataPreProcessorFactory;
-    $this->patternDependencyResolver = $patternDependencyResolver;
-    $this->logger = $logger;
   }
 
   /**

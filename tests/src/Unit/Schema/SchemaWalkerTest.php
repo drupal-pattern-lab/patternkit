@@ -15,6 +15,8 @@ use Swaggest\JsonSchema\Schema;
  * Test functionality for the Schema Walker iterator class.
  *
  * @coversDefaultClass \Drupal\patternkit\Schema\SchemaWalker
+ * @covers \Drupal\patternkit\Schema\SchemaIterator
+ * @uses \Drupal\patternkit\Schema\SchemaHelper
  * @group patternkit
  */
 class SchemaWalkerTest extends UnitTestCase {
@@ -25,7 +27,7 @@ class SchemaWalkerTest extends UnitTestCase {
   /**
    * A mocked reference provider for loading schemas from.
    *
-   * @var \Drupal\patternkit\Schema\PatternkitRefProvider|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Schema\PatternkitRefProvider>
    */
   protected ObjectProphecy $refProvider;
 
@@ -35,19 +37,19 @@ class SchemaWalkerTest extends UnitTestCase {
    * @var string
    */
   protected string $simpleRefSchemaJson = <<<JSON
-{
-  "\$schema": "http://json-schema.org/draft-04/schema#",
-  "category": "atom",
-  "title": "Example reference property",
-  "type": "object",
-  "format": "grid",
-  "properties": {
-    "text_reference": {
-      "\$ref": "/api/patternkit/patternkit/refs/text?asset=schema"
+    {
+      "\$schema": "http://json-schema.org/draft-04/schema#",
+      "category": "atom",
+      "title": "Example reference property",
+      "type": "object",
+      "format": "grid",
+      "properties": {
+        "text_reference": {
+          "\$ref": "/api/patternkit/patternkit/refs/text?asset=schema"
+        }
+      }
     }
-  }
-}
-JSON;
+    JSON;
 
   /**
    * A testing schema with multiple properties using a reference.
@@ -148,72 +150,74 @@ JSON;
 
   /**
    * Test iteration over a schema without references.
+   *
+   * @covers ::__construct
    */
   public function testBasicIteration() {
     $flat_schema_json = <<<JSON
-{
-  "\$schema": "http://json-schema.org/draft-04/schema#",
-  "category": "atom",
-  "title": "Example",
-  "type": "object",
-  "format": "grid",
-  "properties": {
-    "text": {
-      "title": "Text",
-      "type": "string",
-      "options": {
-        "grid_columns": 4
-      }
-    },
-    "formatted_text": {
-      "title": "Formatted Text",
-      "type": "string",
-      "format": "html",
-      "options": {
-        "wysiwyg": true
-      }
-    },
-    "image": {
-      "title": "Image Object",
-      "type": "object",
-      "properties": {
-        "image_url": {
-          "title": "Image URL",
-          "type": "string",
-          "format": "image",
-          "options": {
-            "grid_columns": 6
+      {
+        "\$schema": "http://json-schema.org/draft-04/schema#",
+        "category": "atom",
+        "title": "Example",
+        "type": "object",
+        "format": "grid",
+        "properties": {
+          "text": {
+            "title": "Text",
+            "type": "string",
+            "options": {
+              "grid_columns": 4
+            }
+          },
+          "formatted_text": {
+            "title": "Formatted Text",
+            "type": "string",
+            "format": "html",
+            "options": {
+              "wysiwyg": true
+            }
+          },
+          "image": {
+            "title": "Image Object",
+            "type": "object",
+            "properties": {
+              "image_url": {
+                "title": "Image URL",
+                "type": "string",
+                "format": "image",
+                "options": {
+                  "grid_columns": 6
+                }
+              }
+            }
+          },
+          "hidden": {
+            "title": "hidden",
+            "type": "string"
+          },
+          "breakpoints": {
+            "title": "Breakpoints",
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "title": "",
+                  "type": "string",
+                  "enum": [
+                    "",
+                    "xxs",
+                    "xs",
+                    "sm",
+                    "md",
+                    "lg"
+                  ]
+                }
+              ]
+            }
           }
         }
       }
-    },
-    "hidden": {
-      "title": "hidden",
-      "type": "string"
-    },
-    "breakpoints": {
-      "title": "Breakpoints",
-      "type": "array",
-      "items": {
-        "anyOf": [
-          {
-            "title": "",
-            "type": "string",
-            "enum": [
-              "",
-              "xxs",
-              "xs",
-              "sm",
-              "md",
-              "lg"
-            ]
-          }
-        ]
-      }
-    }
-  }
-}
-JSON;
+      JSON;
 
     $values = [
       'text' => 'test',
@@ -260,6 +264,10 @@ JSON;
 
   /**
    * Test iteration with referenced schemas.
+   *
+   * @covers ::__construct
+   * @uses \Swaggest\JsonSchema\Context
+   * @uses \Swaggest\JsonSchema\Schema
    */
   public function testIteratingReferences() {
     $this->refProvider = $this->prophesize(PatternkitRefProvider::class);

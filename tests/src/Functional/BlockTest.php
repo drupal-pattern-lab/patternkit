@@ -43,9 +43,6 @@ class BlockTest extends PatternkitBrowserTestBase {
     $pattern = $block->getPatternEntity();
     $pattern_id = $pattern->id();
 
-    // The page cache only works for anonymous users.
-    $this->drupalLogout();
-
     // Enable page caching.
     $config = $this->config('system.performance');
     $config->set('cache.page.max_age', 300);
