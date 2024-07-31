@@ -5,33 +5,17 @@
  * Patternkit Media Library Support.
  */
 
-use Drupal\Core\Url;
+use Drupal\patternkit_media_library\JsonEditorFormElementAlterHandler;
 
 /**
- * Implements hook_form_FORM_ID_alter().
+ * Implements hook_element_info_alter().
  */
-function patternkit_media_library_form_layout_builder_configure_block_alter(&$form, $form_state) {
-  if (!empty($form['settings']['configuration']['#attached']['drupalSettings']['patternkitEditor'])) {
-    $form_attached = $form['settings']['configuration']['#attached'];
-    $form_attached['drupalSettings']['patternkitEditor']['imageUrl'] = Url::fromRoute('patternkit.media_library')
-      ->toString();
-    $form_attached['drupalSettings']['patternkitEditor']['videoUrl'] = Url::fromRoute('patternkit.media_library')
-      ->toString();
-    array_unshift($form_attached['library'], 'patternkit_media_library/patternkit.jsoneditor.media_library');
-
-    $config = \Drupal::config('patternkit_media_library.settings');
-    if ($config->get('use_styles')) {
-      $form_attached['library'][] = 'patternkit_media_library/media_library_modal';
-    }
-
-    // Expose media/field type mapping configuration to drive allowed types in
-    // media modals.
-    $media_mapping = $config->get('media_mapping') ?? [
-      'image_types' => [],
-      'video_types' => [],
+function patternkit_media_library_element_info_alter(array &$info): void {
+  if (isset($info['jsoneditor_form'])) {
+    // Add a prerenderer for handling media library customizations.
+    $info['jsoneditor_form']['#pre_render'][] = [
+      JsonEditorFormElementAlterHandler::class,
+      'attachMediaLibrarySupport',
     ];
-    $form_attached['drupalSettings']['patternkitEditor']['mediaMapping'] = $media_mapping;
-
-    $form['settings']['configuration']['#attached'] = $form_attached;
   }
 }

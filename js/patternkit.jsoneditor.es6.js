@@ -51,41 +51,9 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
      };
    }
 
-   loadTheme() {
-     let theme_js = this.settings.themeJS;
-     if (typeof theme_js === 'string') {
-       theme_js = [theme_js];
-     }
-     for (let i = 0; theme_js && i < theme_js.length; i++) {
-       let script_element = document.createElement('script');
-       script_element.type = "text/javascript";
-       script_element.src = theme_js[i];
-       document.getElementsByTagName('head')[0].appendChild(script_element);
-     }
-     let editor_dom = '';
-     if (this.settings.themeStylesheet) {
-       let theme_element = document.createElement('link');
-       theme_element.rel = "stylesheet";
-       theme_element.id = "theme_stylesheet";
-       theme_element.href = this.settings.themeStylesheet;
-       document.getElementsByTagName('head')[0].appendChild(theme_element);
-       editor_dom = '<link rel="stylesheet" id="theme_stylesheet" href="' + this.settings.themeStylesheet + '">';
-     }
-     // @todo Re-eval with this shadow dom webfont bug:
-     // https://bugs.chromium.org/p/chromium/issues/detail?id=336876
-     if (this.settings.iconStylesheet) {
-       let icons_element = document.createElement('link');
-       icons_element.rel = "stylesheet";
-       icons_element.id = "icon_stylesheet";
-       icons_element.href = this.settings.iconStylesheet;
-       document.getElementsByTagName('head')[0].appendChild(icons_element);
-       editor_dom += '<link rel="stylesheet" id="icon_stylesheet" href="' + this.settings.iconStylesheet + '">';
-     }
-     editor_dom += '<div id="editor_holder"></div>';
-
-     this.target.html(editor_dom);
-   }
-
+   /**
+    * Prepare default option values for JSONEditor behaviors.
+    */
    setDefaults() {
      JSONEditor.defaults.options.theme = this.settings.theme;
      JSONEditor.defaults.options.iconlib = this.settings.icons;
@@ -190,10 +158,17 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
      }
    }
 
+   /**
+    * Save configured schema values to the related form field for server-side
+    * form submission.
+    */
    saveSchema() {
      $('#schema_instance_config').val(JSON.stringify(window.patternkitEditor.getValue()));
    }
 
+   /**
+    * Initialize form field values once the editor form is loaded and ready.
+    */
    onReady() {
      try {
        // If we provide starting JSON as a value, JSON Editor hides all
@@ -213,13 +188,28 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
      this.hideLoadingIndicator();
    }
 
+   /**
+    * Execute any beforeSerialize callbacks registered by nested editors.
+    */
    beforeSerialize() {
+     // Test if the active element is a text input field that doesn't trigger
+     // change events until it loses focus and manually trigger the change event
+     // prior to ajax serialization for submission if so.
+     if (this.isDelayedChangeElement(document.activeElement)) {
+       // Dispatch a new 'change' event to trigger the update process before
+       // serializing values and sending them in the AJAX submission.
+       document.activeElement.dispatchEvent(new Event('change'));
+     }
+
      const callbacks = this.beforeSerializeCallbacks;
      callbacks.forEach((callback) => {
        callback();
      })
    }
 
+   /**
+    * Execute any beforeSubmit callbacks registered by nested editors.
+    */
    beforeSubmit() {
      const callbacks = this.beforeSubmitCallbacks;
      callbacks.forEach((callback) => {
@@ -227,6 +217,50 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
      })
    }
 
+   /**
+    * Test if an element only fires change events once it loses focus.
+    *
+    * @param {Element} element
+    *   The DOM element to be tested.
+    *
+    * @return boolean
+    *   True if the element only triggers change events when it loses focus,
+    *   false otherwise.
+    *
+    * @see https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/change_event
+    */
+   isDelayedChangeElement(element) {
+      const tag = element.tagName.toLowerCase();
+      if (tag === 'textarea') {
+        return true;
+      }
+      else if (tag === 'input') {
+        const type = element.getAttribute('type');
+        const delayedTypes = [
+          'text',
+          'search',
+          'url',
+          'tel',
+          'email',
+          'password',
+        ];
+
+        return delayedTypes.includes(type);
+      }
+
+      return false;
+   }
+
+   /**
+    * Trigger all submit handling for the form.
+    *
+    * This is only executed in contexts where the form is submitted natively
+    * rather than via AJAX as handled in the off-canvas tray. As such, this
+    * handler will only execute in full-page views of the JSON Editor form.
+    *
+    * @param {Event} e
+    *   The submit event.
+    */
    onSubmit(e) {
      // Call all serialize and submission handlers since this function is only
      // triggered outside an AJAX content and those handlers would not be
@@ -241,6 +275,9 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
      $(this).off('submit');
    }
 
+   /**
+    * Display the form loading indicator while the form is being prepared.
+    */
    showLoadingIndicator() {
      const loadingIndicatorClass = 'js-patternkit-loading__on';
 
@@ -251,6 +288,9 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
      }
    }
 
+   /**
+    * Hide the loading indicator once the form is fully prepared.
+    */
    hideLoadingIndicator() {
      const loadingIndicatorClass = 'js-patternkit-loading__on';
      $('.' + loadingIndicatorClass).remove();
@@ -272,7 +312,6 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
 
      $(once('patternkit-editor', $target)).each(function () {
        editor.showLoadingIndicator();
-       editor.loadTheme();
        editor.setDefaults();
        editor.loadEditor();
 

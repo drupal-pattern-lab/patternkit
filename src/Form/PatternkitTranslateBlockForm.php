@@ -67,8 +67,8 @@ class PatternkitTranslateBlockForm extends TranslateBlockForm {
    */
   public function buildForm(array $form, FormStateInterface $form_state, ?TranslatableSectionStorageInterface $section_storage = NULL, $delta = NULL, $region = NULL, $uuid = NULL) {
     $form = parent::buildForm($form, $form_state, $section_storage, $delta, $region, $uuid);
-    // Move the to the different tree so so the JS element can pick up
-    // the key element name=settings[instance_config].
+    // Move the translation to the different tree so the JS element can pick up
+    // the key element name=settings[configuration].
     $form['translation']['translation']['#parents'] = ['settings'];
     return $form;
   }
@@ -79,7 +79,7 @@ class PatternkitTranslateBlockForm extends TranslateBlockForm {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $settings = $form_state->getValue('settings');
     if ($settings) {
-      $decode_value = Json::decode($settings['instance_config']);
+      $decode_value = Json::decode($settings['configuration']);
       if (!empty($settings['patternkit_block_id'])) {
         /** @var \Drupal\Core\Entity\ContentEntityStorageInterface $block_storage */
         $block_storage = $this->entityTypeManager->getStorage('patternkit_block');
@@ -95,7 +95,7 @@ class PatternkitTranslateBlockForm extends TranslateBlockForm {
       }
       if (!empty($patternkit_block)) {
         $values = [
-          'data' => $settings['instance_config'],
+          'data' => $settings['configuration'],
           'pattern_id' => $decode_value['name'],
           'published' => TRUE,
           'reusable' => $settings['reusable'],
@@ -111,7 +111,7 @@ class PatternkitTranslateBlockForm extends TranslateBlockForm {
           }
         }
 
-        // Language needs to be set after being check, else the hasTranslation
+        // Language needs to be set after being checked, else the hasTranslation
         // be affected by the change.
         $patternkit_block->setRevisionTranslationAffected(NULL);
         $patternkit_block->setNewRevision();

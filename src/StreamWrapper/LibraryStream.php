@@ -11,6 +11,11 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
  * Defines a Drupal library (library://) stream wrapper class.
  *
  * Provides support for retrieving library files.
+ *
+ * @internal
+ * @deprecated in patternkit:9.1.0-beta10 and is removed from patternkit:9.1.0.
+ *   This should no longer be required for dependency attachment.
+ * @see https://www.drupal.org/project/patternkit/issues/3386854
  */
 class LibraryStream extends PublicStream {
 

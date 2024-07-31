@@ -126,6 +126,17 @@ class cygnetTheme extends JSONEditor.AbstractTheme {
     }
   }
 
+  getHeader(text, pathDepth) {
+    const el = super.getHeader(text, pathDepth);
+
+    // Replace span with h3 element.
+    const header = document.createElement('h3');
+    header.classList = el.classList;
+    el.childNodes.forEach((item) => header.appendChild(item));
+
+    return header;
+  }
+
 }
 
 export function patternkitEditorCygnet($, Drupal, JSONEditor) {

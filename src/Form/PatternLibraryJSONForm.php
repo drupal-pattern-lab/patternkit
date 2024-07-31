@@ -10,6 +10,10 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Settings form for configuring the JSON Library Plugin.
+ *
+ * @todo Simplify config value names to remove prefix.
+ * @todo Rename config values to align with JSONEditor identifiers.
+ * @todo Add input to specify additional settings to pass to JSONEditor.
  */
 class PatternLibraryJSONForm extends ConfigFormBase {
 
@@ -40,16 +44,9 @@ class PatternLibraryJSONForm extends ConfigFormBase {
    * @var array
    *
    * @see https://github.com/json-editor/json-editor
-   *
-   * @todo Move to yml config.
    */
   public const THEMES = [
-    'barebones' => [],
-    'html' => [],
-    'cygnet' => [
-      'css' => 'library://patternkit/cygnet/css',
-      'css_no_shadow_dom' => 'library://patternkit/cygnet_no_shadow_dom/css',
-    ],
+    'cygnet' => 'patternkit/cygnet_no_shadow_dom',
   ];
 
   /**
@@ -62,11 +59,9 @@ class PatternLibraryJSONForm extends ConfigFormBase {
    * @todo Move to yml config.
    */
   public const ICONS = [
-    'none' => '',
-    'jqueryui' => '',
-    'fontawesome3' => 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/3.2.1/css/font-awesome.css',
-    'fontawesome4' => 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.3/css/font-awesome.css',
-    'fontawesome5' => 'https://use.fontawesome.com/releases/v5.6.1/css/all.css',
+    'fontawesome3' => 'patternkit/icons.fontawesome3',
+    'fontawesome4' => 'patternkit/icons.fontawesome4',
+    'fontawesome5' => 'patternkit/icons.fontawesome5',
   ];
 
   /**
@@ -78,6 +73,23 @@ class PatternLibraryJSONForm extends ConfigFormBase {
    */
   public const EDITORS = [
     'ckeditor5' => 'CKEditor5',
+  ];
+
+  /**
+   * A map of config keys to JSON Editor JS identifiers.
+   *
+   * @var array<string, string>
+   *
+   * @todo Remove this once config names are directly renamed.
+   * @internal
+   */
+  public const JSON_EDITOR_SETTINGS_MAP = [
+    'patternkit_json_editor_theme' => 'theme',
+    'patternkit_json_editor_icons' => 'icons',
+    'patternkit_json_editor_disable_properties_buttons' => 'disablePropertiesButtons',
+    'patternkit_json_editor_disable_edit_json_button' => 'disableJsonEditButton',
+    'patternkit_json_editor_cache_schemas' => 'ajaxCacheResponses',
+    'patternkit_json_editor_wysiwyg' => 'wysiwygEditorName',
   ];
 
   /**
@@ -108,22 +120,10 @@ class PatternLibraryJSONForm extends ConfigFormBase {
     $form['patternkit_json_editor_icons'] = [
       '#type' => 'select',
       '#title' => $this->t('Select the icons to be used with the editor'),
+      '#required' => FALSE,
       '#options' => array_combine($icons, $icons),
+      '#empty_value' => '_none',
       '#default_value' => $config->get('patternkit_json_editor_icons'),
-    ];
-
-    $form['patternkit_json_editor_css'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Add to the editor theme CSS'),
-      '#description' => $this->t('Enter a comma-separated list of additional CSS to include.'),
-      '#default_value' => $config->get('patternkit_json_editor_css'),
-    ];
-
-    $form['patternkit_json_editor_js'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Add to the editor theme JS'),
-      '#description' => $this->t('Enter a comma-separated list of additional JS to include.'),
-      '#default_value' => $config->get('patternkit_json_editor_js'),
     ];
 
     $form['patternkit_json_editor_disable_properties_buttons'] = [
@@ -227,7 +227,7 @@ class PatternLibraryJSONForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  public function validateForm(array &$form, FormStateInterface $form_state) {
+  public function validateForm(array &$form, FormStateInterface $form_state): void {
     // Validate editor and WYSIWYG toolbar selections.
     $wysiwyg = $form_state->getValue('patternkit_json_editor_wysiwyg');
     $toolbar = $form_state->getValue('patternkit_json_editor_ckeditor_toolbar');
@@ -235,11 +235,12 @@ class PatternLibraryJSONForm extends ConfigFormBase {
 
     if ($toolbar && in_array($wysiwyg, $supported_wysiwygs)) {
       $editor_storage = $this->entityTypeManager->getStorage('editor');
+      /** @var \Drupal\editor\EditorInterface|null $editor */
       $editor = $editor_storage->load($toolbar);
 
-      if ($editor->getEditor() !== $wysiwyg) {
+      if ($editor === NULL || $editor->getEditor() !== $wysiwyg) {
         $form_state->setErrorByName('patternkit_json_editor_ckeditor_toolbar', $this->t(
-          'The selected toolbar is not configured to use the selected toolbar. Expected to find "@expected", but found "@actual" instead.',
+          'The selected toolbar is not configured to use the selected editor. Expected to find "@expected", but found "@actual" instead.',
           [
             '@expected' => $wysiwyg,
             '@actual' => $editor->getEditor(),
@@ -257,8 +258,6 @@ class PatternLibraryJSONForm extends ConfigFormBase {
     $config = $this->config(self::SETTINGS);
     $config->set('patternkit_json_editor_theme', $form_values['patternkit_json_editor_theme']);
     $config->set('patternkit_json_editor_icons', $form_values['patternkit_json_editor_icons']);
-    $config->set('patternkit_json_editor_css', $form_values['patternkit_json_editor_css']);
-    $config->set('patternkit_json_editor_js', $form_values['patternkit_json_editor_js']);
     $config->set('patternkit_json_editor_disable_properties_buttons', (bool) $form_values['patternkit_json_editor_disable_properties_buttons']);
     $config->set('patternkit_json_editor_disable_edit_json_button', (bool) $form_values['patternkit_json_editor_disable_edit_json_button']);
     $config->set('patternkit_json_editor_cache_schemas', (bool) $form_values['patternkit_json_editor_cache_schemas']);

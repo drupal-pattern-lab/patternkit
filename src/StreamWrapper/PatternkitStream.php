@@ -12,6 +12,11 @@ use Drupal\Core\Url;
  *
  * Provides support for storing temporarily accessible files with the Drupal
  * file interface.
+ *
+ * @deprecated in patternkit:9.1.0-beta10 and is removed from patternkit:9.1.0.
+ *    This should no longer be required for dependency attachment.
+ * @see https://www.drupal.org/project/patternkit/issues/3386854
+ * @internal
  */
 class PatternkitStream extends LocalStream {
 

@@ -17,6 +17,12 @@ use Drupal\patternkit\Form\PatternLibraryJSONForm;
 
 /**
  * Adds a schema editor render array generator without needing a full service.
+ *
+ * @deprecated in patternkit:9.1.0-beta10 and is removed from patternkit:9.1.0. Use JsonEditorFormBuilder instead.
+ * @see https://www.drupal.org/project/patternkit/issues/3386854
+ * @see \Drupal\patternkit\JsonEditorFormBuilder
+ *
+ * @codeCoverageIgnore
  */
 trait JSONSchemaEditorTrait {
 
@@ -126,20 +132,14 @@ trait JSONSchemaEditorTrait {
 
     if (isset(PatternLibraryJSONForm::THEMES[$theme])) {
       $theme_info = PatternLibraryJSONForm::THEMES[$theme];
-      if (!empty($theme_info['css_no_shadow_dom'])) {
-        $editor_settings['themeStylesheet'] = $this->getLibraryAssetUrlFromUri($theme_info['css_no_shadow_dom']);
+      if (isset($theme_info['default'])) {
+        $json_editor_theme_library_name = $theme_info['default'];
       }
-      elseif (!empty($theme_info['css'])) {
-        $editor_settings['themeStylesheet'] = $this->getLibraryAssetUrlFromUri($theme_info['css']);
-      }
-      else {
-        $editor_settings['themeStylesheet'] = '';
-      }
-      if (!empty($theme_info['js'])) {
-        $editor_settings['themeJS'][] = $this->getLibraryAssetUrlFromUri($theme_info['js']);
+      elseif (isset($theme_info['shadow_dom'])) {
+        $json_editor_theme_library_name = $theme_info['shadow_dom'];
       }
     }
-    if (!empty(PatternLibraryJSONForm::ICONS[$icons])) {
+    if (!empty($icons) && $icons !== '_none' && !empty(PatternLibraryJSONForm::ICONS[$icons])) {
       $editor_settings['iconStylesheet'] = $this->getLibraryAssetUrlFromUri(PatternLibraryJSONForm::ICONS[$icons]);
     }
     $editor_css_override = $this->config->get('patternkit_json_editor_css');
@@ -176,6 +176,9 @@ trait JSONSchemaEditorTrait {
       ],
     ];
 
+    if (isset($json_editor_theme_library_name)) {
+      $element['#attached']['library'][] = $json_editor_theme_library_name;
+    }
     $this->prepareWysiwygEditor($element);
 
     return $element;

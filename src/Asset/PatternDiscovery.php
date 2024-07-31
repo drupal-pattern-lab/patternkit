@@ -113,7 +113,7 @@ class PatternDiscovery implements PatternDiscoveryInterface, PatternkitEnvironme
    * {@inheritdoc}
    */
   public function getPatternsByNamespace(string $namespace): array {
-    assert($namespace[0] === '@', 'The pattern namespace is expected to begin with an "@" symbol.');
+    assert(!empty($namespace) && $namespace[0] === '@', 'The pattern namespace is expected to begin with an "@" symbol.');
 
     if (!isset($this->patternDefinitions[$namespace])) {
       // Not prepared, try to load from cache.

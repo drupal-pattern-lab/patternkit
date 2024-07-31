@@ -42,8 +42,24 @@ interface PatternLibraryPluginInterface extends PluginInspectionInterface {
    *
    * @return mixed
    *   The renderable pattern editor.
+   *
+   * @deprecated in patternkit:9.1.0-beta10 and is removed from patternkit:9.1.0. Use ::getPatternEditor() instead.
+   * @see https://www.drupal.org/project/patternkit/issues/3386854
    */
   public function getEditor(?PatternInterface $pattern = NULL, ?PatternEditorConfig $config = NULL);
+
+  /**
+   * Get the editor render array for a pattern editor form.
+   *
+   * @param \Drupal\patternkit\Entity\PatternInterface $pattern
+   *   The pattern to build a form for.
+   * @param array $editor_config
+   *   (Optional) Configuration overrides for the behavior of the pattern form.
+   *
+   * @return array
+   *   A render array to produce the pattern form.
+   */
+  public function getPatternEditor(PatternInterface $pattern, array $editor_config = []): array;
 
   /**
    * Returns metadata for patterns within the provided collection path.

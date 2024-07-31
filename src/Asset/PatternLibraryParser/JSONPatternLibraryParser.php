@@ -7,7 +7,6 @@ use Drupal\patternkit\Asset\PatternLibraryParserBase;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Exception\MissingSchemaException;
 use Drupal\patternkit\Exception\SchemaException;
-use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\PatternLibraryJSONParserTrait;
 use Swaggest\JsonSchema\Exception as JsonSchemaException;
@@ -31,11 +30,8 @@ class JSONPatternLibraryParser extends PatternLibraryParserBase {
    * @throws \Drupal\patternkit\Exception\MissingSchemaException
    * @throws \Drupal\patternkit\Exception\SchemaException
    */
-  public function fetchPatternAssets(
-    PatternInterface $pattern,
-    PatternEditorConfig $config = NULL,
-  ): array {
-    $assets = parent::fetchPatternAssets($pattern, $config);
+  public function fetchPatternAssets(PatternInterface $pattern): array {
+    $assets = parent::fetchPatternAssets($pattern);
 
     // Test to make sure necessary assets were discovered.
     if (empty($assets['json']) || !$this->isJson($assets['json'])) {

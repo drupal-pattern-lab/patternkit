@@ -62,7 +62,7 @@ trait PatternkitBlockHelperTrait {
     // Fake the form state to run submission handling.
     $form_state = new FormState();
     $form_state->setValues([
-      'instance_config' => $config,
+      'configuration' => $config,
       'label' => '',
       'reusable' => FALSE,
       'presentation_style' => 'html',

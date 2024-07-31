@@ -1,6 +1,4 @@
-patternkit_json_editor_css: ''
-patternkit_json_editor_icons: ''
-patternkit_json_editor_js: ''
+patternkit_json_editor_icons: '_none'
 patternkit_json_editor_theme: cygnet
 patternkit_libraries: []
 patternkit_json_editor_wysiwyg: ''

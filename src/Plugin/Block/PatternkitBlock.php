@@ -24,7 +24,6 @@ use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Entity\PatternkitBlock as EntityPatternkitBlock;
 use Drupal\patternkit\Event\PatternUpdateEvent;
 use Drupal\patternkit\Exception\UnknownPatternException;
-use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternkitEnvironment;
 use Drupal\patternkit\PatternkitEnvironmentAwareInterface;
 use Drupal\patternkit\PatternkitEnvironmentAwareTrait;
@@ -45,8 +44,8 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
  *   deriver = "Drupal\patternkit\Plugin\Derivative\PatternkitBlock"
  * )
  *
- * @todo Remove JSON Serializer dependencies from this class.
- * ...so that the Editor operates off of the pattern library plugin instead.
+ * @todo Remove JSON Serializer dependencies from this class so the editor
+ *   operates off of the pattern library plugin instead.
  */
 class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterface, PatternkitEnvironmentAwareInterface {
 
@@ -817,36 +816,16 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    */
   protected function editorForm(array &$form, FormStateInterface $form_state): void {
-    $configuration = $this->getConfiguration();
-    $editor_config = NULL;
     if ($block_entity = $form_state->get('block_entity')) {
-      $data = $block_entity->data->value ?? '';
-
-      $configuration['fields'] = $this->serializer::decode($data);
-      $editor_config = new PatternEditorConfig($configuration);
+      $data = $block_entity->data->value ?? '{}';
     }
-
-    // Add instance config (if it exists) as a hidden field.
-    $form['instance_config'] = [
-      '#type' => 'hidden',
-      '#attributes' => [
-        'id' => 'schema_instance_config',
-      ],
-      '#default_value' => $data ?? '',
-    ];
-
-    $form['configuration_description']['#markup'] = $this->t('Provide context for your pattern. You can use tokens and Twig in your values.');
 
     $pattern = $form_state->get('pattern');
-    $library = $this->getLibraryPlugin($pattern);
-    $editor = $library->getEditor($pattern, $editor_config ?? NULL);
-    if (!is_array($editor)) {
-      $editor = [
-        '#type' => 'inline_template',
-        '#template' => $editor,
-      ];
-    }
-    $form['configuration'] = $editor;
+    $form['configuration'] = [
+      '#type' => 'jsoneditor_form',
+      '#pattern_entity' => $pattern,
+      '#data' => $data ?? '{}',
+    ];
   }
 
   /**
@@ -961,7 +940,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       // Map additional keys that may differ from the storage structure.
       else {
         switch ($key) {
-          case 'instance_config':
+          case 'configuration':
             $block_entity->set('data', $value);
             break;
 

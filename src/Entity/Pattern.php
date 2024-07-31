@@ -2,8 +2,6 @@
 
 namespace Drupal\patternkit\Entity;
 
-use Drupal\Component\Plugin\Exception\PluginException;
-use Drupal\Component\Plugin\Exception\PluginNotFoundException;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
@@ -461,28 +459,11 @@ class Pattern extends ContentEntityBase implements PatternInterface {
    *
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
-   *
-   * @todo Reimplement with proper fallback plugin loading.
    */
   protected function getLibraryPlugin(): PatternLibraryPluginInterface {
-    $plugin_id = $this->getLibraryPluginId();
     /** @var \Drupal\patternkit\PatternLibraryPluginManager $plugin_manager */
     $plugin_manager = \Drupal::service('plugin.manager.library.pattern');
-    try {
-      $plugin = $plugin_manager->createInstance($plugin_id);
-    }
-    catch (PluginException $exception) {
-      // Allow plugin fall-backs of type 'base_plugin.override_plugin'.
-      $plugin_id = strstr($plugin_id, '.', TRUE);
-      if (empty($plugin_id)) {
-        throw new PluginNotFoundException($plugin_id,
-          "Unable to fetch assets for pattern " . $this->getPath());
-      }
-      $plugin = $plugin_manager->createInstance($plugin_id);
-    }
-
-    /** @var \Drupal\patternkit\PatternLibraryPluginInterface $plugin */
-    return $plugin;
+    return $plugin_manager->getPluginForPattern($this);
   }
 
 }

@@ -19,7 +19,6 @@ use Drupal\Core\Theme\ThemeManagerInterface;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Exception\PatternAssetException;
 use Drupal\patternkit\Exception\SchemaException;
-use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternkitEnvironmentAwareInterface;
 use Drupal\patternkit\PatternkitEnvironmentAwareTrait;
 use Drupal\patternkit\PatternLibrary;
@@ -172,7 +171,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
    *
    * @todo Add support for twig lib attachments such as JS and images.
    */
-  public function fetchPatternAssets(PatternInterface $pattern, PatternEditorConfig $config = NULL): array {
+  public function fetchPatternAssets(PatternInterface $pattern): array {
     // If this is a pattern being assembled during discovery, the asset paths
     // should already be populated on the pattern entity from the initial
     // creation of it in ::parsePatternLibraryInfo().

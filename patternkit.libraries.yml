@@ -44,3 +44,27 @@ cygnet_no_shadow_dom:
       css/cygnet/cygnet--prefixed-for-drupal--upstream.css: {}
       css/cygnet/cygnet--prefixed-for-drupal.css: {}
       css/cygnet/cygnet--overrides.css: {}
+
+icons.fontawesome3:
+  version: 3.2.1
+  css:
+    theme:
+      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/3.2.1/css/font-awesome.css':
+        type: external
+        minified: true
+
+icons.fontawesome4:
+  version: 4.0.3
+  css:
+    theme:
+      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.3/css/font-awesome.css':
+        type: external
+        minified: true
+
+icons.fontawesome5:
+  version: 5.6.1
+  css:
+    theme:
+      'https://use.fontawesome.com/releases/v5.6.1/css/all.css':
+        type: external
+        minified: true

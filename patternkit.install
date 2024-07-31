@@ -468,3 +468,51 @@ function patternkit_update_10003(): ?string {
 
   return NULL;
 }
+
+/**
+ * Remove config for deprecated JSON Editor form JS and CSS attachment fields.
+ */
+function patternkit_update_10004(): string {
+  $config_key = 'patternkit.settings';
+  $config = \Drupal::configFactory()->getEditable($config_key);
+
+  $message = '';
+  if ($existing_css_value = $config->get('patternkit_json_editor_css')) {
+    $message .= t("Values for removed JSON Editor CSS additions were deleted: %settings\n", [
+      '%settings' => $existing_css_value,
+    ]);
+  }
+  if ($existing_js_value = $config->get('patternkit_json_editor_js')) {
+    $message .= t("Values for removed JSON Editor JS additions were deleted: %settings\n", [
+      '%settings' => $existing_js_value,
+    ]);
+  }
+
+  $config->clear('patternkit_json_editor_css');
+  $config->clear('patternkit_json_editor_js');
+
+  $config->save(TRUE);
+
+  return $message;
+}
+
+/**
+ * Migrate value for removed icons libraries.
+ */
+function patternkit_update_10005(): string {
+  $config_key = 'patternkit.settings';
+  $config = \Drupal::configFactory()->getEditable($config_key);
+  $message = '';
+
+  $icons_set_current = $config->get('patternkit_json_editor_icons');
+  if (empty($icons_set_current) || !isset(PatternLibraryJSONForm::ICONS[$icons_set_current])) {
+    $config->set('patternkit_json_editor_icons', '_none');
+    $config->save();
+
+    $message .= t('Icons set @current was changed to _none because support for that icons set has been removed.', [
+      '@current' => $icons_set_current,
+    ]);
+  }
+
+  return $message;
+}

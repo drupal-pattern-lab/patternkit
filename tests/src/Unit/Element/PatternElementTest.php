@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\patternkit\Unit;
+namespace Drupal\Tests\patternkit\Unit\Element;
 
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\patternkit\Element\Pattern;

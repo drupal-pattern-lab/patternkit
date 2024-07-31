@@ -28,7 +28,8 @@
     "require-dev": {
         "drupal/core-recommended": "^10 || ^11",
         "drupal/core-dev": "^10 || ^11",
-        "drupal/devel": "^4.2 || ^5.0"
+        "drupal/devel": "^4.2 || ^5.0",
+        "dms/phpunit-arraysubset-asserts": "^0.5.0"
     },
     "extra": {
         "drush": {

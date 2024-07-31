@@ -5,7 +5,6 @@ namespace Drupal\patternkit\Asset\PatternLibraryParser;
 use Drupal\Core\Asset\Exception\InvalidLibraryFileException;
 use Drupal\patternkit\Asset\PatternLibraryParserBase;
 use Drupal\patternkit\Entity\PatternInterface;
-use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\PatternLibraryJSONParserTrait;
 
@@ -24,7 +23,7 @@ class FilePatternLibraryParser extends PatternLibraryParserBase {
   /**
    * {@inheritdoc}
    */
-  public function fetchPatternAssets(PatternInterface $pattern, PatternEditorConfig $config = NULL): array {
+  public function fetchPatternAssets(PatternInterface $pattern): array {
     // @todo Add support for File lib attachments such as JS and images.
     return [];
   }

@@ -16,7 +16,7 @@ class PatternkitForm extends ContentEntityForm {
   /**
    * The block content entity.
    *
-   * @var \Drupal\patternkit\entity\PatternkitBlock
+   * @var \Drupal\patternkit\Entity\PatternkitBlock
    */
   protected $entity;
 
@@ -42,12 +42,12 @@ class PatternkitForm extends ContentEntityForm {
   /**
    * {@inheritdoc}
    */
-  public function save(array $form, FormStateInterface $form_state): void {
+  public function save(array $form, FormStateInterface $form_state): int {
     $block = $this->entity;
 
     $insert = $block->isNew();
     $block->setReusable();
-    $block->save();
+    $result = $block->save();
     $context = ['@type' => $block->bundle(), '%info' => $block->label()];
     $logger = $this->logger('patternkit');
     $t_args = ['@type' => $block->bundle(), '%info' => $block->label()];
@@ -89,6 +89,8 @@ class PatternkitForm extends ContentEntityForm {
       $this->messenger()->addError($this->t('The block could not be saved.'));
       $form_state->setRebuild();
     }
+
+    return $result;
   }
 
 }

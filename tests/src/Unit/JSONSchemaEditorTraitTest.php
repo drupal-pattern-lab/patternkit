@@ -17,6 +17,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * @coversDefaultClass \Drupal\patternkit\JSONSchemaEditorTrait
  * @group patternkit
+ * @legacy
  */
 class JSONSchemaEditorTraitTest extends UnitTestCase {
 
@@ -89,6 +90,7 @@ class JSONSchemaEditorTraitTest extends UnitTestCase {
    *
    * @covers ::getLibraryAssetUrlFromUri
    * @covers ::getQueryString
+   * @covers ::setQueryStringService
    */
   public function testGetLibraryAssetUrlFromUriDrupalWithService(): void {
     // Inject the service for testing if available. Skip this test otherwise.

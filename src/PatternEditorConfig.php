@@ -4,6 +4,9 @@ namespace Drupal\patternkit;
 
 /**
  * An organizational structure for Pattern editor configuration.
+ *
+ * @phpcs:ignore
+ * @deprecated in patternkit:9.1.0-beta10 and will be removed from patternkit:9.1.0.
  */
 class PatternEditorConfig {
 
@@ -94,12 +97,5 @@ class PatternEditorConfig {
    * @var string
    */
   public $theme;
-
-  /**
-   * The theme stylesheet.
-   *
-   * @var string
-   */
-  public $themeStylesheet;
 
 }

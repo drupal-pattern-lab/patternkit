@@ -1,102 +1,152 @@
-#drupal-off-canvas [data-theme=cygnet] {
-  margin-top: 32px;
+#drupal-off-canvas-wrapper [data-theme=cygnet],
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet]:not(.ck *)
+{
+  margin-top: 18px;
+  padding: 0 1em;
   color: #151515;
   font-family: RedHatText, Helvetica, Arial, sans-serif;
   font-weight: 300;
 }
 
-#drupal-off-canvas [data-theme=cygnet] a {
-  color: #06c;
+/* Variable definition */
+#drupal-off-canvas-wrapper [data-theme=cygnet],
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet]:not(.ck *)
+{
+  --disabled-input-background-color: #ccc;
 }
 
-#drupal-off-canvas [data-theme=cygnet] h3 {
+/* Form header styles. */
+#drupal-off-canvas-wrapper [data-theme=cygnet] .je-header,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] .je-header:not(.ck *)
+{
   margin: 0 0 16px 0;
-  font-size: 18px;
-  font-weight: 300;
+  font-size: 24px;
 }
 
-#drupal-off-canvas [data-theme=cygnet] h3 > label {
+/* Set largest font-size for top level titles. */
+#drupal-off-canvas-wrapper [data-theme=cygnet] [data-schemapath=root] > .je-header,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] [data-schemapath=root] > .je-header:not(.ck *)
+{
+  font-size: 28px;
+}
+
+#drupal-off-canvas-wrapper [data-theme=cygnet] .je-header > label,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] .je-header > label:not(.ck *)
+{
+  display: inline-block;
   position: relative;
   top: 4px;
   margin-right: 16px;
+  font-size: inherit;
 }
 
-#drupal-off-canvas [data-theme=cygnet] p {
+#drupal-off-canvas-wrapper [data-theme=cygnet] .je-object__controls,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] .je-object__controls:not(.ck *)
+{
+  display: block;
+  margin-bottom: 8px;
+}
+
+/* Form labels. */
+#drupal-off-canvas-wrapper [data-theme=cygnet] .je-cygnet-form-input-label,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] .je-cygnet-form-input-label:not(.ck *)
+{
+  display: block;
+  padding-bottom: 4px;
+  font-weight: 700;
+}
+
+/* Reduce font weight for description tags. */
+#drupal-off-canvas-wrapper [data-theme=cygnet] p.je-cygnet-form-input-label,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] p.je-cygnet-form-input-label:not(.ck *)
+{
+  font-weight: 300;
+}
+
+#drupal-off-canvas-wrapper [data-theme=cygnet] label.required::after,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] label.required:not(.ck *)::after
+{
+  display: inline;
+  padding-left: 4px;
+  content: "*";
+  color: #e00;
+}
+
+#drupal-off-canvas-wrapper [data-theme=cygnet] a,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] a:not(.ck *)
+{
+  color: #06c;
+}
+
+#drupal-off-canvas-wrapper [data-theme=cygnet] .je-cygnet-indented-panel,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] .je-cygnet-indented-panel:not(.ck *)
+{
+  padding-top: 16px;
+  margin-bottom: 16px;
+  border-radius: 3px;
+}
+
+#drupal-off-canvas-wrapper [data-theme=cygnet] p,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] p:not(.ck *)
+{
   margin-top: 0;
   margin-left: 20px;
 }
 
-/* Set largest font-size for top level titles. */
-
-#drupal-off-canvas [data-theme=cygnet] [data-schemapath=root] > h3 {
-  font-size: 28px;
-}
-
-#drupal-off-canvas .je-cygnet-form-input-label {
-  display: block;
-  padding-bottom: 4px;
-  font-family: RedHatDisplay, Helvetica, Arial, sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-#drupal-off-canvas [data-theme=cygnet] p.je-cygnet-form-input-label {
-  font-weight: 300;
-}
-
-#patternkit-editor-target [data-theme=cygnet] label.required::after,
-[data-theme=cygnet] label.required::after {
-  display: inline;
-  padding-left: 4px;
-  content: "*";
-  color: #e00;
-}
-
-#drupal-off-canvas [data-theme=cygnet] label.required::after {
-  display: inline;
-  padding-left: 4px;
-  content: "*";
-  color: #e00;
-}
-
-#drupal-off-canvas .je-cygnet-indented-panel {
-  margin-bottom: 16px;
-}
-
-#drupal-off-canvas [data-theme=cygnet] input[type=text],
-#drupal-off-canvas [data-theme=cygnet] input[type=url],
-#drupal-off-canvas [data-theme=cygnet] select,
-#drupal-off-canvas [data-theme=cygnet] textarea {
+#drupal-off-canvas-wrapper [data-theme=cygnet] input[type=text],
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] input[type=text]:not(.ck *),
+#drupal-off-canvas-wrapper [data-theme=cygnet] input[type=url],
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] input[type=url]:not(.ck *),
+#drupal-off-canvas-wrapper [data-theme=cygnet] select,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] select:not(.ck *),
+#drupal-off-canvas-wrapper [data-theme=cygnet] textarea,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] textarea:not(.ck *)
+{
   box-sizing: border-box;
-  width: 100% !important;
+  width: 100%;
   margin-bottom: 4px !important;
   margin-left: 0 !important;
   padding: 4px 8px !important;
   border: 1px solid #d2d2d2;
   border-bottom: 1px solid #6a6e73;
-  background-color: #fff !important;
+  background-color: #fff;
   font-family: RedHatText, Helvetica, Arial, sans-serif;
   font-size: 16px;
 }
 
-#drupal-off-canvas [data-theme=cygnet] select {
+#drupal-off-canvas-wrapper [data-theme=cygnet] .form-control input:disabled,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] .form-control input:disabled:not(.ck *),
+#drupal-off-canvas-wrapper [data-theme=cygnet] .form-control select:disabled,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] .form-control select:disabled:not(.ck *),
+#drupal-off-canvas-wrapper [data-theme=cygnet] .form-control textarea:disabled,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] .form-control textarea:disabled:not(.ck *),
+#drupal-off-canvas-wrapper [data-theme=cygnet] button:disabled,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] button:disabled:not(.ck *)
+{
+  background-color: var(--disabled-input-background-color);
+}
+
+#drupal-off-canvas-wrapper [data-theme=cygnet] select,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] select:not(.ck *)
+{
   font-size: 16px !important;
   font-style: normal !important;
 }
 
-#drupal-off-canvas [data-theme=cygnet] input[type=text],
-#drupal-off-canvas [data-theme=cygnet] input[type=url] {
-  width: 80%;
-}
-
-#drupal-off-canvas .je-cygnet-indented-panel {
-  border-radius: 3px;
+/* Duplicate upstream rules for increased specificity. */
+#drupal-off-canvas-wrapper [data-theme=cygnet] .je-edit-json--textarea,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] .je-edit-json--textarea:not(.ck *)
+{
+  height: 170px;
+  display: block;
 }
 
 /* Gray background on second-level objects and arrays. */
-
-#drupal-off-canvas [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] .je-cygnet-indented-panel,
-#drupal-off-canvas [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] .je-cygnet-indented-panel {
+#drupal-off-canvas-wrapper [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] .je-cygnet-indented-panel,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] .je-cygnet-indented-panel:not(.ck *),
+#drupal-off-canvas-wrapper [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] .je-cygnet-indented-panel,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] .je-cygnet-indented-panel:not(.ck *)
+{
   padding: 16px 16px 0 16px !important;
   border: 1px solid #d2d2d2 !important;
   border-radius: 3px;
@@ -104,136 +154,167 @@
 }
 
 /* White background on objects beneath the second-level objects and arrays. */
-
-#drupal-off-canvas [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] .je-cygnet-indented-panel .je-cygnet-indented-panel,
-#drupal-off-canvas [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] .je-cygnet-indented-panel .je-cygnet-indented-panel {
+#drupal-off-canvas-wrapper [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] .je-cygnet-indented-panel .je-cygnet-indented-panel,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] .je-cygnet-indented-panel .je-cygnet-indented-panel:not(.ck *),
+#drupal-off-canvas-wrapper [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] .je-cygnet-indented-panel .je-cygnet-indented-panel,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] .je-cygnet-indented-panel .je-cygnet-indented-panel:not(.ck *)
+{
   background-color: #fff;
 }
 
-#drupal-off-canvas [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel .je-cygnet-indented-panel,
-#drupal-off-canvas [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] > .je-cygnet-indented-panel .je-cygnet-indented-panel {
+#drupal-off-canvas-wrapper [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel .je-cygnet-indented-panel,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel .je-cygnet-indented-panel:not(.ck *),
+#drupal-off-canvas-wrapper [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] > .je-cygnet-indented-panel .je-cygnet-indented-panel,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] > .je-cygnet-indented-panel .je-cygnet-indented-panel:not(.ck *)
+{
   padding: 16px 16px 0 16px !important;
   background-color: #fff;
 }
 
 /* Objects and arrays nested two layers beneath the second level have no padding or borders.  */
-
-#drupal-off-canvas [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel .je-cygnet-indented-panel .je-cygnet-indented-panel,
-#drupal-off-canvas [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] > .je-cygnet-indented-panel .je-cygnet-indented-panel .je-cygnet-indented-panel {
+#drupal-off-canvas-wrapper [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel .je-cygnet-indented-panel .je-cygnet-indented-panel,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel .je-cygnet-indented-panel .je-cygnet-indented-panel:not(.ck *),
+#drupal-off-canvas-wrapper [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] > .je-cygnet-indented-panel .je-cygnet-indented-panel .je-cygnet-indented-panel,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] > .je-cygnet-indented-panel .je-cygnet-indented-panel .je-cygnet-indented-panel:not(.ck *)
+{
   padding: 0 !important;
   border: 0 !important;
 }
 
-#drupal-off-canvas [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] > .je-cygnet-indented-panel > div > .je-cygnet-indented-panel {
+#drupal-off-canvas-wrapper [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] > .je-cygnet-indented-panel > div > .je-cygnet-indented-panel,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] > .je-cygnet-indented-panel > div > .je-cygnet-indented-panel:not(.ck *)
+{
   background-color: transparent;
 }
 
 /* Indent objects and arrays on the second level. */
-
-#drupal-off-canvas [data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object],
-#drupal-off-canvas [data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] {
+#drupal-off-canvas-wrapper [data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object],
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object]:not(.ck *),
+#drupal-off-canvas-wrapper [data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array],
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array]:not(.ck *)
+{
   margin-left: 20px;
 }
 
-#drupal-off-canvas [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] .je-cygnet-indented-panel > .je-cygnet-indented-panel {
+#drupal-off-canvas-wrapper [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] .je-cygnet-indented-panel > .je-cygnet-indented-panel,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] .je-cygnet-indented-panel > .je-cygnet-indented-panel:not(.ck *)
+{
   margin-left: 0 !important;
   border: 0 !important;
 }
 
 /* Indent second-level rows. */
-
-#drupal-off-canvas [data-theme=cygnet] > [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row {
+#drupal-off-canvas-wrapper [data-theme=cygnet] > [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] > [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row:not(.ck *)
+{
   margin-left: 20px;
 }
 
-#drupal-off-canvas [data-theme=cygnet] > [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] {
+#drupal-off-canvas-wrapper [data-theme=cygnet] > [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object],
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] > [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object]:not(.ck *)
+{
   margin-left: 0;
 }
 
-/* Indent top-level string fields. */
-
-#drupal-off-canvas [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=string] {
-  margin-left: 36px;
-}
-
-
 /* White background on second-level objects */
-
-#drupal-off-canvas [data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel > [data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > div > .je-cygnet-indented-panel {
+#drupal-off-canvas-wrapper [data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel > [data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > div > .je-cygnet-indented-panel,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel > [data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > div > .je-cygnet-indented-panel:not(.ck *)
+{
   margin-left: 20px !important;
   border: 1px solid #d2d2d2 !important;
   border-radius: 3px;
   background-color: #fff;
 }
 
-#drupal-off-canvas .je-cygnet-indented-panel .je-cygnet-indented-panel h3 {
+#drupal-off-canvas-wrapper .je-cygnet-indented-panel .je-cygnet-indented-panel h3,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) .je-cygnet-indented-panel .je-cygnet-indented-panel h3:not(.ck *)
+{
   font-size: 20px;
 }
 
 /* Indent panels adjacent to clickable panes. */
-#drupal-off-canvas .je-cygnet-indented-panel div div .row [data-schematype=object] .patternkit-jsoneditor-clickable ~ .je-cygnet-indented-panel {
+#drupal-off-canvas-wrapper .je-cygnet-indented-panel div div .row [data-schematype=object] .patternkit-jsoneditor-clickable ~ .je-cygnet-indented-panel,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) .je-cygnet-indented-panel div div .row [data-schematype=object] .patternkit-jsoneditor-clickable ~ .je-cygnet-indented-panel:not(.ck *)
+{
   margin-left: 20px;
 }
 
-#drupal-off-canvas .je-cygnet-indented-panel [data-schematype=array] > .je-cygnet-indented-panel {
+#drupal-off-canvas-wrapper .je-cygnet-indented-panel [data-schematype=array] > .je-cygnet-indented-panel,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) .je-cygnet-indented-panel [data-schematype=array] > .je-cygnet-indented-panel:not(.ck *)
+{
   position: relative;
   margin-bottom: 0;
 }
 
 /* Apply gray border to panels inside arrays. */
-
-#drupal-off-canvas [data-schematype=array] > .je-cygnet-indented-panel {
+#drupal-off-canvas-wrapper [data-schematype=array] > .je-cygnet-indented-panel,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-schematype=array] > .je-cygnet-indented-panel:not(.ck *)
+{
   border: 1px solid #d2d2d2 !important;
 }
 
 /* Remove gray border from panels inside arrays. */
-
-#drupal-off-canvas [data-schematype=array] > .je-cygnet-indented-panel [data-schematype=array] > .je-cygnet-indented-panel {
+#drupal-off-canvas-wrapper [data-schematype=array] > .je-cygnet-indented-panel [data-schematype=array] > .je-cygnet-indented-panel,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-schematype=array] > .je-cygnet-indented-panel [data-schematype=array] > .je-cygnet-indented-panel:not(.ck *)
+{
   border: 0 !important;
 }
 
 /* Remove margin and padding from panels nested within child-editor. */
-
-#drupal-off-canvas .je-cygnet-child-editor-holder > .je-cygnet-indented-panel {
+#drupal-off-canvas-wrapper .je-cygnet-child-editor-holder > .je-cygnet-indented-panel,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) .je-cygnet-child-editor-holder > .je-cygnet-indented-panel:not(.ck *)
+{
   margin-bottom: 0;
   padding-top: 0 !important;
   padding-bottom: 0 !important;
 }
 
-#drupal-off-canvas .je-cygnet-child-editor-holder > p {
+#drupal-off-canvas-wrapper .je-cygnet-child-editor-holder > p,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) .je-cygnet-child-editor-holder > p:not(.ck *)
+{
   margin-left: 36px;
 }
 
-#drupal-off-canvas .je-cygnet-child-editor-holder > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel {
+#drupal-off-canvas-wrapper .je-cygnet-child-editor-holder > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) .je-cygnet-child-editor-holder > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel:not(.ck *)
+{
   padding: 0 !important;
 }
 
-#drupal-off-canvas [data-schematype="array"] .je-cygnet-indented-panel {
+#drupal-off-canvas-wrapper [data-schematype="array"] .je-cygnet-indented-panel,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-schematype="array"] .je-cygnet-indented-panel:not(.ck *)
+{
   padding-top: 0;
   padding-bottom: 0;
 }
 
-#drupal-off-canvas [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="array"] > .je-cygnet-indented-panel [data-schematype=array] > h3 + .je-cygnet-indented-panel {
+#drupal-off-canvas-wrapper [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="array"] > .je-cygnet-indented-panel [data-schematype=array] > h3 + .je-cygnet-indented-panel,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="array"] > .je-cygnet-indented-panel [data-schematype=array] > h3 + .je-cygnet-indented-panel:not(.ck *)
+{
   border-top: 0;
 }
 
 /* Apply borders to panels inside a nested array. */
-
-#drupal-off-canvas [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="array"] > .je-cygnet-indented-panel [data-schematype=array] > .je-cygnet-indented-panel > div > .je-cygnet-indented-panel > div > .je-cygnet-child-editor-holder > .je-cygnet-indented-panel {
+#drupal-off-canvas-wrapper [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="array"] > .je-cygnet-indented-panel [data-schematype=array] > .je-cygnet-indented-panel > div > .je-cygnet-indented-panel > div > .je-cygnet-child-editor-holder > .je-cygnet-indented-panel,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="array"] > .je-cygnet-indented-panel [data-schematype=array] > .je-cygnet-indented-panel > div > .je-cygnet-indented-panel > div > .je-cygnet-child-editor-holder > .je-cygnet-indented-panel:not(.ck *)
+{
   margin-bottom: 16px;
   margin-left: 36px !important;
   padding: 16px !important;
   border: 1px solid #d2d2d2 !important;
 }
 
-#drupal-off-canvas [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="array"] > .je-cygnet-indented-panel [data-schematype=array] > .je-cygnet-indented-panel > div > .je-cygnet-indented-panel > div > .je-cygnet-child-editor-holder > .je-cygnet-indented-panel > div > div > .row {
+#drupal-off-canvas-wrapper [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="array"] > .je-cygnet-indented-panel [data-schematype=array] > .je-cygnet-indented-panel > div > .je-cygnet-indented-panel > div > .je-cygnet-child-editor-holder > .je-cygnet-indented-panel > div > div > .row,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="array"] > .je-cygnet-indented-panel [data-schematype=array] > .je-cygnet-indented-panel > div > .je-cygnet-indented-panel > div > .je-cygnet-child-editor-holder > .je-cygnet-indented-panel > div > div > .row:not(.ck *)
+{
   margin-left: 0;
 }
 
 /* Flexbox container query hack. */
 /* https://heydonworks.com/article/the-flexbox-holy-albatross/ */
-
-#drupal-off-canvas [data-theme=cygnet] .row {
+#drupal-off-canvas-wrapper [data-theme=cygnet] .row,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] .row:not(.ck *)
+{
   --multiplier: calc(30rem - 100%);
 
   display: flex;
@@ -242,7 +323,9 @@
   margin-left: 20px;
 }
 
-#drupal-off-canvas [data-theme=cygnet] .row > div {
+#drupal-off-canvas-wrapper [data-theme=cygnet] .row > div,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] .row > div:not(.ck *)
+{
   flex-basis: calc(var(--multiplier) * 999);
   flex-grow: 1;
   min-width: 48%;
@@ -250,31 +333,44 @@
   margin-bottom: 8px;
 }
 
-#drupal-off-canvas [data-theme=cygnet] .row > div:last-child {
+#drupal-off-canvas-wrapper [data-theme=cygnet] .row > div:last-child,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] .row > div:last-child:not(.ck *)
+{
   margin-bottom: 16px;
 }
 
-#drupal-off-canvas [data-theme=cygnet] .row > * > span {
+#drupal-off-canvas-wrapper [data-theme=cygnet] .row > * > span,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] .row > * > span:not(.ck *)
+{
   margin-left: 0 !important;
 }
 
-#drupal-off-canvas [data-theme=cygnet] .row > .col-md-3 {
+#drupal-off-canvas-wrapper [data-theme=cygnet] .row > .col-md-3,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] .row > .col-md-3:not(.ck *)
+{
   min-width: 23%;
 }
 
-#drupal-off-canvas [data-theme=cygnet] .row > .col-md-4 {
+#drupal-off-canvas-wrapper [data-theme=cygnet] .row > .col-md-4,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] .row > .col-md-4:not(.ck *)
+{
   min-width: 31%;
 }
 
 /* Button styles. */
-
-#drupal-off-canvas [data-theme=cygnet] button,
-#drupal-off-canvas [data-theme=cygnet] button > span {
+#drupal-off-canvas-wrapper [data-theme=cygnet] button,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] button:not(.ck *),
+#drupal-off-canvas-wrapper [data-theme=cygnet] button > span,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] button > span:not(.ck *)
+{
   cursor: pointer;
 }
 
-#drupal-off-canvas [data-theme=cygnet] button {
+#drupal-off-canvas-wrapper [data-theme=cygnet] button,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] button:not(.ck *)
+{
   padding: 6px 16px;
+  margin-right: 4px;
   color: #06c;
   border: 1px solid #06c;
   border-radius: 3px;
@@ -283,58 +379,79 @@
   font-size: 14px;
 }
 
-#drupal-off-canvas [data-theme=cygnet] button:hover {
+#drupal-off-canvas-wrapper [data-theme=cygnet] button:hover,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] button:hover:not(.ck *)
+{
   color: #fff;
   background-color: #06c;
 }
 
-#drupal-off-canvas [data-theme=cygnet] button[title=Collapse],
-#drupal-off-canvas [data-theme=cygnet] button[title=Expand] {
+#drupal-off-canvas-wrapper [data-theme=cygnet] button[title=Collapse],
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] button[title=Collapse]:not(.ck *),
+#drupal-off-canvas-wrapper [data-theme=cygnet] button[title=Expand],
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] button[title=Expand]:not(.ck *)
+{
   padding: 0;
   border: 0;
   border-radius: 3px;
   background-color: transparent;
 }
 
-#drupal-off-canvas .je-cygnet-header-button-holder {
+#drupal-off-canvas-wrapper .je-cygnet-header-button-holder,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) .je-cygnet-header-button-holder:not(.ck *)
+{
   margin-left: 20px;
   padding: 8px 0 0 0;
 }
 
-#drupal-off-canvas [data-theme=cygnet] .json-editor-btn-add {
+#drupal-off-canvas-wrapper [data-theme=cygnet] .json-editor-btn-add,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] .json-editor-btn-add:not(.ck *)
+{
   margin-bottom: 16px;
   color: #fff;
   border: 1px solid #06c;
   background-color: #06c;
 }
 
-#drupal-off-canvas [data-theme=cygnet] .json-editor-btn-subtract,
-#drupal-off-canvas [data-theme=cygnet] .json-editor-btn-delete {
+#drupal-off-canvas-wrapper [data-theme=cygnet] .json-editor-btn-subtract,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] .json-editor-btn-subtract:not(.ck *),
+#drupal-off-canvas-wrapper [data-theme=cygnet] .json-editor-btn-delete,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] .json-editor-btn-delete:not(.ck *)
+{
   margin-bottom: 16px;
   margin-left: 16px;
   color: #e00;
   border: 1px solid #e00;
 }
 
-#drupal-off-canvas [data-theme=cygnet] .json-editor-btn-subtract:hover,
-#drupal-off-canvas [data-theme=cygnet] .json-editor-btn-delete:hover {
+#drupal-off-canvas-wrapper [data-theme=cygnet] .json-editor-btn-subtract:hover,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] .json-editor-btn-subtract:hover:not(.ck *),
+#drupal-off-canvas-wrapper [data-theme=cygnet] .json-editor-btn-delete:hover,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] .json-editor-btn-delete:hover:not(.ck *)
+{
   color: #fff;
   background-color: #e00;
 }
 
-#drupal-off-canvas [data-theme=cygnet] .json-editor-btn-moveup,
-#drupal-off-canvas [data-theme=cygnet] .json-editor-btn-movedown {
+#drupal-off-canvas-wrapper [data-theme=cygnet] .json-editor-btn-moveup,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] .json-editor-btn-moveup:not(.ck *),
+#drupal-off-canvas-wrapper [data-theme=cygnet] .json-editor-btn-movedown,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] .json-editor-btn-movedown:not(.ck *)
+{
   margin-bottom: 16px;
   margin-left: 16px;
 }
 
-#drupal-off-canvas [data-theme=cygnet] .json-editor-btntype-toggle {
+#drupal-off-canvas-wrapper [data-theme=cygnet] .json-editor-btntype-toggle,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] .json-editor-btntype-toggle:not(.ck *)
+{
   margin: 0 10px 0 0;
 }
 
 /* Accordion styles. */
-
-#drupal-off-canvas [data-theme=cygnet] button[title=Collapse]::before {
+#drupal-off-canvas-wrapper [data-theme=cygnet] button[title=Collapse]::before,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] button[title=Collapse]:not(.ck *)::before
+{
   position: relative;
   top: 3px;
   display: inline-block;
@@ -348,7 +465,9 @@
   border-width: 0 1.75px 1.75px 0;
 }
 
-#drupal-off-canvas [data-theme=cygnet] button[title=Expand]::before {
+#drupal-off-canvas-wrapper [data-theme=cygnet] button[title=Expand]::before,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] button[title=Expand]:not(.ck *)::before
+{
   position: relative;
   display: inline-block;
   width: 7px;
@@ -361,83 +480,123 @@
   border-width: 0 1.75px 1.75px 0;
 }
 
-#drupal-off-canvas [data-theme=cygnet] button[title=Collapse] > span,
-#drupal-off-canvas [data-theme=cygnet] button[title=Expand] > span {
+#drupal-off-canvas-wrapper [data-theme=cygnet] button[title=Collapse] > span,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] button[title=Collapse] > span:not(.ck *),
+#drupal-off-canvas-wrapper [data-theme=cygnet] button[title=Collapse] > i,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] button[title=Collapse] > i:not(.ck *),
+#drupal-off-canvas-wrapper [data-theme=cygnet] button[title=Expand] > span,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] button[title=Expand] > span:not(.ck *),
+#drupal-off-canvas-wrapper [data-theme=cygnet] button[title=Expand] > i,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] button[title=Expand] > i:not(.ck *)
+{
   display: none;
 }
 
 /* Indent paragraphs inside root. */
-
-#drupal-off-canvas [data-theme=cygnet] [data-schemapath=root] > p {
+#drupal-off-canvas-wrapper [data-theme=cygnet] [data-schemapath=root] > p,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] [data-schemapath=root] > p:not(.ck *)
+{
   margin-left: 20px;
 }
 
-#drupal-off-canvas [data-theme=cygnet] [data-schemapath=root] .form-control > p {
+#drupal-off-canvas-wrapper [data-theme=cygnet] [data-schemapath=root] .form-control > p,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] [data-schemapath=root] .form-control > p:not(.ck *)
+{
   margin-left: 0;
 }
 
-#drupal-off-canvas [data-theme=cygnet] [data-schematype="object"] [data-schematype="object"] p {
+#drupal-off-canvas-wrapper [data-theme=cygnet] [data-schematype="object"] [data-schematype="object"] p,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] [data-schematype="object"] [data-schematype="object"] p:not(.ck *)
+{
   font-size: 14px;
 }
 
-#drupal-off-canvas [data-theme=cygnet] [data-schematype="object"] [data-schematype="object"] p:last-child {
+#drupal-off-canvas-wrapper [data-theme=cygnet] [data-schematype="object"] [data-schematype="object"] p:last-child,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] [data-schematype="object"] [data-schematype="object"] p:last-child:not(.ck *)
+{
   margin-bottom: 0;
 }
 
-#drupal-off-canvas .je-cygnet-indented-panel > div:empty {
+#drupal-off-canvas-wrapper .je-cygnet-indented-panel > div:empty,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) .je-cygnet-indented-panel > div:empty:not(.ck *)
+{
   margin-bottom: 16px;
 }
 
 /* Remove margins on embedded forms. */
-
-#drupal-off-canvas [data-theme=cygnet] > div > .je-cygnet-indented-panel div div .row,
-#drupal-off-canvas [data-theme=cygnet] > div > .je-cygnet-indented-panel div div .row > [data-schematype="object"],
-#drupal-off-canvas [data-theme=cygnet] > div > .je-cygnet-indented-panel div div .row > [data-schematype="array"] {
+#drupal-off-canvas-wrapper [data-theme=cygnet] > div > .je-cygnet-indented-panel div div .row,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] > div > .je-cygnet-indented-panel div div .row:not(.ck *),
+#drupal-off-canvas-wrapper [data-theme=cygnet] > div > .je-cygnet-indented-panel div div .row > [data-schematype="object"],
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] > div > .je-cygnet-indented-panel div div .row > [data-schematype="object"]:not(.ck *),
+#drupal-off-canvas-wrapper [data-theme=cygnet] > div > .je-cygnet-indented-panel div div .row > [data-schematype="array"],
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] > div > .je-cygnet-indented-panel div div .row > [data-schematype="array"]:not(.ck *)
+{
   margin-left: 0;
 }
 
 /* Vertical tab styling. */
-
-#drupal-off-canvas [data-schemapath^="root.header.aside"] > .je-cygnet-tab {
+#drupal-off-canvas-wrapper [data-schemapath^="root.header.aside"] > .je-cygnet-tab,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-schemapath^="root.header.aside"] > .je-cygnet-tab:not(.ck *)
+{
   margin-left: 20px;
 }
 
-#drupal-off-canvas [data-schemapath^="root.header.aside"][class^="col-md"] > .je-cygnet-tab,
-#drupal-off-canvas [data-theme=cygnet] [data-schemapath^="root.header.aside"] .form-control {
+#drupal-off-canvas-wrapper [data-schemapath^="root.header.aside"][class^="col-md"] > .je-cygnet-tab,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-schemapath^="root.header.aside"][class^="col-md"] > .je-cygnet-tab:not(.ck *),
+#drupal-off-canvas-wrapper [data-theme=cygnet] [data-schemapath^="root.header.aside"] .form-control,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] [data-schemapath^="root.header.aside"] .form-control:not(.ck *)
+{
   margin-left: 0;
 }
 
-#drupal-off-canvas [data-schemapath^="root.header.aside"] > .je-cygnet-tab > .content {
+#drupal-off-canvas-wrapper [data-schemapath^="root.header.aside"] > .je-cygnet-tab > .content,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-schemapath^="root.header.aside"] > .je-cygnet-tab > .content:not(.ck *)
+{
   margin-left: 165px !important;
 }
 
-#drupal-off-canvas .je-cygnet-indented-panel[data-schemapath^="root.header.aside"] {
+#drupal-off-canvas-wrapper .je-cygnet-indented-panel[data-schemapath^="root.header.aside"],
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) .je-cygnet-indented-panel[data-schemapath^="root.header.aside"]:not(.ck *)
+{
   border: 1px solid #d2d2d2 !important;
 }
 
-#drupal-off-canvas .je-cygnet-indented-panel[data-schemapath^="root.header.aside"] > .je-cygnet-indented-panel > div > div > .row {
+#drupal-off-canvas-wrapper .je-cygnet-indented-panel[data-schemapath^="root.header.aside"] > .je-cygnet-indented-panel > div > div > .row,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) .je-cygnet-indented-panel[data-schemapath^="root.header.aside"] > .je-cygnet-indented-panel > div > div > .row:not(.ck *)
+{
   margin-left: 0;
 }
 
-#drupal-off-canvas [data-schemapath^="root.header.aside"] > .je-cygnet-indented-panel > span:not(.je-cygnet-header-button-holder) > button:first-child,
-#drupal-off-canvas [data-schemapath^="root.body.content"] > .je-cygnet-indented-panel > span:not(.je-cygnet-header-button-holder) > button:first-child {
+#drupal-off-canvas-wrapper [data-schemapath^="root.header.aside"] > .je-cygnet-indented-panel > span:not(.je-cygnet-header-button-holder) > button:first-child,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-schemapath^="root.header.aside"] > .je-cygnet-indented-panel > span:not(.je-cygnet-header-button-holder) > button:first-child:not(.ck *),
+#drupal-off-canvas-wrapper [data-schemapath^="root.body.content"] > .je-cygnet-indented-panel > span:not(.je-cygnet-header-button-holder) > button:first-child,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-schemapath^="root.body.content"] > .je-cygnet-indented-panel > span:not(.je-cygnet-header-button-holder) > button:first-child:not(.ck *)
+{
   margin-left: 16px;
 }
 
-#drupal-off-canvas .je-cygnet-tabs {
+#drupal-off-canvas-wrapper .je-cygnet-tabs,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) .je-cygnet-tabs:not(.ck *)
+{
   position: relative;
   left: 20px;
   display: flex;
   margin-top: 20px;
 }
-#drupal-off-canvas .je-cygnet-tabs__holder {
+#drupal-off-canvas-wrapper .je-cygnet-tabs__holder,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) .je-cygnet-tabs__holder:not(.ck *)
+{
   width: 165px;
 }
-#drupal-off-canvas .je-cygnet-tabs__content {
+#drupal-off-canvas-wrapper .je-cygnet-tabs__content,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) .je-cygnet-tabs__content:not(.ck *)
+{
   width: calc(100% - 185px);
 }
 
-#drupal-off-canvas .je-cygnet-tab {
+#drupal-off-canvas-wrapper .je-cygnet-tab,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) .je-cygnet-tab:not(.ck *)
+{
   text-align: left !important;
   border: 0 !important;
   border-left: 1px solid #d2d2d2 !important;
@@ -446,27 +605,40 @@
   font-weight: 300 !important;
 }
 
-#drupal-off-canvas .je-cygnet-tab,
-#drupal-off-canvas .je-cygnet-tab > span {
+#drupal-off-canvas-wrapper .je-cygnet-tab,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) .je-cygnet-tab:not(.ck *),
+#drupal-off-canvas-wrapper .je-cygnet-tab > span,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) .je-cygnet-tab > span:not(.ck *)
+{
   cursor: pointer !important;
 }
 
-#drupal-off-canvas .je-cygnet-tab--active {
+#drupal-off-canvas-wrapper .je-cygnet-tab--active,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) .je-cygnet-tab--active:not(.ck *)
+{
   padding: 14px 16px 16px;
   border-left: 2px solid #e00 !important;
 }
 
-#drupal-off-canvas .je-cygnet-tab--inactive {
+#drupal-off-canvas-wrapper .je-cygnet-tab--inactive,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) .je-cygnet-tab--inactive:not(.ck *)
+{
   padding: 16px;
 }
 
-#drupal-off-canvas [data-theme=cygnet] .patternkit-jsoneditor-clickable {
+#drupal-off-canvas-wrapper [data-theme=cygnet] .patternkit-jsoneditor-clickable,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] .patternkit-jsoneditor-clickable:not(.ck *)
+{
   cursor: pointer;
 }
-#drupal-off-canvas [data-theme=cygnet] .patternkit-jsoneditor-clickable label {
+#drupal-off-canvas-wrapper [data-theme=cygnet] .patternkit-jsoneditor-clickable label,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme=cygnet] .patternkit-jsoneditor-clickable label:not(.ck *)
+{
   cursor: inherit;
 }
 
-#drupal-off-canvas .patternkit-jsoneditor-clickable + div > .tabs {
+#drupal-off-canvas-wrapper .patternkit-jsoneditor-clickable + div > .tabs,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) .patternkit-jsoneditor-clickable + div > .tabs:not(.ck *)
+{
   margin-left: 40px;
 }

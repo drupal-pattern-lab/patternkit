@@ -6,6 +6,8 @@ use Drupal\Component\Annotation\Plugin\Discovery\AnnotationBridgeDecorator;
 use Drupal\Component\Plugin\CategorizingPluginManagerInterface;
 use Drupal\Component\Plugin\Discovery\DiscoveryInterface;
 use Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException;
+use Drupal\Component\Plugin\Exception\PluginException;
+use Drupal\Component\Plugin\Exception\PluginNotFoundException;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Extension\ThemeHandlerInterface;
@@ -14,6 +16,7 @@ use Drupal\Core\Plugin\Discovery\AnnotatedClassDiscovery;
 use Drupal\Core\Plugin\Discovery\ContainerDerivativeDiscoveryDecorator;
 use Drupal\Core\Plugin\FilteredPluginManagerTrait;
 use Drupal\patternkit\Annotation\PatternLibrary;
+use Drupal\patternkit\Entity\PatternInterface;
 
 /**
  * The plugin manager service for pattern library parser plugins.
@@ -165,6 +168,40 @@ class PatternLibraryPluginManager extends DefaultPluginManager implements Catego
       }
     }
     return $layout_options;
+  }
+
+  /**
+   * Load the pattern library plugin used by a given pattern.
+   *
+   * @param \Drupal\patternkit\Entity\PatternInterface $pattern
+   *   The pattern entity to load the library plugin for.
+   *
+   * @return \Drupal\patternkit\PatternLibraryPluginInterface
+   *   The loaded pattern library plugin for the given pattern.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\PluginException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   *
+   * @todo Reimplement with proper fallback plugin loading.
+   * @see \Drupal\Component\Plugin\FallbackPluginManagerInterface
+   */
+  public function getPluginForPattern(PatternInterface $pattern): PatternLibraryPluginInterface {
+    $plugin_id = $pattern->getLibraryPluginId();
+    try {
+      $plugin = $this->createInstance($plugin_id);
+    }
+    catch (PluginException $exception) {
+      // Allow plugin fall-backs of type 'base_plugin.override_plugin'.
+      $plugin_id = strstr($plugin_id, '.', TRUE);
+      if (empty($plugin_id)) {
+        throw new PluginNotFoundException($plugin_id,
+          "Unable to fetch assets for pattern " . $pattern->getPath());
+      }
+      $plugin = $this->createInstance($plugin_id);
+    }
+
+    /** @var \Drupal\patternkit\PatternLibraryPluginInterface $plugin */
+    return $plugin;
   }
 
 }

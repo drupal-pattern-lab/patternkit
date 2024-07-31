@@ -177,6 +177,9 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
       if (this.input) {
         this.input.disabled = false;
       }
+      if (this.button) {
+        this.button.disabled = false;
+      }
       super.enable();
     }
   }
@@ -309,16 +312,20 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
    * Add the preview container for selected media.
    */
   addPreview() {
-    const description = this.schema.description || '';
     this.container_id = 'je--' + this.path.replace(/\./g, '_');
 
-    this.preview = this.theme.getFormInputDescription(description);
+    const description = this.schema.description || '';
+    this.description = this.theme.getFormInputDescription(description);
+
+    // Build and attach the form control.
+    this.control = this.theme.getFormControl(this.label, this.input, this.description, null, this.formname);
+    this.container.appendChild(this.control);
+
+    // Assemble and attach the preview container.
+    this.preview = this.theme.getContainer();
     this.preview.classList.add('preview');
     this.preview.id = this.container_id + '--preview';
     this.container.appendChild(this.preview);
-
-    this.control = this.theme.getFormControl(this.label, this.input, this.preview);
-    this.container.appendChild(this.control);
 
     if (this.button && this.shouldShowUploader()) {
       this.container.appendChild(this.button);
@@ -450,8 +457,10 @@ class DrupalImageUrlEditor extends DrupalMediaEditor {
           switch (schema.format) {
             case 'image':
               return 'drupal_image_url';
+
             case 'image-media':
               return 'drupal_image_media';
+
             case 'video-media':
               return 'drupal_video_media';
           }

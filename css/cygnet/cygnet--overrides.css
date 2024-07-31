@@ -1,28 +1,16 @@
-#drupal-off-canvas [data-theme=cygnet] label {
-    color: inherit;
-    font-family: RedHatText, Helvetica, Arial, sans-serif;
-    font-size: inherit;
-    font-weight: inherit;
-    line-height: inherit;
-}
-
-#drupal-off-canvas [data-theme=cygnet] button {
-    font-family: RedHatText, Helvetica, Arial, sans-serif;
-}
+/**
+ * Rules in this file are not prefixed by gulp and must be written exactly as
+ * desired to target both off-canvas displays and elsewhere.
+ */
 
 /* Updates display and margin of OL and UL within editor area to ensure
 bullets or numbers in lists are not hidden from view in LB sidebar. */
-#drupal-off-canvas [data-theme=cygnet] .ck-editor__main ol,
-#drupal-off-canvas [data-theme=cygnet] .ck-editor__main ul {
-    display: block !important; /* needed to override core styles */
-    margin-left: 20px;
+[data-theme=cygnet] .ck-editor__main ol,
+[data-theme=cygnet] .ck-editor__main ul {
+  display: block !important; /* needed to override core styles */
+  margin-left: 20px;
 }
 
-/*
- * Upstream styles in node_modules/@json-editor/json-editor/src/style.css set
- * the height to 300px, which is too tall for all textareas. The browser
- * provides a tooltip to resize the element.
- */
-#drupal-off-canvas .je-textarea {
-  height: auto;
+#patternkit-editor-target [data-theme=cygnet] .ck.ck-editor__main > .ck-editor__editable.ck-read-only {
+  background-color: var(--disabled-input-background-color);
 }

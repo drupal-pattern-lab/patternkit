@@ -4,13 +4,11 @@ namespace Drupal\patternkit\Plugin\PatternLibrary;
 
 use Drupal\Component\Serialization\SerializationInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\File\FileUrlGeneratorInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Drupal\Core\State\StateInterface;
 use Drupal\patternkit\Asset\PatternLibraryParserInterface;
 use Drupal\patternkit\Entity\PatternInterface;
-use Drupal\patternkit\JSONSchemaEditorTrait;
 use Drupal\patternkit\PatternEditorConfig;
+use Drupal\patternkit\PatternFormBuilderInterface;
 use Drupal\patternkit\PatternLibraryPluginDefault;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -20,13 +18,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @PatternLibrary(
  *   id = "json",
  * )
- *
- * @todo Remove 'state' service injection once Drupal 10.2 is baseline support.
- *   See https://www.drupal.org/node/3358337.
  */
 class PatternLibraryJSON extends PatternLibraryPluginDefault implements ContainerFactoryPluginInterface {
-
-  use JSONSchemaEditorTrait;
 
   /**
    * Creates a new PatternLibraryJSON plugin instance.
@@ -34,42 +27,35 @@ class PatternLibraryJSON extends PatternLibraryPluginDefault implements Containe
    * @param string $root
    *   The application root path.
    *   e.g. '/var/www/docroot'.
-   * @param \Drupal\Component\Serialization\SerializationInterface $serializer
-   *   Serialization service.
-   * @param \Drupal\Core\State\StateInterface $state
-   *   Static state of the application.
    * @param \Drupal\patternkit\Asset\PatternLibraryParserInterface $parser
    *   Pattern library parser service.
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
    *   Extension config retrieval.
-   * @param \Drupal\Core\File\FileUrlGeneratorInterface $file_url_generator
-   *   The file url generator service.
+   * @param \Drupal\Component\Serialization\SerializationInterface $serializer
+   *   Serialization service.
+   * @param \Drupal\patternkit\PatternFormBuilderInterface $formBuilder
+   *   The pattern form builder service.
    * @param array $configuration
    *   Config.
    * @param string $plugin_id
    *   Plugin ID.
    * @param mixed $plugin_definition
-   *   Plugin Definition.
+   *   Plugin definition.
    */
   public function __construct(
     $root,
-    SerializationInterface $serializer,
-    StateInterface $state,
     PatternLibraryParserInterface $parser,
-    ConfigFactoryInterface $config_factory,
-    FileUrlGeneratorInterface $file_url_generator,
+    ConfigFactoryInterface $configFactory,
+    protected SerializationInterface $serializer,
+    protected PatternFormBuilderInterface $formBuilder,
     array $configuration,
     string $plugin_id,
-    $plugin_definition,
+    mixed $plugin_definition,
   ) {
-    $this->serializer = $serializer;
-    $this->state = $state;
-    $this->fileUrlGenerator = $file_url_generator;
-
     parent::__construct(
       $root,
       $parser,
-      $config_factory,
+      $configFactory,
       $configuration,
       $plugin_id,
       $plugin_definition
@@ -77,51 +63,39 @@ class PatternLibraryJSON extends PatternLibraryPluginDefault implements Containe
   }
 
   /**
-   * Creates a new Pattern Library using the given container.
-   *
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): self {
-    $root = $container->getParameter('app.root');
-    $serializer = $container->get('serialization.json');
-    $state = $container->get('state');
-    $json_parser = $container->get('patternkit.asset.library.parser.json');
-    $config_factory = $container->get('config.factory');
-    $file_url_generator = $container->get('file_url_generator');
-
-    $plugin = new static(
-      $root,
-      $serializer,
-      $state,
-      $json_parser,
-      $config_factory,
-      $file_url_generator,
+    return new static(
+      $container->getParameter('app.root'),
+      $container->get('patternkit.asset.library.parser.json'),
+      $container->get('config.factory'),
+      $container->get('serialization.json'),
+      $container->get('patternkit.jsoneditor.form_builder'),
       $configuration,
       $plugin_id,
-      $plugin_definition
+      $plugin_definition,
     );
-
-    // Conditionally inject the editor plugin manager if it is available.
-    if ($container->has('plugin.manager.editor')) {
-      $plugin->setEditorPluginManager($container->get('plugin.manager.editor'));
-    }
-
-    // Conditionally inject the query string service if it is available.
-    if ($container->has('asset.query_string')) {
-      $plugin->setQueryStringService($container->get('asset.query_string'));
-    }
-
-    return $plugin;
   }
 
   /**
    * {@inheritdoc}
    */
   public function getEditor(?PatternInterface $pattern = NULL, ?PatternEditorConfig $config = NULL): array {
-    $config ??= new PatternEditorConfig();
-    $config->hostname = \Drupal::request()->getHost() ?? 'default';
-    // @todo Update config JS/CSS with module path.
-    return $this->schemaEditor($pattern->getSchema() ?? '', $config);
+    @trigger_error(__METHOD__ . ' is deprecated in patternkit:9.1.0-beta10 and is removed from patternkit:9.1.0. Use \Drupal\patternkit\Plugin\PatternLibrary\PatternLibraryJSON::getPatternEditor instead. See https://www.drupal.org/project/patternkit/issues/3386854', E_USER_DEPRECATED);
+    if ($pattern !== NULL) {
+      return $this->getPatternEditor($pattern);
+    }
+    else {
+      return [];
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getPatternEditor(PatternInterface $pattern, array $editor_config = []): array {
+    return $this->formBuilder->buildEditorForm($pattern, $editor_config);
   }
 
   /**

@@ -122,10 +122,12 @@ services:
     class: Drupal\patternkit\StreamWrapper\LibraryStream
     tags:
       - { name: stream_wrapper, scheme: library }
+    deprecated: 'The "%service_id%" service is deprecated and is removed in patternkit:9.1.0.'
   stream_wrapper.patternkit:
     class: Drupal\patternkit\StreamWrapper\PatternkitStream
     tags:
       - { name: stream_wrapper, scheme: patternkit }
+    deprecated: 'The "%service_id%" service is deprecated and is removed in patternkit:9.1.0.'
   twig.loader.patternlibrary:
     class: Drupal\patternkit\Loader\PatternLibraryLoader
     # We use '.' instead of '@app.root' as the path for non-namespaced template
@@ -194,6 +196,20 @@ services:
     arguments:
       - '@patternkit.schema.schema_factory'
     public: false
+  patternkit.jsoneditor.form_builder:
+    class: Drupal\patternkit\JsonEditorFormBuilder
+    arguments:
+      - '@plugin.manager.library.pattern'
+      - '@config.factory'
+      - '@entity_type.manager'
+      - '@state'
+      - '@logger.channel.patternkit'
+      - '@messenger'
+      - '@string_translation'
+    calls:
+      - ['setEditorPluginManager', ['@?plugin.manager.editor']]
+      - ['setQueryStringService', ['@?asset.query_string']]
+  Drupal\patternkit\PatternFormBuilderInterface: '@patternkit.jsoneditor.form_builder'
   cache.patternkit:
     class: Drupal\Core\Cache\CacheBackendInterface
     tags:

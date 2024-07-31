@@ -4,7 +4,6 @@ namespace Drupal\patternkit\Asset\PatternLibraryParser;
 
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Exception\MissingTemplateException;
-use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternLibrary;
 use Webmozart\Assert\Assert;
 
@@ -23,11 +22,8 @@ class TwigPatternLibraryParser extends JSONPatternLibraryParser {
    *
    * @throws \Drupal\patternkit\Exception\MissingTemplateException
    */
-  public function fetchPatternAssets(
-    PatternInterface $pattern,
-    PatternEditorConfig $config = NULL,
-  ): array {
-    $assets = parent::fetchPatternAssets($pattern, $config);
+  public function fetchPatternAssets(PatternInterface $pattern): array {
+    $assets = parent::fetchPatternAssets($pattern);
 
     // Test to ensure necessary assets were found.
     if (empty($assets['twig'])) {

@@ -3,7 +3,6 @@
 namespace Drupal\patternkit\Asset;
 
 use Drupal\patternkit\Entity\PatternInterface;
-use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternLibrary;
 
 /**
@@ -43,13 +42,11 @@ interface PatternLibraryParserInterface {
    *
    * @param \Drupal\patternkit\Entity\PatternInterface $pattern
    *   The pattern to use for asset retrieval.
-   * @param \Drupal\patternkit\PatternEditorConfig|null $config
-   *   The configuration object to use for provisioning the pattern.
    *
    * @return array
    *   The pattern assets keyed by path or type.
    */
-  public function fetchPatternAssets(PatternInterface $pattern, PatternEditorConfig $config = NULL): array;
+  public function fetchPatternAssets(PatternInterface $pattern): array;
 
   /**
    * Parses a given library file and allows modules and themes to alter it.

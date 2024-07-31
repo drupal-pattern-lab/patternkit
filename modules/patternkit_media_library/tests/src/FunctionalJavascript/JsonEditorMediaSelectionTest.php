@@ -244,7 +244,8 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
     $assert->fieldValueEquals($field_name, $file_uri);
 
     // Confirm the preview image is displaying as expected.
-    $this->assertElementExistsAfterWait('css', '#je--root_image_url--preview img');
+    $css_target = '#patternkit-editor-target div[data-schemapath="root.image_url"] .preview img';
+    $this->assertElementExistsAfterWait('css', $css_target);
 
     // Save the layout to confirm it displays as expected.
     $page->pressButton('Add block');

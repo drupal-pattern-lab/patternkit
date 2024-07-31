@@ -1,50 +1,52 @@
 [data-theme=cygnet] {
-  margin-top: 32px;
+  margin-top: 18px;
+  padding: 0 1em;
   color: #151515;
   font-family: RedHatText, Helvetica, Arial, sans-serif;
   font-weight: 300;
 }
 
-[data-theme=cygnet] a {
-  color: #06c;
+/* Variable definition */
+[data-theme=cygnet] {
+  --disabled-input-background-color: #ccc;
 }
 
-[data-theme=cygnet] h3 {
+/* Form header styles. */
+[data-theme=cygnet] .je-header {
   margin: 0 0 16px 0;
-  font-size: 18px;
-  font-weight: 300;
-}
-
-[data-theme=cygnet] h3 > label {
-  position: relative;
-  top: 4px;
-  margin-right: 16px;
-}
-
-[data-theme=cygnet] p {
-  margin-top: 0;
-  margin-left: 20px;
+  font-size: 24px;
 }
 
 /* Set largest font-size for top level titles. */
-
-[data-theme=cygnet] [data-schemapath=root] > h3 {
+[data-theme=cygnet] [data-schemapath=root] > .je-header {
   font-size: 28px;
 }
 
-.je-cygnet-form-input-label {
+[data-theme=cygnet] .je-header > label {
+  display: inline-block;
+  position: relative;
+  top: 4px;
+  margin-right: 16px;
+  font-size: inherit;
+}
+
+[data-theme=cygnet] .je-object__controls {
+  display: block;
+  margin-bottom: 8px;
+}
+
+/* Form labels. */
+[data-theme=cygnet] .je-cygnet-form-input-label {
   display: block;
   padding-bottom: 4px;
-  font-family: RedHatDisplay, Helvetica, Arial, sans-serif;
-  font-size: 14px;
   font-weight: 700;
 }
 
+/* Reduce font weight for description tags. */
 [data-theme=cygnet] p.je-cygnet-form-input-label {
   font-weight: 300;
 }
 
-#patternkit-editor-target [data-theme=cygnet] label.required::after,
 [data-theme=cygnet] label.required::after {
   display: inline;
   padding-left: 4px;
@@ -52,8 +54,19 @@
   color: #e00;
 }
 
-.je-cygnet-indented-panel {
+[data-theme=cygnet] a {
+  color: #06c;
+}
+
+[data-theme=cygnet] .je-cygnet-indented-panel {
+  padding-top: 16px;
   margin-bottom: 16px;
+  border-radius: 3px;
+}
+
+[data-theme=cygnet] p {
+  margin-top: 0;
+  margin-left: 20px;
 }
 
 [data-theme=cygnet] input[type=text],
@@ -61,15 +74,22 @@
 [data-theme=cygnet] select,
 [data-theme=cygnet] textarea {
   box-sizing: border-box;
-  width: 100% !important;
+  width: 100%;
   margin-bottom: 4px !important;
   margin-left: 0 !important;
   padding: 4px 8px !important;
   border: 1px solid #d2d2d2;
   border-bottom: 1px solid #6a6e73;
-  background-color: #fff !important;
+  background-color: #fff;
   font-family: RedHatText, Helvetica, Arial, sans-serif;
   font-size: 16px;
+}
+
+[data-theme=cygnet] .form-control input:disabled,
+[data-theme=cygnet] .form-control select:disabled,
+[data-theme=cygnet] .form-control textarea:disabled,
+[data-theme=cygnet] button:disabled {
+  background-color: var(--disabled-input-background-color);
 }
 
 [data-theme=cygnet] select {
@@ -77,17 +97,13 @@
   font-style: normal !important;
 }
 
-[data-theme=cygnet] input[type=text],
-[data-theme=cygnet] input[type=url] {
-  width: 80%;
-}
-
-.je-cygnet-indented-panel {
-  border-radius: 3px;
+/* Duplicate upstream rules for increased specificity. */
+[data-theme=cygnet] .je-edit-json--textarea {
+  height: 170px;
+  display: block;
 }
 
 /* Gray background on second-level objects and arrays. */
-
 [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] .je-cygnet-indented-panel,
 [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] .je-cygnet-indented-panel {
   padding: 16px 16px 0 16px !important;
@@ -97,7 +113,6 @@
 }
 
 /* White background on objects beneath the second-level objects and arrays. */
-
 [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] .je-cygnet-indented-panel .je-cygnet-indented-panel,
 [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] .je-cygnet-indented-panel .je-cygnet-indented-panel {
   background-color: #fff;
@@ -110,7 +125,6 @@
 }
 
 /* Objects and arrays nested two layers beneath the second level have no padding or borders.  */
-
 [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel .je-cygnet-indented-panel .je-cygnet-indented-panel,
 [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] > .je-cygnet-indented-panel .je-cygnet-indented-panel .je-cygnet-indented-panel {
   padding: 0 !important;
@@ -122,7 +136,6 @@
 }
 
 /* Indent objects and arrays on the second level. */
-
 [data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object],
 [data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] {
   margin-left: 20px;
@@ -134,7 +147,6 @@
 }
 
 /* Indent second-level rows. */
-
 [data-theme=cygnet] > [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row {
   margin-left: 20px;
 }
@@ -143,15 +155,7 @@
   margin-left: 0;
 }
 
-/* Indent top-level string fields. */
-
-[data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=string] {
-  margin-left: 36px;
-}
-
-
 /* White background on second-level objects */
-
 [data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel > [data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > div > .je-cygnet-indented-panel {
   margin-left: 20px !important;
   border: 1px solid #d2d2d2 !important;
@@ -174,19 +178,16 @@
 }
 
 /* Apply gray border to panels inside arrays. */
-
 [data-schematype=array] > .je-cygnet-indented-panel {
   border: 1px solid #d2d2d2 !important;
 }
 
 /* Remove gray border from panels inside arrays. */
-
 [data-schematype=array] > .je-cygnet-indented-panel [data-schematype=array] > .je-cygnet-indented-panel {
   border: 0 !important;
 }
 
 /* Remove margin and padding from panels nested within child-editor. */
-
 .je-cygnet-child-editor-holder > .je-cygnet-indented-panel {
   margin-bottom: 0;
   padding-top: 0 !important;
@@ -211,7 +212,6 @@
 }
 
 /* Apply borders to panels inside a nested array. */
-
 [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="array"] > .je-cygnet-indented-panel [data-schematype=array] > .je-cygnet-indented-panel > div > .je-cygnet-indented-panel > div > .je-cygnet-child-editor-holder > .je-cygnet-indented-panel {
   margin-bottom: 16px;
   margin-left: 36px !important;
@@ -225,7 +225,6 @@
 
 /* Flexbox container query hack. */
 /* https://heydonworks.com/article/the-flexbox-holy-albatross/ */
-
 [data-theme=cygnet] .row {
   --multiplier: calc(30rem - 100%);
 
@@ -260,7 +259,6 @@
 }
 
 /* Button styles. */
-
 [data-theme=cygnet] button,
 [data-theme=cygnet] button > span {
   cursor: pointer;
@@ -268,6 +266,7 @@
 
 [data-theme=cygnet] button {
   padding: 6px 16px;
+  margin-right: 4px;
   color: #06c;
   border: 1px solid #06c;
   border-radius: 3px;
@@ -326,7 +325,6 @@
 }
 
 /* Accordion styles. */
-
 [data-theme=cygnet] button[title=Collapse]::before {
   position: relative;
   top: 3px;
@@ -355,12 +353,13 @@
 }
 
 [data-theme=cygnet] button[title=Collapse] > span,
-[data-theme=cygnet] button[title=Expand] > span {
+[data-theme=cygnet] button[title=Collapse] > i,
+[data-theme=cygnet] button[title=Expand] > span,
+[data-theme=cygnet] button[title=Expand] > i {
   display: none;
 }
 
 /* Indent paragraphs inside root. */
-
 [data-theme=cygnet] [data-schemapath=root] > p {
   margin-left: 20px;
 }
@@ -382,7 +381,6 @@
 }
 
 /* Remove margins on embedded forms. */
-
 [data-theme=cygnet] > div > .je-cygnet-indented-panel div div .row,
 [data-theme=cygnet] > div > .je-cygnet-indented-panel div div .row > [data-schematype="object"],
 [data-theme=cygnet] > div > .je-cygnet-indented-panel div div .row > [data-schematype="array"] {
@@ -390,7 +388,6 @@
 }
 
 /* Vertical tab styling. */
-
 [data-schemapath^="root.header.aside"] > .je-cygnet-tab {
   margin-left: 20px;
 }
