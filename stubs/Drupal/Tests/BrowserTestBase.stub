@@ -1,0 +1,7 @@
+<?php
+
+namespace Drupal\Tests;
+
+use PHPUnit\Framework\TestCase;
+
+abstract class BrowserTestBase extends TestCase { }

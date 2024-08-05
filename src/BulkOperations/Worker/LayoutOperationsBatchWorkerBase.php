@@ -74,7 +74,7 @@ abstract class LayoutOperationsBatchWorkerBase implements ContainerInjectionInte
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container) {
+  public static function create(ContainerInterface $container): static {
     return new static(
       $container->get('queue'),
       $container->get('plugin.manager.queue_worker'),
@@ -105,9 +105,12 @@ abstract class LayoutOperationsBatchWorkerBase implements ContainerInjectionInte
       $item = $this->queue->claimItem();
 
       try {
-        $worker->processItem($item->data);
-        $this->queue->deleteItem($item);
-        $context['sandbox']['progress']++;
+        // @todo Handle scenario when a queue item fails to load.
+        if (is_object($item)) {
+          $worker->processItem($item->data);
+          $this->queue->deleteItem($item);
+          $context['sandbox']['progress']++;
+        }
       }
       catch (\Exception $exception) {
         // In case of an exception, log it and leave the item in the queue to be

@@ -24,6 +24,8 @@ use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
+use Swaggest\JsonSchema\Schema;
+use Webmozart\Assert\InvalidArgumentException;
 
 /**
  * Unit tests for the JsonEditorFormBuilder service.
@@ -122,6 +124,20 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
   protected JsonEditorFormBuilder $builder;
 
   /**
+   * A mocked pattern entity for use in relevant tests.
+   *
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Entity\PatternInterface>
+   */
+  protected ObjectProphecy $pattern;
+
+  /**
+   * A mocked schema string for relevant tests.
+   *
+   * @var string
+   */
+  protected string $schema;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp(): void {
@@ -146,6 +162,12 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
       $this->messenger->reveal(),
       $this->stringTranslation,
     );
+
+    // Prepare a mocked schema and pattern for tests.
+    $schema_obj = $this->getRandomGenerator()->object();
+    $this->schema = json_encode($schema_obj);
+    $this->pattern = $this->prophesize(PatternInterface::class);
+    $this->pattern->getSchema()->willReturn($this->schema);
   }
 
   /**
@@ -157,7 +179,6 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
    * @uses \Drupal\Core\Render\BubbleableMetadata::mergeAttachments()
    */
   public function testBuildEditorFormWithoutWysiwyg(): void {
-    $pattern = $this->prophesize(PatternInterface::class);
     $settings = [
       // Provide a query string to sidestep loading it during this test.
       'ajaxCacheBuster' => 'cache_buster_string',
@@ -172,7 +193,7 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
       ->willReturn(FALSE);
 
     // Build the editor form for testing.
-    $form = $this->builder->buildEditorForm($pattern->reveal(), $settings);
+    $form = $this->builder->buildEditorForm($this->pattern->reveal(), $settings);
 
     // Confirm the basic structure is prepared.
     $this->assertBasicFormStructure($form);
@@ -180,6 +201,67 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
     // Confirm theme and icon attachments are present.
     $this->assertContains('patternkit/cygnet_no_shadow_dom', $form['#attached']['library']);
     $this->assertContains('patternkit/icons.fontawesome3', $form['#attached']['library']);
+
+    // Confirm editor settings with added schema JSON are attached.
+    $expected = $settings + ['schemaJson' => $this->schema];
+    $this->assertEquals($expected, $form['#attached']['drupalSettings']['patternkitEditor']);
+  }
+
+  /**
+   * @covers ::buildEditorForm
+   * @uses \Webmozart\Assert\Assert
+   */
+  public function testBuildEditorFormWithoutSchemaData(): void {
+    $this->expectException(InvalidArgumentException::class);
+    $this->expectExceptionMessage('If no pattern is provided, the schema should be assigned in $settings["schemaJson"].');
+
+    // Call the method and trigger the expected exception.
+    $this->builder->buildEditorForm();
+  }
+
+  /**
+   * @covers ::buildEditorForm
+   * @uses \Webmozart\Assert\Assert
+   * @uses \Swaggest\JsonSchema\Schema
+   */
+  public function testBuildEditorFormWithInvalidSchemaData(): void {
+    $schema = $this->prophesize(Schema::class);
+    $settings = ['schemaJson' => $schema];
+
+    $this->expectException(InvalidArgumentException::class);
+    $this->expectExceptionMessage('The schema JSON value assigned to "schemaJson" should be a string.');
+
+    // Call the method and trigger the expected exception.
+    $this->builder->buildEditorForm(settings: $settings);
+  }
+
+  /**
+   * @covers ::buildEditorForm
+   * @covers ::supportsWysiwygEditor
+   * @covers ::attachAssets
+   * @covers ::getThemeAttachments
+   * @covers ::getIconAttachments
+   * @uses \Drupal\Core\Render\BubbleableMetadata::mergeAttachments()
+   * @uses \Webmozart\Assert\Assert
+   */
+  public function testBuildEditorFormWithoutPattern(): void {
+    $settings = [
+      // Provide a query string to sidestep loading it during this test.
+      'ajaxCacheBuster' => 'cache_buster_string',
+
+      // Set schema data to be used.
+      'schemaJson' => $this->schema,
+    ];
+
+    // Mimic no editor support.
+    $this->entityTypeManager->hasHandler('editor', 'storage')
+      ->willReturn(FALSE);
+
+    // Build the editor form for testing.
+    $form = $this->builder->buildEditorForm(settings: $settings);
+
+    // Confirm the basic structure is prepared.
+    $this->assertBasicFormStructure($form);
 
     // Confirm editor settings are attached.
     $this->assertEquals($settings, $form['#attached']['drupalSettings']['patternkitEditor']);
@@ -198,7 +280,6 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
    * @uses \Drupal\Core\Render\BubbleableMetadata::mergeAttachments()
    */
   public function testBuildEditorFormWithWysiwyg(): void {
-    $pattern = $this->prophesize(PatternInterface::class);
     $settings = [
       // Provide a query string to sidestep loading it during this test.
       'ajaxCacheBuster' => 'cache_buster_string',
@@ -259,7 +340,7 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
     $editor_plugin->getJSSettings($editor_entity->reveal())->willReturn($editor_settings);
 
     // Build the editor form for testing.
-    $form = $this->builder->buildEditorForm($pattern->reveal(), $settings);
+    $form = $this->builder->buildEditorForm($this->pattern->reveal(), $settings);
 
     // Confirm the basic structure is prepared.
     $this->assertBasicFormStructure($form);
@@ -269,7 +350,9 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
     $this->assertContains('patternkit/icons.fontawesome3', $form['#attached']['library']);
 
     // Confirm editor settings are attached.
-    $this->assertArraySubset($settings, $form['#attached']['drupalSettings']['patternkitEditor']);
+    // Confirm editor settings with added schema JSON are attached.
+    $expected = $settings + ['schemaJson' => $this->schema];
+    $this->assertArraySubset($expected, $form['#attached']['drupalSettings']['patternkitEditor']);
 
     // Confirm CKEditor settings are attached.
     $patternkitCKEditorConfig = $form['#attached']['drupalSettings']['patternkitEditor']['patternkitCKEditorConfig'];
@@ -285,7 +368,6 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
    * @uses \Drupal\Core\Render\BubbleableMetadata::mergeAttachments()
    */
   public function testThemeLoadFailure(): void {
-    $pattern = $this->prophesize(PatternInterface::class);
     $settings = [
       // Provide a query string to sidestep loading it during this test.
       'ajaxCacheBuster' => 'cache_buster_string',
@@ -304,14 +386,17 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
       ->shouldBeCalledOnce();
 
     // Build the editor form for testing.
-    $form = $this->builder->buildEditorForm($pattern->reveal(), $settings);
+    $form = $this->builder->buildEditorForm($this->pattern->reveal(), $settings);
 
     // Confirm the basic structure is prepared.
     $this->assertBasicFormStructure($form);
 
     // Confirm other attachments are still included.
     $this->assertContains('patternkit/patternkit.jsoneditor', $form['#attached']['library']);
-    $this->assertEquals($settings, $form['#attached']['drupalSettings']['patternkitEditor']);
+
+    // Confirm editor settings with added schema JSON are attached.
+    $expected = $settings + ['schemaJson' => $this->schema];
+    $this->assertEquals($expected, $form['#attached']['drupalSettings']['patternkitEditor']);
   }
 
   /**
@@ -322,7 +407,6 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
    * @uses \Drupal\Core\Render\BubbleableMetadata::mergeAttachments()
    */
   public function testIconsLoadFailure(): void {
-    $pattern = $this->prophesize(PatternInterface::class);
     $settings = [
       // Provide a query string to sidestep loading it during this test.
       'ajaxCacheBuster' => 'cache_buster_string',
@@ -341,14 +425,17 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
       ->shouldBeCalledOnce();
 
     // Build the editor form for testing.
-    $form = $this->builder->buildEditorForm($pattern->reveal(), $settings);
+    $form = $this->builder->buildEditorForm($this->pattern->reveal(), $settings);
 
     // Confirm the basic structure is prepared.
     $this->assertBasicFormStructure($form);
 
     // Confirm other attachments are still included.
     $this->assertContains('patternkit/patternkit.jsoneditor', $form['#attached']['library']);
-    $this->assertEquals($settings, $form['#attached']['drupalSettings']['patternkitEditor']);
+
+    // Confirm editor settings with added schema JSON are attached.
+    $expected = $settings + ['schemaJson' => $this->schema];
+    $this->assertEquals($expected, $form['#attached']['drupalSettings']['patternkitEditor']);
   }
 
   /**
@@ -362,7 +449,6 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
    * @covers ::config
    */
   public function testEditorPluginException(): void {
-    $pattern = $this->prophesize(PatternInterface::class);
     $settings = [
       // Provide a query string to sidestep loading it during this test.
       'ajaxCacheBuster' => 'cache_buster_string',
@@ -412,10 +498,14 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
     $this->messenger->addError(Argument::that($translation_test))->shouldBeCalledOnce();
 
     // Build the editor form for testing.
-    $form = $this->builder->buildEditorForm($pattern->reveal(), $settings);
+    $form = $this->builder->buildEditorForm($this->pattern->reveal(), $settings);
 
     // Confirm the form should still be built as expected otherwise.
     $this->assertBasicFormStructure($form);
+
+    // Confirm editor settings with added schema JSON are attached.
+    $expected = $settings + ['schemaJson' => $this->schema];
+    $this->assertEquals($expected, $form['#attached']['drupalSettings']['patternkitEditor']);
   }
 
   /**

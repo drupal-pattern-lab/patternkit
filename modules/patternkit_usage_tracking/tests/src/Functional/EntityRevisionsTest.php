@@ -85,7 +85,7 @@ class EntityRevisionsTest extends PatternkitBrowserTestBase {
     $node = $this->nodeStorage->load(1);
     $this->assertInstanceOf(Node::class, $node);
     $this->placePatternBlockInLayout($node, $block);
-    $node->moderation_state = 'published';
+    $node->set('moderation_state', 'published');
     $node->save();
     $original_revision_id = $node->getRevisionId();
 
@@ -107,7 +107,7 @@ class EntityRevisionsTest extends PatternkitBrowserTestBase {
     // Place the new block in the layout and save a new revision.
     $this->placePatternBlockInLayout($node, $block);
     $node->setNewRevision();
-    $node->moderation_state = 'draft';
+    $node->set('moderation_state', 'draft');
     $node->save();
     $new_revision_id = $node->getRevisionId();
     $this->assertNotEquals($original_revision_id, $new_revision_id);
@@ -129,7 +129,7 @@ class EntityRevisionsTest extends PatternkitBrowserTestBase {
 
     // Publish the new revision to expose additional patterns. Records for
     // previously discovered revisions should be either updated or removed.
-    $node->moderation_state = 'published';
+    $node->set('moderation_state', 'published');
     $node->save();
     $published_revision_id = $node->getRevisionId();
 

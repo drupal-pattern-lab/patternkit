@@ -31,6 +31,8 @@ use Swaggest\JsonSchema\InvalidValue;
  * @uses \Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait
  * @uses \Drupal\patternkit\PatternkitEnvironmentAwareTrait
  * @group patternkit
+ *
+ * @extends \Drupal\Tests\patternkit\Unit\Asset\PatternLibraryParser\PatternLibraryParserTestBase<\Drupal\patternkit\Asset\PatternLibraryParser\TwigPatternLibraryParser>
  */
 class TwigPatternLibraryParserTest extends PatternLibraryParserTestBase {
 
@@ -91,7 +93,7 @@ class TwigPatternLibraryParserTest extends PatternLibraryParserTestBase {
   /**
    * Data provider for testCreatePattern().
    */
-  public static function providerCreatePattern() {
+  public static function providerCreatePattern(): array {
     $cases = [];
 
     $cases['no title'] = [
@@ -126,7 +128,7 @@ class TwigPatternLibraryParserTest extends PatternLibraryParserTestBase {
    * @uses \Drupal\patternkit\Asset\PatternLibraryParser\TwigPatternLibraryParser::createPattern()
    * @uses \Drupal\patternkit\Asset\PatternLibraryParserBase
    */
-  public function testParsePatternLibraryInfo() {
+  public function testParsePatternLibraryInfo(): void {
     $lib = vfsStream::newDirectory('lib');
     $this->vfsRoot->addChild($lib);
     vfsStream::copyFromFileSystem(__DIR__ . '/../../../../modules/patternkit_test/lib/patternkit/src', $lib);
@@ -180,7 +182,7 @@ class TwigPatternLibraryParserTest extends PatternLibraryParserTestBase {
    * @uses \Drupal\patternkit\Schema\UnresolvedSchema
    * @uses \Swaggest\JsonSchema\Context
    */
-  public function testFetchPatternAssets() {
+  public function testFetchPatternAssets(): void {
     $json = '{"content":"MY JSON"}';
     $twig_content = 'This is my {{ twig }} content.';
     $dependencies = ['@my_pattern_dependency'];
@@ -247,7 +249,7 @@ class TwigPatternLibraryParserTest extends PatternLibraryParserTestBase {
    * @covers \Drupal\patternkit\Asset\PatternLibraryParserBase::fetchPatternAssets
    * @covers \Drupal\patternkit\Asset\PatternLibraryParserBase::__construct
    */
-  public function testFetchPatternAssetsWithMissingSchema() {
+  public function testFetchPatternAssetsWithMissingSchema(): void {
     $twig_content = 'This is my {{ twig }} content.';
     $pattern_id = '@my_library/my_asset_file';
 
@@ -276,7 +278,7 @@ class TwigPatternLibraryParserTest extends PatternLibraryParserTestBase {
    * @covers \Drupal\patternkit\Asset\PatternLibraryParserBase::fetchPatternAssets
    * @covers \Drupal\patternkit\Asset\PatternLibraryParserBase::__construct
    */
-  public function testFetchPatternAssetsWithMissingTemplate() {
+  public function testFetchPatternAssetsWithMissingTemplate(): void {
     $schema_content = '{"my": "schema"}';
     $pattern_id = '@my_library/my_asset_file';
 

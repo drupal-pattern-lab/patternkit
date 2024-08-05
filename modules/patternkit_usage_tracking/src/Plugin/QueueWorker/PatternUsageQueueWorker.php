@@ -36,20 +36,6 @@ class PatternUsageQueueWorker extends LayoutQueueWorkerBase {
   public const QUEUE_ID = 'patternkit_usage_tracking';
 
   /**
-   * The pattern usage manager service.
-   *
-   * @var \Drupal\patternkit_usage_tracking\PatternUsageManager
-   */
-  protected PatternUsageManager $usageManager;
-
-  /**
-   * The pattern layout usage tracker service.
-   *
-   * @var \Drupal\patternkit_usage_tracking\LayoutUsageTracker
-   */
-  protected LayoutUsageTracker $layoutUsageTracker;
-
-  /**
    * Constructs a PatternUsageQueueWorker object.
    *
    * @param array<string, mixed> $configuration
@@ -72,15 +58,15 @@ class PatternUsageQueueWorker extends LayoutQueueWorkerBase {
    *   The string translation service.
    * @param \Drupal\Core\Messenger\MessengerInterface $messenger
    *   The messenger service.
-   * @param \Drupal\patternkit_usage_tracking\PatternUsageManager $pattern_usage_manager
+   * @param \Drupal\patternkit_usage_tracking\PatternUsageManager $patternUsageManager
    *   The pattern usage tracking manager service.
-   * @param \Drupal\patternkit_usage_tracking\LayoutUsageTracker $layout_usage_tracker
+   * @param \Drupal\patternkit_usage_tracking\LayoutUsageTracker $layoutUsageTracker
    *   The layout usage tracker service.
    */
   public function __construct(
     array $configuration,
-    $plugin_id,
-    $plugin_definition,
+    string $plugin_id,
+    mixed $plugin_definition,
     EntityTypeManagerInterface $entity_type_manager,
     LayoutHelper $layout_helper,
     SectionStorageManagerInterface $section_storage_manager,
@@ -88,8 +74,8 @@ class PatternUsageQueueWorker extends LayoutQueueWorkerBase {
     LoggerChannelInterface $logger,
     TranslationInterface $string_translation,
     MessengerInterface $messenger,
-    PatternUsageManager $pattern_usage_manager,
-    LayoutUsageTracker $layout_usage_tracker,
+    protected readonly PatternUsageManager $patternUsageManager,
+    protected readonly LayoutUsageTracker $layoutUsageTracker,
   ) {
     parent::__construct(
       $configuration,
@@ -103,9 +89,6 @@ class PatternUsageQueueWorker extends LayoutQueueWorkerBase {
       $string_translation,
       $messenger
     );
-
-    $this->usageManager = $pattern_usage_manager;
-    $this->layoutUsageTracker = $layout_usage_tracker;
   }
 
   /**

@@ -24,9 +24,9 @@ class TokenProcessorTest extends UnitTestCase {
   /**
    * The token processing service for parsing and loading token values.
    *
-   * @var \Drupal\Core\Utility\Token
+   * @var \Drupal\Core\Utility\Token&\PHPUnit\Framework\MockObject\MockObject
    */
-  protected Token $token;
+  protected Token&MockObject $token;
 
   /**
    * The twig environment service for rendering twig output.
@@ -45,9 +45,9 @@ class TokenProcessorTest extends UnitTestCase {
   /**
    * A mock config factory for accessing patternkit settings.
    *
-   * @var \PHPUnit\Framework\MockObject\MockObject|\Drupal\Core\Config\ConfigFactoryInterface
+   * @var \Drupal\Core\Config\ConfigFactoryInterface&\PHPUnit\Framework\MockObject\MockObject
    */
-  protected MockObject|ConfigFactoryInterface $configFactory;
+  protected ConfigFactoryInterface&MockObject $configFactory;
 
   /**
    * {@inheritdoc}

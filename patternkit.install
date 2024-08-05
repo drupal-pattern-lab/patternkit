@@ -20,25 +20,8 @@ use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternRouteProvider;
 use Drupal\patternkit\Form\PatternLibraryJSONForm;
 use Drupal\user\Entity\Role;
+use Drupal\user\RoleInterface;
 use Drupal\views\EntityViewsData;
-
-/**
- * Implements hook_requirements().
- */
-function patternkit_requirements($phase): array {
-  $requirements = [];
-
-  if (version_compare(\Drupal::VERSION, 8.9, '<')) {
-    $requirements['patternkit_drupal_version'] = [
-      'title' => t('Patternkit Drupal Version'),
-      'value' => 8.9,
-      'description' => t('Running a Drupal version prior to 8.9 can cause issues with schema, caching, and display. Upgrade as soon as possible, or see the README.md for patches you should apply.'),
-      'severity' => REQUIREMENT_WARNING,
-    ];
-  }
-
-  return $requirements;
-}
 
 /**
  * Implements hook_uninstall().
@@ -241,6 +224,7 @@ function patternkit_update_9002(&$sandbox) {
   $definition_manager = \Drupal::entityDefinitionUpdateManager();
 
   $storage = $entity_type_manager->getStorage('patternkit_pattern');
+  assert($storage instanceof SqlContentEntityStorage);
   $entity_definition = $entity_type_manager->getDefinition('patternkit_pattern');
   $revision_id_key = $entity_definition->getKey('revision');
 
@@ -313,14 +297,12 @@ function patternkit_update_9002(&$sandbox) {
 function patternkit_update_9003() {
   // Grant new permission to user roles that had the previous permission,
   // `access administration pages`, to manage patternkit configuration.
-  $roles = user_role_names(FALSE, 'access administration pages');
-  if (!empty($roles)) {
-    foreach ($roles as $id => $name) {
-      /** @var \Drupal\user\RoleInterface $role */
-      $role = Role::load($id);
-      $role->grantPermission('administer patternkit');
-      $role->save();
-    }
+  $permission = 'access administration pages';
+  $roles = array_filter(Role::loadMultiple(), fn(RoleInterface $role) => $role->hasPermission($permission));
+
+  foreach ($roles as $role) {
+    $role->grantPermission('administer patternkit');
+    $role->save();
   }
 }
 

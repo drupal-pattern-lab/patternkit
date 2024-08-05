@@ -28,51 +28,51 @@ class PatternElementTest extends RendererTestBase {
   /**
    * The mocked pattern library plugin manager.
    *
-   * @var \Drupal\patternkit\PatternLibraryPluginManager|null
+   * @var \Drupal\patternkit\PatternLibraryPluginManager&\PHPUnit\Framework\MockObject\MockObject
    */
-  protected ?PatternLibraryPluginManager $patternLibraryPluginManager;
+  protected PatternLibraryPluginManager $patternLibraryPluginManager;
 
   /**
    * The mocked pattern field processor plugin manager.
    *
-   * @var \Drupal\patternkit\PatternFieldProcessorPluginManager|null
+   * @var \Drupal\patternkit\PatternFieldProcessorPluginManager&\PHPUnit\Framework\MockObject\MockObject
    */
-  protected ?PatternFieldProcessorPluginManager $patternFieldProcessorPluginManager;
+  protected PatternFieldProcessorPluginManager $patternFieldProcessorPluginManager;
 
   /**
    * A mocked pattern library plugin.
    *
-   * @var \Drupal\patternkit\PatternLibraryPluginInterface|null
+   * @var \Drupal\patternkit\PatternLibraryPluginInterface&\PHPUnit\Framework\MockObject\MockObject
    */
-  protected ?PatternLibraryPluginInterface $libraryPlugin;
+  protected PatternLibraryPluginInterface $libraryPlugin;
 
   /**
    * A mocked pattern repository service.
    *
-   * @var \Drupal\patternkit\PatternRepository|null
+   * @var \Drupal\patternkit\PatternRepository&\PHPUnit\Framework\MockObject\MockObject
    */
-  protected ?PatternRepository $patternRepository;
+  protected PatternRepository $patternRepository;
 
   /**
    * The string translation service.
    *
-   * @var \Drupal\Core\StringTranslation\TranslationInterface|null
+   * @var \Drupal\Core\StringTranslation\TranslationInterface&\PHPUnit\Framework\MockObject\MockObject
    */
-  protected ?TranslationInterface $translation;
+  protected TranslationInterface $translation;
 
   /**
    * The dependency injection container.
    *
-   * @var \Symfony\Component\DependencyInjection\ContainerInterface|null
+   * @var \Symfony\Component\DependencyInjection\ContainerInterface
    */
-  protected ?ContainerInterface $container;
+  protected ContainerInterface $container;
 
   /**
    * The instantiated pattern element for testing.
    *
-   * @var \Drupal\patternkit\Element\Pattern|null
+   * @var \Drupal\patternkit\Element\Pattern
    */
-  protected ?Pattern $patternElement;
+  protected Pattern $patternElement;
 
   /**
    * {@inheritdoc}

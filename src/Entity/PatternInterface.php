@@ -8,6 +8,7 @@ use Drupal\Core\Entity\ContentEntityInterface;
  * Defines the Pattern entity type which stores pattern metadata in Drupal.
  *
  * @package Drupal\patternkit\Entity
+ * @phpstan-require-extends \Drupal\patternkit\Entity\Pattern
  */
 interface PatternInterface extends ContentEntityInterface {
 

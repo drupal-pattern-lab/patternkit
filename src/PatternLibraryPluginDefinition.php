@@ -52,7 +52,7 @@ class PatternLibraryPluginDefinition extends PluginDefinition implements Derivab
   /**
    * Constructor.
    *
-   * @param array $definition
+   * @param array<string, mixed> $definition
    *   Provide an array of values from the annotation.
    */
   public function __construct(array $definition) {
@@ -70,7 +70,7 @@ class PatternLibraryPluginDefinition extends PluginDefinition implements Derivab
    * @return mixed
    *   The value for that property, or NULL if the property does not exist.
    */
-  public function get(string $property) {
+  public function get(string $property): mixed {
     if (property_exists($this, $property)) {
       $value = $this->{$property} ?? NULL;
     }
@@ -90,7 +90,7 @@ class PatternLibraryPluginDefinition extends PluginDefinition implements Derivab
    *
    * @return $this
    */
-  public function set(string $property, $value): self {
+  public function set(string $property, mixed $value): self {
     if (property_exists($this, $property)) {
       $this->{$property} = $value;
     }
@@ -103,7 +103,7 @@ class PatternLibraryPluginDefinition extends PluginDefinition implements Derivab
   /**
    * Gets the human-readable name of the definition.
    *
-   * @return string|\Drupal\Core\StringTranslation\TranslatableMarkup|null
+   * @return string|null
    *   The human-readable name of the definition.
    */
   public function getLabel(): ?string {
@@ -113,12 +113,12 @@ class PatternLibraryPluginDefinition extends PluginDefinition implements Derivab
   /**
    * Sets the human-readable name of the definition.
    *
-   * @param string|\Drupal\Core\StringTranslation\TranslatableMarkup $label
+   * @param string $label
    *   The human-readable name of the definition.
    *
    * @return $this
    */
-  public function setLabel($label): self {
+  public function setLabel(string $label): self {
     $this->label = $label;
     return $this;
   }
@@ -126,7 +126,7 @@ class PatternLibraryPluginDefinition extends PluginDefinition implements Derivab
   /**
    * Gets the description of the definition.
    *
-   * @return string|\Drupal\Core\StringTranslation\TranslatableMarkup|null
+   * @return string|null
    *   The description of the definition.
    */
   public function getDescription(): ?string {
@@ -136,12 +136,12 @@ class PatternLibraryPluginDefinition extends PluginDefinition implements Derivab
   /**
    * Sets the description of the definition.
    *
-   * @param string|\Drupal\Core\StringTranslation\TranslatableMarkup $description
+   * @param string $description
    *   The description of the definition.
    *
    * @return $this
    */
-  public function setDescription($description): self {
+  public function setDescription(string $description): self {
     $this->description = $description;
     return $this;
   }
@@ -149,7 +149,7 @@ class PatternLibraryPluginDefinition extends PluginDefinition implements Derivab
   /**
    * Gets the human-readable category of the definition.
    *
-   * @return string|\Drupal\Core\StringTranslation\TranslatableMarkup|null
+   * @return string|null
    *   The human-readable category of the definition.
    */
   public function getCategory(): ?string {
@@ -159,12 +159,12 @@ class PatternLibraryPluginDefinition extends PluginDefinition implements Derivab
   /**
    * Sets the human-readable category of the definition.
    *
-   * @param string|\Drupal\Core\StringTranslation\TranslatableMarkup $category
+   * @param string $category
    *   The human-readable category of the definition.
    *
    * @return $this
    */
-  public function setCategory($category): self {
+  public function setCategory(string $category): self {
     $this->category = $category;
     return $this;
   }

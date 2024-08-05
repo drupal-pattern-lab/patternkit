@@ -5,7 +5,6 @@ namespace Drupal\Tests\patternkit\Unit\Asset;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
-use Drupal\patternkit\Asset\PatternDependencyResolver;
 use Drupal\patternkit\Asset\PatternDiscoveryInterface;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Schema\ContextBuilder;
@@ -29,9 +28,9 @@ class PatternDependencyResolverTest extends UnitTestCase {
   /**
    * The pattern dependency resolver being tested.
    *
-   * @var \Drupal\patternkit\Asset\PatternDependencyResolver|\Drupal\Tests\patternkit\Unit\Asset\TestPatternDependencyResolver|\PHPUnit\Framework\MockObject\MockObject
+   * @var \Drupal\Tests\patternkit\Unit\Asset\TestPatternDependencyResolver
    */
-  protected PatternDependencyResolver $resolver;
+  protected TestPatternDependencyResolver $resolver;
 
   /**
    * The pattern discovery service.
@@ -112,11 +111,14 @@ class PatternDependencyResolverTest extends UnitTestCase {
    * This is a utility function to help defer resolution of mocks to allow
    * individual tests to configure them before instantiation.
    *
-   * @return \Drupal\patternkit\Asset\PatternDependencyResolver
+   * @return \Drupal\Tests\patternkit\Unit\Asset\TestPatternDependencyResolver
    *   The pattern dependency resolver instance for testing with all configured
    *   mocks injected.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
-  protected function getDependencyResolver(): PatternDependencyResolver {
+  protected function getDependencyResolver(): TestPatternDependencyResolver {
     $this->entityTypeManager->getStorage('patternkit_pattern')
       ->willReturn($this->patternStorage->reveal());
 
@@ -243,8 +245,8 @@ class PatternDependencyResolverTest extends UnitTestCase {
       '@namespace' => [
         '@namespace/pattern_with_cached_dependencies' => [
           'dependencies' => [
-            ['value' => 'first_dependency'],
-            ['value' => 'second_dependency'],
+            'first_dependency',
+            'second_dependency',
           ],
         ],
       ],

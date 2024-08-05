@@ -403,6 +403,7 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
     $this->waitForJsonEditorForm();
 
     // Fill the image field with a direct file URL.
+    // @phpstan-ignore method.notFound
     $image_url = $this->image->field_media_image->entity->createFileUrl();
     $page->fillField($field_name, $image_url);
 

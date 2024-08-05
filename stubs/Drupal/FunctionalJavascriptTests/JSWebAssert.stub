@@ -1,0 +1,7 @@
+<?php
+
+namespace Drupal\FunctionalJavascriptTests;
+
+use Drupal\Tests\WebAssert;
+
+class JSWebAssert extends WebAssert { }

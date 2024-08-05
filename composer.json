@@ -26,16 +26,29 @@
         "webmozart/path-util": "^2.1.0"
     },
     "require-dev": {
+        "dms/phpunit-arraysubset-asserts": "^0.5.0",
         "drupal/core-recommended": "^10 || ^11",
         "drupal/core-dev": "^10 || ^11",
         "drupal/devel": "^4.2 || ^5.0",
-        "dms/phpunit-arraysubset-asserts": "^0.5.0"
+        "jangregor/phpstan-prophecy": "@stable",
+        "mglaman/phpstan-drupal": "@stable",
+        "phpstan/phpstan": "@stable",
+        "phpstan/phpstan-deprecation-rules": "@stable",
+        "phpstan/phpstan-phpunit": "@stable"
+    },
+    "conflict": {
+        "drush/drush": "<12.4.3"
     },
     "extra": {
         "drush": {
             "services": {
                 "drush.services.yml": "^9"
             }
+        },
+        "phpstan": {
+            "includes": [
+                "phpstan.entity_mapping.neon"
+            ]
         }
     },
     "scripts": {

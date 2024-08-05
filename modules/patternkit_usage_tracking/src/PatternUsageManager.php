@@ -3,8 +3,8 @@
 namespace Drupal\patternkit_usage_tracking;
 
 use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Entity\ContentEntityStorageInterface;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 
 /**
@@ -15,28 +15,19 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 class PatternUsageManager {
 
   /**
-   * The entity type manager.
-   *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
-   */
-  protected EntityTypeManagerInterface $entityTypeManager;
-
-  /**
    * The entity storage handler for pattern_usage entities.
    *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
+   * @var \Drupal\Core\Entity\ContentEntityStorageInterface
    */
-  protected EntityStorageInterface $storage;
+  protected ContentEntityStorageInterface $storage;
 
   /**
    * Constructs a new PatternUsageManager object.
    *
-   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_manager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The entity type manager.
    */
-  public function __construct(EntityTypeManagerInterface $entity_manager) {
-    $this->entityTypeManager = $entity_manager;
-  }
+  public function __construct(protected readonly EntityTypeManagerInterface $entityTypeManager) {}
 
   /**
    * Register a pattern usage in an entity.
@@ -193,6 +184,7 @@ class PatternUsageManager {
     $results = $query->execute();
 
     if (!empty($results)) {
+      /** @var \Drupal\patternkit_usage_tracking\Entity\PatternUsage|null $record */
       $record = $storage->load(reset($results));
       $revision_id = ($record !== NULL) ? $record->get('source_revision_id')->value : NULL;
     }
@@ -239,13 +231,13 @@ class PatternUsageManager {
   /**
    * Lazy-load the pattern usage storage handler.
    *
-   * @return \Drupal\Core\Entity\EntityStorageInterface
+   * @return \Drupal\Core\Entity\ContentEntityStorageInterface
    *   The pattern usage storage handler.
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
-  protected function storage(): EntityStorageInterface {
+  protected function storage(): ContentEntityStorageInterface {
     if (!isset($this->storage)) {
       $this->storage = $this->entityTypeManager->getStorage('pattern_usage');
     }

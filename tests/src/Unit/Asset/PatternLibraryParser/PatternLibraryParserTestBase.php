@@ -36,6 +36,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @group patternkit
  *
  * @todo Use a mocked serializer instead of injecting a real instance.
+ *
+ * @template T of \Drupal\patternkit\Asset\PatternLibraryParserInterface
  */
 abstract class PatternLibraryParserTestBase extends UnitTestCase {
 
@@ -198,6 +200,8 @@ abstract class PatternLibraryParserTestBase extends UnitTestCase {
    *
    * @return \Drupal\patternkit\Asset\PatternLibraryParserInterface
    *   An instantiated parser plugin with all mocked dependencies.
+   *
+   * @phpstan-return T
    */
   protected function getParserInstance(): PatternLibraryParserInterface {
     $testClass = $this->getTestClass();
@@ -228,9 +232,11 @@ abstract class PatternLibraryParserTestBase extends UnitTestCase {
   /**
    * Build a partial mock for the parser being tested.
    *
-   * @return \PHPUnit\Framework\MockObject\MockBuilder
+   * @return \Drupal\patternkit\Asset\PatternLibraryParserInterface&\PHPUnit\Framework\MockObject\MockBuilder
    *   A partially configured mock builder for the test class with prepared
    *   dependencies configured as constructor args.
+   *
+   * @phpstan-return \PHPUnit\Framework\MockObject\MockBuilder<T>
    */
   protected function getPartialMock(): MockBuilder {
     return $this->getMockBuilder($this->getTestClass())

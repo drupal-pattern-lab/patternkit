@@ -115,10 +115,12 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
-  public function createPattern(string $name, $data): PatternInterface {
+  public function createPattern(string $name, $schema): PatternInterface {
     // Pattern schemas contain values needed for Pattern fields.
-    $values = ['name' => $data['title'] ?? $name];
-    return $this->patternStorage->create($values + $data);
+    $values = ['name' => $schema['title'] ?? $name];
+    /** @var \Drupal\patternkit\Entity\PatternInterface $pattern */
+    $pattern = $this->patternStorage->create($values + $schema);
+    return $pattern;
   }
 
   /**
@@ -136,7 +138,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
   public static function discoverComponents(string $path, array $filter = []): array {
     $components = [];
     $rdit = new RecursiveDirectoryIterator($path, \FilesystemIterator::KEY_AS_PATHNAME | \FilesystemIterator::CURRENT_AS_FILEINFO);
-    /** @var \SplFileInfo $file */
+    /** @var \Symfony\Component\Finder\SplFileInfo $file */
     foreach (new \RecursiveIteratorIterator($rdit) as $file) {
       // Skip directories and non-files.
       if (!$file->isFile()) {
@@ -264,6 +266,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
       ];
     }
 
+    // @phpstan-ignore variable.undefined
     return $success ? $pattern : NULL;
   }
 

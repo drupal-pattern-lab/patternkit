@@ -3,7 +3,7 @@
 namespace Drupal\Tests\patternkit_usage_tracking\Unit;
 
 use Drupal\Core\Entity\ContentEntityInterface;
-use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Entity\ContentEntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\Query\QueryInterface;
 use Drupal\Core\Language\LanguageInterface;
@@ -30,7 +30,7 @@ class PatternUsageManagerTest extends UnitTestCase {
   /**
    * The storage handler for the pattern_usage entity.
    *
-   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Entity\EntityStorageInterface>
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Entity\ContentEntityStorageInterface>
    */
   protected ObjectProphecy $storage;
 
@@ -55,7 +55,7 @@ class PatternUsageManagerTest extends UnitTestCase {
     parent::setUp();
 
     // Mock injected dependencies for the service.
-    $this->storage = $this->prophesize(EntityStorageInterface::class);
+    $this->storage = $this->prophesize(ContentEntityStorageInterface::class);
     $entityTypeManager = $this->prophesize(EntityTypeManagerInterface::class);
     $entityTypeManager->getStorage('pattern_usage')
       ->willReturn($this->storage->reveal());

@@ -92,7 +92,7 @@ class PatternLibraryFile extends PatternLibraryPluginDefault implements Containe
       $template = $pattern->filename;
       // Add the namespace, if provided.
       if (!empty($pattern->url)) {
-        $template = '@' . $pattern->url . '#/' . $template;
+        $template = sprintf('@%s#/%s', $pattern->url, $template);
       }
       $namespace = '';
       // If a namespace is provided, break it up.
@@ -100,6 +100,7 @@ class PatternLibraryFile extends PatternLibraryPluginDefault implements Containe
         [$namespace] = explode('#', $template);
       }
 
+      // @todo Refactor to properly implement DI.
       /** @var \Drupal\Core\Template\TwigEnvironment $twig */
       $twig       = \Drupal::service('twig');
       $template   = $twig->load("$namespace/$pattern->filename");

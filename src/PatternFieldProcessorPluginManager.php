@@ -20,27 +20,6 @@ use Swaggest\JsonSchema\SchemaContract;
 class PatternFieldProcessorPluginManager extends DefaultPluginManager {
 
   /**
-   * Encodes and decodes configuration for storage.
-   *
-   * @var \Drupal\Component\Serialization\SerializationInterface
-   */
-  protected SerializationInterface $serializer;
-
-  /**
-   * The logger channel for logging any errors or notifications.
-   *
-   * @var \Drupal\Core\Logger\LoggerChannelInterface
-   */
-  protected LoggerChannelInterface $logger;
-
-  /**
-   * The schema walker factory service.
-   *
-   * @var \Drupal\patternkit\Schema\SchemaWalkerFactory
-   */
-  protected SchemaWalkerFactory $schemaWalkerFactory;
-
-  /**
    * Constructs PatternFieldProcessorPluginManager object.
    *
    * @param \Traversable $namespaces
@@ -54,16 +33,16 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager {
    *   The serialization service for unserializing schemas.
    * @param \Drupal\patternkit\Schema\SchemaWalkerFactory $schemaWalkerFactory
    *   The SchemaWalkerFactory service.
-   * @param \Drupal\Core\Logger\LoggerChannelInterface $loggerChannel
+   * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
    *   The logger channel for logging any errors.
    */
   public function __construct(
     \Traversable $namespaces,
     CacheBackendInterface $cache_backend,
     ModuleHandlerInterface $module_handler,
-    SerializationInterface $serializer,
-    SchemaWalkerFactory $schemaWalkerFactory,
-    LoggerChannelInterface $loggerChannel,
+    protected readonly SerializationInterface $serializer,
+    protected readonly SchemaWalkerFactory $schemaWalkerFactory,
+    protected readonly LoggerChannelInterface $logger,
   ) {
     parent::__construct(
       'Plugin/PatternFieldProcessor',
@@ -72,10 +51,6 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager {
       'Drupal\patternkit\Plugin\PatternFieldProcessor\PatternFieldProcessorInterface',
       'Drupal\patternkit\Annotation\PatternFieldProcessor'
     );
-
-    $this->serializer = $serializer;
-    $this->schemaWalkerFactory = $schemaWalkerFactory;
-    $this->logger = $loggerChannel;
 
     $this->alterInfo('pattern_field_processor_info');
     $this->setCacheBackend($cache_backend, 'pattern_field_processor_plugins');
@@ -166,7 +141,7 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager {
    * @return mixed
    *   The resulting value after all processors have been applied.
    */
-  public function applyProcessors(SchemaContract $propertySchema, $value, array $processors, array $context, BubbleableMetadata $bubbleableMetadata) {
+  public function applyProcessors(SchemaContract $propertySchema, $value, array $processors, array $context, BubbleableMetadata $bubbleableMetadata): mixed {
     foreach ($processors as $processor) {
       if ($processor->applies($propertySchema, $value)) {
         // @todo Add validation preventing values that don't match schema expectations.
@@ -185,7 +160,7 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager {
    *
    * @param string $schema_json
    *   The JSON string representation of the schema to be traversed.
-   * @param array|object $values
+   * @param object|array $values
    *   The values configured for the object using the provided schema.
    * @param callable $callback
    *   A callback to be executed with each value. The callback should accept the
@@ -203,7 +178,7 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager {
    * @throws \Drupal\patternkit\Exception\SchemaReferenceException
    * @throws \Drupal\patternkit\Exception\SchemaValidationException
    */
-  public function traverseSchema(string $schema_json, $values, callable $callback, ...$args) {
+  public function traverseSchema(string $schema_json, object|array $values, callable $callback, ...$args): mixed {
     $schemaWalker = $this->schemaWalkerFactory->createFromString($schema_json, $values);
 
     // Iterate over the values provided for the schema.

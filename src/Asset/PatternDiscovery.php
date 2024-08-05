@@ -233,7 +233,7 @@ class PatternDiscovery implements PatternDiscoveryInterface, PatternkitEnvironme
    * @param string $namespace
    *   A pattern namespace prefixed with an '@'. For example, "@patternkit".
    *
-   * @return array<string, \Drupal\patternkit\Entity\Pattern>
+   * @return array<string, array<string, \Drupal\patternkit\Entity\Pattern>>
    *   An associative array of pattern definitions provided by the given
    *   namespace keyed by the pattern's asset ID.
    *

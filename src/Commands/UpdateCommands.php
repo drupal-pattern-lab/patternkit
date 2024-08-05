@@ -143,7 +143,7 @@ class UpdateCommands extends DrushCommands {
    */
   public function libUpdate(
     string $library_name = NULL,
-    $options = [
+    array $options = [
       'filter' => self::REQ,
       'pattern' => self::REQ,
     ],
@@ -171,7 +171,9 @@ class UpdateCommands extends DrushCommands {
 
     $this->updateHelper->updateAllPatternComponents($filter);
 
-    $this->blockManager->clearCachedDefinitions();
+    if (method_exists($this->blockManager, 'clearCachedDefinitions')) {
+      $this->blockManager->clearCachedDefinitions();
+    }
     $this->entityTypeManager->clearCachedDefinitions();
 
     return $this->t('Completed running Patternkit library updates.');
@@ -219,13 +221,13 @@ class UpdateCommands extends DrushCommands {
    */
   public function batchUpdate(
     string $library_name = NULL,
-    $options = [
+    array $options = [
       'filter' => self::REQ,
       'pattern' => self::REQ,
       'revisions' => LayoutDiscoveryBatchWorker::REVISION_MODE_DEFAULT,
       'no-run-queue' => FALSE,
     ],
-  ) {
+  ): void {
     // Validate the selected revision mode.
     $revision_modes = [
       LayoutDiscoveryBatchWorker::REVISION_MODE_DEFAULT,

@@ -10,11 +10,13 @@ use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Utility\UpdateException;
 use Drupal\patternkit\Exception\UnknownPatternException;
+use Drupal\patternkit\PatternLibraryPluginInterface;
 
 /**
  * Populate the dependencies field for all existing pattern entities.
  */
 function patternkit_post_update_set_pattern_dependencies(): TranslatableMarkup {
+  /** @var \Drupal\patternkit\PatternLibraryPluginManager $libraryPluginManager */
   $libraryPluginManager = \Drupal::service('plugin.manager.library.pattern');
   $pattern_storage = \Drupal::entityTypeManager()
     ->getStorage('patternkit_pattern');
@@ -27,10 +29,10 @@ function patternkit_post_update_set_pattern_dependencies(): TranslatableMarkup {
   $updated = 0;
 
   // Load all existing pattern entities.
+  /** @var \Drupal\patternkit\Entity\PatternInterface[] $entities */
   $entities = $pattern_storage->loadMultiple();
 
   // Iterate through all pattern entities to set dependencies.
-  /** @var \Drupal\patternkit\Entity\PatternInterface $pattern */
   foreach ($entities as $id => $pattern) {
     try {
       // Load the specific parser for the pattern.
@@ -38,13 +40,14 @@ function patternkit_post_update_set_pattern_dependencies(): TranslatableMarkup {
       $parsers[$plugin_id] ??= $libraryPluginManager->createInstance($plugin_id)
         ->getParser();
       $plugin = $parsers[$plugin_id];
+      assert($plugin instanceof PatternLibraryPluginInterface);
 
       // Use the parser to get all pattern dependencies.
       if (method_exists($plugin, 'getSchemaDependencies')) {
         $dependencies = $plugin->getSchemaDependencies($pattern->getSchema(), $pattern->getAssetId());
       }
 
-      if ($dependencies) {
+      if (isset($dependencies) && is_array($dependencies)) {
         // Set the discovered dependencies on the pattern entity.
         $pattern->setDependencies($dependencies);
 

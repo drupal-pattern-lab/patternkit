@@ -48,6 +48,7 @@ class PatternkitForm extends ContentEntityForm {
     $insert = $block->isNew();
     $block->setReusable();
     $result = $block->save();
+
     $context = ['@type' => $block->bundle(), '%info' => $block->label()];
     $logger = $this->logger('patternkit');
     $t_args = ['@type' => $block->bundle(), '%info' => $block->label()];

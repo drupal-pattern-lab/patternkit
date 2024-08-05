@@ -11,9 +11,7 @@ namespace Drupal\Tests\patternkit_usage_tracking\FunctionalJavascript;
 class LanguageTranslationTest extends ContentTranslationTestBase {
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = [
     'patternkit_example',

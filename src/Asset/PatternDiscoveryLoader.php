@@ -9,9 +9,9 @@ use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\Serializer;
-use Symfony\Component\Serializer\SerializerInterface;
 use Webmozart\Assert\Assert;
 
 /**
@@ -32,34 +32,6 @@ class PatternDiscoveryLoader {
   const DEFAULT_LIBRARY_PLUGIN_ID = 'twig';
 
   /**
-   * The library namespace resolver service.
-   *
-   * @var \Drupal\patternkit\Asset\LibraryNamespaceResolverInterface
-   */
-  protected LibraryNamespaceResolverInterface $namespaceResolver;
-
-  /**
-   * The pattern library plugin manager service.
-   *
-   * @var \Drupal\patternkit\PatternLibraryPluginManager
-   */
-  protected PatternLibraryPluginManager $libraryPluginManager;
-
-  /**
-   * A logger for message output.
-   *
-   * @var \Psr\Log\LoggerInterface
-   */
-  protected LoggerInterface $logger;
-
-  /**
-   * A serializer for instantiating PatternLibrary instances.
-   *
-   * @var \Symfony\Component\Serializer\SerializerInterface
-   */
-  protected SerializerInterface $serializer;
-
-  /**
    * Creates an instance of PatternDiscoveryLoader.
    *
    * @param \Drupal\patternkit\Asset\LibraryNamespaceResolverInterface $namespaceResolver
@@ -68,19 +40,15 @@ class PatternDiscoveryLoader {
    *   The pattern library plugin manager service.
    * @param \Psr\Log\LoggerInterface $logger
    *   A logger for message output.
-   * @param \Symfony\Component\Serializer\SerializerInterface|null $serializer
+   * @param \Symfony\Component\Serializer\Normalizer\DenormalizerInterface|null $serializer
    *   (optional) A serializer for normalizing pattern library properties.
    */
   public function __construct(
-    LibraryNamespaceResolverInterface $namespaceResolver,
-    PatternLibraryPluginManager $libraryPluginManager,
-    LoggerInterface $logger,
-    SerializerInterface $serializer = NULL,
+    protected readonly LibraryNamespaceResolverInterface $namespaceResolver,
+    protected readonly PatternLibraryPluginManager $libraryPluginManager,
+    protected readonly LoggerInterface $logger,
+    protected ?DenormalizerInterface $serializer = NULL,
   ) {
-    $this->namespaceResolver = $namespaceResolver;
-    $this->libraryPluginManager = $libraryPluginManager;
-    $this->logger = $logger;
-
     $this->serializer = $serializer ?? new Serializer([new PropertyNormalizer()]);
   }
 
@@ -112,6 +80,7 @@ class PatternDiscoveryLoader {
     }
 
     // @todo Remove usage of the PatternLibrary object.
+    // @phpstan-ignore method.deprecated
     $libraryObj = $this->getLibraryObject($library_definition);
 
     // Capture the original pattern info before processing to ensure nothing is

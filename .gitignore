@@ -2,6 +2,9 @@
 js/globals**.js**
 node_modules
 
+# Ignore local overrides for tooling.
+/phpstan.local.neon
+
 # Ignore local environment files implemented via ddev/ddev-drupal-contrib.
 /vendor
 /web

@@ -128,7 +128,7 @@ class PatternLibrary {
    *   Library version provided by the definition.
    * @param mixed $license
    *   A link or text of the library license.
-   * @param bool|null $remote
+   * @param string|false $remote
    *   TRUE if the library is loaded via remote URL.
    * @param bool|null $header
    *   TRUE if the library is to be used in page headers and loaded first.
@@ -139,7 +139,7 @@ class PatternLibrary {
     string $extension,
     string $version = NULL,
     $license = NULL,
-    bool $remote = NULL,
+    string|false $remote = FALSE,
     bool $header = NULL,
   ) {
     $this->id = $id;
@@ -162,7 +162,7 @@ class PatternLibrary {
     }
 
     // If this is a 3rd party library, the license info is required.
-    if (isset($remote) && !isset($license)) {
+    if ($remote && !isset($license)) {
       throw new LibraryDefinitionMissingLicenseException(sprintf("Missing license information in library definition for definition '%s' extension '%s': it has a remote, but no license.", $id, $extension));
     }
     // Assign Drupal's license to libraries that don't have license info.

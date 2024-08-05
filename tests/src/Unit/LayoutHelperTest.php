@@ -42,42 +42,42 @@ class LayoutHelperTest extends UnitTestCase {
   /**
    * The entity type manager service.
    *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Entity\EntityTypeManagerInterface>
    */
   protected ObjectProphecy $entityTypeManager;
 
   /**
    * Pattern storage manager.
    *
-   * @var \Drupal\Core\Entity\EntityStorageInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Entity\EntityStorageInterface>
    */
   protected ObjectProphecy $patternStorage;
 
   /**
    * The storage manager for entity view displays.
    *
-   * @var \Drupal\Core\Entity\EntityStorageInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Entity\EntityStorageInterface>
    */
   protected ObjectProphecy $displayStorage;
 
   /**
    * The expirable key value factory service.
    *
-   * @var \Drupal\Core\KeyValueStore\KeyValueExpirableFactoryInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\KeyValueStore\KeyValueExpirableFactoryInterface>
    */
   protected ObjectProphecy $keyValueExpirable;
 
   /**
    * The patternkit logger channel.
    *
-   * @var \Drupal\Core\Logger\LoggerChannelInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Logger\LoggerChannelInterface>
    */
   protected ObjectProphecy $logger;
 
   /**
    * The patternkit pattern repository service.
    *
-   * @var \Drupal\patternkit\PatternRepository|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\PatternRepository>
    */
   protected ObjectProphecy $patternRepository;
 
@@ -85,28 +85,28 @@ class LayoutHelperTest extends UnitTestCase {
   /**
    * The layout tempstore repository service, if available.
    *
-   * @var \Drupal\layout_builder\LayoutTempstoreRepositoryInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\layout_builder\LayoutTempstoreRepositoryInterface>
    */
   protected ObjectProphecy $layoutTempstoreRepository;
 
   /**
    * The section storage manager service, if available.
    *
-   * @var \Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface>
    */
   protected ObjectProphecy $sectionStorageManager;
 
   /**
    * The Patternkit layout helper service, if Layout Builder is available.
    *
-   * @var \Drupal\patternkit\LayoutHelper|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\LayoutHelper>
    */
   protected ObjectProphecy $layoutHelper;
 
   /**
    * The update helper service being tested.
    *
-   * @var \Drupal\patternkit\UpdateHelper|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\UpdateHelper>
    */
   protected ObjectProphecy $updateHelper;
 
@@ -491,6 +491,7 @@ class LayoutHelperTest extends UnitTestCase {
         $contexts = $args[1];
         /** @var \Drupal\Core\Plugin\Context\EntityContext $entity_context */
         $entity_context = $contexts['display'];
+        /** @var \Drupal\Core\Entity\Display\EntityViewDisplayInterface $display */
         $display = $entity_context->getContextData();
 
         $storage = $prophesize(SectionStorageInterface::class);
@@ -505,6 +506,7 @@ class LayoutHelperTest extends UnitTestCase {
         $contexts = $args[0];
         /** @var \Drupal\Core\Plugin\Context\EntityContext $entity_context */
         $entity_context = $contexts['entity'];
+        /** @var \Drupal\Core\Entity\EntityInterface $entity */
         $entity = $entity_context->getContextData();
 
         $storage = $prophesize(SectionStorageInterface::class);
@@ -656,7 +658,7 @@ class LayoutHelperTest extends UnitTestCase {
    *   An associative array of mocked components keyed first by a section id and
    *   then by a uuid.
    *
-   * @return \Drupal\layout_builder\SectionStorageInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @return \Prophecy\Prophecy\ObjectProphecy<\Drupal\layout_builder\SectionStorageInterface>
    *   A SectionStorage class prophecy prepared with mocked methods and
    *   hierarchy for traversal of components. Prior to usage, the prophecy will
    *   still need to be revealed.
@@ -721,7 +723,7 @@ class LayoutHelperTest extends UnitTestCase {
    *   - target_entity_type: A string value containing the applicable entity
    *     type id for this display.
    *
-   * @return \Drupal\Core\Entity\Display\EntityViewDisplayInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @return \Prophecy\Prophecy\ObjectProphecy<\Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay>
    *   The prepared object prophecy for the entity display.
    */
   public function mockEntityDisplay(array $display_data): ObjectProphecy {
@@ -743,6 +745,7 @@ class LayoutHelperTest extends UnitTestCase {
     $display->getCacheTags()->willReturn([]);
     $display->getCacheMaxAge()->willReturn([]);
 
+    // @phpstan-ignore return.type
     return $display;
   }
 

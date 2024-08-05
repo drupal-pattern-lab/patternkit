@@ -1,0 +1,11 @@
+<?php
+
+namespace Swaggest\JsonSchema;
+
+/**
+ * @phpstan-require-extends \Swaggest\JsonSchema\Schema
+ */
+interface SchemaContract
+{
+
+}

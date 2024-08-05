@@ -40,6 +40,7 @@ class LibraryNamespaceResolverTest extends KernelTestBase implements ServiceModi
   protected function setUp(): void {
     parent::setUp();
 
+    // @phpstan-ignore assign.propertyType
     $this->resolver = $this->container->get('patternkit.library.namespace_resolver');
   }
 

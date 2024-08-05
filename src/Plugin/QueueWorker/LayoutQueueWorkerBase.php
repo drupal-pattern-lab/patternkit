@@ -9,7 +9,6 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
-use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Plugin\Context\Context;
@@ -17,12 +16,10 @@ use Drupal\Core\Plugin\Context\ContextDefinition;
 use Drupal\Core\Plugin\Context\EntityContext;
 use Drupal\Core\Queue\QueueWorkerBase;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\Utility\Error;
 use Drupal\layout_builder\Entity\LayoutEntityDisplayInterface;
 use Drupal\layout_builder\LayoutEntityHelperTrait;
 use Drupal\layout_builder\LayoutTempstoreRepositoryInterface;
-use Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface;
 use Drupal\layout_builder\SectionStorageInterface;
 use Drupal\patternkit\LayoutHelper;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -45,34 +42,6 @@ abstract class LayoutQueueWorkerBase extends QueueWorkerBase implements Containe
   public const QUEUE_ID = 'patternkit_layout_updates';
 
   /**
-   * The entity type manager service.
-   *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
-   */
-  protected EntityTypeManagerInterface $entityTypeManager;
-
-  /**
-   * The logger channel.
-   *
-   * @var \Drupal\Core\Logger\LoggerChannelInterface
-   */
-  protected LoggerChannelInterface $logger;
-
-  /**
-   * The layout helper service.
-   *
-   * @var \Drupal\patternkit\LayoutHelper
-   */
-  protected LayoutHelper $layoutHelper;
-
-  /**
-   * The layout temporary storage repository service.
-   *
-   * @var \Drupal\layout_builder\LayoutTempstoreRepositoryInterface
-   */
-  protected LayoutTempstoreRepositoryInterface $layoutTempstoreRepository;
-
-  /**
    * Batch context for sharing update progress.
    *
    * It may be an array, or implementing \ArrayObject in the case of Drush.
@@ -82,29 +51,44 @@ abstract class LayoutQueueWorkerBase extends QueueWorkerBase implements Containe
   protected $context;
 
   /**
-   * {@inheritdoc}
+   * Creates a new instance of the LayoutQueueWorker class.
+   *
+   * @param array $configuration
+   *   A configuration array containing information about the plugin instance.
+   * @param string $plugin_id
+   *   The plugin_id for the plugin instance.
+   * @param mixed $plugin_definition
+   *   The plugin implementation definition.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   *   The entity type manager service.
+   * @param \Drupal\patternkit\LayoutHelper $layoutHelper
+   *   The Patternkit layout helper service.
+   * @param \Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface $sectionStorageManager
+   *   The section storage manager service.
+   * @param \Drupal\layout_builder\LayoutTempstoreRepositoryInterface $layoutTempstoreRepository
+   *   The layout tempstore repository service.
+   * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
+   *   The logger channel to be used.
+   * @param \Drupal\Core\StringTranslation\TranslationInterface $stringTranslation
+   *   The string translation service.
+   * @param \Drupal\Core\Messenger\MessengerInterface $messenger
+   *   The messenger service.
    */
   public function __construct(
     array $configuration,
-    $plugin_id,
-    $plugin_definition,
-    EntityTypeManagerInterface $entity_type_manager,
-    LayoutHelper $layout_helper,
-    SectionStorageManagerInterface $section_storage_manager,
-    LayoutTempstoreRepositoryInterface $layout_tempstore_repository,
-    LoggerChannelInterface $logger,
-    TranslationInterface $string_translation,
-    MessengerInterface $messenger,
+    string $plugin_id,
+    mixed $plugin_definition,
+    protected readonly EntityTypeManagerInterface $entityTypeManager,
+    protected readonly LayoutHelper $layoutHelper,
+    protected $sectionStorageManager,
+    protected readonly LayoutTempstoreRepositoryInterface $layoutTempstoreRepository,
+    protected readonly LoggerChannelInterface $logger,
+    protected $stringTranslation,
+    protected $messenger,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
-    $this->entityTypeManager = $entity_type_manager;
-    $this->layoutHelper = $layout_helper;
-    $this->sectionStorageManager = $section_storage_manager;
-    $this->layoutTempstoreRepository = $layout_tempstore_repository;
-    $this->logger = $logger;
-    $this->stringTranslation = $string_translation;
-    $this->messenger = $messenger;
 
+    // @phpstan-ignore assign.propertyType
     $this->context = [];
   }
 

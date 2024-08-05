@@ -109,25 +109,28 @@ class FilePatternLibraryParser extends PatternLibraryParserBase {
         'version'    => $library['version'] ?? '',
       ];
       // Create the pattern from defaults.
+      $filename = trim(substr($data[$ext], strlen($path)), '/\\');
+      $path = substr($filename, 0, -strlen('.' . $ext));
+      $item_values = [
+        'filename' => $filename,
+        'path' => $path,
+        'template' => file_get_contents($data[$ext]),
+        'url' => $library['name'],
+      ];
       // @todo Have this cleverly infer defaults from the template.
-      $pattern = $this->createPattern($name, $library_defaults);
-      $pattern->filename = trim(substr($data[$ext], strlen($path)), '/\\');
-      $pattern->path = substr($pattern->filename, 0, -strlen('.' . $ext));
-      $pattern->template = file_get_contents($data[$ext]);
-      // URL is redundant for the File based components, so we use it to
-      // store namespace.
-      $pattern->url = $library['name'];
+      $pattern = $this->createPattern($name, $item_values + $library_defaults);
       // @todo add default of library version fallback to extension version.
-      $pattern->version ??= 'VERSION';
-      $metadata['@' . $library['name'] . '/' . $pattern->path] = $pattern;
+      if (empty($pattern->getVersion())) {
+        $pattern->setVersion('VERSION');
+      }
+
+      $metadata['@' . $library['name'] . '/' . $path] = $pattern;
     }
 
     foreach ($metadata as $pattern_type => $pattern) {
       // Replace any $ref links with relative paths.
-      $pattern->schema = static::schemaDereference(
-        $pattern->schema,
-        $pattern
-      );
+      $normalized_schema = static::normalizeSchemaReferences($pattern->getSchema());
+      $pattern->setSchema($normalized_schema);
       $metadata[$pattern_type] = $pattern;
     }
     return $metadata;

@@ -1,0 +1,12 @@
+parameters:
+  drupal:
+    entityMapping:
+      pattern:
+        class: Drupal\patternkit\Entity\Pattern
+        storage: Drupal\Core\Entity\Sql\SqlContentEntityStorage
+      patternkit_block:
+        class: Drupal\patternkit\Entity\PatternkitBlock
+        storage: Drupal\Core\Entity\Sql\SqlContentEntityStorage
+      pattern_usage:
+        class: Drupal\patternkit_usage_tracking\Entity\PatternUsage
+        storage: Drupal\Core\Entity\Sql\SqlContentEntityStorage

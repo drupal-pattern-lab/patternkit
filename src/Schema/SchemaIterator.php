@@ -6,6 +6,8 @@ use Swaggest\JsonSchema\SchemaContract;
 
 /**
  * A recursive iterator implementation for traversing schemas and value trees.
+ *
+ * @phpstan-extends \RecursiveArrayIterator<int|string, \Swaggest\JsonSchema\SchemaContract>
  */
 class SchemaIterator extends \RecursiveArrayIterator {
 

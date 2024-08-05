@@ -36,7 +36,7 @@ class UnresolvedSchema extends Schema {
    *
    * @param mixed $data
    *   Schema data to be imported.
-   * @param \Swaggest\JsonSchema\Context $options
+   * @param \Swaggest\JsonSchema\Context|null $options
    *   Processing options for the import operation.
    *
    * @return static|mixed
@@ -45,7 +45,7 @@ class UnresolvedSchema extends Schema {
    * @throws \Swaggest\JsonSchema\Exception
    * @throws \Swaggest\JsonSchema\InvalidValue
    */
-  public static function import($data, Context $options = NULL) {
+  public static function import(mixed $data, ?Context $options = NULL): mixed {
     if ($options === NULL) {
       $options = new Context();
     }
@@ -70,11 +70,14 @@ class UnresolvedSchema extends Schema {
   /**
    * {@inheritdoc}
    */
-  public static function setUpProperties($properties, Schema $ownerSchema) {
+  public static function setUpProperties($properties, Schema $ownerSchema): void {
     parent::setUpProperties($properties, $ownerSchema);
 
     // Unset the format to disable automatic imports in single-level objects.
-    $properties->ref->format = NULL;
+    assert($properties->ref instanceof Schema);
+    if ($properties?->ref?->format) {
+      $properties->ref->format = NULL;
+    }
   }
 
   /**
@@ -99,12 +102,14 @@ class UnresolvedSchema extends Schema {
    */
   protected static function disableAutomaticDereferencing(): callable {
     $schema = Schema::schema();
+    // @phpstan-ignore property.notFound
     $refProperty = $schema->getProperties()->ref;
     $originalFormat = $refProperty->format;
     $refProperty->format = NULL;
 
     return function () use ($originalFormat) {
       $schema = Schema::schema();
+      // @phpstan-ignore property.notFound
       $refProperty = $schema->getProperties()->ref;
       $refProperty->format = $originalFormat;
     };

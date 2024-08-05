@@ -18,6 +18,7 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\editor\Plugin\EditorManager;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Form\PatternLibraryJSONForm;
+use Webmozart\Assert\Assert;
 
 /**
  * A helper service to assist building a JSONEditor form into a render array.
@@ -101,9 +102,22 @@ class JsonEditorFormBuilder implements PatternFormBuilderInterface {
    *   disableJsonEditButton?: bool,
    *   ajaxCacheResponse?: bool,
    *   ajaxCacheBuster?: string,
+   *   schemaJson?: string,
+   *   startingJson?: string,
    * } $settings
+   *
+   * @todo Make $pattern param optional and add schema value to $settings if provided.
    */
-  public function buildEditorForm(PatternInterface $pattern, array $settings = []): array {
+  public function buildEditorForm(?PatternInterface $pattern = NULL, array $settings = []): array {
+    // Load the pattern schema into settings if provided.
+    if ($pattern !== NULL) {
+      $settings['schemaJson'] = $pattern->getSchema();
+    }
+    else {
+      Assert::keyExists($settings, 'schemaJson', 'If no pattern is provided, the schema should be assigned in $settings["schemaJson"].');
+      Assert::string($settings['schemaJson'], 'The schema JSON value assigned to "schemaJson" should be a string.');
+    }
+
     // Ensure a cache buster string is prepared.
     if (empty($settings['ajaxCacheBuster'])) {
       $settings['ajaxCacheBuster'] = $this->getQueryString();

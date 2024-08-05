@@ -97,6 +97,7 @@ trait PatternkitBlockHelperTrait {
 
     // Return the new plugin instantiation to include all updated configuration
     // and entity ID references.
+    // @phpstan-ignore return.type
     return $component->getPlugin();
   }
 

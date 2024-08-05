@@ -17,10 +17,8 @@ interface PatternLibraryPluginInterface extends PluginInspectionInterface {
    *
    * @param \Drupal\patternkit\Entity\PatternInterface $pattern
    *   The pattern instance to load assets for.
-   * @param \Drupal\patternkit\PatternEditorConfig|null $config
-   *   (Optional) The pattern configuration for this pattern instance.
    *
-   * @return array
+   * @return array{template: string, schema: array}
    *   The loaded assets for the pattern. Should have the following keys:
    *   - string template
    *     A renderable template string.
@@ -30,7 +28,7 @@ interface PatternLibraryPluginInterface extends PluginInspectionInterface {
    * @throws \Drupal\patternkit\Exception\PatternAssetException
    *   Throws an exception if required assets are unavailable.
    */
-  public function fetchAssets(PatternInterface $pattern, ?PatternEditorConfig $config = NULL): array;
+  public function fetchAssets(PatternInterface $pattern): array;
 
   /**
    * Returns renderable data or markup for a pattern editor.

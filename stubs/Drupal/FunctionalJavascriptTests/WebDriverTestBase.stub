@@ -1,0 +1,16 @@
+<?php
+
+namespace Drupal\FunctionalJavascriptTests;
+
+use Drupal\Tests\BrowserTestBase;
+
+abstract class WebDriverTestBase extends BrowserTestBase {
+
+  /**
+   * @param ?string $name
+   *
+   * @returns \Drupal\FunctionalJavascriptTests\JSWebAssert
+   */
+  public function assertSession($name = NULL): JSWebAssert {}
+
+}

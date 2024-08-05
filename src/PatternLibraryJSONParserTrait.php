@@ -129,8 +129,8 @@ trait PatternLibraryJSONParserTrait {
           if (!isset($info['data'])) {
             continue;
           }
-          $library_path = $info['data'] ?? $library_path;
-          $realpath = realpath($library_path . '/' . $path) ?? $realpath;
+          $library_path = $info['data'] ?: $library_path;
+          $realpath = realpath($library_path . '/' . $path) ?: $realpath;
         }
         $path = substr(str_replace('\\', '/', $realpath), strlen(\Drupal::root() . '/' . $library_path . '/'));
       }

@@ -48,9 +48,9 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
   /**
    * The mocked pattern library plugin manager.
    *
-   * @var \Drupal\patternkit\PatternLibraryPluginManager
+   * @var \Drupal\patternkit\PatternLibraryPluginManager&\PHPUnit\Framework\MockObject\MockObject
    */
-  protected PatternLibraryPluginManager $patternLibraryPluginManager;
+  protected PatternLibraryPluginManager&MockObject $patternLibraryPluginManager;
 
   /**
    * The pattern field processor plugin manager for testing.
@@ -62,23 +62,23 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
   /**
    * A mocked pattern library plugin.
    *
-   * @var \Drupal\patternkit\PatternLibraryPluginInterface
+   * @var \Drupal\patternkit\PatternLibraryPluginInterface&\PHPUnit\Framework\MockObject\MockObject
    */
-  protected PatternLibraryPluginInterface $libraryPlugin;
+  protected PatternLibraryPluginInterface&MockObject $libraryPlugin;
 
   /**
    * Mocked cache backend service.
    *
-   * @var \Drupal\Core\Cache\CacheBackendInterface
+   * @var \Drupal\Core\Cache\CacheBackendInterface&\PHPUnit\Framework\MockObject\MockObject
    */
-  protected CacheBackendInterface $cacheDiscovery;
+  protected CacheBackendInterface&MockObject $cacheDiscovery;
 
   /**
    * Mocked module handler service.
    *
-   * @var \Drupal\Core\Extension\ModuleHandlerInterface
+   * @var \Drupal\Core\Extension\ModuleHandlerInterface&\PHPUnit\Framework\MockObject\MockObject
    */
-  protected ModuleHandlerInterface $moduleHandler;
+  protected ModuleHandlerInterface&MockObject $moduleHandler;
 
   /**
    * JSON serializer service for decoding JSON strings.
@@ -90,9 +90,9 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
   /**
    * The test service for resolving schema references.
    *
-   * @var \Drupal\patternkit\Schema\PatternkitRefProvider
+   * @var \Drupal\patternkit\Schema\PatternkitRefProvider&\PHPUnit\Framework\MockObject\MockObject
    */
-  protected PatternkitRefProvider $refProvider;
+  protected PatternkitRefProvider&MockObject $refProvider;
 
   /**
    * A data preprocessor to register for schema operations.
@@ -118,9 +118,9 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
   /**
    * A mocked logger channel.
    *
-   * @var \Drupal\Core\Logger\LoggerChannelInterface
+   * @var \Drupal\Core\Logger\LoggerChannelInterface&\PHPUnit\Framework\MockObject\MockObject
    */
-  protected LoggerChannelInterface $logger;
+  protected LoggerChannelInterface&MockObject $logger;
 
   /**
    * The Drupal container to configure for dependency services.
@@ -139,9 +139,9 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
   /**
    * The mocked context builder service.
    *
-   * @var \Drupal\patternkit\Schema\ContextBuilder
+   * @var \Drupal\patternkit\Schema\ContextBuilder&\PHPUnit\Framework\MockObject\MockObject
    */
-  protected ContextBuilder $contextBuilder;
+  protected ContextBuilder&MockObject $contextBuilder;
 
   /**
    * {@inheritdoc}

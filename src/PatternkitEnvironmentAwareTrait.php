@@ -10,6 +10,8 @@ namespace Drupal\patternkit;
  *
  * @see \Drupal\patternkit\PatternkitEnvironment
  * @see \Drupal\patternkit\PatternkitEnvironmentAwareInterface
+ *
+ * @phpstan-require-implements \Drupal\patternkit\PatternkitEnvironmentAwareInterface
  */
 trait PatternkitEnvironmentAwareTrait {
 

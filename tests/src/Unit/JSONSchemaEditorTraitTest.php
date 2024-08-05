@@ -169,6 +169,7 @@ class JSONSchemaEditorTraitTest extends UnitTestCase {
  * @internal
  */
 class TestJSONSchemaEditorTrait {
+  // @phpstan-ignore traitUse.deprecated
   use JSONSchemaEditorTrait {
     setQueryStringService as public;
   }

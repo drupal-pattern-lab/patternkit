@@ -99,12 +99,13 @@ class Pattern extends ContentEntityBase implements PatternInterface {
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    *   Thrown if the storage handler couldn't be loaded.
    */
-  public static function create(array $values = []): self {
+  public static function create(array $values = []): static {
     $entity_type_manager = \Drupal::entityTypeManager();
     $storage = $entity_type_manager->getStorage('patternkit_pattern');
     /** @var \Drupal\patternkit\Entity\Pattern $pattern */
     $pattern = $storage->create($values);
 
+    // @phpstan-ignore return.type
     return $pattern;
   }
 
@@ -180,7 +181,7 @@ class Pattern extends ContentEntityBase implements PatternInterface {
    * Asset groups can be used for override purposes, as they will replace lower
    * weighted assets.
    *
-   * @return \Drupal\Core\Field\FieldItemListInterface|mixed
+   * @return array
    *   A collection of all assets for the pattern instance.
    */
   public function getAssets(): array {
@@ -273,7 +274,8 @@ class Pattern extends ContentEntityBase implements PatternInterface {
    * {@inheritdoc}
    */
   public function getDependencies(): array {
-    return $this->get('dependencies')->getValue();
+    $values = $this->get('dependencies')->getValue() ?? [];
+    return array_map(fn ($item) => $item['value'], $values);
   }
 
   /**

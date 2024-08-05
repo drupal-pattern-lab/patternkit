@@ -38,22 +38,6 @@ abstract class PatternLibraryPluginDefault extends PluginBase implements Configu
   protected ImmutableConfig $config;
 
   /**
-   * Parses library files into a Patternkit Library.
-   *
-   * @var \Drupal\patternkit\Asset\PatternLibraryParserInterface
-   */
-  protected PatternLibraryParserInterface $parser;
-
-  /**
-   * The application root path.
-   *
-   * Example: '/var/www/docroot'.
-   *
-   * @var string
-   */
-  protected string $root;
-
-  /**
    * Attaches services.
    *
    * @param string $root
@@ -71,16 +55,14 @@ abstract class PatternLibraryPluginDefault extends PluginBase implements Configu
    *   Plugin Definition.
    */
   public function __construct(
-    $root,
-    PatternLibraryParserInterface $parser,
+    protected readonly string $root,
+    protected PatternLibraryParserInterface $parser,
     ConfigFactoryInterface $config_factory,
     array $configuration,
-    $plugin_id,
-    $plugin_definition,
+    string $plugin_id,
+    mixed $plugin_definition,
   ) {
     $this->config = $config_factory->get(PatternkitSettingsForm::SETTINGS);
-    $this->root = $root;
-    $this->parser = $parser;
 
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->setConfiguration($configuration);
@@ -99,8 +81,8 @@ abstract class PatternLibraryPluginDefault extends PluginBase implements Configu
   /**
    * {@inheritdoc}
    */
-  public function fetchAssets(PatternInterface $pattern, ?PatternEditorConfig $config = NULL): array {
-    return $this->parser->fetchPatternAssets($pattern, $config);
+  public function fetchAssets(PatternInterface $pattern): array {
+    return $this->parser->fetchPatternAssets($pattern);
   }
 
   /**

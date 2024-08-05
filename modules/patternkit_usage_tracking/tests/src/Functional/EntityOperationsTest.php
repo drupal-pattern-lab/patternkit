@@ -294,7 +294,6 @@ class EntityOperationsTest extends PatternkitBrowserTestBase {
     }
 
     // Fail if no section component was created.
-    // @phpstan-ignore-next-line
     if ($component === NULL) {
       throw new \RuntimeException('Failed to create layout component.');
     }

@@ -182,8 +182,8 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
       }
       $this->derivatives[$pattern_id] = [
         'category' => (string) $this->t('Patternkit:@lib/@category', [
-          '@lib' => $lib ?? 'patternkit',
-          '@category' => $pattern->getCategory() ?? 'default',
+          '@lib' => $lib ?: 'patternkit',
+          '@category' => $pattern->getCategory() ?: 'default',
         ]),
         'admin_label' => $this->t('[Patternkit] @pattern', ['@pattern' => $pattern->label()]),
         'pattern' => $pattern,
@@ -199,6 +199,7 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
       ->condition('reusable', TRUE)
       ->execute();
     if ($pk_block_ids) {
+      /** @var \Drupal\patternkit\Entity\PatternkitBlock[] $patternkit_blocks */
       $patternkit_blocks = $this->blockStorage->loadMultiple($pk_block_ids);
     }
     foreach ($patternkit_blocks as $patternkit_block) {

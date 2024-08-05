@@ -12,6 +12,7 @@ use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Block\BlockManagerInterface;
 use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Entity\TranslatableInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
@@ -52,90 +53,6 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
   use PatternkitEnvironmentAwareTrait;
 
   /**
-   * Controls the block cache.
-   *
-   * @var \Drupal\Core\Block\BlockManagerInterface
-   */
-  protected BlockManagerInterface $blockManager;
-
-  /**
-   * The context handler service.
-   *
-   * @var \Drupal\Core\Plugin\Context\ContextHandlerInterface
-   */
-  protected ContextHandlerInterface $contextHandler;
-
-  /**
-   * Allows adding all current contexts to the block plugin.
-   *
-   * @var \Drupal\Core\Plugin\Context\ContextRepositoryInterface
-   */
-  protected ContextRepositoryInterface $contextRepository;
-
-  /**
-   * Entity storage for patternkit_pattern entities.
-   *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
-   */
-  protected EntityStorageInterface $patternStorage;
-
-  /**
-   * Entity storage for patternkit_block entities.
-   *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
-   */
-  protected EntityStorageInterface $blockStorage;
-
-  /**
-   * The pattern repository service for loading patterns.
-   *
-   * @var \Drupal\patternkit\PatternRepository
-   */
-  protected PatternRepository $patternRepository;
-
-  /**
-   * Loads plugins for parsing and rendering patterns.
-   *
-   * @var \Drupal\patternkit\PatternLibraryPluginManager
-   */
-  protected PatternLibraryPluginManager $patternLibraryPluginManager;
-
-  /**
-   * Encodes and decodes configuration for storage.
-   *
-   * @var \Drupal\Component\Serialization\SerializationInterface
-   */
-  protected SerializationInterface $serializer;
-
-  /**
-   * Parses and replaces Drupal tokens.
-   *
-   * @var \Drupal\Core\Utility\Token
-   */
-  protected Token $token;
-
-  /**
-   * The language manager service.
-   *
-   * @var \Drupal\Core\Language\LanguageManagerInterface
-   */
-  protected LanguageManagerInterface $languageManager;
-
-  /**
-   * The event dispatcher service.
-   *
-   * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
-   */
-  protected EventDispatcherInterface $eventDispatcher;
-
-  /**
-   * The patternkit logger channel.
-   *
-   * @var \Drupal\Core\Logger\LoggerChannelInterface
-   */
-  protected LoggerChannelInterface $logger;
-
-  /**
    * The Patternkit Block entity storing content for this plugin instance.
    *
    * @var \Drupal\patternkit\Entity\PatternkitBlock
@@ -164,21 +81,21 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    *
    * Adds services to allow Patternkit to load and display library patterns.
    *
-   * @param \Drupal\Core\Block\BlockManagerInterface $block_manager
+   * @param \Drupal\Core\Block\BlockManagerInterface $blockManager
    *   Block manager service.
    * @param array $configuration
    *   Default configuration for the block plugin instance.
-   * @param \Drupal\Core\Plugin\Context\ContextHandlerInterface $context_handler
+   * @param \Drupal\Core\Plugin\Context\ContextHandlerInterface $contextHandler
    *   The ContextHandler allows mapping provided contexts to definitions.
-   * @param \Drupal\Core\Plugin\Context\ContextRepositoryInterface $context_repository
+   * @param \Drupal\Core\Plugin\Context\ContextRepositoryInterface $contextRepository
    *   The repository of available contexts for the current route.
-   * @param \Drupal\Core\Entity\EntityStorageInterface $patternkit_pattern_storage
+   * @param \Drupal\Core\Entity\EntityStorageInterface $patternStorage
    *   Entity storage for the patternkit_pattern entity.
-   * @param \Drupal\Core\Entity\EntityStorageInterface $patternkit_block_storage
+   * @param \Drupal\Core\Entity\EntityStorageInterface $blockStorage
    *   Entity storage for the patternkit_block entity.
    * @param \Drupal\patternkit\PatternRepository $patternRepository
    *   The pattern repository service.
-   * @param \Drupal\patternkit\PatternLibraryPluginManager $pattern_plugin_manager
+   * @param \Drupal\patternkit\PatternLibraryPluginManager $patternLibraryPluginManager
    *   Pattern library plugin manager service.
    * @param string $plugin_id
    *   Plugin ID.
@@ -188,9 +105,9 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    *   Serialization service.
    * @param \Drupal\Core\Utility\Token $token
    *   Token service.
-   * @param \Drupal\Core\Language\LanguageManagerInterface $language_manager
+   * @param \Drupal\Core\Language\LanguageManagerInterface $languageManager
    *   The language manager service.
-   * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher
+   * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $eventDispatcher
    *   The event dispatcher service.
    * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
    *   The logger channel for logging messages.
@@ -198,35 +115,22 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    * @throws \Drupal\Component\Plugin\Exception\ContextException
    */
   public function __construct(
-    BlockManagerInterface $block_manager,
+    protected BlockManagerInterface $blockManager,
     array $configuration,
-    ContextHandlerInterface $context_handler,
-    ContextRepositoryInterface $context_repository,
-    EntityStorageInterface $patternkit_pattern_storage,
-    EntityStorageInterface $patternkit_block_storage,
-    PatternRepository $patternRepository,
-    PatternLibraryPluginManager $pattern_plugin_manager,
+    protected ContextHandlerInterface $contextHandler,
+    protected ContextRepositoryInterface $contextRepository,
+    protected EntityStorageInterface $patternStorage,
+    protected EntityStorageInterface $blockStorage,
+    protected PatternRepository $patternRepository,
+    protected PatternLibraryPluginManager $patternLibraryPluginManager,
     string $plugin_id,
     array $plugin_definition,
-    SerializationInterface $serializer,
-    Token $token,
-    LanguageManagerInterface $language_manager,
-    EventDispatcherInterface $event_dispatcher,
-    LoggerChannelInterface $logger,
+    protected SerializationInterface $serializer,
+    protected Token $token,
+    protected LanguageManagerInterface $languageManager,
+    protected EventDispatcherInterface $eventDispatcher,
+    protected LoggerChannelInterface $logger,
   ) {
-    $this->blockManager = $block_manager;
-    $this->contextHandler = $context_handler;
-    $this->contextRepository = $context_repository;
-    $this->patternStorage = $patternkit_pattern_storage;
-    $this->blockStorage = $patternkit_block_storage;
-    $this->patternRepository = $patternRepository;
-    $this->patternLibraryPluginManager = $pattern_plugin_manager;
-    $this->serializer = $serializer;
-    $this->token = $token;
-    $this->languageManager = $language_manager;
-    $this->eventDispatcher = $event_dispatcher;
-    $this->logger = $logger;
-
     // Assign token contexts into the plugin definition.
     // @todo Move this into a lazy-load method to happen when needed instead.
     $this->prepareTokenContexts($plugin_definition);
@@ -555,6 +459,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     // Load the existing revision or save a new one.
     if ($existing_revisions) {
       $pattern = $this->patternStorage->loadRevision(key($existing_revisions));
+      assert($pattern instanceof PatternInterface);
     }
     else {
       $pattern->updateFromPattern($base_pattern);
@@ -716,8 +621,12 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     }
     foreach ($this->getContextDefinitions() as $name => $definition) {
       $matching_contexts = $this->contextHandler->getMatchingContexts($layout_contexts, $definition);
-      $contexts[$name] = array_pop($matching_contexts);
+      $match = array_pop($matching_contexts);
+      if ($match !== NULL) {
+        $contexts[$name] = $match;
+      }
     }
+    // @phpstan-ignore assign.propertyType
     $this->context = $contexts + $this->context;
     foreach ($this->context as $type => $context) {
       if ($context === NULL) {
@@ -1013,7 +922,9 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       $this->configuration['block_serialized'] = NULL;
 
       // Block cache is not updated unless we specifically ask to clear it.
-      $this->blockManager->clearCachedDefinitions();
+      if (method_exists($this->blockManager, 'clearCachedDefinitions')) {
+        $this->blockManager->clearCachedDefinitions();
+      }
     }
   }
 
@@ -1037,7 +948,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    * @throws \Drupal\patternkit\Exception\UnknownPatternException
    */
-  public function getPatternEntity(): PatternInterface {
+  public function getPatternEntity(): ?PatternInterface {
     // Return the loaded pattern entity immediately if it's already available.
     if (isset($this->patternEntity)) {
       return $this->patternEntity;
@@ -1049,7 +960,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     // the filesystem is enabled and bypass the database if so.
     $shouldBypassDatabase = $this->getEnvironmentFeature(PatternkitEnvironment::FEATURE_BYPASS_DATABASE_CACHE, FALSE);
     if (!$shouldBypassDatabase && !empty($configuration['pattern'])) {
-      /** @var \Drupal\patternkit\entity\PatternInterface|null $pattern */
+      /** @var \Drupal\patternkit\Entity\PatternInterface|null $pattern */
       $pattern = $this->patternStorage->loadRevision($configuration['pattern']);
 
       if ($pattern === NULL) {
@@ -1119,10 +1030,15 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     }
 
     // Ensure the correct translation is loaded if a language code is defined.
-    if (!empty($configuration['langcode']) && $block->hasTranslation(($configuration['langcode']))) {
+    if (
+      !empty($configuration['langcode']) &&
+      $block instanceof TranslatableInterface &&
+      $block->hasTranslation(($configuration['langcode']))
+    ) {
       $block = $block->getTranslation($configuration['langcode']);
     }
 
+    assert($block instanceof EntityPatternkitBlock);
     return $this->blockEntity = $block;
   }
 
@@ -1172,6 +1088,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       $cached_pattern = $pattern_cache ? end($pattern_cache) : NULL;
     }
 
+    // @phpstan-ignore return.type
     return $cached_pattern;
   }
 

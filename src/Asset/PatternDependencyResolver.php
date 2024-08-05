@@ -108,13 +108,7 @@ class PatternDependencyResolver {
         /** @var \Drupal\patternkit\Entity\PatternInterface $pattern */
         $pattern = $patternStorage->create($definition);
 
-        // Flatten the values array.
-        $dependencies = [];
-        foreach ($pattern->getDependencies() as $dependency) {
-          $dependencies[] = $dependency['value'];
-        }
-
-        $this->patternDependencies[$pattern_id] = $dependencies;
+        $this->patternDependencies[$pattern_id] = $pattern->getDependencies();
       }
     }
 
@@ -138,6 +132,7 @@ class PatternDependencyResolver {
    */
   public function getSchemaDependencies(string $schema_json, string $pattern_id): array {
     // Prepare an observer to record references as the schema is imported.
+    /** @var \Drupal\patternkit\Schema\DataPreProcessor\SchemaRefObserver $observer */
     $observer = $this->dataPreProcessorFactory->getPreProcessor('ref_observer');
 
     // Load the observer into context for use with the schema.

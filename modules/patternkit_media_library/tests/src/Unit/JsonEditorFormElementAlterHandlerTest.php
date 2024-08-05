@@ -107,6 +107,7 @@ class JsonEditorFormElementAlterHandlerTest extends UnitTestCase {
       ->willReturn($generated_url);
 
     // Prepare cache metadata lookups for the config object.
+    /** @var \Drupal\Core\Config\ImmutableConfig&\PHPUnit\Framework\MockObject\MockObject $config */
     $config = $this->configFactory->get('patternkit_media_library.settings');
     $config->method('getCacheContexts')
       ->willReturn(['languages:language_interface']);

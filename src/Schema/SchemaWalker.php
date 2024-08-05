@@ -8,6 +8,8 @@ use Swaggest\JsonSchema\SchemaContract;
  * An iterator for traversing recursively through a SchemaIterator.
  *
  * @see \Drupal\patternkit\Schema\SchemaIterator
+ *
+ * @phpstan-extends \RecursiveIteratorIterator<\Drupal\patternkit\Schema\SchemaIterator>
  */
 class SchemaWalker extends \RecursiveIteratorIterator {
 
@@ -59,15 +61,9 @@ class SchemaWalker extends \RecursiveIteratorIterator {
    * @throws \Drupal\patternkit\Exception\SchemaValidationException
    */
   public function getPropertySchema(): ?SchemaContract {
-    /** @var \Drupal\patternkit\Schema\SchemaIterator $iterator */
     $iterator = $this->getSubIterator();
 
-    if ($iterator) {
-      return $iterator->getPropertySchema();
-    }
-    else {
-      return NULL;
-    }
+    return $iterator?->getPropertySchema();
   }
 
   /**
@@ -76,19 +72,28 @@ class SchemaWalker extends \RecursiveIteratorIterator {
    * @param mixed $value
    *   The value to be set at the current iteration key.
    */
-  public function setCurrentValue($value): void {
+  public function setCurrentValue(mixed $value): void {
     // Get the current depth and traverse back up the tree, saving the
     // modifications at each level along the way.
     $currentDepth = $this->getDepth();
     for ($subDepth = $currentDepth; $subDepth >= 0; $subDepth--) {
       // Get the current level iterator.
-      /** @var \Drupal\patternkit\Schema\SchemaIterator $subIterator */
       $subIterator = $this->getSubIterator($subDepth);
       // If we are on the level we want to change, use the replacement ($value),
       // otherwise set the key to the parent iterator's value.
       $subIterator->offsetSet($subIterator->key(),
         ($subDepth === $currentDepth ? $value : $this->getSubIterator(($subDepth + 1))->getArrayCopy()));
     }
+  }
+
+  /**
+   * {@inheritdoc}
+   * @phpcs:disable Generic.CodeAnalysis.UselessOverridingMethod.Found
+   * Override return type to fix PHPStan warnings.
+   */
+  public function getSubIterator(?int $level = NULL): ?SchemaIterator {
+    // @phpstan-ignore return.type
+    return parent::getSubIterator($level);
   }
 
 }

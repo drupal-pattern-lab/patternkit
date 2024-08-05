@@ -153,6 +153,7 @@ class SchemaHelper {
    *   The applied validation constraint for the validation result.
    */
   protected static function getConstraintFromObject(ObjectItemContract $validationResult, SchemaContract $schema): SchemaContract {
+    // @phpstan-ignore method.notFound
     $documentPath = $validationResult->getDocumentPath();
 
     // Parse the document path from the object match to identify which schema

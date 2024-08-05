@@ -1,0 +1,123 @@
+includes:
+  - phpstan-baseline.neon
+  - phpstan.entity_mapping.neon
+
+  # Uncomment this line to enable overrides for local development and testing.
+  # - phpstan.local.neon
+
+parameters:
+  drupal:
+    drupal_root: %currentWorkingDirectory%/web
+  editorUrlTitle: '%%relFile%%:%%line%%'
+  level: 3
+
+  fileExtensions:
+    - php
+    - module
+    - inc
+    - install
+    - theme
+    - profile
+  paths:
+    - src
+    - tests
+    - modules
+    - ./patternkit.post_update.php
+    - ./patternkit.install
+    - ./patternkit.module
+  excludePaths:
+    - src/Form/PatternkitTranslateBlockForm.php
+
+  scanDirectories:
+    - %currentWorkingDirectory%/web/core
+  stubFiles:
+    - stubs/Behat/Mink/WebAssert.stub
+    - stubs/Drupal/FunctionalJavascriptTests/WebDriverTestBase.stub
+    - stubs/Drupal/FunctionalJavascriptTests/JSWebAssert.stub
+    - stubs/Drupal/Tests/BrowserTestBase.stub
+    - stubs/Drupal/Tests/WebAssert.stub
+    - stubs/Swaggest/JsonSchema/SchemaContract.stub
+
+  # Customize the rules being scanned for.
+  reportUnmatchedIgnoredErrors: true
+  treatPhpDocTypesAsCertain: false
+
+  # Ignore some known or irrelevant errors.
+  ignoreErrors:
+    # new static() is a best practice in Drupal, so we cannot fix that.
+    - "#^Unsafe usage of new static#"
+
+    # Don't require specifying array shapes for everything.
+    # This is only required for level 4+
+    # - identifier: missingType.iterableValue
+
+    # Ignore issues with unknown properties in tests, especially common on schemas.
+    - identifier: property.notFound
+      paths:
+        - *Test.php
+
+    # Ignore complaints when accessing known section list fields.
+    - message: '#^Call to an undefined method Drupal\\Core\\Field\\FieldItemListInterface\<Drupal\\Core\\Field\\FieldItemInterface\>\:\:getSection\(\)\.$#'
+      paths:
+        - *Test.php
+
+    # Ignore issues in tests for deprecated Library class since it will be removed.
+    - identifier: method.notFound
+      path: tests/src/Kernel/Asset/LibraryTest.php
+
+    # Ignore dependency injection warnings for intentional lazy-loader methods.
+    - message: '#^\\Drupal calls should be avoided in classes, use dependency injection instead$#'
+      count: 2
+      path: src/Event/PatternUpdateEvent.php
+    - message: '#^\\Drupal calls should be avoided in classes, use dependency injection instead$#'
+      count: 1
+      path: src/LayoutHelper.php
+    - message: '#^\\Drupal calls should be avoided in classes, use dependency injection instead$#'
+      count: 1
+      path: src/PatternLibrary.php
+    - message: '#^\\Drupal calls should be avoided in classes, use dependency injection instead$#'
+      count: 1
+      path: src/Plugin/PatternLibrary/PatternLibraryTwig.php
+    - message: '#^\\Drupal calls should be avoided in classes, use dependency injection instead$#'
+      count: 1
+      path: src/Schema/PatternkitRefProvider.php
+    - message: '#^\\Drupal calls should be avoided in classes, use dependency injection instead$#'
+      count: 1
+      path: src/UpdateHelper.php
+
+    # Ignore render element base class extensions until Drupal 10.3 is the minimum version supported.
+    # See https://www.drupal.org/node/3436275.
+    - message: '''
+        #^Class Drupal\\patternkit\\Element\\Pattern(Error)? extends deprecated class Drupal\\Core\\Render\\Element\\RenderElement\:
+        in drupal\:10\.3\.0 and is removed from drupal\:12\.0\.0\. Use
+          \\Drupal\\Core\\Render\\Element\\RenderElementBase instead\.$#
+      '''
+      count: 2
+      path: src/Element/*
+    - message: '''
+        #^Call to method __construct\(\) of deprecated class Drupal\\Core\\Render\\Element\\RenderElement\:
+        in drupal\:10\.3\.0 and is removed from drupal\:12\.0\.0\. Use
+          \\Drupal\\Core\\Render\\Element\\RenderElementBase instead\.$#
+      '''
+      count: 1
+      path: src/Element/Pattern.php
+    - message: '''
+        #^Class Drupal\\patternkit\\Element\\JsonEditorForm extends deprecated class Drupal\\Core\\Render\\Element\\FormElement\:
+        in drupal\:10\.3\.0 and is removed from drupal\:12\.0\.0\. use
+          \\Drupal\\Core\\Render\\Element\\FormElementBase instead\.$#
+      '''
+      path: src/Element/*.php
+    - message: '''
+        #^Call to method __construct\(\) of deprecated class Drupal\\Core\\Render\\Element\\FormElement\:
+        in drupal\:10\.3\.0 and is removed from drupal\:12\.0\.0\. use
+          \\Drupal\\Core\\Render\\Element\\FormElementBase instead\.$#
+      '''
+      path: src/Element/*.php
+
+    # Remove with v1.0 release when Library class is removed.
+    - '''
+      #^Class Drupal\\Tests\\patternkit\\Unit\\Asset\\TestLibrary extends deprecated class Drupal\\patternkit\\Asset\\Library\:
+      in patternkit\:9\.1\.0\-beta4 and is removed from patternkit\:9\.1\.0\.
+        Use \\Drupal\\patternkit\\Asset\\LibraryNamespaceResolver or
+        \\Drupal\\patternkit\\Asset\\PatternDiscovery instead\.$#
+      '''

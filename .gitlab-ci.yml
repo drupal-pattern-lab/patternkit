@@ -64,3 +64,6 @@ variables:
 
 phpcs:
   allow_failure: false
+
+phpstan:
+  allow_failure: false

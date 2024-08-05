@@ -1,0 +1,7 @@
+<?php
+
+namespace Drupal\Tests;
+
+use Behat\Mink\WebAssert as MinkWebAssert;
+
+class WebAssert extends MinkWebAssert { }

@@ -1,0 +1,45 @@
+parameters:
+  ignoreErrors:
+
+    #########################
+    # Drupal 11 deprecations.
+    #########################
+
+    # Ignore withConsecutive() deprecation warnings until we're ready to replace them.
+    - '#^Call to deprecated method withConsecutive\(\) of class PHPUnit\\Framework\\MockObject\\Builder\\InvocationMocker\.$#'
+    - message: '#^Trying to mock an undefined method myCallback\(\) on class stdClass\.$#'
+      count: 1
+      path: tests/src/Unit/LayoutHelperTest.php
+
+    # Ignore loadRevision() deprecations until we're ready to replace them.
+    - '''
+        #^Call to deprecated method loadRevision\(\) of interface Drupal\\Core\\Entity\\EntityStorageInterface\:
+        in drupal\:10\.1\.0 and is removed from drupal\:11\.0\.0\. Use
+        \\Drupal\\Core\\Entity\\RevisionableStorageInterface\:\:loadRevision instead\.$#
+      '''
+
+    #########################
+    # General cleanup items.
+    #########################
+
+    - message: '#^\\Drupal calls should be avoided in classes, use dependency injection instead$#'
+      count: 1
+      path: src/Plugin/PatternLibrary/PatternLibraryFile.php
+
+    - message: '#^Part \$pattern\-\>filename \(Drupal\\Core\\Field\\FieldItemListInterface\) of encapsed string cannot be cast to string\.$#'
+      count: 1
+      path: src/Plugin/PatternLibrary/PatternLibraryFile.php
+
+    - message: '#^Method Drupal\\patternkit\\StreamWrapper\\LibraryStream\:\:getTarget\(\) should return bool\|string but returns array\<string, array\>\.$#'
+      path: src/StreamWrapper/LibraryStream.php
+
+    - message: '#^Return type \(array\<Drupal\\patternkit\\PatternLibraryPluginDefinition\>\) of method Drupal\\patternkit\\PatternLibraryPluginManager\:\:getSortedDefinitions\(\) should be compatible with return type \(array\<array\>\) of method Drupal\\Component\\Plugin\\CategorizingPluginManagerInterface\:\:getSortedDefinitions\(\)$#'
+      path: src/PatternLibraryPluginManager.php
+
+    #########################
+    # PHPStan type stubs needed.
+    #########################
+    - message: '''
+      #^Method Drupal\\patternkit_usage_tracking\\PatternUsageManager\:\:\w+\(\) should return array\<Drupal\\patternkit_usage_tracking\\Entity\\PatternUsage\> but returns array\<Drupal\\Core\\Entity\\EntityInterface\>\.$#
+      '''
+      path: modules/patternkit_usage_tracking/src/PatternUsageManager.php

@@ -5,6 +5,7 @@ namespace Drupal\Tests\patternkit\Unit;
 use Drupal\patternkit\PatternkitEnvironment;
 use Drupal\patternkit\PatternkitEnvironmentAwareTrait;
 use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -22,16 +23,16 @@ class PatternkitEnvironmentAwareTraitTest extends UnitTestCase {
   /**
    * The patternkit environment service.
    *
-   * @var \Drupal\patternkit\PatternkitEnvironment|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\PatternkitEnvironment>
    */
   protected ObjectProphecy $environment;
 
   /**
    * The mocked object using the trait being tested.
    *
-   * @var \Drupal\patternkit\PatternkitEnvironmentAwareTrait|\PHPUnit\Framework\MockObject\MockObject
+   * @var \Drupal\patternkit\PatternkitEnvironmentAwareInterface&\PHPUnit\Framework\MockObject\MockObject
    */
-  protected $mock;
+  protected MockObject $mock;
 
   /**
    * {@inheritdoc}
@@ -41,6 +42,7 @@ class PatternkitEnvironmentAwareTraitTest extends UnitTestCase {
 
     $this->environment = $this->prophesize(PatternkitEnvironment::class);
 
+    // @phpstan-ignore assign.propertyType
     $this->mock = $this->getMockForTrait(PatternkitEnvironmentAwareTrait::class);
   }
 

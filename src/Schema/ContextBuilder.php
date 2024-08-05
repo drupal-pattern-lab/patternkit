@@ -240,6 +240,7 @@ class ContextBuilder {
     // Apply the remote reference provider if applicable.
     if (array_key_exists('refProvider', $options)) {
       if ($options['refProvider'] === NULL) {
+        // @phpstan-ignore property.notFound
         $context->remoteRefPovider = NULL;
       }
       else {
@@ -250,6 +251,7 @@ class ContextBuilder {
     // Apply the data preprocessor if applicable.
     if (array_key_exists('dataPreProcessor', $options)) {
       if ($options['dataPreProcessor'] === NULL) {
+        // @phpstan-ignore assign.propertyType
         $context->dataPreProcessor = NULL;
       }
       else {

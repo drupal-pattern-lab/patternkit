@@ -330,7 +330,7 @@ class PatternDiscoveryLoaderTest extends UnitTestCase {
 
     $this->expectException(InvalidLibraryFileException::class);
     $this->expectExceptionMessage("Error loading pattern libraries via missing_plugin: ");
-    $this->expectExceptionMessage($exception_message, 'Expected the thrown exception message to contain the original exception message.');
+    $this->expectExceptionMessage($exception_message);
 
     $this->loader->getPatternsByNamespace('@example');
   }

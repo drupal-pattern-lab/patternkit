@@ -18,6 +18,7 @@ use Drupal\patternkit\Form\PatternkitSettingsForm;
 use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -40,54 +41,54 @@ class LibraryTest extends UnitTestCase {
   /**
    * The mocked cache backend.
    *
-   * @var \Drupal\Core\Cache\CacheBackendInterface
+   * @var \Drupal\Core\Cache\CacheBackendInterface&\PHPUnit\Framework\MockObject\MockObject
    */
-  protected CacheBackendInterface $cache;
+  protected CacheBackendInterface&MockObject $cache;
 
   /**
    * The mocked config factory service.
    *
-   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   * @var \Drupal\Core\Config\ConfigFactoryInterface&\PHPUnit\Framework\MockObject\MockObject
    */
-  protected ConfigFactoryInterface $configFactory;
+  protected ConfigFactoryInterface&MockObject $configFactory;
 
   /**
    * The mocked pattern library plugin manager service.
    *
-   * @var \Drupal\patternkit\PatternLibraryPluginManager
+   * @var \Drupal\patternkit\PatternLibraryPluginManager&\PHPUnit\Framework\MockObject\MockObject
    */
-  protected PatternLibraryPluginManager $libraryPluginManager;
+  protected PatternLibraryPluginManager&MockObject $libraryPluginManager;
 
   /**
    * The mocked lock backend service.
    *
-   * @var \Drupal\Core\Lock\LockBackendInterface
+   * @var \Drupal\Core\Lock\LockBackendInterface&\PHPUnit\Framework\MockObject\MockObject
    */
-  protected LockBackendInterface $lock;
+  protected LockBackendInterface&MockObject $lock;
 
   /**
    * The mocked module handler service.
    *
-   * @var \Drupal\Core\Extension\ModuleHandlerInterface
+   * @var \Drupal\Core\Extension\ModuleHandlerInterface&\PHPUnit\Framework\MockObject\MockObject
    */
-  protected ModuleHandlerInterface $moduleHandler;
+  protected ModuleHandlerInterface&MockObject $moduleHandler;
 
   /**
    * The mocked theme manager service.
    *
-   * @var \Drupal\Core\Theme\ThemeManagerInterface
+   * @var \Drupal\Core\Theme\ThemeManagerInterface&\PHPUnit\Framework\MockObject\MockObject
    */
-  protected ThemeManagerInterface $themeManager;
+  protected ThemeManagerInterface&MockObject $themeManager;
 
   /**
    * The mocked active theme service.
    *
-   * @var \Drupal\Core\Theme\ActiveTheme
+   * @var \Drupal\Core\Theme\ActiveTheme&\PHPUnit\Framework\MockObject\MockObject
    */
-  protected ActiveTheme $activeTheme;
+  protected ActiveTheme&MockObject $activeTheme;
 
   /**
-   * The mocked streamwrapper manager service.
+   * The prepared streamwrapper manager service.
    *
    * @var \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface
    */
@@ -103,16 +104,16 @@ class LibraryTest extends UnitTestCase {
   /**
    * The library namespace resolver service.
    *
-   * @var \Drupal\patternkit\Asset\LibraryNamespaceResolverInterface
+   * @var \Drupal\patternkit\Asset\LibraryNamespaceResolverInterface&\PHPUnit\Framework\MockObject\MockObject
    */
-  protected LibraryNamespaceResolverInterface $libraryNamespaceResolver;
+  protected LibraryNamespaceResolverInterface&MockObject $libraryNamespaceResolver;
 
   /**
    * The pattern discovery service.
    *
-   * @var \Drupal\patternkit\Asset\PatternDiscoveryInterface
+   * @var \Drupal\patternkit\Asset\PatternDiscoveryInterface&\PHPUnit\Framework\MockObject\MockObject
    */
-  protected PatternDiscoveryInterface $patternDiscovery;
+  protected PatternDiscoveryInterface&MockObject $patternDiscovery;
 
   /**
    * Mock library definition as would be returned from LibraryNamespaceResolver.

@@ -18,20 +18,6 @@ use Swaggest\JsonSchema\InvalidValue;
 class PatternUpdateEvent extends Event {
 
   /**
-   * The Pattern entity revision being used prior to updating.
-   *
-   * @var \Drupal\patternkit\Entity\PatternInterface
-   */
-  protected PatternInterface $oldPattern;
-
-  /**
-   * The Pattern entity revision to be used after updating.
-   *
-   * @var \Drupal\patternkit\Entity\PatternInterface
-   */
-  protected PatternInterface $newPattern;
-
-  /**
    * Content for the pattern instance at the time of updating.
    *
    * @var array
@@ -53,13 +39,6 @@ class PatternUpdateEvent extends Event {
   protected bool $isAltered = FALSE;
 
   /**
-   * The block plugin for the component being updated.
-   *
-   * @var \Drupal\patternkit\Plugin\Block\PatternkitBlock
-   */
-  protected PatternkitBlock $plugin;
-
-  /**
    * Create a new PatternUpdateEvent instance.
    *
    * @param \Drupal\patternkit\Plugin\Block\PatternkitBlock $plugin
@@ -69,11 +48,11 @@ class PatternUpdateEvent extends Event {
    * @param \Drupal\patternkit\Entity\PatternInterface $newPattern
    *   The new pattern instance being updated to.
    */
-  public function __construct(PatternkitBlock $plugin, PatternInterface $oldPattern, PatternInterface $newPattern) {
-    $this->plugin = $plugin;
-    $this->oldPattern = $oldPattern;
-    $this->newPattern = $newPattern;
-
+  public function __construct(
+    protected readonly PatternkitBlock $plugin,
+    protected readonly PatternInterface $oldPattern,
+    protected readonly PatternInterface $newPattern,
+  ) {
     // Save the starting content for reference.
     $blockEntity = $plugin->getBlockEntity();
     $this->originalContent = $blockEntity->getData();

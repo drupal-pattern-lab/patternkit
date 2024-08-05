@@ -5,11 +5,10 @@ namespace Drupal\patternkit_media_library\Controller;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Entity\EntityRepositoryInterface;
 use Drupal\Core\Entity\EntityViewBuilderInterface;
-use Drupal\Core\Http\InputBag;
 use Drupal\media_library\MediaLibraryState;
 use Drupal\media_library\MediaLibraryUiBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\HttpFoundation\InputBag as SymfonyInputBag;
+use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -75,14 +74,17 @@ class PatternkitMediaLibraryController extends ControllerBase {
   /**
    * Builds the UI.
    *
-   * @param Symfony\Component\HttpFoundation\Request $request
+   * @param \Symfony\Component\HttpFoundation\Request $request
    *   The Symfony request object.
+   *
+   * @return array
+   *   The render array for the media library.
    */
   public function mediaLibrary(Request $request): array {
     $query = $request->query;
 
     // @todo Remove this when Symfony 4 is no longer supported.
-    if (!($query instanceof SymfonyInputBag)) {
+    if (!($query instanceof InputBag)) {
       $query = new InputBag($query->all());
     }
 

@@ -54,9 +54,10 @@ class PatternDependencyResolverTest extends KernelTestBase {
 
     // Confirm a pattern with dependencies.
     $this->assertArrayHasKey('@patternkit/atoms/example_ref/src/example_ref', $dependencies);
-    $this->assertEquals([
-      '@patternkit/atoms/example/src/example',
-    ], $dependencies['@patternkit/atoms/example_ref/src/example_ref']);
+    $this->assertEquals(
+      ['@patternkit/atoms/example/src/example'],
+      $dependencies['@patternkit/atoms/example_ref/src/example_ref']
+    );
   }
 
   /**
