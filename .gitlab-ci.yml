@@ -67,3 +67,6 @@ phpcs:
 
 phpstan:
   allow_failure: false
+
+stylelint:
+  allow_failure: false

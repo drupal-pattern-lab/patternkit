@@ -5,12 +5,12 @@
 
 /* Updates display and margin of OL and UL within editor area to ensure
 bullets or numbers in lists are not hidden from view in LB sidebar. */
-[data-theme=cygnet] .ck-editor__main ol,
-[data-theme=cygnet] .ck-editor__main ul {
+[data-theme="cygnet"] .ck-editor__main ol,
+[data-theme="cygnet"] .ck-editor__main ul {
   display: block !important; /* needed to override core styles */
   margin-left: 20px;
 }
 
-#patternkit-editor-target [data-theme=cygnet] .ck.ck-editor__main > .ck-editor__editable.ck-read-only {
+#patternkit-editor-target [data-theme="cygnet"] .ck.ck-editor__main > .ck-editor__editable.ck-read-only {
   background-color: var(--disabled-input-background-color);
 }

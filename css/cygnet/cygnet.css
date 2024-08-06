@@ -1,4 +1,4 @@
-[data-theme=cygnet] {
+[data-theme="cygnet"] {
   margin-top: 18px;
   padding: 0 1em;
   color: #151515;
@@ -7,72 +7,72 @@
 }
 
 /* Variable definition */
-[data-theme=cygnet] {
+[data-theme="cygnet"] {
   --disabled-input-background-color: #ccc;
 }
 
 /* Form header styles. */
-[data-theme=cygnet] .je-header {
+[data-theme="cygnet"] .je-header {
   margin: 0 0 16px 0;
   font-size: 24px;
 }
 
 /* Set largest font-size for top level titles. */
-[data-theme=cygnet] [data-schemapath=root] > .je-header {
+[data-theme="cygnet"] [data-schemapath="root"] > .je-header {
   font-size: 28px;
 }
 
-[data-theme=cygnet] .je-header > label {
-  display: inline-block;
+[data-theme="cygnet"] .je-header > label {
   position: relative;
   top: 4px;
+  display: inline-block;
   margin-right: 16px;
   font-size: inherit;
 }
 
-[data-theme=cygnet] .je-object__controls {
+[data-theme="cygnet"] .je-object__controls {
   display: block;
   margin-bottom: 8px;
 }
 
 /* Form labels. */
-[data-theme=cygnet] .je-cygnet-form-input-label {
+[data-theme="cygnet"] .je-cygnet-form-input-label {
   display: block;
   padding-bottom: 4px;
   font-weight: 700;
 }
 
 /* Reduce font weight for description tags. */
-[data-theme=cygnet] p.je-cygnet-form-input-label {
+[data-theme="cygnet"] p.je-cygnet-form-input-label {
   font-weight: 300;
 }
 
-[data-theme=cygnet] label.required::after {
+[data-theme="cygnet"] label.required::after {
   display: inline;
   padding-left: 4px;
   content: "*";
   color: #e00;
 }
 
-[data-theme=cygnet] a {
+[data-theme="cygnet"] a {
   color: #06c;
 }
 
-[data-theme=cygnet] .je-cygnet-indented-panel {
-  padding-top: 16px;
+[data-theme="cygnet"] .je-cygnet-indented-panel {
   margin-bottom: 16px;
+  padding-top: 16px;
   border-radius: 3px;
 }
 
-[data-theme=cygnet] p {
+[data-theme="cygnet"] p {
   margin-top: 0;
   margin-left: 20px;
 }
 
-[data-theme=cygnet] input[type=text],
-[data-theme=cygnet] input[type=url],
-[data-theme=cygnet] select,
-[data-theme=cygnet] textarea {
+[data-theme="cygnet"] input[type="text"],
+[data-theme="cygnet"] input[type="url"],
+[data-theme="cygnet"] select,
+[data-theme="cygnet"] textarea {
   box-sizing: border-box;
   width: 100%;
   margin-bottom: 4px !important;
@@ -85,27 +85,27 @@
   font-size: 16px;
 }
 
-[data-theme=cygnet] .form-control input:disabled,
-[data-theme=cygnet] .form-control select:disabled,
-[data-theme=cygnet] .form-control textarea:disabled,
-[data-theme=cygnet] button:disabled {
+[data-theme="cygnet"] .form-control input:disabled,
+[data-theme="cygnet"] .form-control select:disabled,
+[data-theme="cygnet"] .form-control textarea:disabled,
+[data-theme="cygnet"] button:disabled {
   background-color: var(--disabled-input-background-color);
 }
 
-[data-theme=cygnet] select {
+[data-theme="cygnet"] select {
   font-size: 16px !important;
   font-style: normal !important;
 }
 
 /* Duplicate upstream rules for increased specificity. */
-[data-theme=cygnet] .je-edit-json--textarea {
-  height: 170px;
+[data-theme="cygnet"] .je-edit-json--textarea {
   display: block;
+  height: 170px;
 }
 
 /* Gray background on second-level objects and arrays. */
-[data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] .je-cygnet-indented-panel,
-[data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] .je-cygnet-indented-panel {
+[data-schemapath="root"] > .je-cygnet-indented-panel > div > div > .row > [data-schematype="object"] .je-cygnet-indented-panel,
+[data-schemapath="root"] > .je-cygnet-indented-panel > div > div > .row > [data-schematype="array"] .je-cygnet-indented-panel {
   padding: 16px 16px 0 16px !important;
   border: 1px solid #d2d2d2 !important;
   border-radius: 3px;
@@ -113,50 +113,50 @@
 }
 
 /* White background on objects beneath the second-level objects and arrays. */
-[data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] .je-cygnet-indented-panel .je-cygnet-indented-panel,
-[data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] .je-cygnet-indented-panel .je-cygnet-indented-panel {
+[data-schemapath="root"] > .je-cygnet-indented-panel > div > div > .row > [data-schematype="object"] .je-cygnet-indented-panel .je-cygnet-indented-panel,
+[data-schemapath="root"] > .je-cygnet-indented-panel > div > div > .row > [data-schematype="array"] .je-cygnet-indented-panel .je-cygnet-indented-panel {
   background-color: #fff;
 }
 
-[data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel .je-cygnet-indented-panel,
-[data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] > .je-cygnet-indented-panel .je-cygnet-indented-panel {
+[data-schemapath="root"] > .je-cygnet-indented-panel > div > div > .row > [data-schematype="object"] > .je-cygnet-indented-panel .je-cygnet-indented-panel,
+[data-schemapath="root"] > .je-cygnet-indented-panel > div > div > .row > [data-schematype="array"] > .je-cygnet-indented-panel .je-cygnet-indented-panel {
   padding: 16px 16px 0 16px !important;
   background-color: #fff;
 }
 
 /* Objects and arrays nested two layers beneath the second level have no padding or borders.  */
-[data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel .je-cygnet-indented-panel .je-cygnet-indented-panel,
-[data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] > .je-cygnet-indented-panel .je-cygnet-indented-panel .je-cygnet-indented-panel {
+[data-schemapath="root"] > .je-cygnet-indented-panel > div > div > .row > [data-schematype="object"] > .je-cygnet-indented-panel .je-cygnet-indented-panel .je-cygnet-indented-panel,
+[data-schemapath="root"] > .je-cygnet-indented-panel > div > div > .row > [data-schematype="array"] > .je-cygnet-indented-panel .je-cygnet-indented-panel .je-cygnet-indented-panel {
   padding: 0 !important;
   border: 0 !important;
 }
 
-[data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] > .je-cygnet-indented-panel > div > .je-cygnet-indented-panel {
+[data-schemapath="root"] > .je-cygnet-indented-panel > div > div > .row > [data-schematype="array"] > .je-cygnet-indented-panel > div > .je-cygnet-indented-panel {
   background-color: transparent;
 }
 
 /* Indent objects and arrays on the second level. */
-[data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object],
-[data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] {
+[data-schematype="object"] > .je-cygnet-indented-panel > div > div > .row > [data-schematype="object"],
+[data-schematype="object"] > .je-cygnet-indented-panel > div > div > .row > [data-schematype="array"] {
   margin-left: 20px;
 }
 
-[data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=array] .je-cygnet-indented-panel > .je-cygnet-indented-panel {
+[data-schemapath="root"] > .je-cygnet-indented-panel > div > div > .row > [data-schematype="object"] > .je-cygnet-indented-panel > div > div > .row > [data-schematype="array"] .je-cygnet-indented-panel > .je-cygnet-indented-panel {
   margin-left: 0 !important;
   border: 0 !important;
 }
 
 /* Indent second-level rows. */
-[data-theme=cygnet] > [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row {
+[data-theme="cygnet"] > [data-schemapath="root"] > .je-cygnet-indented-panel > div > div > .row {
   margin-left: 20px;
 }
 
-[data-theme=cygnet] > [data-schemapath=root] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] {
+[data-theme="cygnet"] > [data-schemapath="root"] > .je-cygnet-indented-panel > div > div > .row > [data-schematype="object"] {
   margin-left: 0;
 }
 
 /* White background on second-level objects */
-[data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel > [data-schematype=object] > .je-cygnet-indented-panel > div > div > .row > div > .je-cygnet-indented-panel {
+[data-schematype="object"] > .je-cygnet-indented-panel > div > div > .row > [data-schematype="object"] > .je-cygnet-indented-panel > [data-schematype="object"] > .je-cygnet-indented-panel > div > div > .row > div > .je-cygnet-indented-panel {
   margin-left: 20px !important;
   border: 1px solid #d2d2d2 !important;
   border-radius: 3px;
@@ -168,22 +168,22 @@
 }
 
 /* Indent panels adjacent to clickable panes. */
-.je-cygnet-indented-panel div div .row [data-schematype=object] .patternkit-jsoneditor-clickable ~ .je-cygnet-indented-panel {
+.je-cygnet-indented-panel div div .row [data-schematype="object"] .patternkit-jsoneditor-clickable ~ .je-cygnet-indented-panel {
   margin-left: 20px;
 }
 
-.je-cygnet-indented-panel [data-schematype=array] > .je-cygnet-indented-panel {
+.je-cygnet-indented-panel [data-schematype="array"] > .je-cygnet-indented-panel {
   position: relative;
   margin-bottom: 0;
 }
 
 /* Apply gray border to panels inside arrays. */
-[data-schematype=array] > .je-cygnet-indented-panel {
+[data-schematype="array"] > .je-cygnet-indented-panel {
   border: 1px solid #d2d2d2 !important;
 }
 
 /* Remove gray border from panels inside arrays. */
-[data-schematype=array] > .je-cygnet-indented-panel [data-schematype=array] > .je-cygnet-indented-panel {
+[data-schematype="array"] > .je-cygnet-indented-panel [data-schematype="array"] > .je-cygnet-indented-panel {
   border: 0 !important;
 }
 
@@ -198,7 +198,7 @@
   margin-left: 36px;
 }
 
-.je-cygnet-child-editor-holder > .je-cygnet-indented-panel > div > div > .row > [data-schematype=object] > .je-cygnet-indented-panel {
+.je-cygnet-child-editor-holder > .je-cygnet-indented-panel > div > div > .row > [data-schematype="object"] > .je-cygnet-indented-panel {
   padding: 0 !important;
 }
 
@@ -207,25 +207,25 @@
   padding-bottom: 0;
 }
 
-[data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="array"] > .je-cygnet-indented-panel [data-schematype=array] > h3 + .je-cygnet-indented-panel {
+[data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="array"] > .je-cygnet-indented-panel [data-schematype="array"] > h3 + .je-cygnet-indented-panel {
   border-top: 0;
 }
 
 /* Apply borders to panels inside a nested array. */
-[data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="array"] > .je-cygnet-indented-panel [data-schematype=array] > .je-cygnet-indented-panel > div > .je-cygnet-indented-panel > div > .je-cygnet-child-editor-holder > .je-cygnet-indented-panel {
+[data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="array"] > .je-cygnet-indented-panel [data-schematype="array"] > .je-cygnet-indented-panel > div > .je-cygnet-indented-panel > div > .je-cygnet-child-editor-holder > .je-cygnet-indented-panel {
   margin-bottom: 16px;
   margin-left: 36px !important;
   padding: 16px !important;
   border: 1px solid #d2d2d2 !important;
 }
 
-[data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="array"] > .je-cygnet-indented-panel [data-schematype=array] > .je-cygnet-indented-panel > div > .je-cygnet-indented-panel > div > .je-cygnet-child-editor-holder > .je-cygnet-indented-panel > div > div > .row {
+[data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="object"] > .je-cygnet-indented-panel [data-schematype="array"] > .je-cygnet-indented-panel [data-schematype="array"] > .je-cygnet-indented-panel > div > .je-cygnet-indented-panel > div > .je-cygnet-child-editor-holder > .je-cygnet-indented-panel > div > div > .row {
   margin-left: 0;
 }
 
 /* Flexbox container query hack. */
 /* https://heydonworks.com/article/the-flexbox-holy-albatross/ */
-[data-theme=cygnet] .row {
+[data-theme="cygnet"] .row {
   --multiplier: calc(30rem - 100%);
 
   display: flex;
@@ -234,7 +234,7 @@
   margin-left: 20px;
 }
 
-[data-theme=cygnet] .row > div {
+[data-theme="cygnet"] .row > div {
   flex-basis: calc(var(--multiplier) * 999);
   flex-grow: 1;
   min-width: 48%;
@@ -242,31 +242,31 @@
   margin-bottom: 8px;
 }
 
-[data-theme=cygnet] .row > div:last-child {
+[data-theme="cygnet"] .row > div:last-child {
   margin-bottom: 16px;
 }
 
-[data-theme=cygnet] .row > * > span {
+[data-theme="cygnet"] .row > * > span {
   margin-left: 0 !important;
 }
 
-[data-theme=cygnet] .row > .col-md-3 {
+[data-theme="cygnet"] .row > .col-md-3 {
   min-width: 23%;
 }
 
-[data-theme=cygnet] .row > .col-md-4 {
+[data-theme="cygnet"] .row > .col-md-4 {
   min-width: 31%;
 }
 
 /* Button styles. */
-[data-theme=cygnet] button,
-[data-theme=cygnet] button > span {
+[data-theme="cygnet"] button,
+[data-theme="cygnet"] button > span {
   cursor: pointer;
 }
 
-[data-theme=cygnet] button {
-  padding: 6px 16px;
+[data-theme="cygnet"] button {
   margin-right: 4px;
+  padding: 6px 16px;
   color: #06c;
   border: 1px solid #06c;
   border-radius: 3px;
@@ -275,13 +275,13 @@
   font-size: 14px;
 }
 
-[data-theme=cygnet] button:hover {
+[data-theme="cygnet"] button:hover {
   color: #fff;
   background-color: #06c;
 }
 
-[data-theme=cygnet] button[title=Collapse],
-[data-theme=cygnet] button[title=Expand] {
+[data-theme="cygnet"] button[title="Collapse"],
+[data-theme="cygnet"] button[title="Expand"] {
   padding: 0;
   border: 0;
   border-radius: 3px;
@@ -293,39 +293,39 @@
   padding: 8px 0 0 0;
 }
 
-[data-theme=cygnet] .json-editor-btn-add {
+[data-theme="cygnet"] .json-editor-btn-add {
   margin-bottom: 16px;
   color: #fff;
   border: 1px solid #06c;
   background-color: #06c;
 }
 
-[data-theme=cygnet] .json-editor-btn-subtract,
-[data-theme=cygnet] .json-editor-btn-delete {
+[data-theme="cygnet"] .json-editor-btn-subtract,
+[data-theme="cygnet"] .json-editor-btn-delete {
   margin-bottom: 16px;
   margin-left: 16px;
   color: #e00;
   border: 1px solid #e00;
 }
 
-[data-theme=cygnet] .json-editor-btn-subtract:hover,
-[data-theme=cygnet] .json-editor-btn-delete:hover {
+[data-theme="cygnet"] .json-editor-btn-subtract:hover,
+[data-theme="cygnet"] .json-editor-btn-delete:hover {
   color: #fff;
   background-color: #e00;
 }
 
-[data-theme=cygnet] .json-editor-btn-moveup,
-[data-theme=cygnet] .json-editor-btn-movedown {
+[data-theme="cygnet"] .json-editor-btn-moveup,
+[data-theme="cygnet"] .json-editor-btn-movedown {
   margin-bottom: 16px;
   margin-left: 16px;
 }
 
-[data-theme=cygnet] .json-editor-btntype-toggle {
+[data-theme="cygnet"] .json-editor-btntype-toggle {
   margin: 0 10px 0 0;
 }
 
 /* Accordion styles. */
-[data-theme=cygnet] button[title=Collapse]::before {
+[data-theme="cygnet"] button[title="Collapse"]::before {
   position: relative;
   top: 3px;
   display: inline-block;
@@ -339,7 +339,7 @@
   border-width: 0 1.75px 1.75px 0;
 }
 
-[data-theme=cygnet] button[title=Expand]::before {
+[data-theme="cygnet"] button[title="Expand"]::before {
   position: relative;
   display: inline-block;
   width: 7px;
@@ -352,27 +352,27 @@
   border-width: 0 1.75px 1.75px 0;
 }
 
-[data-theme=cygnet] button[title=Collapse] > span,
-[data-theme=cygnet] button[title=Collapse] > i,
-[data-theme=cygnet] button[title=Expand] > span,
-[data-theme=cygnet] button[title=Expand] > i {
+[data-theme="cygnet"] button[title="Collapse"] > span,
+[data-theme="cygnet"] button[title="Collapse"] > i,
+[data-theme="cygnet"] button[title="Expand"] > span,
+[data-theme="cygnet"] button[title="Expand"] > i {
   display: none;
 }
 
 /* Indent paragraphs inside root. */
-[data-theme=cygnet] [data-schemapath=root] > p {
+[data-theme="cygnet"] [data-schemapath="root"] > p {
   margin-left: 20px;
 }
 
-[data-theme=cygnet] [data-schemapath=root] .form-control > p {
+[data-theme="cygnet"] [data-schemapath="root"] .form-control > p {
   margin-left: 0;
 }
 
-[data-theme=cygnet] [data-schematype="object"] [data-schematype="object"] p {
+[data-theme="cygnet"] [data-schematype="object"] [data-schematype="object"] p {
   font-size: 14px;
 }
 
-[data-theme=cygnet] [data-schematype="object"] [data-schematype="object"] p:last-child {
+[data-theme="cygnet"] [data-schematype="object"] [data-schematype="object"] p:last-child {
   margin-bottom: 0;
 }
 
@@ -381,9 +381,9 @@
 }
 
 /* Remove margins on embedded forms. */
-[data-theme=cygnet] > div > .je-cygnet-indented-panel div div .row,
-[data-theme=cygnet] > div > .je-cygnet-indented-panel div div .row > [data-schematype="object"],
-[data-theme=cygnet] > div > .je-cygnet-indented-panel div div .row > [data-schematype="array"] {
+[data-theme="cygnet"] > div > .je-cygnet-indented-panel div div .row,
+[data-theme="cygnet"] > div > .je-cygnet-indented-panel div div .row > [data-schematype="object"],
+[data-theme="cygnet"] > div > .je-cygnet-indented-panel div div .row > [data-schematype="array"] {
   margin-left: 0;
 }
 
@@ -393,7 +393,7 @@
 }
 
 [data-schemapath^="root.header.aside"][class^="col-md"] > .je-cygnet-tab,
-[data-theme=cygnet] [data-schemapath^="root.header.aside"] .form-control {
+[data-theme="cygnet"] [data-schemapath^="root.header.aside"] .form-control {
   margin-left: 0;
 }
 
@@ -450,10 +450,11 @@
   padding: 16px;
 }
 
-[data-theme=cygnet] .patternkit-jsoneditor-clickable {
+[data-theme="cygnet"] .patternkit-jsoneditor-clickable {
   cursor: pointer;
 }
-[data-theme=cygnet] .patternkit-jsoneditor-clickable label {
+
+[data-theme="cygnet"] .patternkit-jsoneditor-clickable label {
   cursor: inherit;
 }
 
