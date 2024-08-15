@@ -2,8 +2,8 @@
 
 namespace Drupal\patternkit\Schema;
 
-use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\patternkit\PatternRepository;
+use Psr\Log\LoggerInterface;
 use Swaggest\JsonSchema\RemoteRefProvider;
 
 /**
@@ -28,19 +28,19 @@ class PatternkitRefProvider implements RemoteRefProvider {
   /**
    * The logger channel for patternkit.
    *
-   * @var \Drupal\Core\Logger\LoggerChannelInterface
+   * @var \Psr\Log\LoggerInterface
    */
-  protected LoggerChannelInterface $logger;
+  protected LoggerInterface $logger;
 
   /**
    * Creates a new PatternkitRefProvider instance.
    *
    * @param \Drupal\patternkit\Schema\SchemaRefHandler $schemaRefHandler
    *   The schema helper service.
-   * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
+   * @param \Psr\Log\LoggerInterface $logger
    *   The patternkit logger channel.
    */
-  public function __construct(SchemaRefHandler $schemaRefHandler, LoggerChannelInterface $logger) {
+  public function __construct(SchemaRefHandler $schemaRefHandler, LoggerInterface $logger) {
     $this->schemaRefHandler = $schemaRefHandler;
     $this->logger = $logger;
   }

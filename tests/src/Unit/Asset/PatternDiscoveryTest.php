@@ -5,7 +5,6 @@ namespace Drupal\Tests\patternkit\Unit\Asset;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
-use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\patternkit\Asset\LibraryNamespaceResolverInterface;
 use Drupal\patternkit\Asset\PatternDiscovery;
 use Drupal\patternkit\Asset\PatternDiscoveryLoader;
@@ -16,6 +15,7 @@ use PHPUnit\Framework\MockObject\MockBuilder;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
+use Psr\Log\LoggerInterface;
 
 /**
  * Tests for the PatternDiscovery class.
@@ -52,7 +52,7 @@ class PatternDiscoveryTest extends UnitTestCase {
   /**
    * A mock logger channel service.
    *
-   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Logger\LoggerChannelInterface>
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Psr\Log\LoggerInterface>
    */
   protected ObjectProphecy $logger;
 
@@ -79,7 +79,7 @@ class PatternDiscoveryTest extends UnitTestCase {
     $this->loader = $this->prophesize(PatternDiscoveryLoader::class);
     $this->cache = $this->prophesize(CacheBackendInterface::class);
     $this->libraryNamespaceResolver = $this->prophesize(LibraryNamespaceResolverInterface::class);
-    $this->logger = $this->prophesize(LoggerChannelInterface::class);
+    $this->logger = $this->prophesize(LoggerInterface::class);
     $this->patternkitEnvironment = $this->prophesize(PatternkitEnvironment::class);
 
     // Test with debug mode disabled and all environment options using default

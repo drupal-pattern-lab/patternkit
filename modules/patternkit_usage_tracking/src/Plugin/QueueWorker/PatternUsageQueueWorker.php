@@ -4,7 +4,6 @@ namespace Drupal\patternkit_usage_tracking\Plugin\QueueWorker;
 
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\layout_builder\LayoutTempstoreRepositoryInterface;
@@ -14,6 +13,7 @@ use Drupal\patternkit\LayoutHelper;
 use Drupal\patternkit\Plugin\QueueWorker\LayoutQueueWorkerBase;
 use Drupal\patternkit_usage_tracking\LayoutUsageTracker;
 use Drupal\patternkit_usage_tracking\PatternUsageManager;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -52,7 +52,7 @@ class PatternUsageQueueWorker extends LayoutQueueWorkerBase {
    *   The section storage plugin manager service.
    * @param \Drupal\layout_builder\LayoutTempstoreRepositoryInterface $layout_tempstore_repository
    *   The layout tempstore repository service.
-   * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
+   * @param \Psr\Log\LoggerInterface $logger
    *   The logger channel to be used.
    * @param \Drupal\Core\StringTranslation\TranslationInterface $string_translation
    *   The string translation service.
@@ -71,7 +71,7 @@ class PatternUsageQueueWorker extends LayoutQueueWorkerBase {
     LayoutHelper $layout_helper,
     SectionStorageManagerInterface $section_storage_manager,
     LayoutTempstoreRepositoryInterface $layout_tempstore_repository,
-    LoggerChannelInterface $logger,
+    LoggerInterface $logger,
     TranslationInterface $string_translation,
     MessengerInterface $messenger,
     protected readonly PatternUsageManager $patternUsageManager,

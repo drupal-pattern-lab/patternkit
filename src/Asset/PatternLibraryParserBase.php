@@ -11,7 +11,6 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ExtensionPathResolver;
 use Drupal\Core\Extension\ModuleHandlerInterface;
-use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Theme\ComponentPluginManager;
@@ -23,6 +22,7 @@ use Drupal\patternkit\PatternkitEnvironmentAwareInterface;
 use Drupal\patternkit\PatternkitEnvironmentAwareTrait;
 use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\Schema\DataPreProcessorFactory;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Iterator\RecursiveDirectoryIterator;
 use Webmozart\Assert\Assert;
 
@@ -74,7 +74,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
    *   The schema data preprocessor factory service.
    * @param \Drupal\patternkit\Asset\PatternDependencyResolver $patternDependencyResolver
    *   The pattern dependency resolver service.
-   * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
+   * @param \Psr\Log\LoggerInterface $logger
    *   The patternkit logger channel.
    * @param \Drupal\Core\Theme\ComponentPluginManager|null $componentPluginManager
    *   The theme component plugin manager if available.
@@ -93,7 +93,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     EntityTypeManagerInterface $entity_type_manager,
     protected DataPreProcessorFactory $dataPreProcessorFactory,
     protected PatternDependencyResolver $patternDependencyResolver,
-    protected LoggerChannelInterface $logger,
+    protected LoggerInterface $logger,
     ?ComponentPluginManager $componentPluginManager = NULL,
   ) {
     parent::__construct(

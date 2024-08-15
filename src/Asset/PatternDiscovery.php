@@ -5,12 +5,12 @@ namespace Drupal\patternkit\Asset;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Cache\UseCacheBackendTrait;
-use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Utility\Error;
 use Drupal\patternkit\Exception\UnknownPatternException;
 use Drupal\patternkit\PatternkitEnvironment;
 use Drupal\patternkit\PatternkitEnvironmentAwareInterface;
 use Drupal\patternkit\PatternkitEnvironmentAwareTrait;
+use Psr\Log\LoggerInterface;
 
 /**
  * The pattern discovery service.
@@ -62,9 +62,9 @@ class PatternDiscovery implements PatternDiscoveryInterface, PatternkitEnvironme
   /**
    * The patternkit logger channel.
    *
-   * @var \Drupal\Core\Logger\LoggerChannelInterface
+   * @var \Psr\Log\LoggerInterface
    */
-  protected LoggerChannelInterface $logger;
+  protected LoggerInterface $logger;
 
   /**
    * The final collection of pattern definitions, statically cached.
@@ -82,7 +82,7 @@ class PatternDiscovery implements PatternDiscoveryInterface, PatternkitEnvironme
    *   The namespace resolver service.
    * @param \Drupal\Core\Cache\CacheBackendInterface $cache_backend
    *   The cache backend.
-   * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
+   * @param \Psr\Log\LoggerInterface $logger
    *   The patternkit logger channel.
    * @param \Drupal\patternkit\PatternkitEnvironment $environment
    *   The patternkit environment service to be used.
@@ -91,7 +91,7 @@ class PatternDiscovery implements PatternDiscoveryInterface, PatternkitEnvironme
     PatternDiscoveryLoader $loader,
     LibraryNamespaceResolverInterface $resolver,
     CacheBackendInterface $cache_backend,
-    LoggerChannelInterface $logger,
+    LoggerInterface $logger,
     PatternkitEnvironment $environment,
   ) {
     $this->loader = $loader;

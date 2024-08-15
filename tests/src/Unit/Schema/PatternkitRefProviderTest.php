@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
-use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\PatternRepository;
 use Drupal\patternkit\Schema\PatternkitRefProvider;
@@ -12,6 +11,7 @@ use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
+use Psr\Log\LoggerInterface;
 
 /**
  * Test the PatternkitRefProvider class.
@@ -49,7 +49,7 @@ class PatternkitRefProviderTest extends UnitTestCase {
   /**
    * The mocked patternkit logger channel.
    *
-   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Logger\LoggerChannelInterface>
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Psr\Log\LoggerInterface>
    */
   protected ObjectProphecy $logger;
 
@@ -172,7 +172,7 @@ class PatternkitRefProviderTest extends UnitTestCase {
 
     $this->schemaRefHandler = $this->prophesize(SchemaRefHandler::class);
     $this->patternRepository = $this->prophesize(PatternRepository::class);
-    $this->logger = $this->prophesize(LoggerChannelInterface::class);
+    $this->logger = $this->prophesize(LoggerInterface::class);
 
     // Register simple schemas for references.
     $this->createMockPattern('@patternkit/refs/text', static::$simpleTextSchemaJson);

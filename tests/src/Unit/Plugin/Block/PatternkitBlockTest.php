@@ -8,7 +8,6 @@ use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\Query\QueryInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
-use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Plugin\Context\ContextHandlerInterface;
 use Drupal\Core\Plugin\Context\ContextRepositoryInterface;
 use Drupal\Core\Utility\Token;
@@ -27,6 +26,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -120,7 +120,7 @@ class PatternkitBlockTest extends UnitTestCase {
   /**
    * The patternkit logger channel.
    *
-   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Logger\LoggerChannelInterface>
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Psr\Log\LoggerInterface>
    */
   protected ObjectProphecy $logger;
 
@@ -211,7 +211,7 @@ class PatternkitBlockTest extends UnitTestCase {
     $this->token = $this->prophesize(Token::class);
     $this->languageManager = $this->prophesize(LanguageManagerInterface::class);
     $this->eventDispatcher = $this->prophesize(EventDispatcherInterface::class);
-    $this->logger = $this->prophesize(LoggerChannelInterface::class);
+    $this->logger = $this->prophesize(LoggerInterface::class);
     $this->patternkitEnvironment = $this->prophesize(PatternkitEnvironment::class);
 
     // Initialize values for prepareTokenContexts() execution in constructor.

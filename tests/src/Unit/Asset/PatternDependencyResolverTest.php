@@ -4,7 +4,6 @@ namespace Drupal\Tests\patternkit\Unit\Asset;
 
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\patternkit\Asset\PatternDiscoveryInterface;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Schema\ContextBuilder;
@@ -12,6 +11,7 @@ use Drupal\patternkit\Schema\DataPreProcessorFactory;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
+use Psr\Log\LoggerInterface;
 
 /**
  * Unit tests for the PatternDependencyResolver class.
@@ -70,7 +70,7 @@ class PatternDependencyResolverTest extends UnitTestCase {
   /**
    * The patternkit logger channel.
    *
-   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Logger\LoggerChannelInterface>
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Psr\Log\LoggerInterface>
    */
   protected ObjectProphecy $logger;
 
@@ -97,7 +97,7 @@ class PatternDependencyResolverTest extends UnitTestCase {
     $this->entityTypeManager = $this->prophesize(EntityTypeManagerInterface::class);
     $this->patternStorage = $this->prophesize(EntityStorageInterface::class);
     $this->dataPreProcessorFactory = $this->prophesize(DataPreProcessorFactory::class);
-    $this->logger = $this->prophesize(LoggerChannelInterface::class);
+    $this->logger = $this->prophesize(LoggerInterface::class);
     $this->contextBuilder = $this->prophesize(ContextBuilder::class);
 
     // Create the resolver by default for tests that need no additional

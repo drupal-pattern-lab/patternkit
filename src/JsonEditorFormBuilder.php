@@ -10,7 +10,6 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\State\StateInterface;
@@ -18,6 +17,7 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\editor\Plugin\EditorManager;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Form\PatternLibraryJSONForm;
+use Psr\Log\LoggerInterface;
 use Webmozart\Assert\Assert;
 
 /**
@@ -74,7 +74,7 @@ class JsonEditorFormBuilder implements PatternFormBuilderInterface {
    *   The entity type manager service.
    * @param \Drupal\Core\State\StateInterface $state
    *   The state service.
-   * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
+   * @param \Psr\Log\LoggerInterface $logger
    *   The logger channel to be used.
    * @param \Drupal\Core\Messenger\MessengerInterface $messenger
    *   The messenger service.
@@ -86,7 +86,7 @@ class JsonEditorFormBuilder implements PatternFormBuilderInterface {
     protected readonly ConfigFactoryInterface $configFactory,
     protected readonly EntityTypeManagerInterface $entityTypeManager,
     protected readonly StateInterface $state,
-    protected readonly LoggerChannelInterface $logger,
+    protected readonly LoggerInterface $logger,
     protected $messenger,
     protected $stringTranslation,
   ) {}

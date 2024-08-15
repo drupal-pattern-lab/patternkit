@@ -3,13 +3,13 @@
 namespace Drupal\patternkit\BulkOperations\Worker;
 
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
-use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\Queue\QueueInterface;
 use Drupal\Core\Queue\QueueWorkerManagerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\patternkit\Plugin\QueueWorker\LayoutQueueWorkerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -43,9 +43,9 @@ abstract class LayoutOperationsBatchWorkerBase implements ContainerInjectionInte
   /**
    * The logger channel for outputting progress messaging.
    *
-   * @var \Drupal\Core\Logger\LoggerChannelInterface
+   * @var \Psr\Log\LoggerInterface
    */
-  protected LoggerChannelInterface $logger;
+  protected LoggerInterface $logger;
 
   /**
    * Constructs a layout processing batch worker instance.
@@ -54,7 +54,7 @@ abstract class LayoutOperationsBatchWorkerBase implements ContainerInjectionInte
    *   The queue factory service.
    * @param \Drupal\Core\Queue\QueueWorkerManagerInterface $queue_worker_manager
    *   The queue worker plugin manager.
-   * @param \Drupal\Core\Logger\LoggerChannelInterface $logger_channel
+   * @param \Psr\Log\LoggerInterface $logger_channel
    *   A logger channel for logging messages.
    * @param \Drupal\Core\StringTranslation\TranslationInterface $translation
    *   The string translation service.
@@ -62,7 +62,7 @@ abstract class LayoutOperationsBatchWorkerBase implements ContainerInjectionInte
   public function __construct(
     QueueFactory $queue_factory,
     QueueWorkerManagerInterface $queue_worker_manager,
-    LoggerChannelInterface $logger_channel,
+    LoggerInterface $logger_channel,
     TranslationInterface $translation,
   ) {
     $this->queueFactory = $queue_factory;

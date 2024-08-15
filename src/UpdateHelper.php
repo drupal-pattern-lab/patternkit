@@ -8,11 +8,11 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\KeyValueStore\KeyValueExpirableFactoryInterface;
-use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Entity\PatternkitBlock as EntityPatternkitBlock;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock;
+use Psr\Log\LoggerInterface;
 
 /**
  * A utility service to perform helpful commands for update processes.
@@ -59,9 +59,9 @@ class UpdateHelper {
   /**
    * The patternkit logger channel.
    *
-   * @var \Drupal\Core\Logger\LoggerChannelInterface
+   * @var \Psr\Log\LoggerInterface
    */
-  protected LoggerChannelInterface $logger;
+  protected LoggerInterface $logger;
 
   /**
    * The Patternkit layout helper service, if Layout Builder is available.
@@ -79,7 +79,7 @@ class UpdateHelper {
    *   The expirable key value factory service.
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
    *   The module handler service.
-   * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
+   * @param \Psr\Log\LoggerInterface $logger
    *   The logger channel to use for logging updates.
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
@@ -89,7 +89,7 @@ class UpdateHelper {
     EntityTypeManagerInterface $entityTypeManager,
     KeyValueExpirableFactoryInterface $keyValueExpirable,
     ModuleHandlerInterface $moduleHandler,
-    LoggerChannelInterface $logger,
+    LoggerInterface $logger,
   ) {
     $this->entityTypeManager = $entityTypeManager;
     $this->blockStorage = $entityTypeManager->getStorage('patternkit_block');

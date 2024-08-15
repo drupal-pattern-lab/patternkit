@@ -5,11 +5,11 @@ namespace Drupal\patternkit\Plugin\Derivative;
 use Drupal\Component\Plugin\Derivative\DeriverBase;
 use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\Entity\EntityStorageInterface;
-use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Plugin\Discovery\ContainerDeriverInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\patternkit\Form\PatternkitSettingsForm;
 use Drupal\patternkit\PatternRepository;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -29,9 +29,9 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
   /**
    * A logger for output of messages during processing.
    *
-   * @var \Drupal\Core\Logger\LoggerChannelInterface
+   * @var \Psr\Log\LoggerInterface
    */
-  protected LoggerChannelInterface $logger;
+  protected LoggerInterface $logger;
 
   /**
    * The storage handler for patternkit patterns.
@@ -59,7 +59,7 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
    *
    * @param \Drupal\Core\Config\ImmutableConfig $config
    *   Provides patternkit configurable settings.
-   * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
+   * @param \Psr\Log\LoggerInterface $logger
    *   Generates and provides log channels.
    * @param \Drupal\patternkit\PatternRepository $pattern_repository
    *   Provides a list of discovered pattern metadata and instantiates patterns.
@@ -70,7 +70,7 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
    */
   public function __construct(
     ImmutableConfig $config,
-    LoggerChannelInterface $logger,
+    LoggerInterface $logger,
     PatternRepository $pattern_repository,
     EntityStorageInterface $pattern_storage,
     EntityStorageInterface $block_storage,

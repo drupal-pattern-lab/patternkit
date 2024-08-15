@@ -7,7 +7,6 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\MissingDependencyException;
 use Drupal\Core\KeyValueStore\KeyValueExpirableFactoryInterface;
-use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Plugin\Context\Context;
 use Drupal\Core\Plugin\Context\ContextDefinition;
 use Drupal\Core\Plugin\Context\EntityContext;
@@ -19,6 +18,7 @@ use Drupal\layout_builder\SectionComponent;
 use Drupal\layout_builder\SectionListInterface;
 use Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface;
 use Drupal\layout_builder\SectionStorageInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * A utility service to ease working with patternkit components in layouts.
@@ -52,9 +52,9 @@ class LayoutHelper {
   /**
    * The patternkit logger channel.
    *
-   * @var \Drupal\Core\Logger\LoggerChannelInterface
+   * @var \Psr\Log\LoggerInterface
    */
-  protected LoggerChannelInterface $logger;
+  protected LoggerInterface $logger;
 
   /**
    * The pattern repository service.
@@ -86,7 +86,7 @@ class LayoutHelper {
    *   The expirable key value factory service.
    * @param \Drupal\patternkit\PatternRepository $patternRepository
    *   The pattern repository service.
-   * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
+   * @param \Psr\Log\LoggerInterface $logger
    *   The logger channel to use for logging updates.
    * @param \Drupal\layout_builder\LayoutTempstoreRepositoryInterface|null $layoutTempstoreRepository
    *   The layout tempstore repository service.
@@ -103,7 +103,7 @@ class LayoutHelper {
     EntityTypeManagerInterface $entityTypeManager,
     KeyValueExpirableFactoryInterface $keyValueExpirable,
     PatternRepository $patternRepository,
-    LoggerChannelInterface $logger,
+    LoggerInterface $logger,
     ?LayoutTempstoreRepositoryInterface $layoutTempstoreRepository,
     ?SectionStorageManagerInterface $sectionStorageManager,
   ) {

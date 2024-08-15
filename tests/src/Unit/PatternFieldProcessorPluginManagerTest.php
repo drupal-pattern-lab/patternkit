@@ -6,7 +6,6 @@ use Drupal\Component\Serialization\Json;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Extension\ModuleHandlerInterface;
-use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Exception\SchemaReferenceException;
@@ -23,6 +22,7 @@ use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\UnitTestCase;
 use PHPUnit\Framework\Constraint\IsType;
 use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Log\LoggerInterface;
 use Swaggest\JsonSchema\Context;
 use Swaggest\JsonSchema\DataPreProcessor;
 use Swaggest\JsonSchema\SchemaContract;
@@ -118,9 +118,9 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
   /**
    * A mocked logger channel.
    *
-   * @var \Drupal\Core\Logger\LoggerChannelInterface&\PHPUnit\Framework\MockObject\MockObject
+   * @var \Psr\Log\LoggerInterface&\PHPUnit\Framework\MockObject\MockObject
    */
-  protected LoggerChannelInterface&MockObject $logger;
+  protected LoggerInterface&MockObject $logger;
 
   /**
    * The Drupal container to configure for dependency services.
@@ -162,7 +162,7 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
     $this->cacheDiscovery = $this->createMock(CacheBackendInterface::class);
     $this->moduleHandler = $this->createMock(ModuleHandlerInterface::class);
     $this->serializer = new Json();
-    $this->logger = $this->createMock(LoggerChannelInterface::class);
+    $this->logger = $this->createMock(LoggerInterface::class);
 
     // Expect no errors to be logged unless overridden in a specific test.
     $this->logger->expects($this->never())->method('error');
@@ -254,8 +254,8 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
     // plugin manager for testing since the setup method sets the expectation
     // that no errors should be logged in most cases.
     // @todo Refactor once https://www.drupal.org/project/drupal/issues/2903456 is completed.
-    /** @var \Drupal\Core\Logger\LoggerChannelInterface|\PHPUnit\Framework\MockObject\MockObject $errorLogger */
-    $errorLogger = $this->createMock(LoggerChannelInterface::class);
+    /** @var \Psr\Log\LoggerInterface|\PHPUnit\Framework\MockObject\MockObject $errorLogger */
+    $errorLogger = $this->createMock(LoggerInterface::class);
     $errorLogger->expects($this->exactly(1))
       ->method('error')
       ->with(

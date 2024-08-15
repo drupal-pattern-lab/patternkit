@@ -15,7 +15,6 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\TranslatableInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
-use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Plugin\Context\ContextHandlerInterface;
 use Drupal\Core\Plugin\Context\ContextRepositoryInterface;
@@ -32,6 +31,7 @@ use Drupal\patternkit\PatternkitEvents;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\patternkit\PatternRepository;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -109,7 +109,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    *   The language manager service.
    * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $eventDispatcher
    *   The event dispatcher service.
-   * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
+   * @param \Psr\Log\LoggerInterface $logger
    *   The logger channel for logging messages.
    *
    * @throws \Drupal\Component\Plugin\Exception\ContextException
@@ -129,7 +129,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     protected Token $token,
     protected LanguageManagerInterface $languageManager,
     protected EventDispatcherInterface $eventDispatcher,
-    protected LoggerChannelInterface $logger,
+    protected LoggerInterface $logger,
   ) {
     // Assign token contexts into the plugin definition.
     // @todo Move this into a lazy-load method to happen when needed instead.

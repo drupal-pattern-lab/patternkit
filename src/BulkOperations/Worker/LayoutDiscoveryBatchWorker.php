@@ -9,7 +9,6 @@ use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\Query\QueryInterface;
 use Drupal\Core\Language\LanguageInterface;
-use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\Queue\QueueInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -20,6 +19,7 @@ use Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay;
 use Drupal\layout_builder\Plugin\SectionStorage\OverridesSectionStorage;
 use Drupal\patternkit\BulkOperations\LayoutUpdateBatchManager;
 use Drupal\patternkit\Plugin\QueueWorker\LayoutUpdateQueueWorker;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -89,9 +89,9 @@ class LayoutDiscoveryBatchWorker implements ContainerInjectionInterface {
   /**
    * The logger channel for outputting progress messaging.
    *
-   * @var \Drupal\Core\Logger\LoggerChannelInterface
+   * @var \Psr\Log\LoggerInterface
    */
-  protected LoggerChannelInterface $logger;
+  protected LoggerInterface $logger;
 
   /**
    * Raw option values provided to the batch worker.
@@ -146,7 +146,7 @@ class LayoutDiscoveryBatchWorker implements ContainerInjectionInterface {
    *   The entity type manager.
    * @param \Drupal\Core\Queue\QueueFactory $queue_factory
    *   The queue factory service.
-   * @param \Drupal\Core\Logger\LoggerChannelInterface $logger_channel
+   * @param \Psr\Log\LoggerInterface $logger_channel
    *   A logger channel for logging messages.
    * @param \Drupal\Core\StringTranslation\TranslationInterface $translation
    *   The string translation service.
@@ -154,7 +154,7 @@ class LayoutDiscoveryBatchWorker implements ContainerInjectionInterface {
   public function __construct(
     EntityTypeManagerInterface $entity_type_manager,
     QueueFactory $queue_factory,
-    LoggerChannelInterface $logger_channel,
+    LoggerInterface $logger_channel,
     TranslationInterface $translation,
   ) {
     $this->entityTypeManager = $entity_type_manager;

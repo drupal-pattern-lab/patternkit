@@ -5,11 +5,11 @@ namespace Drupal\patternkit\Asset;
 use Drupal\Component\Assertion\Inspector;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\patternkit\Schema\ContextBuilderTrait;
 use Drupal\patternkit\Schema\DataPreProcessorFactory;
 use Drupal\patternkit\Schema\UnresolvedSchema;
 use MJS\TopSort\Implementations\FixedArraySort;
+use Psr\Log\LoggerInterface;
 
 /**
  * A service to parse and identify interdependencies between pattern schemas.
@@ -49,9 +49,9 @@ class PatternDependencyResolver {
   /**
    * The patternkit logger channel.
    *
-   * @var \Drupal\Core\Logger\LoggerChannelInterface
+   * @var \Psr\Log\LoggerInterface
    */
-  protected LoggerChannelInterface $logger;
+  protected LoggerInterface $logger;
 
   /**
    * An associative array of pattern dependencies keyed by pattern ID.
@@ -69,14 +69,14 @@ class PatternDependencyResolver {
    *   The entity type manager service.
    * @param \Drupal\patternkit\Schema\DataPreProcessorFactory $dataPreProcessorFactory
    *   The data preprocessor factory service.
-   * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
+   * @param \Psr\Log\LoggerInterface $logger
    *   The patternkit logger channel.
    */
   public function __construct(
     PatternDiscoveryInterface $patternDiscovery,
     EntityTypeManagerInterface $entityTypeManager,
     DataPreProcessorFactory $dataPreProcessorFactory,
-    LoggerChannelInterface $logger,
+    LoggerInterface $logger,
   ) {
     $this->patternDiscovery = $patternDiscovery;
     $this->entityTypeManager = $entityTypeManager;

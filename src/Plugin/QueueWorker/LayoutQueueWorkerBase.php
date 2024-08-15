@@ -8,7 +8,6 @@ use Drupal\Core\Entity\Entity\EntityViewDisplay;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
-use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Plugin\Context\Context;
@@ -22,6 +21,7 @@ use Drupal\layout_builder\LayoutEntityHelperTrait;
 use Drupal\layout_builder\LayoutTempstoreRepositoryInterface;
 use Drupal\layout_builder\SectionStorageInterface;
 use Drupal\patternkit\LayoutHelper;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -67,7 +67,7 @@ abstract class LayoutQueueWorkerBase extends QueueWorkerBase implements Containe
    *   The section storage manager service.
    * @param \Drupal\layout_builder\LayoutTempstoreRepositoryInterface $layoutTempstoreRepository
    *   The layout tempstore repository service.
-   * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
+   * @param \Psr\Log\LoggerInterface $logger
    *   The logger channel to be used.
    * @param \Drupal\Core\StringTranslation\TranslationInterface $stringTranslation
    *   The string translation service.
@@ -82,7 +82,7 @@ abstract class LayoutQueueWorkerBase extends QueueWorkerBase implements Containe
     protected readonly LayoutHelper $layoutHelper,
     protected $sectionStorageManager,
     protected readonly LayoutTempstoreRepositoryInterface $layoutTempstoreRepository,
-    protected readonly LoggerChannelInterface $logger,
+    protected readonly LoggerInterface $logger,
     protected $stringTranslation,
     protected $messenger,
   ) {

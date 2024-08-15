@@ -7,7 +7,6 @@ use Drupal\Component\Plugin\Exception\PluginException;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\State\StateInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
@@ -24,6 +23,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
+use Psr\Log\LoggerInterface;
 use Swaggest\JsonSchema\Schema;
 use Webmozart\Assert\InvalidArgumentException;
 
@@ -77,7 +77,7 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
   /**
    * The mocked logger channel.
    *
-   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Logger\LoggerChannelInterface>
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Psr\Log\LoggerInterface>
    */
   protected ObjectProphecy $logger;
 
@@ -148,7 +148,7 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
     $this->entityTypeManager = $this->prophesize(EntityTypeManagerInterface::class);
     $this->editorStorage = $this->prophesize(EntityStorageInterface::class);
     $this->state = $this->prophesize(StateInterface::class);
-    $this->logger = $this->prophesize(LoggerChannelInterface::class);
+    $this->logger = $this->prophesize(LoggerInterface::class);
     $this->messenger = $this->prophesize(MessengerInterface::class);
     $this->stringTranslation = $this->getStringTranslationStub();
     $this->editorPluginManager = $this->prophesize(EditorManager::class);

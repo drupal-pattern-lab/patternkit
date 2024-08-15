@@ -9,7 +9,6 @@ use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\KeyValueStore\KeyValueExpirableFactoryInterface;
 use Drupal\Core\KeyValueStore\KeyValueStoreInterface;
-use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\TypedData\DataDefinition;
 use Drupal\Core\TypedData\TypedDataInterface;
 use Drupal\Core\TypedData\TypedDataManagerInterface;
@@ -28,6 +27,7 @@ use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
+use Psr\Log\LoggerInterface;
 
 /**
  * Unit tests for the LayoutHelper service.
@@ -70,7 +70,7 @@ class LayoutHelperTest extends UnitTestCase {
   /**
    * The patternkit logger channel.
    *
-   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Logger\LoggerChannelInterface>
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Psr\Log\LoggerInterface>
    */
   protected ObjectProphecy $logger;
 
@@ -121,7 +121,7 @@ class LayoutHelperTest extends UnitTestCase {
     $this->displayStorage = $this->prophesize(EntityStorageInterface::class);
     $this->keyValueExpirable = $this->prophesize(KeyValueExpirableFactoryInterface::class);
     $this->patternRepository = $this->prophesize(PatternRepository::class);
-    $this->logger = $this->prophesize(LoggerChannelInterface::class);
+    $this->logger = $this->prophesize(LoggerInterface::class);
     $this->layoutTempstoreRepository = $this->prophesize(LayoutTempstoreRepositoryInterface::class);
     $this->sectionStorageManager = $this->prophesize(SectionStorageManagerInterface::class);
     $this->updateHelper = $this->prophesize(UpdateHelper::class);
