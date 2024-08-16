@@ -30,8 +30,9 @@ include:
   ################
   - project: $_ADDITIONAL_STEPS_REPO
     file: stages/default.yml
+    ref: $_ADDITIONAL_STEPS_REF
     rules:
-      - if: $_ADDITIONAL_STEPS_REPO
+      - if: $_ADDITIONAL_STEPS_REPO && $_ADDITIONAL_STEPS_REF
 
 ################
 # Pipeline configuration variables
