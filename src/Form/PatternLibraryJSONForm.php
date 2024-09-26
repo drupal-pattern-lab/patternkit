@@ -2,6 +2,7 @@
 
 namespace Drupal\patternkit\Form;
 
+use Drupal\Component\Plugin\Exception\PluginException;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\ConfigFormBase;
@@ -93,12 +94,20 @@ class PatternLibraryJSONForm extends ConfigFormBase {
   ];
 
   /**
+   * Track whether editor support is available.
+   *
+   * @var bool
+   */
+  private bool $supportsEditor;
+
+  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container): self {
     $instance = parent::create($container);
     $instance->entityTypeManager = $container->get('entity_type.manager');
     $instance->moduleHandler = $container->get('module_handler');
+
     return $instance;
   }
 
@@ -154,40 +163,43 @@ class PatternLibraryJSONForm extends ConfigFormBase {
       '#default_value' => $config->get('patternkit_json_editor_token_clear') ?? FALSE,
     ];
 
-    $form['patternkit_json_editor_wysiwyg'] = [
-      '#type' => 'select',
-      '#title' => $this->t('WYSIWYG editor'),
-      '#options' => $this->getAllowedWysiwygEditors(),
-      '#empty_value' => '',
-      '#default_value' => $config->get('patternkit_json_editor_wysiwyg') ?: '',
-    ];
-
-    $ckeditor_toolbar_options = [];
-    foreach ($this->entityTypeManager->getStorage('editor')->loadMultiple() as $editor) {
-      $accepted_editors = [
-        'ckeditor5',
+    // Add necessary WYSIWYG dependencies.
+    if ($this->supportsWysiwygEditor()) {
+      $form['patternkit_json_editor_wysiwyg'] = [
+        '#type' => 'select',
+        '#title' => $this->t('WYSIWYG editor'),
+        '#options' => $this->getAllowedWysiwygEditors(),
+        '#empty_value' => '',
+        '#default_value' => $config->get('patternkit_json_editor_wysiwyg') ?: '',
       ];
-      /** @var \Drupal\editor\EditorInterface $editor */
-      if (in_array($editor->getEditor(), $accepted_editors)) {
-        $ckeditor_toolbar_options[$editor->id()] = $editor->label();
-      }
-    }
-    asort($ckeditor_toolbar_options, SORT_NATURAL);
 
-    $form['patternkit_json_editor_ckeditor_toolbar'] = [
-      '#type' => 'select',
-      '#title' => $this->t('CKEditor toolbar'),
-      '#options' => $ckeditor_toolbar_options,
-      '#empty_value' => '',
-      '#default_value' => $config->get('patternkit_json_editor_ckeditor_toolbar') ?: '',
-      '#states' => [
-        'visible' => [
-          ':input[name="patternkit_json_editor_wysiwyg"]' => [
-            ['value' => 'ckeditor5'],
+      $ckeditor_toolbar_options = [];
+      foreach ($this->entityTypeManager->getStorage('editor')->loadMultiple() as $editor) {
+        $accepted_editors = [
+          'ckeditor5',
+        ];
+        /** @var \Drupal\editor\EditorInterface $editor */
+        if (in_array($editor->getEditor(), $accepted_editors)) {
+          $ckeditor_toolbar_options[$editor->id()] = $editor->label();
+        }
+      }
+      asort($ckeditor_toolbar_options, SORT_NATURAL);
+
+      $form['patternkit_json_editor_ckeditor_toolbar'] = [
+        '#type' => 'select',
+        '#title' => $this->t('CKEditor toolbar'),
+        '#options' => $ckeditor_toolbar_options,
+        '#empty_value' => '',
+        '#default_value' => $config->get('patternkit_json_editor_ckeditor_toolbar') ?: '',
+        '#states' => [
+          'visible' => [
+            ':input[name="patternkit_json_editor_wysiwyg"]' => [
+              ['value' => 'ckeditor5'],
+            ],
           ],
         ],
-      ],
-    ];
+      ];
+    }
 
     return parent::buildForm($form, $form_state);
   }
@@ -228,26 +240,55 @@ class PatternLibraryJSONForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function validateForm(array &$form, FormStateInterface $form_state): void {
-    // Validate editor and WYSIWYG toolbar selections.
-    $wysiwyg = $form_state->getValue('patternkit_json_editor_wysiwyg');
-    $toolbar = $form_state->getValue('patternkit_json_editor_ckeditor_toolbar');
-    $supported_wysiwygs = ['ckeditor5'];
+    if ($this->supportsWysiwygEditor()) {
+      // Validate editor and WYSIWYG toolbar selections.
+      $wysiwyg = $form_state->getValue('patternkit_json_editor_wysiwyg');
+      $toolbar = $form_state->getValue('patternkit_json_editor_ckeditor_toolbar');
+      $supported_wysiwygs = ['ckeditor5'];
 
-    if ($toolbar && in_array($wysiwyg, $supported_wysiwygs)) {
-      $editor_storage = $this->entityTypeManager->getStorage('editor');
-      /** @var \Drupal\editor\EditorInterface|null $editor */
-      $editor = $editor_storage->load($toolbar);
+      if ($toolbar && in_array($wysiwyg, $supported_wysiwygs)) {
+        $editor_storage = $this->entityTypeManager->getStorage('editor');
+        /** @var \Drupal\editor\EditorInterface|null $editor */
+        $editor = $editor_storage->load($toolbar);
 
-      if ($editor === NULL || $editor->getEditor() !== $wysiwyg) {
-        $form_state->setErrorByName('patternkit_json_editor_ckeditor_toolbar', $this->t(
-          'The selected toolbar is not configured to use the selected editor. Expected to find "@expected", but found "@actual" instead.',
-          [
-            '@expected' => $wysiwyg,
-            '@actual' => $editor->getEditor(),
-          ]
-        ));
+        if ($editor === NULL || $editor->getEditor() !== $wysiwyg) {
+          $form_state->setErrorByName('patternkit_json_editor_ckeditor_toolbar', $this->t(
+            'The selected toolbar is not configured to use the selected editor. Expected to find "@expected", but found "@actual" instead.',
+            [
+              '@expected' => $wysiwyg,
+              '@actual' => $editor->getEditor(),
+            ]
+          ));
+        }
       }
     }
+  }
+
+  /**
+   * Tests whether requirements for loading editor plugins are available.
+   *
+   * @return bool
+   *   TRUE if all requirements for loading an editor are available, otherwise
+   *   FALSE.
+   */
+  protected function supportsWysiwygEditor(): bool {
+    // If we've already tested this return the previous result.
+    if (isset($this->supportsEditor)) {
+      return $this->supportsEditor;
+    }
+    else {
+      $this->supportsEditor = FALSE;
+      try {
+        if ($this->entityTypeManager->hasHandler('editor', 'storage')) {
+          $this->supportsEditor = TRUE;
+        }
+      }
+      catch (PluginException) {
+        // Do nothing and return.
+      }
+    }
+
+    return $this->supportsEditor;
   }
 
   /**
@@ -262,8 +303,14 @@ class PatternLibraryJSONForm extends ConfigFormBase {
     $config->set('patternkit_json_editor_disable_edit_json_button', (bool) $form_values['patternkit_json_editor_disable_edit_json_button']);
     $config->set('patternkit_json_editor_cache_schemas', (bool) $form_values['patternkit_json_editor_cache_schemas']);
     $config->set('patternkit_json_editor_token_clear', (bool) $form_values['patternkit_json_editor_token_clear']);
-    $config->set('patternkit_json_editor_wysiwyg', $form_values['patternkit_json_editor_wysiwyg']);
-    $config->set('patternkit_json_editor_ckeditor_toolbar', $form_values['patternkit_json_editor_ckeditor_toolbar']);
+
+    // Set empty string values if not set; depends on the $this->buildForm()
+    // usage of $this->supportsWysiwyg().
+    $editor = $form_values['patternkit_json_editor_wysiwyg'] ?? '';
+    $config->set('patternkit_json_editor_wysiwyg', $editor);
+    $toolbar = $form_values['patternkit_json_editor_ckeditor_toolbar'] ?? '';
+    $config->set('patternkit_json_editor_ckeditor_toolbar', $toolbar);
+
     $config->save();
 
     parent::submitForm($form, $form_state);
