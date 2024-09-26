@@ -13,7 +13,7 @@ use Drupal\patternkit_usage_tracking\BulkOperations\Worker\LayoutUsageBatchWorke
  *   blocks: int,
  *   entities: int,
  *   errors: int,
- *   num_tracked, int,
+ *   num_tracked: int,
  *   display_id: string,
  * }
  */
