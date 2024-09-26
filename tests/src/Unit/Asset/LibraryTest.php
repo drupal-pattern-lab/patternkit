@@ -11,13 +11,13 @@ use Drupal\Core\StreamWrapper\StreamWrapperManager;
 use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 use Drupal\Core\Theme\ActiveTheme;
 use Drupal\Core\Theme\ThemeManagerInterface;
+use Drupal\Tests\UnitTestCase;
 use Drupal\patternkit\Asset\LibraryInterface;
 use Drupal\patternkit\Asset\LibraryNamespaceResolverInterface;
 use Drupal\patternkit\Asset\PatternDiscoveryInterface;
 use Drupal\patternkit\Form\PatternkitSettingsForm;
 use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\PatternLibraryPluginManager;
-use Drupal\Tests\UnitTestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 

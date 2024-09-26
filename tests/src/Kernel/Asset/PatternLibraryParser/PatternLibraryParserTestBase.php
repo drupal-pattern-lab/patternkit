@@ -3,10 +3,10 @@
 namespace Drupal\Tests\patternkit\Kernel\Asset\PatternLibraryParser;
 
 use Drupal\KernelTests\KernelTestBase;
+use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
 use Drupal\patternkit\Asset\PatternDiscoveryInterface;
 use Drupal\patternkit\Asset\PatternLibraryParserBase;
 use Drupal\patternkit\Asset\PatternLibraryParserInterface;
-use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
 
 /**
  * Test Pattern Library Parser plugins.

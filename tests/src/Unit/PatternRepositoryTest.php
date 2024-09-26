@@ -4,6 +4,8 @@ namespace Drupal\Tests\patternkit\Unit;
 
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Tests\UnitTestCase;
+use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\patternkit\Asset\PatternDependencyResolver;
 use Drupal\patternkit\Asset\PatternDiscoveryInterface;
 use Drupal\patternkit\Entity\PatternInterface;
@@ -13,8 +15,6 @@ use Drupal\patternkit\Schema\ContextBuilder;
 use Drupal\patternkit\Schema\DataPreProcessor\BundleReferenceDataPreProcessor;
 use Drupal\patternkit\Schema\DataPreProcessorFactory;
 use Drupal\patternkit\Schema\SchemaRefHandler;
-use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
-use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;

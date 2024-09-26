@@ -3,6 +3,7 @@
 namespace Drupal\Tests\patternkit\Unit\Element;
 
 use Drupal\Core\StringTranslation\TranslationInterface;
+use Drupal\Tests\Core\Render\RendererTestBase;
 use Drupal\patternkit\Element\Pattern;
 use Drupal\patternkit\Entity\Pattern as EntityPattern;
 use Drupal\patternkit\Entity\PatternInterface;
@@ -12,7 +13,6 @@ use Drupal\patternkit\PatternFieldProcessorPluginManager;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\patternkit\PatternRepository;
-use Drupal\Tests\Core\Render\RendererTestBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**

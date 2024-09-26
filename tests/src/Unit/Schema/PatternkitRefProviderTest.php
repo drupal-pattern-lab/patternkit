@@ -2,12 +2,12 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
+use Drupal\Tests\UnitTestCase;
+use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\PatternRepository;
 use Drupal\patternkit\Schema\PatternkitRefProvider;
 use Drupal\patternkit\Schema\SchemaRefHandler;
-use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
-use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;

@@ -3,11 +3,11 @@
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
+use Drupal\Tests\UnitTestCase;
+use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\patternkit\Schema\ContextBuilder;
 use Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor;
 use Drupal\patternkit\Schema\SchemaHelper;
-use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
-use Drupal\Tests\UnitTestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Swaggest\JsonSchema\Context;

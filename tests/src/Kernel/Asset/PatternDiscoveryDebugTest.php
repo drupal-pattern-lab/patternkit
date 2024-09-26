@@ -3,9 +3,9 @@
 namespace Drupal\Tests\patternkit\Kernel\Asset;
 
 use Drupal\Core\Cache\CacheBackendInterface;
+use Drupal\Tests\patternkit\Kernel\PatternkitKernelTestBase;
 use Drupal\patternkit\Asset\PatternDiscovery;
 use Drupal\patternkit\Asset\PatternDiscoveryInterface;
-use Drupal\Tests\patternkit\Kernel\PatternkitKernelTestBase;
 use Prophecy\PhpUnit\ProphecyTrait;
 
 /**

@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\patternkit\Unit\Asset\PatternLibraryParser;
 
+use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
 use Drupal\patternkit\Asset\PatternLibraryParser\TwigPatternLibraryParser;
 use Drupal\patternkit\Asset\PatternLibraryParserInterface;
 use Drupal\patternkit\Entity\PatternInterface;
@@ -12,14 +13,13 @@ use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\Schema\ContextBuilder;
 use Drupal\patternkit\Schema\DataPreProcessor\RefNormalizerDataPreProcessor;
 use Drupal\patternkit\Schema\UnresolvedSchema;
-use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
-use org\bovigo\vfs\vfsStream;
 use Prophecy\Argument;
 use Prophecy\Argument\Token\TokenInterface;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Swaggest\JsonSchema\Context;
 use Swaggest\JsonSchema\InvalidValue;
+use org\bovigo\vfs\vfsStream;
 
 /**
  * Tests for the TwigPatternLibraryParser class.

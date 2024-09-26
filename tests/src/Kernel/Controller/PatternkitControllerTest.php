@@ -2,11 +2,11 @@
 
 namespace Drupal\Tests\patternkit\Kernel\Controller;
 
-use Drupal\patternkit\Controller\PatternkitController;
-use Drupal\patternkit\Plugin\Derivative\PatternkitBlock;
 use Drupal\Tests\patternkit\Kernel\PatternkitKernelTestBase;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
+use Drupal\patternkit\Controller\PatternkitController;
+use Drupal\patternkit\Plugin\Derivative\PatternkitBlock;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 

@@ -2,10 +2,10 @@
 
 namespace Drupal\Tests\patternkit\Kernel\Asset\PatternLibraryParser;
 
+use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
 use Drupal\patternkit\Asset\PatternLibraryParser\JSONPatternLibraryParser;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternLibrary;
-use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
 
 /**
  * Test description.

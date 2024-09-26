@@ -3,6 +3,7 @@
 namespace Drupal\Tests\patternkit\Kernel;
 
 use Drupal\Core\Render\RendererInterface;
+use Drupal\Tests\patternkit\Traits\MetadataTestTrait;
 use Drupal\filter\Entity\FilterFormat;
 use Drupal\node\Entity\Node;
 use Drupal\patternkit\Asset\PatternDiscoveryInterface;
@@ -11,7 +12,6 @@ use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternFieldProcessorPluginManager;
 use Drupal\patternkit\Plugin\PatternFieldProcessor\TokenProcessor;
 use Drupal\patternkit\Plugin\PatternFieldProcessor\WysiwygFieldProcessor;
-use Drupal\Tests\patternkit\Traits\MetadataTestTrait;
 
 /**
  * Test pattern field processor plugin manager functionality.

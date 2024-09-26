@@ -3,11 +3,11 @@
 namespace Drupal\Tests\patternkit_usage_tracking\Functional;
 
 use Drupal\Core\Entity\EntityStorageInterface;
-use Drupal\layout_builder\Context\LayoutBuilderContextTrait;
-use Drupal\node\Entity\Node;
 use Drupal\Tests\content_moderation\Traits\ContentModerationTestTrait;
 use Drupal\Tests\patternkit\Functional\PatternkitBrowserTestBase;
 use Drupal\Tests\patternkit_usage_tracking\Traits\PatternUsageAssertionTrait;
+use Drupal\layout_builder\Context\LayoutBuilderContextTrait;
+use Drupal\node\Entity\Node;
 
 /**
  * Tests for validating usage tracking during entity operations with revisions.

@@ -2,9 +2,9 @@
 
 namespace Drupal\Tests\patternkit\Traits;
 
+use Drupal\Tests\ckeditor5\Traits\CKEditor5TestTrait;
 use Drupal\editor\Entity\Editor;
 use Drupal\filter\Entity\FilterFormat;
-use Drupal\Tests\ckeditor5\Traits\CKEditor5TestTrait;
 use PHPUnit\Framework\ExpectationFailedException;
 
 /**

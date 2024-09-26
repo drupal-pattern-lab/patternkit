@@ -3,9 +3,9 @@
 namespace Drupal\Tests\patternkit\Unit\Schema\DataPreProcessor;
 
 use Drupal\Core\Utility\Token;
-use Drupal\patternkit\Schema\DataPreProcessor\TokenValidationDataPreProcessor;
-use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\UnitTestCase;
+use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
+use Drupal\patternkit\Schema\DataPreProcessor\TokenValidationDataPreProcessor;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Swaggest\JsonSchema\Context;

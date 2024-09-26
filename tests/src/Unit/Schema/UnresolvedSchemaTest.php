@@ -2,9 +2,9 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
-use Drupal\patternkit\Schema\UnresolvedSchema;
-use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\UnitTestCase;
+use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
+use Drupal\patternkit\Schema\UnresolvedSchema;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Swaggest\JsonSchema\Context;

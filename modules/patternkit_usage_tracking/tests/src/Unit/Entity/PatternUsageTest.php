@@ -3,8 +3,8 @@
 namespace Drupal\Tests\patternkit_usage_tracking\Unit\Entity;
 
 use Drupal\Core\Field\BaseFieldDefinition;
-use Drupal\patternkit_usage_tracking\Entity\PatternUsage;
 use Drupal\Tests\UnitTestCase;
+use Drupal\patternkit_usage_tracking\Entity\PatternUsage;
 
 /**
  * Tests for the PatternUsage entity type.

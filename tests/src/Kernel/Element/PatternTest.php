@@ -4,10 +4,10 @@ namespace Drupal\Tests\patternkit\Kernel\Element;
 
 use Drupal\Core\Render\RendererInterface;
 use Drupal\KernelTests\KernelTestBase;
+use Drupal\Tests\patternkit\Traits\MetadataTestTrait;
 use Drupal\patternkit\Asset\PatternDiscoveryInterface;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternInterface;
-use Drupal\Tests\patternkit\Traits\MetadataTestTrait;
 
 /**
  * Tests for the Pattern element class.

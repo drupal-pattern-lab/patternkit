@@ -2,9 +2,9 @@
 
 namespace Drupal\Tests\patternkit\Kernel\Utility;
 
-use Drupal\patternkit\Utility\PatternDetector;
 use Drupal\Tests\patternkit\Kernel\PatternkitKernelTestBase;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
+use Drupal\patternkit\Utility\PatternDetector;
 
 /**
  * Test pattern usage discovery using the pattern detector service.

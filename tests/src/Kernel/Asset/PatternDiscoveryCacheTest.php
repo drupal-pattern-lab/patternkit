@@ -4,10 +4,10 @@ namespace Drupal\Tests\patternkit\Kernel\Asset;
 
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheBackendInterface;
-use Drupal\patternkit\Asset\PatternDiscovery;
-use Drupal\patternkit\Asset\PatternDiscoveryInterface;
 use Drupal\Tests\patternkit\Kernel\PatternkitKernelTestBase;
 use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
+use Drupal\patternkit\Asset\PatternDiscovery;
+use Drupal\patternkit\Asset\PatternDiscoveryInterface;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;

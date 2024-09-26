@@ -2,8 +2,8 @@
 
 namespace Drupal\tests\patternkit\Kernel\Entity;
 
-use Drupal\patternkit\Entity\Pattern;
 use Drupal\Tests\patternkit\Kernel\PatternkitKernelTestBase;
+use Drupal\patternkit\Entity\Pattern;
 
 /**
  * Tests for the Pattern class.

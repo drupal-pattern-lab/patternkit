@@ -2,9 +2,9 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema\DataPreProcessor;
 
-use Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor;
-use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\UnitTestCase;
+use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
+use Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor;
 use Swaggest\JsonSchema\Context;
 use Swaggest\JsonSchema\RemoteRef\Preloaded;
 use Swaggest\JsonSchema\Schema;

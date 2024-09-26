@@ -2,9 +2,9 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
+use Drupal\Tests\UnitTestCase;
 use Drupal\patternkit\Schema\ContextBuilder;
 use Drupal\patternkit\Schema\SchemaFactory;
-use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;

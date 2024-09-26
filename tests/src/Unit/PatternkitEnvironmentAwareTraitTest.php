@@ -2,9 +2,9 @@
 
 namespace Drupal\Tests\patternkit\Unit;
 
+use Drupal\Tests\UnitTestCase;
 use Drupal\patternkit\PatternkitEnvironment;
 use Drupal\patternkit\PatternkitEnvironmentAwareTrait;
-use Drupal\Tests\UnitTestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;

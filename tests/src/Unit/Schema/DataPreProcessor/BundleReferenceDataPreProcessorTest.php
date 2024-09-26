@@ -2,10 +2,10 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema\DataPreProcessor;
 
+use Drupal\Tests\UnitTestCase;
+use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\patternkit\Schema\DataPreProcessor\BundleReferenceDataPreProcessor;
 use Drupal\patternkit\Schema\SchemaRefHandler;
-use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
-use Drupal\Tests\UnitTestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Swaggest\JsonSchema\Schema;

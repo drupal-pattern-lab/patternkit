@@ -2,11 +2,11 @@
 
 namespace Drupal\Tests\patternkit\FunctionalJavascript;
 
+use Drupal\Tests\patternkit\Traits\CacheTestTrait;
 use Drupal\node\NodeInterface;
 use Drupal\node\NodeStorageInterface;
 use Drupal\patternkit\Form\PatternkitSettingsForm;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock;
-use Drupal\Tests\patternkit\Traits\CacheTestTrait;
 
 /**
  * End-to-end testing for patternkit cache invalidation in layout builder.

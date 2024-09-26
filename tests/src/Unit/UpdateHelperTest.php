@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\patternkit\Unit;
 
-use Drupal\block\BlockInterface;
 use Drupal\Component\Plugin\Exception\PluginException;
 use Drupal\Core\Block\BlockPluginInterface;
 use Drupal\Core\Block\Plugin\Block\Broken;
@@ -11,6 +10,10 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\KeyValueStore\KeyValueExpirableFactoryInterface;
+use Drupal\TestTools\Random;
+use Drupal\Tests\UnitTestCase;
+use Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait;
+use Drupal\block\BlockInterface;
 use Drupal\layout_builder\SectionComponent;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternInterface;
@@ -19,9 +22,6 @@ use Drupal\patternkit\Exception\UnknownPatternException;
 use Drupal\patternkit\LayoutHelper;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock as BlockPatternkitBlock;
 use Drupal\patternkit\UpdateHelper;
-use Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait;
-use Drupal\Tests\UnitTestCase;
-use Drupal\TestTools\Random;
 use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;

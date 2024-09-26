@@ -5,8 +5,8 @@ namespace Drupal\Tests\patternkit\Unit\Plugin\PatternFieldProcessor;
 use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Render\RendererInterface;
-use Drupal\patternkit\Plugin\PatternFieldProcessor\WysiwygFieldProcessor;
 use Drupal\Tests\UnitTestCase;
+use Drupal\patternkit\Plugin\PatternFieldProcessor\WysiwygFieldProcessor;
 use Swaggest\JsonSchema\Schema;
 use Swaggest\JsonSchema\SchemaContract;
 

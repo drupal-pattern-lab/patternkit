@@ -5,13 +5,13 @@ namespace Drupal\Tests\patternkit_usage_tracking\Functional;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Plugin\Context\EntityContext;
+use Drupal\Tests\patternkit\Functional\PatternkitBrowserTestBase;
+use Drupal\Tests\patternkit_usage_tracking\Traits\PatternUsageAssertionTrait;
 use Drupal\layout_builder\Context\LayoutBuilderContextTrait;
 use Drupal\layout_builder\Section;
 use Drupal\layout_builder\SectionComponent;
 use Drupal\layout_builder\SectionStorageInterface;
 use Drupal\node\Entity\Node;
-use Drupal\Tests\patternkit\Functional\PatternkitBrowserTestBase;
-use Drupal\Tests\patternkit_usage_tracking\Traits\PatternUsageAssertionTrait;
 
 /**
  * Tests for validating usage tracking during entity operations.

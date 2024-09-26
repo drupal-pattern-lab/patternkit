@@ -2,9 +2,9 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
+use Drupal\Tests\UnitTestCase;
 use Drupal\patternkit\Exception\MissingDataPreProcessorException;
 use Drupal\patternkit\Schema\DataPreProcessorFactory;
-use Drupal\Tests\UnitTestCase;
 use Swaggest\JsonSchema\DataPreProcessor;
 
 /**

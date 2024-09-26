@@ -2,8 +2,8 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
-use Drupal\patternkit\Schema\ContextBuilder;
 use Drupal\Tests\UnitTestCase;
+use Drupal\patternkit\Schema\ContextBuilder;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Swaggest\JsonSchema\Context;
 use Swaggest\JsonSchema\DataPreProcessor;

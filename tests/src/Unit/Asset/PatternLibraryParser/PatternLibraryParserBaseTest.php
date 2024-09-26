@@ -3,12 +3,12 @@
 namespace Drupal\Tests\patternkit\Unit\Asset\PatternLibraryParser;
 
 use Drupal\Core\Theme\ComponentPluginManager;
+use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
 use Drupal\patternkit\Asset\PatternLibraryParserBase;
 use Drupal\patternkit\Asset\PatternLibraryParserInterface;
 use Drupal\patternkit\Entity\PatternInterface;
-use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
-use org\bovigo\vfs\vfsStream;
 use Prophecy\PhpUnit\ProphecyTrait;
+use org\bovigo\vfs\vfsStream;
 
 /**
  * Tests for the PatternLibraryParserBase class.

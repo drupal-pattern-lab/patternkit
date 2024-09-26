@@ -2,9 +2,9 @@
 
 namespace Drupal\Tests\patternkit\Unit;
 
-use Drupal\patternkit\PatternkitEnvironment;
-use Drupal\Tests\UnitTestCase;
 use Drupal\TestTools\Random;
+use Drupal\Tests\UnitTestCase;
+use Drupal\patternkit\PatternkitEnvironment;
 
 /**
  * Test the PatternkitEnvironment class.

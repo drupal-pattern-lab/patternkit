@@ -3,8 +3,8 @@
 namespace Drupal\Tests\patternkit\Kernel\Schema;
 
 use Drupal\KernelTests\KernelTestBase;
-use Drupal\patternkit\Schema\ContextBuilder;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
+use Drupal\patternkit\Schema\ContextBuilder;
 use Swaggest\JsonSchema\Schema;
 
 /**

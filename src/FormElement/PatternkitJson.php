@@ -2,9 +2,9 @@
 
 namespace Drupal\patternkit\FormElement;
 
-use Drupal\config_translation\FormElement\FormElementBase;
 use Drupal\Core\Form\FormState;
 use Drupal\Core\Language\LanguageInterface;
+use Drupal\config_translation\FormElement\FormElementBase;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock;
 
 /**

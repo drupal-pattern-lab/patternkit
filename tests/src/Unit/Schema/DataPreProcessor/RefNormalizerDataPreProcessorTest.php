@@ -2,11 +2,11 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema\DataPreProcessor;
 
+use Drupal\Tests\UnitTestCase;
+use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\patternkit\Schema\DataPreProcessor\RefNormalizerDataPreProcessor;
 use Drupal\patternkit\Schema\SchemaRefHandler;
 use Drupal\patternkit\Schema\UnresolvedSchema;
-use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
-use Drupal\Tests\UnitTestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Swaggest\JsonSchema\Context;
 

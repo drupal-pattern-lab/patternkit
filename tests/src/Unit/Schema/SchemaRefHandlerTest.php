@@ -2,8 +2,8 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
-use Drupal\patternkit\Schema\SchemaRefHandler;
 use Drupal\Tests\UnitTestCase;
+use Drupal\patternkit\Schema\SchemaRefHandler;
 
 /**
  * Test the SchemaRefHandler class.
