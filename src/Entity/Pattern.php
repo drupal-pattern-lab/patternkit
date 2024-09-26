@@ -7,6 +7,7 @@ use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\patternkit\Exception\PatternMismatchException;
+use Drupal\patternkit\Form\PatternkitSettingsForm;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 
 /**
@@ -84,6 +85,16 @@ class Pattern extends ContentEntityBase implements PatternInterface {
    * @var array
    */
   public array $context = [];
+
+  /**
+   * Track the config setting for invalidating entity cache tags.
+   *
+   * Capture the config setting for this in a static variable to mitigate
+   * recurring config loads and lookups.
+   *
+   * @var bool
+   */
+  protected bool $invalidateCacheTags;
 
   /**
    * Constructs a new Pattern object, without permanently saving it.
@@ -432,9 +443,13 @@ class Pattern extends ContentEntityBase implements PatternInterface {
   /**
    * {@inheritdoc}
    */
-  public function getCacheTags() {
+  public function getCacheTags(): array {
     if (empty($this->cacheTags)) {
       $this->cacheTags[] = 'pattern:' . $this->getAssetId();
+
+      if ($this->id()) {
+        $this->cacheTags[] = $this->entityTypeId . ':' . $this->id();
+      }
     }
 
     return parent::getCacheTags();
@@ -443,10 +458,19 @@ class Pattern extends ContentEntityBase implements PatternInterface {
   /**
    * {@inheritdoc}
    */
-  public function getCacheTagsToInvalidate() {
-    if ($this->isNew() || !$this->isDefaultRevision()) {
+  public function getCacheTagsToInvalidate(): array {
+    // Stop early if Pattern entity cache tags should never be invalidated.
+    if (!$this->shouldInvalidateCacheTags()) {
       return [];
     }
+
+    // Don't invalidate cache tags when saving a newly created instance or a
+    // revision not being saved as the new default.
+    $isNewOrNonDefaultRevision = $this->isNew() || !$this->isDefaultRevision();
+    if ($isNewOrNonDefaultRevision) {
+      return [];
+    }
+
     return [
       $this->entityTypeId . ':' . $this->id(),
       'pattern:' . $this->getAssetId(),
@@ -466,6 +490,21 @@ class Pattern extends ContentEntityBase implements PatternInterface {
     /** @var \Drupal\patternkit\PatternLibraryPluginManager $plugin_manager */
     $plugin_manager = \Drupal::service('plugin.manager.library.pattern');
     return $plugin_manager->getPluginForPattern($this);
+  }
+
+  /**
+   * Check config settings to determine whether to invalidate entity cache tags.
+   *
+   * @return bool
+   *   True if entity cache tags should be invalidated, false otherwise.
+   */
+  protected function shouldInvalidateCacheTags(): bool {
+    if (!isset($this->invalidateCacheTags)) {
+      $this->invalidateCacheTags = \Drupal::config(PatternkitSettingsForm::SETTINGS)
+        ->get('entity_cache_tag_invalidation') ?? FALSE;
+    }
+
+    return $this->invalidateCacheTags;
   }
 
 }

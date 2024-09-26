@@ -33,6 +33,10 @@ class PatternUpdateTest extends PatternkitBrowserTestBase {
     parent::setUp();
 
     $this->patternRepository = $this->container->get('patternkit.pattern.repository');
+
+    // Invalidate caches on pattern updates to simplify testing.
+    $this->config('patternkit.settings')
+      ->set('entity_cache_tag_invalidation', TRUE)->save();
   }
 
   /**

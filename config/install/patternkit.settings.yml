@@ -7,3 +7,4 @@ patternkit_json_editor_token_clear: false
 patternkit_json_editor_disable_properties_buttons: false
 patternkit_json_editor_disable_edit_json_button: true
 patternkit_json_editor_cache_schemas: false
+entity_cache_tag_invalidation: false

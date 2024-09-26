@@ -24,6 +24,9 @@ patternkit.settings:
         visible:
           type: boolean
           label: 'Library visible in lists'
+    entity_cache_tag_invalidation:
+      type: boolean
+      label: 'Boolean determining whether Pattern entity cache tags are invalidated during Pattern updates.'
     patternkit_json_editor_wysiwyg:
       type: string
       label: 'String selecting the WYSIWYG tool to use in the JSON Editor.'

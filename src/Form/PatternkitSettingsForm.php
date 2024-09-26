@@ -151,6 +151,19 @@ class PatternkitSettingsForm extends ConfigFormBase {
       ];
     }
 
+    $form['advanced_settings'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Advanced settings'),
+      '#open' => TRUE,
+    ];
+
+    $form['advanced_settings']['entity_cache_tag_invalidation'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Entity cache tag invalidation'),
+      '#description' => $this->t('If enabled, Pattern entity cache tags will be invalidated on pattern updates.'),
+      '#default_value' => $config->get('entity_cache_tag_invalidation') ?? FALSE,
+    ];
+
     return parent::buildForm($form, $form_state);
   }
 
@@ -175,7 +188,9 @@ class PatternkitSettingsForm extends ConfigFormBase {
     $config = $this->config(static::SETTINGS);
     $config
       ->set('patternkit_libraries', $form_state->getValue('patternkit_libraries'))
+      ->set('entity_cache_tag_invalidation', $form_state->getValue('entity_cache_tag_invalidation'))
       ->save();
+
     $libraries = $this->libraryNamespaceResolver->getLibraryDefinitions();
     $count = count($libraries);
     $this->messenger()->addStatus($this->t('Rebuilt Patternkit Library Cache with @count libraries.', ['@count' => $count]));

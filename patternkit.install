@@ -498,3 +498,20 @@ function patternkit_update_10005(): string {
 
   return $message;
 }
+
+/**
+ * Update config with new entity_cache_tag_invalidation setting.
+ */
+function patternkit_update_10305(): string {
+  $config_key = 'patternkit.settings';
+  $config = \Drupal::configFactory()->getEditable($config_key);
+  $message = '';
+
+  $current = $config->get('entity_cache_tag_invalidation');
+  if ($current === NULL) {
+    $config->set('entity_cache_tag_invalidation', FALSE);
+    $message = t('Set new Patternkit entity cache tag invalidation setting to FALSE.');
+  }
+
+  return $message;
+}

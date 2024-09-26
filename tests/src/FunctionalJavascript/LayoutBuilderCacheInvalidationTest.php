@@ -4,6 +4,7 @@ namespace Drupal\Tests\patternkit\FunctionalJavascript;
 
 use Drupal\node\NodeInterface;
 use Drupal\node\NodeStorageInterface;
+use Drupal\patternkit\Form\PatternkitSettingsForm;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock;
 use Drupal\Tests\patternkit\Traits\CacheTestTrait;
 
@@ -215,11 +216,23 @@ class LayoutBuilderCacheInvalidationTest extends PatternkitBrowserTestBase {
   /**
    * Test cache tag invalidation when a pattern is updated.
    *
+   * @param bool $withEntityTagInvalidation
+   *   The setting assigned to entity_cache_tag_invalidation.
+   *
    * @depends testCacheTagPresence
+   * @dataProvider providerPatternUpdateInvalidation()
+   *
+   * @covers \Drupal\patternkit\Entity\Pattern::getCacheTagsToInvalidate
+   * @covers \Drupal\patternkit\Entity\Pattern::shouldInvalidateCacheTags
    */
-  public function testPatternUpdateInvalidation(): void {
+  public function testPatternUpdateInvalidation(bool $withEntityTagInvalidation): void {
     $page = $this->getSession()->getPage();
     $assert = $this->assertSession();
+
+    // Set the cache tag invalidation config value.
+    $this->config(PatternkitSettingsForm::SETTINGS)
+      ->set('entity_cache_tag_invalidation', $withEntityTagInvalidation)
+      ->save();
 
     // Get the revision ID for the pattern entity used on Node 2.
     $pattern_revision_id = $this->plugin2->getConfiguration()['pattern'];
@@ -264,36 +277,44 @@ class LayoutBuilderCacheInvalidationTest extends PatternkitBrowserTestBase {
     $assert->assertWaitOnAjaxRequest();
     $assert->pageTextContains('Successfully updated the pattern schema and template');
 
+    // Identify cache tags specific to the pattern entity.
+    $pattern_entity_tags = [
+      'patternkit_pattern:1',
+      'pattern:' . static::DEFAULT_PATTERN_ID,
+    ];
+
     // At this point, no cache tags should have been invalidated.
     $this->assertCacheTagsNotInvalidated([
       'node:2',
       'patternkit_block:2',
-      'patternkit_pattern:1',
-      'pattern:' . static::DEFAULT_PATTERN_ID,
-    ]);
+    ] + $pattern_entity_tags);
 
-    // Save the block and check cache tags again.
+    // Save the block and check cache tags again. Cache invalidations should
+    // still not be applied until the layout itself is saved.
     $page->pressButton('Update');
     $this->assertDialogClosedAndTextVisible('Sample twig template.');
     $this->assertCacheTagsNotInvalidated([
       'node:2',
       'patternkit_block:2',
-      'patternkit_pattern:1',
-      'pattern:' . static::DEFAULT_PATTERN_ID,
-    ]);
+    ] + $pattern_entity_tags);
 
     // Save the layout and confirm cache invalidations.
     $this->assertSaveLayout();
     $this->assertCacheTagsInvalidated([
       'node:2',
       'patternkit_block:2',
-      'patternkit_pattern:1',
-      'pattern:' . static::DEFAULT_PATTERN_ID,
     ], FALSE);
     $this->assertCacheTagsNotInvalidated([
       'node:1',
       'patternkit_block:1',
-    ]);
+    ], FALSE);
+
+    if ($withEntityTagInvalidation) {
+      $this->assertCacheTagsInvalidated($pattern_entity_tags);
+    }
+    else {
+      $this->assertCacheTagsNotInvalidated($pattern_entity_tags);
+    }
 
     // Confirm Node 1 still shows the manually altered revision of the pattern.
     $this->drupalGet('node/1');
@@ -302,6 +323,16 @@ class LayoutBuilderCacheInvalidationTest extends PatternkitBrowserTestBase {
     // Confirm Node 2 shows the updated template output.
     $this->drupalGet('node/2');
     $assert->pageTextContains('Sample twig template.');
+  }
+
+  /**
+   * Data provider for testPatternUpdateInvalidation().
+   */
+  public static function providerPatternUpdateInvalidation(): array {
+    return [
+      'with entity tag invalidation' => [TRUE],
+      'without entity tag invalidation' => [FALSE],
+    ];
   }
 
   /**

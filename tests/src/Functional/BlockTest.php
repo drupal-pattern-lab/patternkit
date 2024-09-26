@@ -72,16 +72,6 @@ class BlockTest extends PatternkitBrowserTestBase {
       $this->assertContains($tag, $cache_entry->tags);
     }
 
-    // The pattern entity is modified; verify a cache miss.
-    $pattern->setVersion(\Drupal::VERSION);
-    $pattern->save();
-    $this->drupalGet('node/1');
-    $this->assertSession()->responseHeaderEquals('X-Drupal-Cache', 'MISS');
-
-    // Now we should have a cache hit again.
-    $this->drupalGet('node/1');
-    $this->assertSession()->responseHeaderEquals('X-Drupal-Cache', 'HIT');
-
     // Place another pattern block; verify a cache miss.
     $new_pattern_name = '@patternkit/atoms/example_ref/src/example_ref';
     $new_block = $this->createPatternBlock($new_pattern_name, [
@@ -97,7 +87,6 @@ class BlockTest extends PatternkitBrowserTestBase {
     // @todo Validate new block id/rid isn't coincidentally the same and passing.
     $config = $block->getConfiguration();
     $new_block_id = $config['patternkit_block_rid'];
-    /** @var \Drupal\patternkit\Entity\PatternInterface $pattern */
     $new_pattern = $block->getPatternEntity();
     $new_pattern_id = $new_pattern->id();
 
