@@ -137,10 +137,10 @@ class PatternLibrary {
     string $id,
     string $extensionType,
     string $extension,
-    string $version = NULL,
+    ?string $version = NULL,
     $license = NULL,
     string|false $remote = FALSE,
-    bool $header = NULL,
+    ?bool $header = NULL,
   ) {
     $this->id = $id;
     $this->extensionType = $extensionType;

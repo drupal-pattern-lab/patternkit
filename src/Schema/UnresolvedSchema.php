@@ -127,7 +127,7 @@ class UnresolvedSchema extends Schema {
    * @throws \Swaggest\JsonSchema\Exception
    * @throws \Swaggest\JsonSchema\InvalidValue
    */
-  public function resolve(Context $options = NULL): SchemaContract {
+  public function resolve(?Context $options = NULL): SchemaContract {
     if ($options === NULL) {
       $options = new Context();
     }

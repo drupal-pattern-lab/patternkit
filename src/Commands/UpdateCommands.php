@@ -142,7 +142,7 @@ class UpdateCommands extends DrushCommands {
    * @see self::batchUpdate()
    */
   public function libUpdate(
-    string $library_name = NULL,
+    ?string $library_name = NULL,
     array $options = [
       'filter' => self::REQ,
       'pattern' => self::REQ,
@@ -220,7 +220,7 @@ class UpdateCommands extends DrushCommands {
    * @aliases pkbu
    */
   public function batchUpdate(
-    string $library_name = NULL,
+    ?string $library_name = NULL,
     array $options = [
       'filter' => self::REQ,
       'pattern' => self::REQ,

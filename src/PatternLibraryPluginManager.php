@@ -124,7 +124,7 @@ class PatternLibraryPluginManager extends DefaultPluginManager implements Catego
    * @return \Drupal\patternkit\PatternLibraryPluginDefinition[]
    *   An array of plugin definitions, sorted by category and label.
    */
-  public function getSortedDefinitions(array $definitions = NULL, $label_key = 'label'): array {
+  public function getSortedDefinitions(?array $definitions = NULL, $label_key = 'label'): array {
     // Sort the plugins first by category, then by label.
     $definitions ??= $this->getDefinitions();
     // Suppress errors because PHPUnit will indirectly modify the contents,
@@ -145,7 +145,7 @@ class PatternLibraryPluginManager extends DefaultPluginManager implements Catego
    *   Keys are category names, and values are arrays of which the keys are
    *   plugin IDs and the values are plugin definitions.
    */
-  public function getGroupedDefinitions(array $definitions = NULL, $label_key = 'label'): array {
+  public function getGroupedDefinitions(?array $definitions = NULL, $label_key = 'label'): array {
     $definitions = $this->getSortedDefinitions($definitions ?? $this->getDefinitions(), $label_key);
     $grouped_definitions = [];
     foreach ($definitions as $id => $definition) {

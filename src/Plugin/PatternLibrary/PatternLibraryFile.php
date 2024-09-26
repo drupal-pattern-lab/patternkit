@@ -60,7 +60,7 @@ class PatternLibraryFile extends PatternLibraryPluginDefault implements Containe
   /**
    * {@inheritdoc}
    */
-  public function getEditor(PatternInterface $pattern = NULL, ?PatternEditorConfig $config = NULL): string {
+  public function getEditor(?PatternInterface $pattern = NULL, ?PatternEditorConfig $config = NULL): string {
     @trigger_error(__METHOD__ . ' is deprecated in patternkit:9.1.0-beta10 and is removed from patternkit:9.1.0. Use \Drupal\patternkit\Plugin\PatternLibrary\PatternLibraryJSON::getPatternEditor instead. See https://www.drupal.org/project/patternkit/issues/3386854', E_USER_DEPRECATED);
     return '';
   }
