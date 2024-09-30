@@ -5,12 +5,6 @@ parameters:
     # Drupal 11 deprecations.
     #########################
 
-    # Ignore withConsecutive() deprecation warnings until we're ready to replace them.
-    - '#^Call to deprecated method withConsecutive\(\) of class PHPUnit\\Framework\\MockObject\\Builder\\InvocationMocker\.$#'
-    - message: '#^Trying to mock an undefined method myCallback\(\) on class stdClass\.$#'
-      count: 1
-      path: tests/src/Unit/LayoutHelperTest.php
-
     # Ignore loadRevision() deprecations until we're ready to replace them.
     - '''
         #^Call to deprecated method loadRevision\(\) of interface Drupal\\Core\\Entity\\EntityStorageInterface\:

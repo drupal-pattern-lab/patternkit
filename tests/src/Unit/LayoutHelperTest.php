@@ -351,60 +351,71 @@ class LayoutHelperTest extends UnitTestCase {
     // Create an additional argument that should get passed into each callback.
     $additional_arg = $generator->string();
 
+    $expected_args = [
+      [
+        'test_storage:1',
+        $section_storage_collection['test_storage:1'],
+        $component_hierarchy[0]['1234'],
+        $additional_arg,
+      ],
+      [
+        'test_storage:1',
+        $section_storage_collection['test_storage:1'],
+        $component_hierarchy[0]['5678'],
+        $additional_arg,
+      ],
+      [
+        'test_storage:1',
+        $section_storage_collection['test_storage:1'],
+        $component_hierarchy[1]['9012'],
+        $additional_arg,
+      ],
+      [
+        'test_storage:1',
+        $section_storage_collection['test_storage:1'],
+        $component_hierarchy[1]['3456'],
+        $additional_arg,
+      ],
+      [
+        'test_storage:1',
+        $section_storage_collection['test_storage:1'],
+        $component_hierarchy[1]['7890'],
+        $additional_arg,
+      ],
+      [
+        'test_storage:2',
+        $section_storage_collection['test_storage:2'],
+        $component_hierarchy_2[0]['9876'],
+        $additional_arg,
+      ],
+      [
+        'test_storage:2',
+        $section_storage_collection['test_storage:2'],
+        $component_hierarchy_2[0]['5432'],
+        $additional_arg,
+      ],
+    ];
+    // Return a mixture of indicators for whether a component should be saved.
+    // Return FALSE for all items on the second storage entry to ensure it is
+    // not updated and should be excluded from returned results.
+    $return_output = [FALSE, FALSE, TRUE, FALSE, TRUE, FALSE, FALSE];
+
     // Prepare an observable callback function to confirm execution.
     $callback_mock = $this->getMockBuilder(\stdClass::class)
       ->addMethods(['myCallback'])
       ->getMock();
+    // @phpstan-ignore phpunit.mockMethod
     $callback_mock->expects($this->exactly(7))
       ->method('myCallback')
-      ->withConsecutive(
-        [
-          'test_storage:1',
-          $section_storage_collection['test_storage:1'],
-          $component_hierarchy[0]['1234'],
-          $additional_arg,
-        ],
-        [
-          'test_storage:1',
-          $section_storage_collection['test_storage:1'],
-          $component_hierarchy[0]['5678'],
-          $additional_arg,
-        ],
-        [
-          'test_storage:1',
-          $section_storage_collection['test_storage:1'],
-          $component_hierarchy[1]['9012'],
-          $additional_arg,
-        ],
-        [
-          'test_storage:1',
-          $section_storage_collection['test_storage:1'],
-          $component_hierarchy[1]['3456'],
-          $additional_arg,
-        ],
-        [
-          'test_storage:1',
-          $section_storage_collection['test_storage:1'],
-          $component_hierarchy[1]['7890'],
-          $additional_arg,
-        ],
-        [
-          'test_storage:2',
-          $section_storage_collection['test_storage:2'],
-          $component_hierarchy_2[0]['9876'],
-          $additional_arg,
-        ],
-        [
-          'test_storage:2',
-          $section_storage_collection['test_storage:2'],
-          $component_hierarchy_2[0]['5432'],
-          $additional_arg,
-        ],
-      )
-      // Return a mixture of indicators for whether a component should be saved.
-      // Return FALSE for all items on the second storage entry to ensure it is
-      // not updated and should be excluded from returned results.
-      ->willReturnOnConsecutiveCalls(FALSE, FALSE, TRUE, FALSE, TRUE, FALSE, FALSE);
+      ->willReturnCallback(function (string $key, SectionStorageInterface $sectionStorage, object $item, string $additional_arg) use (&$expected_args, &$return_output): bool {
+        $expected = array_shift($expected_args);
+        $args = func_get_args();
+        foreach ($expected as $key => $value) {
+          $this->assertEquals($value, $args[$key]);
+        }
+
+        return array_shift($return_output);
+      });
     $callback = [$callback_mock, 'myCallback'];
 
     $layoutHelper = $this->getLayoutHelper();
@@ -413,6 +424,10 @@ class LayoutHelperTest extends UnitTestCase {
     // Since components were only updated within the first storage item, the
     // second collection should not be included in returned results.
     $this->assertEquals(array_intersect_key($section_storage_collection, ['test_storage:1' => TRUE]), $changed);
+
+    // Confirm all expected callback executions were completed.
+    $this->assertEmpty($expected_args);
+    $this->assertEmpty($return_output);
   }
 
   /**

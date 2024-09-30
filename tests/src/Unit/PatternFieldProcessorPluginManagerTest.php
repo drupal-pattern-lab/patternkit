@@ -20,6 +20,7 @@ use Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor;
 use Drupal\patternkit\Schema\PatternkitRefProvider;
 use Drupal\patternkit\Schema\SchemaFactory;
 use Drupal\patternkit\Schema\SchemaWalkerFactory;
+use PHPUnit\Framework\Constraint\Constraint;
 use PHPUnit\Framework\Constraint\IsType;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
@@ -407,48 +408,65 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
         ->method('applies')
         ->willReturn(TRUE);
 
+      $expected_args = [
+        [
+          static::isInstanceOf(SchemaContract::class),
+          'test',
+          $context,
+          $metadata,
+        ],
+        [
+          static::isInstanceOf(SchemaContract::class),
+          ['image_url' => 'abc123'],
+          $context,
+          $metadata,
+        ],
+        [
+          static::isInstanceOf(SchemaContract::class),
+          'abc123',
+          $context,
+          $metadata,
+        ],
+        [
+          static::isInstanceOf(SchemaContract::class),
+          static::arrayHasKey(0),
+          $context,
+          $metadata,
+        ],
+        [
+          static::isInstanceOf(SchemaContract::class),
+          'xs',
+          $context,
+          $metadata,
+        ],
+        [
+          static::isInstanceOf(SchemaContract::class),
+          'lg',
+          $context,
+          $metadata,
+        ],
+      ];
+
       // Set expectations for how and with what the apply method will be called.
       $processor->expects(static::exactly(6))
         ->method('apply')
-        ->withConsecutive(
-          [
-            static::isInstanceOf(SchemaContract::class),
-            'test',
-            $context,
-            $metadata,
-          ],
-          [
-            static::isInstanceOf(SchemaContract::class),
-            ['image_url' => 'abc123'],
-            $context,
-            $metadata,
-          ],
-          [
-            static::isInstanceOf(SchemaContract::class),
-            'abc123',
-            $context,
-            $metadata,
-          ],
-          [
-            static::isInstanceOf(SchemaContract::class),
-            static::arrayHasKey(0),
-            $context,
-            $metadata,
-          ],
-          [
-            static::isInstanceOf(SchemaContract::class),
-            'xs',
-            $context,
-            $metadata,
-          ],
-          [
-            static::isInstanceOf(SchemaContract::class),
-            'lg',
-            $context,
-            $metadata,
-          ],
-        )
-        ->willReturnArgument(1);
+        ->willReturnCallback(function () use (&$expected_args) {
+          $expected = array_shift($expected_args);
+          $args = func_get_args();
+
+          // Test each received argument against expectations.
+          foreach ($expected as $index => $expected_value) {
+            if ($expected_value instanceof Constraint) {
+              static::assertThat($args[$index], $expected_value);
+            }
+            else {
+              static::assertEquals($expected_value, $args[$index]);
+            }
+          }
+
+          // Always return the first argument.
+          return $args[1];
+        });
     };
 
     $cases['flat_array'] = [$flat_schema_json, $values, $expectationsCallback];
@@ -671,42 +689,59 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
     $processor = $this->createMock(PatternFieldProcessorInterface::class);
 
     // Expect applies to be called for each array item.
+    $expected_applies_args = [
+      $values['breakpoints'],
+      $values['breakpoints'][0],
+      $values['breakpoints'][1],
+      $values['breakpoints'][2],
+    ];
     $processor->expects($this->exactly(count($values['breakpoints']) + 1))
       ->method('applies')
-      ->withConsecutive(
-        [$this->isInstanceOf(SchemaContract::class), $values['breakpoints']],
-        [$this->isInstanceOf(SchemaContract::class), $values['breakpoints'][0]],
-        [$this->isInstanceOf(SchemaContract::class), $values['breakpoints'][1]],
-        [$this->isInstanceOf(SchemaContract::class), $values['breakpoints'][2]],
-      )
-      ->willReturnCallback(function (SchemaContract $propertySchema, $value) {
+      ->willReturnCallback(function (SchemaContract $propertySchema, $value) use (&$expected_applies_args): bool {
+        $this->assertInstanceOf(SchemaContract::class, $propertySchema);
+        $this->assertEquals(array_shift($expected_applies_args), $value);
+
         return is_string($value);
       });
 
     // Expect consecutive calls to apply() for each property with a value.
+    $expected_apply_args = [
+      [
+        $this->isInstanceOf(SchemaContract::class),
+        $values['breakpoints'][0],
+        $context_values,
+        $metadata,
+      ],
+      [
+        $this->isInstanceOf(SchemaContract::class),
+        $values['breakpoints'][1],
+        $context_values,
+        $metadata,
+      ],
+      [
+        $this->isInstanceOf(SchemaContract::class),
+        $values['breakpoints'][2],
+        $context_values,
+        $metadata,
+      ],
+    ];
     $processor->expects($this->exactly(count($values['breakpoints'])))
       ->method('apply')
-      ->withConsecutive(
-        [
-          $this->isInstanceOf(SchemaContract::class),
-          $values['breakpoints'][0],
-          $context_values,
-          $metadata,
-        ],
-        [
-          $this->isInstanceOf(SchemaContract::class),
-          $values['breakpoints'][1],
-          $context_values,
-          $metadata,
-        ],
-        [
-          $this->isInstanceOf(SchemaContract::class),
-          $values['breakpoints'][2],
-          $context_values,
-          $metadata,
-        ],
-      )
-      ->willReturnCallback(function () {
+      ->willReturnCallback(function () use (&$expected_apply_args) {
+        $expected = array_shift($expected_apply_args);
+        $args = func_get_args();
+
+        // Test each received argument against expectations.
+        foreach ($expected as $index => $expected_value) {
+          if ($expected_value instanceof Constraint) {
+            static::assertThat($args[$index], $expected_value);
+          }
+          else {
+            static::assertEquals($expected_value, $args[$index]);
+          }
+        }
+
+        // Return a consistent value indicating processing occurred.
         return 'PROCESSED';
       });
 
@@ -825,45 +860,60 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
     $processor = $this->createMock(PatternFieldProcessorInterface::class);
 
     // Expect applies to be called for each array item.
+    $expected_applies_args = [
+      $values['references'],
+      $values['references'][0],
+      $values['references'][1],
+      $values['references'][2],
+      $values['references'][2]['text'],
+    ];
     $processor->expects($this->exactly(5))
       ->method('applies')
-      ->withConsecutive(
-        [$this->isInstanceOf(SchemaContract::class), $values['references']],
-        [$this->isInstanceOf(SchemaContract::class), $values['references'][0]],
-        [$this->isInstanceOf(SchemaContract::class), $values['references'][1]],
-        [$this->isInstanceOf(SchemaContract::class), $values['references'][2]],
-        [
-          $this->isInstanceOf(SchemaContract::class),
-          $values['references'][2]['text'],
-        ],
-      )
-      ->willReturnCallback(function (SchemaContract $propertySchema, $value) {
+      ->willReturnCallback(function (SchemaContract $propertySchema, $value) use (&$expected_applies_args): bool {
+        $this->assertInstanceOf(SchemaContract::class, $propertySchema);
+        $this->assertEquals(array_shift($expected_applies_args), $value);
+
         return is_string($value);
       });
 
     // Expect consecutive calls to apply() for each property with a value.
+    $expected_apply_args = [
+      [
+        $this->isInstanceOf(SchemaContract::class),
+        $values['references'][0],
+        $context_values,
+        $metadata,
+      ],
+      [
+        $this->isInstanceOf(SchemaContract::class),
+        $values['references'][1],
+        $context_values,
+        $metadata,
+      ],
+      [
+        $this->isInstanceOf(SchemaContract::class),
+        $values['references'][2]['text'],
+        $context_values,
+        $metadata,
+      ],
+    ];
     $processor->expects($this->exactly(3))
       ->method('apply')
-      ->withConsecutive(
-        [$this->isInstanceOf(SchemaContract::class),
-          $values['references'][0],
-          $context_values,
-          $metadata,
-        ],
-        [
-          $this->isInstanceOf(SchemaContract::class),
-          $values['references'][1],
-          $context_values,
-          $metadata,
-        ],
-        [
-          $this->isInstanceOf(SchemaContract::class),
-          $values['references'][2]['text'],
-          $context_values,
-          $metadata,
-        ],
-      )
-      ->willReturnCallback(function () {
+      ->willReturnCallback(function () use (&$expected_apply_args) {
+        $expected = array_shift($expected_apply_args);
+        $args = func_get_args();
+
+        // Test each received argument against expectations.
+        foreach ($expected as $index => $expected_value) {
+          if ($expected_value instanceof Constraint) {
+            static::assertThat($args[$index], $expected_value);
+          }
+          else {
+            static::assertEquals($expected_value, $args[$index]);
+          }
+        }
+
+        // Return a consistent value indicating processing occurred.
         return 'PROCESSED';
       });
 
