@@ -401,8 +401,7 @@ class LayoutHelperTest extends UnitTestCase {
     $return_output = [FALSE, FALSE, TRUE, FALSE, TRUE, FALSE, FALSE];
 
     // Prepare an observable callback function to confirm execution.
-    $callback_mock = $this->getMockBuilder(\stdClass::class)
-      ->addMethods(['myCallback'])
+    $callback_mock = $this->getMockBuilder(ObservableCallbackClass::class)
       ->getMock();
     // @phpstan-ignore phpunit.mockMethod
     $callback_mock->expects($this->exactly(7))
@@ -765,3 +764,14 @@ class LayoutHelperTest extends UnitTestCase {
   }
 
 }
+
+/**
+ * A test-only class for mocking an observable callback.
+ *
+ * @internal
+ */
+// phpcs:disable
+class ObservableCallbackClass {
+  public function myCallback() {}
+}
+// phpcs:enable
