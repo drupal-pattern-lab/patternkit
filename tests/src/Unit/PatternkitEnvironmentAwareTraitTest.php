@@ -4,8 +4,8 @@ namespace Drupal\Tests\patternkit\Unit;
 
 use Drupal\Tests\UnitTestCase;
 use Drupal\patternkit\PatternkitEnvironment;
+use Drupal\patternkit\PatternkitEnvironmentAwareInterface;
 use Drupal\patternkit\PatternkitEnvironmentAwareTrait;
-use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -28,11 +28,11 @@ class PatternkitEnvironmentAwareTraitTest extends UnitTestCase {
   protected ObjectProphecy $environment;
 
   /**
-   * The mocked object using the trait being tested.
+   * The class instance using the trait being tested.
    *
-   * @var \Drupal\patternkit\PatternkitEnvironmentAwareInterface&\PHPUnit\Framework\MockObject\MockObject
+   * @var \Drupal\patternkit\PatternkitEnvironmentAwareInterface
    */
-  protected MockObject $mock;
+  protected PatternkitEnvironmentAwareInterface $sut;
 
   /**
    * {@inheritdoc}
@@ -42,8 +42,7 @@ class PatternkitEnvironmentAwareTraitTest extends UnitTestCase {
 
     $this->environment = $this->prophesize(PatternkitEnvironment::class);
 
-    // @phpstan-ignore assign.propertyType
-    $this->mock = $this->getMockForTrait(PatternkitEnvironmentAwareTrait::class);
+    $this->sut = new PatternkitEnvironmentAwareTraitClass();
   }
 
   /**
@@ -58,9 +57,9 @@ class PatternkitEnvironmentAwareTraitTest extends UnitTestCase {
     \Drupal::setContainer($container->reveal());
 
     $environment = $this->environment->reveal();
-    $this->mock->setPatternkitEnvironment($environment);
+    $this->sut->setPatternkitEnvironment($environment);
 
-    $this->assertSame($environment, $this->mock->patternkitEnvironment());
+    $this->assertSame($environment, $this->sut->patternkitEnvironment());
   }
 
   /**
@@ -78,7 +77,7 @@ class PatternkitEnvironmentAwareTraitTest extends UnitTestCase {
       ->willReturn($environment)->shouldBeCalledOnce();
     \Drupal::setContainer($container->reveal());
 
-    $this->assertSame($environment, $this->mock->patternkitEnvironment());
+    $this->assertSame($environment, $this->sut->patternkitEnvironment());
   }
 
   /**
@@ -91,9 +90,9 @@ class PatternkitEnvironmentAwareTraitTest extends UnitTestCase {
       ->willReturn(TRUE)
       ->shouldBeCalledOnce();
 
-    $this->mock->setPatternkitEnvironment($this->environment->reveal());
+    $this->sut->setPatternkitEnvironment($this->environment->reveal());
 
-    $this->assertTrue($this->mock->isDebug());
+    $this->assertTrue($this->sut->isDebug());
   }
 
   /**
@@ -109,10 +108,21 @@ class PatternkitEnvironmentAwareTraitTest extends UnitTestCase {
       ->willReturn(FALSE)
       ->shouldBeCalledOnce();
 
-    $this->mock->setPatternkitEnvironment($this->environment->reveal());
+    $this->sut->setPatternkitEnvironment($this->environment->reveal());
 
-    $this->assertTrue($this->mock->getEnvironmentFeature('configured_option', FALSE));
-    $this->assertFalse($this->mock->getEnvironmentFeature('unknown_option', FALSE));
+    $this->assertTrue($this->sut->getEnvironmentFeature('configured_option', FALSE));
+    $this->assertFalse($this->sut->getEnvironmentFeature('unknown_option', FALSE));
   }
+
+}
+
+/**
+ * A test-only class instance using the trait to be tested.
+ *
+ * @internal
+ */
+class PatternkitEnvironmentAwareTraitClass implements PatternkitEnvironmentAwareInterface {
+
+  use PatternkitEnvironmentAwareTrait;
 
 }
