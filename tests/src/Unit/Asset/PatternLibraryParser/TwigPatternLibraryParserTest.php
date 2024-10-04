@@ -26,6 +26,7 @@ use org\bovigo\vfs\vfsStream;
  *
  * @coversDefaultClass \Drupal\patternkit\Asset\PatternLibraryParser\TwigPatternLibraryParser
  * @covers \Drupal\patternkit\Asset\PatternLibraryParser\JSONPatternLibraryParser
+ * @covers \Drupal\patternkit\Asset\PatternLibraryParserBase
  * @uses \Drupal\patternkit\PatternLibraryJSONParserTrait::setContextBuilder()
  * @uses \Drupal\patternkit\PatternLibraryJSONParserTrait::contextBuilder()
  * @uses \Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait
@@ -42,7 +43,7 @@ class TwigPatternLibraryParserTest extends PatternLibraryParserTestBase {
   /**
    * The context builder service.
    *
-   * @var \Drupal\patternkit\Schema\ContextBuilder|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Schema\ContextBuilder>
    */
   protected ObjectProphecy $contextBuilder;
 
