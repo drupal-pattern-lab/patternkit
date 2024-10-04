@@ -403,7 +403,6 @@ class LayoutHelperTest extends UnitTestCase {
     // Prepare an observable callback function to confirm execution.
     $callback_mock = $this->getMockBuilder(ObservableCallbackClass::class)
       ->getMock();
-    // @phpstan-ignore phpunit.mockMethod
     $callback_mock->expects($this->exactly(7))
       ->method('myCallback')
       ->willReturnCallback(function (string $key, SectionStorageInterface $sectionStorage, object $item, string $additional_arg) use (&$expected_args, &$return_output): bool {

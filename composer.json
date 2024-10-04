@@ -34,7 +34,8 @@
         "mglaman/phpstan-drupal": "@stable",
         "phpstan/phpstan": "@stable",
         "phpstan/phpstan-deprecation-rules": "@stable",
-        "phpstan/phpstan-phpunit": "@stable"
+        "phpstan/phpstan-phpunit": "@stable",
+        "drush/drush": "^12.4.3 | ^13"
     },
     "conflict": {
         "drush/drush": "<12.4.3"

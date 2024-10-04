@@ -6,8 +6,6 @@ includes:
   # - phpstan.local.neon
 
 parameters:
-  drupal:
-    drupal_root: %currentWorkingDirectory%/web
   editorUrlTitle: '%%relFile%%:%%line%%'
   level: 3
 
@@ -30,6 +28,7 @@ parameters:
 
   scanDirectories:
     - %currentWorkingDirectory%/web/core
+    - %currentWorkingDirectory%/vendor/drush/drush/src-symfony-compatibility
   stubFiles:
     - stubs/Behat/Mink/WebAssert.stub
     - stubs/Drupal/FunctionalJavascriptTests/WebDriverTestBase.stub

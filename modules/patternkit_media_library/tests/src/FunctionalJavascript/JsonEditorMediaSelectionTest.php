@@ -3,6 +3,7 @@
 namespace Drupal\Tests\patternkit_media_library\FunctionalJavascript;
 
 use Drupal\file\Entity\File;
+use Drupal\file\FileInterface;
 use Drupal\media\Entity\Media;
 use Drupal\media\MediaInterface;
 use Drupal\node\Entity\Node;
@@ -403,8 +404,9 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
     $this->waitForJsonEditorForm();
 
     // Fill the image field with a direct file URL.
-    // @phpstan-ignore method.notFound
-    $image_url = $this->image->field_media_image->entity->createFileUrl();
+    $image_entity = $this->image->field_media_image->entity;
+    $this->assertInstanceOf(FileInterface::class, $image_entity);
+    $image_url = $image_entity->createFileUrl();
     $page->fillField($field_name, $image_url);
 
     // Save the layout to simulate a pre-existing block with a URL saved.
