@@ -73,7 +73,7 @@ class SchemaRefObserverTest extends UnitTestCase {
   /**
    * The mocked schema handler service.
    *
-   * @var \Drupal\patternkit\Schema\SchemaRefHandler|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Schema\SchemaRefHandler>
    */
   protected ObjectProphecy $schemaRefHandler;
 
@@ -255,7 +255,7 @@ class SchemaRefObserverTest extends UnitTestCase {
     $references = $observer->getExternalReferences($exclusions);
 
     // Test only the returned keys since import doesn't capture paths currently.
-    $this->assertEqualsCanonicalizing($expected, $references);
+    $this->assertEqualsCanonicalizing($expected, array_keys($references));
   }
 
   /**
@@ -325,7 +325,7 @@ class SchemaRefObserverTest extends UnitTestCase {
     $references = $observer->getExternalReferences($exclusions, TRUE);
 
     // Test only the returned keys since import doesn't capture paths currently.
-    $this->assertEqualsCanonicalizing($expected, $references);
+    $this->assertEqualsCanonicalizing($expected, array_keys($references));
   }
 
   /**
