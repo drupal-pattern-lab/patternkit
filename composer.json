@@ -18,12 +18,12 @@
         "ext-json": "*",
         "marcj/topsort": "^2.0.0",
         "swaggest/json-schema": "^0.12",
+        "symfony/filesystem": "^5.4 || ^6 || ^7",
         "symfony/finder": "^5.4 || ^6 || ^7",
         "symfony/serializer": "^6 || ^7",
         "symfony/property-access": "^5.4 || ^6 || ^7",
         "symfony/yaml": "^5.4 || ^6 || ^7",
-        "webmozart/assert": "^1.0",
-        "webmozart/path-util": "^2.1.0"
+        "webmozart/assert": "^1.0"
     },
     "require-dev": {
         "dms/phpunit-arraysubset-asserts": "^0.5.0",

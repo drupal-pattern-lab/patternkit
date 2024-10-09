@@ -2,8 +2,8 @@
 
 namespace Drupal\patternkit\Schema;
 
+use Symfony\Component\Filesystem\Path;
 use Webmozart\Assert\Assert;
-use Webmozart\PathUtil\Path;
 
 /**
  * A service for consolidated manipulation of schema references.
@@ -79,7 +79,6 @@ class SchemaRefHandler {
       // will need to be resolved to a direct path before it will match an
       // indexed pattern identifier.
       if (str_contains($matches['path'], './')) {
-        // @todo Replace webmozart/path-util dependency with symfony/filesystem once symfony dependency is updated.
         $matches['path'] = Path::canonicalize($matches['path']);
       }
 
