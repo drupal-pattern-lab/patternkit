@@ -27,8 +27,8 @@
     },
     "require-dev": {
         "dms/phpunit-arraysubset-asserts": "^0.5.0",
-        "drupal/core-recommended": "^10 || ^11",
-        "drupal/core-dev": "^10 || ^11",
+        "drupal/core-recommended": "^10.3 || ^11",
+        "drupal/core-dev": "^10.3 || ^11",
         "drupal/devel": "^4.2 || ^5.0",
         "jangregor/phpstan-prophecy": "@stable",
         "mglaman/phpstan-drupal": "@stable",

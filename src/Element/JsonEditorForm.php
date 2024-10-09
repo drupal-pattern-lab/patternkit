@@ -7,7 +7,7 @@ namespace Drupal\patternkit\Element;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Drupal\Core\Render\Element\FormElement;
+use Drupal\Core\Render\Element\FormElementBase;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Exception\UnknownPatternException;
 use Drupal\patternkit\Form\PatternLibraryJSONForm;
@@ -40,7 +40,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * @see \Drupal\patternkit\JsonEditorFormBuilder
  */
-class JsonEditorForm extends FormElement implements ContainerFactoryPluginInterface {
+class JsonEditorForm extends FormElementBase implements ContainerFactoryPluginInterface {
 
   /**
    * Patternkit config values.

@@ -2,7 +2,7 @@
 
 namespace Drupal\patternkit\Element;
 
-use Drupal\Core\Render\Element\RenderElement;
+use Drupal\Core\Render\Element\RenderElementBase;
 use Drupal\patternkit\Entity\Pattern;
 
 /**
@@ -36,7 +36,7 @@ use Drupal\patternkit\Entity\Pattern;
  *
  * @RenderElement("pattern_error")
  */
-class PatternError extends RenderElement {
+class PatternError extends RenderElementBase {
 
   /**
    * The permission to check for including debug output in error displays.

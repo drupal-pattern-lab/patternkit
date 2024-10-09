@@ -4,7 +4,7 @@ namespace Drupal\patternkit\Element;
 
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Render\BubbleableMetadata;
-use Drupal\Core\Render\Element\RenderElement;
+use Drupal\Core\Render\Element\RenderElementBase;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Exception\PatternAssetException;
 use Drupal\patternkit\Exception\UnknownPatternException;
@@ -39,7 +39,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * @RenderElement("pattern")
  */
-class Pattern extends RenderElement implements ContainerFactoryPluginInterface {
+class Pattern extends RenderElementBase implements ContainerFactoryPluginInterface {
 
   /**
    * The pattern field processor plugin manager.
