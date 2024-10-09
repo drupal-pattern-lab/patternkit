@@ -5,8 +5,8 @@ namespace Drupal\Tests\patternkit\Unit\Plugin\Block;
 use Drupal\Component\Serialization\SerializationInterface;
 use Drupal\Core\Block\BlockManager;
 use Drupal\Core\Entity\EntityStorageException;
-use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\Query\QueryInterface;
+use Drupal\Core\Entity\RevisionableStorageInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Plugin\Context\ContextHandlerInterface;
 use Drupal\Core\Plugin\Context\ContextRepositoryInterface;
@@ -64,14 +64,14 @@ class PatternkitBlockTest extends UnitTestCase {
   /**
    * Entity storage for patternkit_pattern entities.
    *
-   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Entity\EntityStorageInterface>
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Entity\RevisionableStorageInterface>
    */
   protected ObjectProphecy $patternStorage;
 
   /**
    * Entity storage for patternkit_block entities.
    *
-   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Entity\EntityStorageInterface>
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Entity\RevisionableStorageInterface>
    */
   protected ObjectProphecy $blockStorage;
 
@@ -203,8 +203,8 @@ class PatternkitBlockTest extends UnitTestCase {
     $this->blockManager = $this->prophesize(BlockManager::class);
     $this->contextHandler = $this->prophesize(ContextHandlerInterface::class);
     $this->contextRepository = $this->prophesize(ContextRepositoryInterface::class);
-    $this->patternStorage = $this->prophesize(EntityStorageInterface::class);
-    $this->blockStorage = $this->prophesize(EntityStorageInterface::class);
+    $this->patternStorage = $this->prophesize(RevisionableStorageInterface::class);
+    $this->blockStorage = $this->prophesize(RevisionableStorageInterface::class);
     $this->patternRepository = $this->prophesize(PatternRepository::class);
     $this->patternLibraryPluginManager = $this->prophesize(PatternLibraryPluginManager::class);
     $this->serializer = $this->prophesize(SerializationInterface::class);

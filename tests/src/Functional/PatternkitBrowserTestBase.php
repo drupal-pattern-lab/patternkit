@@ -3,6 +3,7 @@
 namespace Drupal\Tests\patternkit\Functional;
 
 use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Entity\RevisionableStorageInterface;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\patternkit\Traits\PatternkitBlockHelperTrait;
@@ -44,9 +45,9 @@ abstract class PatternkitBrowserTestBase extends BrowserTestBase {
   /**
    * Storage handler for patternkit_pattern content.
    *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
+   * @var \Drupal\Core\Entity\RevisionableStorageInterface
    */
-  protected EntityStorageInterface $patternStorage;
+  protected RevisionableStorageInterface $patternStorage;
 
   /**
    * A test user with editor permissions.
@@ -63,6 +64,7 @@ abstract class PatternkitBrowserTestBase extends BrowserTestBase {
 
     $entity_type_manager = $this->container->get('entity_type.manager');
     $this->patternBlockStorage = $entity_type_manager->getStorage('patternkit_block');
+    // @phpstan-ignore assign.propertyType
     $this->patternStorage = $entity_type_manager->getStorage('patternkit_pattern');
 
     // Create a bundle type and node we'll enable layout builder for.

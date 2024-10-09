@@ -11,7 +11,7 @@ use Drupal\Core\Ajax\ReplaceCommand;
 use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Block\BlockManagerInterface;
 use Drupal\Core\Entity\EntityStorageException;
-use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Entity\RevisionableStorageInterface;
 use Drupal\Core\Entity\TranslatableInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
@@ -89,9 +89,9 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    *   The ContextHandler allows mapping provided contexts to definitions.
    * @param \Drupal\Core\Plugin\Context\ContextRepositoryInterface $contextRepository
    *   The repository of available contexts for the current route.
-   * @param \Drupal\Core\Entity\EntityStorageInterface $patternStorage
+   * @param \Drupal\Core\Entity\RevisionableStorageInterface $patternStorage
    *   Entity storage for the patternkit_pattern entity.
-   * @param \Drupal\Core\Entity\EntityStorageInterface $blockStorage
+   * @param \Drupal\Core\Entity\RevisionableStorageInterface $blockStorage
    *   Entity storage for the patternkit_block entity.
    * @param \Drupal\patternkit\PatternRepository $patternRepository
    *   The pattern repository service.
@@ -119,8 +119,8 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     array $configuration,
     protected ContextHandlerInterface $contextHandler,
     protected ContextRepositoryInterface $contextRepository,
-    protected EntityStorageInterface $patternStorage,
-    protected EntityStorageInterface $blockStorage,
+    protected RevisionableStorageInterface $patternStorage,
+    protected RevisionableStorageInterface $blockStorage,
     protected PatternRepository $patternRepository,
     protected PatternLibraryPluginManager $patternLibraryPluginManager,
     string $plugin_id,

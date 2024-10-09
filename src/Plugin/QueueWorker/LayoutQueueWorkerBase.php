@@ -8,6 +8,7 @@ use Drupal\Core\Entity\Entity\EntityViewDisplay;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
+use Drupal\Core\Entity\RevisionableStorageInterface;
 use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Plugin\Context\Context;
@@ -227,6 +228,7 @@ abstract class LayoutQueueWorkerBase extends QueueWorkerBase implements Containe
 
     // Load the display and entity, if available, for updating.
     if ($revision_id !== NULL) {
+      assert($entity_storage instanceof RevisionableStorageInterface, 'Revisions may only be loaded for revisionable entities.');
       return $entity_storage->loadRevision($revision_id);
     }
     else {
