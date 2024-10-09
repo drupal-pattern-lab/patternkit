@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\patternkit\Kernel\Asset;
 
+use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Cache\MemoryBackend;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
@@ -197,6 +198,7 @@ class LibraryNamespaceResolverTest extends KernelTestBase implements ServiceModi
   public function testCacheInvalidationsDuringBuild(): void {
     // Mock a functional cache backend to monitor for invalidation calls.
     $cache = $this->getMockBuilder(MemoryBackend::class)
+      ->setConstructorArgs([$this->container->get(TimeInterface::class)])
       ->onlyMethods([
         'invalidate',
       ])
