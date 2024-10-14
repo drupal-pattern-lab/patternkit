@@ -60,10 +60,6 @@ parameters:
       paths:
         - *Test.php
 
-    # Ignore issues in tests for deprecated Library class since it will be removed.
-    - identifier: method.notFound
-      path: tests/src/Kernel/Asset/LibraryTest.php
-
     # Ignore dependency injection warnings for intentional lazy-loader methods.
     - message: '#^\\Drupal calls should be avoided in classes, use dependency injection instead$#'
       count: 2
@@ -112,11 +108,3 @@ parameters:
           \\Drupal\\Core\\Render\\Element\\FormElementBase instead\.$#
       '''
       path: src/Element/*.php
-
-    # Remove with v1.0 release when Library class is removed.
-    - '''
-      #^Class Drupal\\Tests\\patternkit\\Unit\\Asset\\TestLibrary extends deprecated class Drupal\\patternkit\\Asset\\Library\:
-      in patternkit\:9\.1\.0\-beta4 and is removed from patternkit\:9\.1\.0\.
-        Use \\Drupal\\patternkit\\Asset\\LibraryNamespaceResolver or
-        \\Drupal\\patternkit\\Asset\\PatternDiscovery instead\.$#
-      '''

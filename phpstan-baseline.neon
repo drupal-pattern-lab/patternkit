@@ -13,9 +13,6 @@ parameters:
       count: 1
       path: src/Plugin/PatternLibrary/PatternLibraryFile.php
 
-    - message: '#^Method Drupal\\patternkit\\StreamWrapper\\LibraryStream\:\:getTarget\(\) should return bool\|string but returns array\<string, array\>\.$#'
-      path: src/StreamWrapper/LibraryStream.php
-
     - message: '#^Return type \(array\<Drupal\\patternkit\\PatternLibraryPluginDefinition\>\) of method Drupal\\patternkit\\PatternLibraryPluginManager\:\:getSortedDefinitions\(\) should be compatible with return type \(array\<array\>\) of method Drupal\\Component\\Plugin\\CategorizingPluginManagerInterface\:\:getSortedDefinitions\(\)$#'
       path: src/PatternLibraryPluginManager.php
 

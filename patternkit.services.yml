@@ -27,15 +27,6 @@ services:
     class: Drupal\patternkit\PathProcessor\PathProcessorPatterns
     tags:
       - { name: path_processor_inbound, priority: 200 }
-  patternkit.asset.library:
-    class: Drupal\patternkit\Asset\Library
-    arguments:
-      - '@cache.patternkit'
-      - '@config.factory'
-      - '@lock'
-      - '@patternkit.pattern.discovery'
-      - '@patternkit.library.namespace_resolver'
-    deprecated: 'The "%service_id%" service is deprecated. Use "patternkit.library.namespace_resolver" or "patternkit.pattern.discovery" instead.'
   patternkit.asset.library.parser.base:
     abstract: true
     arguments:
@@ -118,16 +109,6 @@ services:
       - '@cache.discovery'
       - '@module_handler'
       - '@theme_handler'
-  stream_wrapper.library:
-    class: Drupal\patternkit\StreamWrapper\LibraryStream
-    tags:
-      - { name: stream_wrapper, scheme: library }
-    deprecated: 'The "%service_id%" service is deprecated and is removed in patternkit:9.1.0.'
-  stream_wrapper.patternkit:
-    class: Drupal\patternkit\StreamWrapper\PatternkitStream
-    tags:
-      - { name: stream_wrapper, scheme: patternkit }
-    deprecated: 'The "%service_id%" service is deprecated and is removed in patternkit:9.1.0.'
   twig.loader.patternlibrary:
     class: Drupal\patternkit\Loader\PatternLibraryLoader
     # We use '.' instead of '@app.root' as the path for non-namespaced template

@@ -7,7 +7,6 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\patternkit\Asset\PatternLibraryParserInterface;
 use Drupal\patternkit\Entity\PatternInterface;
-use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternFormBuilderInterface;
 use Drupal\patternkit\PatternLibraryPluginDefault;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -76,19 +75,6 @@ class PatternLibraryJSON extends PatternLibraryPluginDefault implements Containe
       $plugin_id,
       $plugin_definition,
     );
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getEditor(?PatternInterface $pattern = NULL, ?PatternEditorConfig $config = NULL): array {
-    @trigger_error(__METHOD__ . ' is deprecated in patternkit:9.1.0-beta10 and is removed from patternkit:9.1.0. Use \Drupal\patternkit\Plugin\PatternLibrary\PatternLibraryJSON::getPatternEditor instead. See https://www.drupal.org/project/patternkit/issues/3386854', E_USER_DEPRECATED);
-    if ($pattern !== NULL) {
-      return $this->getPatternEditor($pattern);
-    }
-    else {
-      return [];
-    }
   }
 
   /**

@@ -31,22 +31,6 @@ interface PatternLibraryPluginInterface extends PluginInspectionInterface {
   public function fetchAssets(PatternInterface $pattern): array;
 
   /**
-   * Returns renderable data or markup for a pattern editor.
-   *
-   * @param \Drupal\patternkit\Entity\PatternInterface|null $pattern
-   *   If specified, return an editor customized for this pattern.
-   * @param \Drupal\patternkit\PatternEditorConfig|null $config
-   *   Optional configuration settings for the editor.
-   *
-   * @return mixed
-   *   The renderable pattern editor.
-   *
-   * @deprecated in patternkit:9.1.0-beta10 and is removed from patternkit:9.1.0. Use ::getPatternEditor() instead.
-   * @see https://www.drupal.org/project/patternkit/issues/3386854
-   */
-  public function getEditor(?PatternInterface $pattern = NULL, ?PatternEditorConfig $config = NULL);
-
-  /**
    * Get the editor render array for a pattern editor form.
    *
    * @param \Drupal\patternkit\Entity\PatternInterface $pattern

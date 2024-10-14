@@ -6,7 +6,6 @@ use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Template\TwigEnvironment;
 use Drupal\patternkit\Asset\PatternLibraryParser\FilePatternLibraryParser;
 use Drupal\patternkit\Entity\PatternInterface;
-use Drupal\patternkit\PatternEditorConfig;
 use Drupal\patternkit\PatternLibraryPluginDefault;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Twig\Loader\FilesystemLoader;
@@ -55,14 +54,6 @@ class PatternLibraryFile extends PatternLibraryPluginDefault implements Containe
       $plugin_id,
       $plugin_definition
     );
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getEditor(?PatternInterface $pattern = NULL, ?PatternEditorConfig $config = NULL): string {
-    @trigger_error(__METHOD__ . ' is deprecated in patternkit:9.1.0-beta10 and is removed from patternkit:9.1.0. Use \Drupal\patternkit\Plugin\PatternLibrary\PatternLibraryJSON::getPatternEditor instead. See https://www.drupal.org/project/patternkit/issues/3386854', E_USER_DEPRECATED);
-    return '';
   }
 
   /**
