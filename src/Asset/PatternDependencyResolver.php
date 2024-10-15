@@ -9,35 +9,16 @@ use Drupal\patternkit\Schema\ContextBuilderTrait;
 use Drupal\patternkit\Schema\DataPreProcessorFactory;
 use Drupal\patternkit\Schema\UnresolvedSchema;
 use MJS\TopSort\Implementations\FixedArraySort;
-use Psr\Log\LoggerInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 
 /**
  * A service to parse and identify interdependencies between pattern schemas.
  */
-class PatternDependencyResolver {
+class PatternDependencyResolver implements LoggerAwareInterface {
 
   use ContextBuilderTrait;
-
-  /**
-   * The pattern discovery service.
-   *
-   * @var \Drupal\patternkit\Asset\PatternDiscoveryInterface
-   */
-  protected PatternDiscoveryInterface $patternDiscovery;
-
-  /**
-   * The data preprocessor factory service.
-   *
-   * @var \Drupal\patternkit\Schema\DataPreProcessorFactory
-   */
-  protected DataPreProcessorFactory $dataPreProcessorFactory;
-
-  /**
-   * The entity type manager service.
-   *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
-   */
-  protected EntityTypeManagerInterface $entityTypeManager;
+  use LoggerAwareTrait;
 
   /**
    * The entity storage handler for the 'patternkit_pattern' entity type.
@@ -45,13 +26,6 @@ class PatternDependencyResolver {
    * @var \Drupal\Core\Entity\EntityStorageInterface
    */
   protected EntityStorageInterface $patternStorage;
-
-  /**
-   * The patternkit logger channel.
-   *
-   * @var \Psr\Log\LoggerInterface
-   */
-  protected LoggerInterface $logger;
 
   /**
    * An associative array of pattern dependencies keyed by pattern ID.
@@ -69,20 +43,12 @@ class PatternDependencyResolver {
    *   The entity type manager service.
    * @param \Drupal\patternkit\Schema\DataPreProcessorFactory $dataPreProcessorFactory
    *   The data preprocessor factory service.
-   * @param \Psr\Log\LoggerInterface $logger
-   *   The patternkit logger channel.
    */
   public function __construct(
-    PatternDiscoveryInterface $patternDiscovery,
-    EntityTypeManagerInterface $entityTypeManager,
-    DataPreProcessorFactory $dataPreProcessorFactory,
-    LoggerInterface $logger,
-  ) {
-    $this->patternDiscovery = $patternDiscovery;
-    $this->entityTypeManager = $entityTypeManager;
-    $this->dataPreProcessorFactory = $dataPreProcessorFactory;
-    $this->logger = $logger;
-  }
+    protected PatternDiscoveryInterface $patternDiscovery,
+    protected EntityTypeManagerInterface $entityTypeManager,
+    protected DataPreProcessorFactory $dataPreProcessorFactory,
+  ) {}
 
   /**
    * Identify dependencies for all discovered patterns.

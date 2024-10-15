@@ -126,9 +126,9 @@ class PatternDependencyResolverTest extends UnitTestCase {
       $this->patternDiscovery->reveal(),
       $this->entityTypeManager->reveal(),
       $this->dataPreProcessorFactory->reveal(),
-      $this->logger->reveal(),
     );
 
+    $resolver->setLogger($this->logger->reveal());
     $resolver->setContextBuilder($this->contextBuilder->reveal());
 
     return $resolver;

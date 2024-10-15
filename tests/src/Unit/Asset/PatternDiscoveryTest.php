@@ -92,9 +92,9 @@ class PatternDiscoveryTest extends UnitTestCase {
       $this->loader->reveal(),
       $this->libraryNamespaceResolver->reveal(),
       $this->cache->reveal(),
-      $this->logger->reveal(),
       $this->patternkitEnvironment->reveal(),
     );
+    $this->discovery->setLogger($this->logger->reveal());
   }
 
   /**
@@ -114,7 +114,6 @@ class PatternDiscoveryTest extends UnitTestCase {
         $this->loader->reveal(),
         $this->libraryNamespaceResolver->reveal(),
         $this->cache->reveal(),
-        $this->logger->reveal(),
         $this->patternkitEnvironment->reveal(),
       ])
       ->onlyMethods($methods);
@@ -353,6 +352,7 @@ class PatternDiscoveryTest extends UnitTestCase {
     /** @var \PHPUnit\Framework\MockObject\MockObject&\Drupal\patternkit\Asset\PatternDiscovery $mock */
     $mock = $this->getPartialMock(['getPatternsByNamespace'])
       ->getMock();
+    $mock->setLogger($this->logger->reveal());
 
     // Prepare mocked pattern definitions to return.
     $namespace = '@patternkit';
@@ -428,6 +428,7 @@ class PatternDiscoveryTest extends UnitTestCase {
     /** @var \PHPUnit\Framework\MockObject\MockObject&\Drupal\patternkit\Asset\PatternDiscovery $mock */
     $mock = $this->getPartialMock(['getPatternsByNamespace'])
       ->getMock();
+    $mock->setLogger($this->logger->reveal());
 
     // Mock the namespace lookups.
     $mock->expects($this->exactly(2))
@@ -481,6 +482,7 @@ class PatternDiscoveryTest extends UnitTestCase {
       'clearCachedDefinitions',
       'getPatternDefinitions',
     ])->getMock();
+    $mock->setLogger($this->logger->reveal());
 
     // Expect caches to be cleared and all definitions to be rebuilt.
     $mock->expects($this->once())->method('clearCachedDefinitions');

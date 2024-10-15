@@ -17,6 +17,9 @@ parameters:
       bypass_database_cache: false
 
 services:
+  _defaults:
+    autoconfigure: true
+
   logger.channel.patternkit:
     parent: logger.channel_base
     arguments: ['patternkit']
@@ -40,7 +43,6 @@ services:
       - '@entity_type.manager'
       - '@patternkit.schema.data_preprocessor.factory'
       - '@patternkit.pattern.dependency_resolver'
-      - '@logger.channel.patternkit'
       - '@?plugin.manager.sdc'
   patternkit.asset.library.parser.file:
     parent: patternkit.asset.library.parser.base
@@ -67,14 +69,12 @@ services:
       - '@patternkit.pattern.discovery.loader'
       - '@patternkit.library.namespace_resolver'
       - '@cache.patternkit'
-      - '@logger.channel.patternkit'
       - '@patternkit.environment'
   patternkit.pattern.discovery.loader:
     class: Drupal\patternkit\Asset\PatternDiscoveryLoader
     arguments:
       - '@patternkit.library.namespace_resolver'
       - '@plugin.manager.library.pattern'
-      - '@logger.channel.patternkit'
     public: false
   patternkit.pattern.dependency_resolver:
     class: Drupal\patternkit\Asset\PatternDependencyResolver
@@ -82,7 +82,6 @@ services:
       - '@patternkit.pattern.discovery'
       - '@entity_type.manager'
       - '@patternkit.schema.data_preprocessor.factory'
-      - '@logger.channel.patternkit'
     calls:
       - ['setContextBuilder', ['@patternkit.schema.context_builder']]
   patternkit.pattern.repository:
@@ -126,14 +125,12 @@ services:
       - '@entity_type.manager'
       - '@keyvalue.expirable'
       - '@module_handler'
-      - '@logger.channel.patternkit'
   patternkit.helper.layout:
     class: Drupal\patternkit\LayoutHelper
     arguments:
       - '@entity_type.manager'
       - '@keyvalue.expirable'
       - '@patternkit.pattern.repository'
-      - '@logger.channel.patternkit'
       - '@?layout_builder.tempstore_repository'
       - '@?plugin.manager.layout_builder.section_storage'
   patternkit.layout_batch_manager:
@@ -154,7 +151,6 @@ services:
       - '@module_handler'
       - '@serialization.json'
       - '@patternkit.schema.schema_walker_factory'
-      - '@logger.channel.patternkit'
   patternkit.schema.schema_factory:
     class: Drupal\patternkit\Schema\SchemaFactory
     arguments:
@@ -184,7 +180,6 @@ services:
       - '@config.factory'
       - '@entity_type.manager'
       - '@state'
-      - '@logger.channel.patternkit'
       - '@messenger'
       - '@string_translation'
     calls:

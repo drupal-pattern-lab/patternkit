@@ -17,14 +17,16 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\editor\Plugin\EditorManager;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Form\PatternLibraryJSONForm;
-use Psr\Log\LoggerInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 use Webmozart\Assert\Assert;
 
 /**
  * A helper service to assist building a JSONEditor form into a render array.
  */
-class JsonEditorFormBuilder implements PatternFormBuilderInterface {
+class JsonEditorFormBuilder implements PatternFormBuilderInterface, LoggerAwareInterface {
 
+  use LoggerAwareTrait;
   use MessengerTrait;
   use StringTranslationTrait;
 
@@ -74,8 +76,6 @@ class JsonEditorFormBuilder implements PatternFormBuilderInterface {
    *   The entity type manager service.
    * @param \Drupal\Core\State\StateInterface $state
    *   The state service.
-   * @param \Psr\Log\LoggerInterface $logger
-   *   The logger channel to be used.
    * @param \Drupal\Core\Messenger\MessengerInterface $messenger
    *   The messenger service.
    * @param \Drupal\Core\StringTranslation\TranslationInterface $stringTranslation
@@ -86,7 +86,6 @@ class JsonEditorFormBuilder implements PatternFormBuilderInterface {
     protected readonly ConfigFactoryInterface $configFactory,
     protected readonly EntityTypeManagerInterface $entityTypeManager,
     protected readonly StateInterface $state,
-    protected readonly LoggerInterface $logger,
     protected $messenger,
     protected $stringTranslation,
   ) {}

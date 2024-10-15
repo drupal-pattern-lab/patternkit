@@ -158,10 +158,10 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
       $this->configFactory,
       $this->entityTypeManager->reveal(),
       $this->state->reveal(),
-      $this->logger->reveal(),
       $this->messenger->reveal(),
       $this->stringTranslation,
     );
+    $this->builder->setLogger($this->logger->reveal());
 
     // Prepare a mocked schema and pattern for tests.
     $schema_obj = $this->getRandomGenerator()->object();
@@ -306,10 +306,10 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
       $this->configFactory,
       $this->entityTypeManager->reveal(),
       $this->state->reveal(),
-      $this->logger->reveal(),
       $this->messenger->reveal(),
       $this->stringTranslation,
     );
+    $this->builder->setLogger($this->logger->reveal());
 
     // Configure editor dependencies.
     $this->entityTypeManager->hasHandler('editor', 'storage')
@@ -471,10 +471,10 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
       $this->configFactory,
       $this->entityTypeManager->reveal(),
       $this->state->reveal(),
-      $this->logger->reveal(),
       $this->messenger->reveal(),
       $this->stringTranslation,
     );
+    $this->builder->setLogger($this->logger->reveal());
 
     // Enable editor storage loading for early checks.
     $this->entityTypeManager->hasHandler('editor', 'storage')

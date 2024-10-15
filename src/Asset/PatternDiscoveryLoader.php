@@ -8,7 +8,8 @@ use Drupal\patternkit\Exception\UnknownPatternException;
 use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
-use Psr\Log\LoggerInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\Serializer;
@@ -22,7 +23,9 @@ use Webmozart\Assert\Assert;
  *
  * @internal
  */
-class PatternDiscoveryLoader {
+class PatternDiscoveryLoader implements LoggerAwareInterface {
+
+  use LoggerAwareTrait;
 
   /**
    * The default library parser plugin to be used if not explicitly specified.
@@ -38,15 +41,12 @@ class PatternDiscoveryLoader {
    *   The library namespace resolver service.
    * @param \Drupal\patternkit\PatternLibraryPluginManager $libraryPluginManager
    *   The pattern library plugin manager service.
-   * @param \Psr\Log\LoggerInterface $logger
-   *   A logger for message output.
    * @param \Symfony\Component\Serializer\Normalizer\DenormalizerInterface|null $serializer
    *   (optional) A serializer for normalizing pattern library properties.
    */
   public function __construct(
     protected readonly LibraryNamespaceResolverInterface $namespaceResolver,
     protected readonly PatternLibraryPluginManager $libraryPluginManager,
-    protected readonly LoggerInterface $logger,
     protected ?DenormalizerInterface $serializer = NULL,
   ) {
     $this->serializer = $serializer ?? new Serializer([new PropertyNormalizer()]);

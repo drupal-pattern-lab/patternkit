@@ -12,21 +12,16 @@ use Drupal\block\BlockInterface;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Entity\PatternkitBlock as EntityPatternkitBlock;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock;
-use Psr\Log\LoggerInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 
 /**
  * A utility service to perform helpful commands for update processes.
  */
-class UpdateHelper {
+class UpdateHelper implements LoggerAwareInterface {
 
+  use LoggerAwareTrait;
   use StringTranslationTrait;
-
-  /**
-   * The entity type manager service.
-   *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
-   */
-  protected EntityTypeManagerInterface $entityTypeManager;
 
   /**
    * Block storage manager.
@@ -41,27 +36,6 @@ class UpdateHelper {
    * @var \Drupal\Core\Entity\EntityStorageInterface
    */
   protected EntityStorageInterface $patternStorage;
-
-  /**
-   * The expirable key value factory service.
-   *
-   * @var \Drupal\Core\KeyValueStore\KeyValueExpirableFactoryInterface
-   */
-  protected KeyValueExpirableFactoryInterface $keyValueExpirable;
-
-  /**
-   * The module handler service.
-   *
-   * @var \Drupal\Core\Extension\ModuleHandlerInterface
-   */
-  protected ModuleHandlerInterface $moduleHandler;
-
-  /**
-   * The patternkit logger channel.
-   *
-   * @var \Psr\Log\LoggerInterface
-   */
-  protected LoggerInterface $logger;
 
   /**
    * The Patternkit layout helper service, if Layout Builder is available.
@@ -79,24 +53,17 @@ class UpdateHelper {
    *   The expirable key value factory service.
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
    *   The module handler service.
-   * @param \Psr\Log\LoggerInterface $logger
-   *   The logger channel to use for logging updates.
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
   public function __construct(
-    EntityTypeManagerInterface $entityTypeManager,
-    KeyValueExpirableFactoryInterface $keyValueExpirable,
-    ModuleHandlerInterface $moduleHandler,
-    LoggerInterface $logger,
+    protected EntityTypeManagerInterface $entityTypeManager,
+    protected KeyValueExpirableFactoryInterface $keyValueExpirable,
+    protected ModuleHandlerInterface $moduleHandler,
   ) {
-    $this->entityTypeManager = $entityTypeManager;
     $this->blockStorage = $entityTypeManager->getStorage('patternkit_block');
     $this->patternStorage = $entityTypeManager->getStorage('patternkit_pattern');
-    $this->keyValueExpirable = $keyValueExpirable;
-    $this->moduleHandler = $moduleHandler;
-    $this->logger = $logger;
   }
 
   /**

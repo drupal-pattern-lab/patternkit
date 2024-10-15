@@ -22,15 +22,17 @@ use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\PatternkitEnvironmentAwareInterface;
 use Drupal\patternkit\PatternkitEnvironmentAwareTrait;
 use Drupal\patternkit\Schema\DataPreProcessorFactory;
-use Psr\Log\LoggerInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 use Symfony\Component\Finder\Iterator\RecursiveDirectoryIterator;
 use Webmozart\Assert\Assert;
 
 /**
  * Base functionality for a pattern library parser.
  */
-abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implements PatternLibraryParserInterface, PatternkitEnvironmentAwareInterface {
+abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implements PatternLibraryParserInterface, PatternkitEnvironmentAwareInterface, LoggerAwareInterface {
 
+  use LoggerAwareTrait;
   use StringTranslationTrait;
   use PatternkitEnvironmentAwareTrait;
 
@@ -74,8 +76,6 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
    *   The schema data preprocessor factory service.
    * @param \Drupal\patternkit\Asset\PatternDependencyResolver $patternDependencyResolver
    *   The pattern dependency resolver service.
-   * @param \Psr\Log\LoggerInterface $logger
-   *   The patternkit logger channel.
    * @param \Drupal\Core\Theme\ComponentPluginManager|null $componentPluginManager
    *   The theme component plugin manager if available.
    *
@@ -93,7 +93,6 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     EntityTypeManagerInterface $entity_type_manager,
     protected DataPreProcessorFactory $dataPreProcessorFactory,
     protected PatternDependencyResolver $patternDependencyResolver,
-    protected LoggerInterface $logger,
     ?ComponentPluginManager $componentPluginManager = NULL,
   ) {
     parent::__construct(

@@ -122,9 +122,9 @@ class PatternDiscoveryLoaderTest extends UnitTestCase {
     $this->loader = new PatternDiscoveryLoader(
       $this->libraryNamespaceResolver->reveal(),
       $this->patternLibraryPluginManager->reveal(),
-      $this->logger->reveal(),
       $this->serializer->reveal(),
     );
+    $this->loader->setLogger($this->logger->reveal());
 
     $extension = $this->prophesize(Extension::class);
     $extensionList = $this->prophesize(ExtensionList::class);

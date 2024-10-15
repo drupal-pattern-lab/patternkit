@@ -189,8 +189,8 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
       $this->moduleHandler,
       $this->serializer,
       $this->schemaWalkerFactory,
-      $this->logger,
     );
+    $this->pluginManager->setLogger($this->logger);
 
     $this->container = new ContainerBuilder();
     $this->container->set('patternkit.schema.schema_factory', $this->schemaFactory);
@@ -274,8 +274,8 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
       $this->moduleHandler,
       $this->serializer,
       $this->schemaWalkerFactory,
-      $errorLogger,
     );
+    $pluginManager->setLogger($errorLogger);
 
     // Execute processing of the properties.
     $this->expectException(SchemaReferenceException::class);

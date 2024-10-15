@@ -143,12 +143,12 @@ class LayoutHelperTest extends UnitTestCase {
       $this->entityTypeManager->reveal(),
       $this->keyValueExpirable->reveal(),
       $this->patternRepository->reveal(),
-      $this->logger->reveal(),
       $this->layoutTempstoreRepository->reveal(),
       $this->sectionStorageManager->reveal(),
     );
 
     $layoutHelper->setUpdateHelper($this->updateHelper->reveal());
+    $layoutHelper->setLogger($this->logger->reveal());
 
     return $layoutHelper;
   }
@@ -289,11 +289,11 @@ class LayoutHelperTest extends UnitTestCase {
         $this->entityTypeManager->reveal(),
         $this->keyValueExpirable->reveal(),
         $this->patternRepository->reveal(),
-        $this->logger->reveal(),
         $this->layoutTempstoreRepository->reveal(),
         $this->sectionStorageManager->reveal(),
       ])
       ->getMock();
+    $layoutHelper->setLogger($this->logger->reveal());
 
     $layoutHelper->expects($this->once())
       ->method('getSectionStorageFromEntities')

@@ -16,24 +16,18 @@ use Drupal\layout_builder\LayoutEntityHelperTrait;
 use Drupal\layout_builder\LayoutTempstoreRepositoryInterface;
 use Drupal\layout_builder\SectionComponent;
 use Drupal\layout_builder\SectionListInterface;
-use Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface;
 use Drupal\layout_builder\SectionStorageInterface;
-use Psr\Log\LoggerInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 
 /**
  * A utility service to ease working with patternkit components in layouts.
  */
-class LayoutHelper {
+class LayoutHelper implements LoggerAwareInterface {
 
-  use StringTranslationTrait;
   use LayoutEntityHelperTrait;
-
-  /**
-   * The entity type manager service.
-   *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
-   */
-  protected EntityTypeManagerInterface $entityTypeManager;
+  use LoggerAwareTrait;
+  use StringTranslationTrait;
 
   /**
    * Pattern storage manager.
@@ -41,34 +35,6 @@ class LayoutHelper {
    * @var \Drupal\Core\Entity\EntityStorageInterface
    */
   protected EntityStorageInterface $patternStorage;
-
-  /**
-   * The expirable key value factory service.
-   *
-   * @var \Drupal\Core\KeyValueStore\KeyValueExpirableFactoryInterface
-   */
-  protected KeyValueExpirableFactoryInterface $keyValueExpirable;
-
-  /**
-   * The patternkit logger channel.
-   *
-   * @var \Psr\Log\LoggerInterface
-   */
-  protected LoggerInterface $logger;
-
-  /**
-   * The pattern repository service.
-   *
-   * @var \Drupal\patternkit\PatternRepository
-   */
-  protected PatternRepository $patternRepository;
-
-  /**
-   * The layout tempstore repository service, if available.
-   *
-   * @var \Drupal\layout_builder\LayoutTempstoreRepositoryInterface
-   */
-  protected LayoutTempstoreRepositoryInterface $layoutTempstoreRepository;
 
   /**
    * The patternkit update helper service.
@@ -86,8 +52,6 @@ class LayoutHelper {
    *   The expirable key value factory service.
    * @param \Drupal\patternkit\PatternRepository $patternRepository
    *   The pattern repository service.
-   * @param \Psr\Log\LoggerInterface $logger
-   *   The logger channel to use for logging updates.
    * @param \Drupal\layout_builder\LayoutTempstoreRepositoryInterface|null $layoutTempstoreRepository
    *   The layout tempstore repository service.
    * @param \Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface|null $sectionStorageManager
@@ -100,24 +64,17 @@ class LayoutHelper {
    *   without providing the required layout builder services.
    */
   public function __construct(
-    EntityTypeManagerInterface $entityTypeManager,
-    KeyValueExpirableFactoryInterface $keyValueExpirable,
-    PatternRepository $patternRepository,
-    LoggerInterface $logger,
-    ?LayoutTempstoreRepositoryInterface $layoutTempstoreRepository,
-    ?SectionStorageManagerInterface $sectionStorageManager,
+    protected EntityTypeManagerInterface $entityTypeManager,
+    protected KeyValueExpirableFactoryInterface $keyValueExpirable,
+    protected PatternRepository $patternRepository,
+    protected ?LayoutTempstoreRepositoryInterface $layoutTempstoreRepository = NULL,
+    protected $sectionStorageManager = NULL,
   ) {
     if ($layoutTempstoreRepository === NULL || $sectionStorageManager === NULL) {
       throw new MissingDependencyException("Layout Builder is required to use the 'patternkit.helper.layout' service.");
     }
 
-    $this->entityTypeManager = $entityTypeManager;
     $this->patternStorage = $entityTypeManager->getStorage('patternkit_pattern');
-    $this->keyValueExpirable = $keyValueExpirable;
-    $this->patternRepository = $patternRepository;
-    $this->logger = $logger;
-    $this->layoutTempstoreRepository = $layoutTempstoreRepository;
-    $this->sectionStorageManager = $sectionStorageManager;
   }
 
   /**

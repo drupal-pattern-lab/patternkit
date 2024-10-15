@@ -306,6 +306,7 @@ class TwigPatternLibraryParserTest extends PatternLibraryParserTestBase {
         'processSchema',
       ])
       ->getMock();
+    $mock->setLogger($this->logger->reveal());
     $mock->expects($this->once())
       ->method('processSchema')
       ->with($schema_content, $pattern->reveal())
@@ -388,6 +389,7 @@ class TwigPatternLibraryParserTest extends PatternLibraryParserTestBase {
         'getSchemaDependencies',
       ])
       ->getMock();
+    $mock->setLogger($this->logger->reveal());
 
     // Expect specific processing steps to be triggered, and fake an exception
     // during processing.

@@ -10,14 +10,17 @@ use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Exception\SchemaException;
 use Drupal\patternkit\Schema\SchemaWalkerFactory;
-use Psr\Log\LoggerInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 use Swaggest\JsonSchema\Path\PointerUtil;
 use Swaggest\JsonSchema\SchemaContract;
 
 /**
  * PatternFieldProcessor plugin manager.
  */
-class PatternFieldProcessorPluginManager extends DefaultPluginManager {
+class PatternFieldProcessorPluginManager extends DefaultPluginManager implements LoggerAwareInterface {
+
+  use LoggerAwareTrait;
 
   /**
    * Constructs PatternFieldProcessorPluginManager object.
@@ -33,8 +36,6 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager {
    *   The serialization service for unserializing schemas.
    * @param \Drupal\patternkit\Schema\SchemaWalkerFactory $schemaWalkerFactory
    *   The SchemaWalkerFactory service.
-   * @param \Psr\Log\LoggerInterface $logger
-   *   The logger channel for logging any errors.
    */
   public function __construct(
     \Traversable $namespaces,
@@ -42,7 +43,6 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager {
     ModuleHandlerInterface $module_handler,
     protected readonly SerializationInterface $serializer,
     protected readonly SchemaWalkerFactory $schemaWalkerFactory,
-    protected readonly LoggerInterface $logger,
   ) {
     parent::__construct(
       'Plugin/PatternFieldProcessor',

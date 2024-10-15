@@ -3,13 +3,17 @@
 namespace Drupal\patternkit\Loader;
 
 use Drupal\patternkit\Asset\LibraryNamespaceResolverInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Twig\Loader\FilesystemLoader;
 
 /**
  * Functionality for parsing Twig pattern libraries.
  */
-class PatternLibraryLoader extends FilesystemLoader {
+class PatternLibraryLoader extends FilesystemLoader implements LoggerAwareInterface {
+
+  use LoggerAwareTrait;
 
   /**
    * Overrides to add paths from pattern libraries.
@@ -20,6 +24,8 @@ class PatternLibraryLoader extends FilesystemLoader {
    *   Logs to the patternkit channel.
    * @param \Drupal\patternkit\Asset\LibraryNamespaceResolverInterface $libraryNamespaceResolver
    *   Provides library names and paths.
+   *
+   * @todo Move library loading out of constructor.
    */
   public function __construct(
     $paths,

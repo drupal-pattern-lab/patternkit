@@ -126,9 +126,8 @@ class UpdateHelperTest extends UnitTestCase {
       $entityTypeManager->reveal(),
       $this->keyValueExpirable->reveal(),
       $this->moduleHandler->reveal(),
-      $this->logger->reveal(),
     );
-
+    $updateHelper->setLogger($this->logger->reveal());
     $updateHelper->setStringTranslation($this->getStringTranslationStub());
 
     return $updateHelper;
@@ -142,7 +141,7 @@ class UpdateHelperTest extends UnitTestCase {
    *   will be marked for mocking, but expectations for them will still need
    *   to be configured on the returned instance.
    *
-   * @return \PHPUnit\Framework\MockObject\MockObject|\Drupal\patternkit\UpdateHelper
+   * @return \PHPUnit\Framework\MockObject\MockObject&\Drupal\patternkit\UpdateHelper
    *   The mocked object with injected dependencies.
    */
   protected function getPartialMock(array $methods = []): MockObject {
@@ -160,11 +159,10 @@ class UpdateHelperTest extends UnitTestCase {
         $entityTypeManager->reveal(),
         $this->keyValueExpirable->reveal(),
         $this->moduleHandler->reveal(),
-        $this->logger->reveal(),
       ])
       ->onlyMethods($methods)
       ->getMock();
-
+    $mock->setLogger($this->logger->reveal());
     $mock->setStringTranslation($this->getStringTranslationStub());
 
     return $mock;

@@ -10,7 +10,8 @@ use Drupal\patternkit\Exception\UnknownPatternException;
 use Drupal\patternkit\PatternkitEnvironment;
 use Drupal\patternkit\PatternkitEnvironmentAwareInterface;
 use Drupal\patternkit\PatternkitEnvironmentAwareTrait;
-use Psr\Log\LoggerInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 
 /**
  * The pattern discovery service.
@@ -18,8 +19,9 @@ use Psr\Log\LoggerInterface;
  * This service provides an interface to discover and load pattern definitions
  * per namespace or by fully-namespaced pattern identifier.
  */
-class PatternDiscovery implements PatternDiscoveryInterface, PatternkitEnvironmentAwareInterface {
+class PatternDiscovery implements PatternDiscoveryInterface, PatternkitEnvironmentAwareInterface, LoggerAwareInterface {
 
+  use LoggerAwareTrait;
   use PatternkitEnvironmentAwareTrait;
   use UseCacheBackendTrait;
 
@@ -46,27 +48,6 @@ class PatternDiscovery implements PatternDiscoveryInterface, PatternkitEnvironme
   ];
 
   /**
-   * The pattern discovery loader.
-   *
-   * @var \Drupal\patternkit\Asset\PatternDiscoveryLoader
-   */
-  protected PatternDiscoveryLoader $loader;
-
-  /**
-   * The library namespace resolver service.
-   *
-   * @var \Drupal\patternkit\Asset\LibraryNamespaceResolverInterface
-   */
-  protected LibraryNamespaceResolverInterface $resolver;
-
-  /**
-   * The patternkit logger channel.
-   *
-   * @var \Psr\Log\LoggerInterface
-   */
-  protected LoggerInterface $logger;
-
-  /**
    * The final collection of pattern definitions, statically cached.
    *
    * @var array<string, array<string, mixed>>
@@ -80,26 +61,17 @@ class PatternDiscovery implements PatternDiscoveryInterface, PatternkitEnvironme
    *   The cache collector for pattern definitions.
    * @param \Drupal\patternkit\Asset\LibraryNamespaceResolverInterface $resolver
    *   The namespace resolver service.
-   * @param \Drupal\Core\Cache\CacheBackendInterface $cache_backend
+   * @param \Drupal\Core\Cache\CacheBackendInterface $cacheBackend
    *   The cache backend.
-   * @param \Psr\Log\LoggerInterface $logger
-   *   The patternkit logger channel.
-   * @param \Drupal\patternkit\PatternkitEnvironment $environment
+   * @param \Drupal\patternkit\PatternkitEnvironment $patternkitEnvironment
    *   The patternkit environment service to be used.
    */
   public function __construct(
-    PatternDiscoveryLoader $loader,
-    LibraryNamespaceResolverInterface $resolver,
-    CacheBackendInterface $cache_backend,
-    LoggerInterface $logger,
-    PatternkitEnvironment $environment,
+    protected PatternDiscoveryLoader $loader,
+    protected LibraryNamespaceResolverInterface $resolver,
+    protected $cacheBackend,
+    protected PatternkitEnvironment $patternkitEnvironment,
   ) {
-    $this->loader = $loader;
-    $this->resolver = $resolver;
-    $this->cacheBackend = $cache_backend;
-    $this->logger = $logger;
-    $this->patternkitEnvironment = $environment;
-
     // Disable caches if we're in debug mode or have this cache specifically
     // disabled.
     $disable_caches = $this->isDebug() ||
