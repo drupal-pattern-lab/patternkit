@@ -3,6 +3,8 @@
 namespace Drupal\patternkit\Plugin\QueueWorker;
 
 use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Queue\Attribute\QueueWorker;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\layout_builder\SectionStorageInterface;
 
 /**
@@ -10,13 +12,12 @@ use Drupal\layout_builder\SectionStorageInterface;
  *
  * A worker plugin to consume items from the "patternkit_layout_updates" queue
  * and update patternkit blocks within the referenced layouts.
- *
- * @QueueWorker(
- *   id = "patternkit_layout_updates",
- *   title = @Translation("Patternkit layout updates queue"),
- *   cron = {"time" = 60}
- * )
  */
+#[QueueWorker(
+  id: 'patternkit_layout_updates',
+  title: new TranslatableMarkup('Patternkit layout updates queue'),
+  cron: ['time' => 30]
+)]
 class LayoutUpdateQueueWorker extends LayoutQueueWorkerBase {
 
   /**

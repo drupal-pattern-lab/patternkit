@@ -5,6 +5,8 @@ namespace Drupal\patternkit_usage_tracking\Plugin\QueueWorker;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\Core\Queue\Attribute\QueueWorker;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\layout_builder\LayoutTempstoreRepositoryInterface;
 use Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface;
@@ -21,13 +23,12 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * A worker plugin to consume items from the "patternkit_usage_tracking" queue
  * and record pattern usages within the referenced layouts.
- *
- * @QueueWorker(
- *   id = "patternkit_usage_tracking",
- *   title = @Translation("Patternkit usage tracking queue"),
- *   cron = {"time" = 60}
- * )
  */
+#[QueueWorker(
+  id: 'patternkit_usage_tracking',
+  title: new TranslatableMarkup('Patternkit usage tracking queue'),
+  cron: ['time' => 60]
+)]
 class PatternUsageQueueWorker extends LayoutQueueWorkerBase {
 
   /**
