@@ -8,6 +8,7 @@ use Drupal\Component\Serialization\SerializationInterface;
 use Drupal\Component\Utility\Xss;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\ReplaceCommand;
+use Drupal\Core\Block\Attribute\Block;
 use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Block\BlockManagerInterface;
 use Drupal\Core\Entity\EntityStorageException;
@@ -19,6 +20,7 @@ use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Plugin\Context\ContextHandlerInterface;
 use Drupal\Core\Plugin\Context\ContextRepositoryInterface;
 use Drupal\Core\Render\BubbleableMetadata;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Utility\Token;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Entity\PatternkitBlock as EntityPatternkitBlock;
@@ -38,16 +40,15 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 /**
  * Provides a block that will display a Pattern from a Library with context.
  *
- * @Block(
- *   id = "patternkit_block",
- *   admin_label = @Translation("Patternkit block"),
- *   category = "Patternkit Reusable",
- *   deriver = "Drupal\patternkit\Plugin\Derivative\PatternkitBlock"
- * )
- *
  * @todo Remove JSON Serializer dependencies from this class so the editor
  *   operates off of the pattern library plugin instead.
  */
+#[Block(
+  id: 'patternkit_block',
+  admin_label: new TranslatableMarkup('Patternkit block'),
+  category: new TranslatableMarkup('Pattternkit Reusable'),
+  deriver: 'Drupal\patternkit\Plugin\Derivative\PatternkitBlock'
+)]
 class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterface, PatternkitEnvironmentAwareInterface {
 
   use PatternkitEnvironmentAwareTrait;
