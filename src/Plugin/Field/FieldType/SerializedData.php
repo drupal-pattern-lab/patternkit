@@ -2,6 +2,7 @@
 
 namespace Drupal\patternkit\Plugin\Field\FieldType;
 
+use Drupal\Core\Field\Attribute\FieldType;
 use Drupal\Core\Field\FieldItemBase;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
@@ -9,14 +10,13 @@ use Drupal\Core\TypedData\DataDefinition;
 
 /**
  * Defines the 'serialized_data' entity field type.
- *
- * @FieldType(
- *   id = "serialized_data",
- *   label = @Translation("Serialized field data"),
- *   description = @Translation("A field containing a serialized string value."),
- *   category = "Field",
- * )
  */
+#[FieldType(
+  id: 'serialized_data',
+  label: new TranslatableMarkup('Serialized field data'),
+  description: new TranslatableMarkup('A field containing a serialized string value.'),
+  category: 'Field'
+)]
 class SerializedData extends FieldItemBase {
 
   /**
