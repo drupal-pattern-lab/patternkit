@@ -4,16 +4,18 @@ namespace Drupal\patternkit\Plugin\PatternLibrary;
 
 use Drupal\Component\Utility\Html;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Template\TwigEnvironment;
+use Drupal\patternkit\Attribute\PatternLibrary;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Provides mechanisms for parsing and rendering a Twig Library of patterns.
- *
- * @PatternLibrary(
- *   id = "twig",
- * )
+ * Provides mechanisms for parsing and rendering a Twig library of patterns.
  */
+#[PatternLibrary(
+  id: 'twig',
+  label: new TranslatableMarkup('Twig'),
+)]
 class PatternLibraryTwig extends PatternLibraryJSON {
 
   use StringTranslationTrait;

@@ -4,42 +4,22 @@ namespace Drupal\patternkit\Plugin\PatternFieldProcessor;
 
 use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\Render\BubbleableMetadata;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Template\TwigEnvironment;
 use Drupal\Core\Utility\Token;
+use Drupal\patternkit\Attribute\PatternFieldProcessor;
 use Swaggest\JsonSchema\SchemaContract;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * A pattern field processor for filtering WYSIWYG content fields.
- *
- * @PatternFieldProcessor(
- *   id = "token",
- *   label = @Translation("Token"),
- *   description = @Translation("Token replacement processor.")
- * )
  */
+#[PatternFieldProcessor(
+  id: 'token',
+  label: new TranslatableMarkup('Token'),
+  description: new TranslatableMarkup('Token replacement processor'),
+)]
 class TokenProcessor extends PatternFieldProcessorBase {
-
-  /**
-   * Global settings for the Patternkit module.
-   *
-   * @var \Drupal\Core\Config\ImmutableConfig
-   */
-  protected ImmutableConfig $patternkitSettings;
-
-  /**
-   * Parses and replaces Drupal tokens.
-   *
-   * @var \Drupal\Core\Utility\Token
-   */
-  protected Token $token;
-
-  /**
-   * Renders strings using the Twig template engine.
-   *
-   * @var \Drupal\Core\Template\TwigEnvironment
-   */
-  protected TwigEnvironment $twig;
 
   /**
    * Constructor for the TokenProcessor plugin.
@@ -57,12 +37,15 @@ class TokenProcessor extends PatternFieldProcessorBase {
    * @param \Drupal\Core\Template\TwigEnvironment $twig
    *   The Twig environment service.
    */
-  public function __construct(array $configuration, string $plugin_id, $plugin_definition, ImmutableConfig $patternkitSettings, Token $token, TwigEnvironment $twig) {
+  public function __construct(
+    array $configuration,
+    string $plugin_id,
+    $plugin_definition,
+    protected ImmutableConfig $patternkitSettings,
+    protected Token $token,
+    protected TwigEnvironment $twig,
+  ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
-
-    $this->patternkitSettings = $patternkitSettings;
-    $this->token = $token;
-    $this->twig = $twig;
   }
 
   /**

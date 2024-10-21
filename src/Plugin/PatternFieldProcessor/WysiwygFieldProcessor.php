@@ -5,33 +5,20 @@ namespace Drupal\patternkit\Plugin\PatternFieldProcessor;
 use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Render\RendererInterface;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
+use Drupal\patternkit\Attribute\PatternFieldProcessor;
 use Swaggest\JsonSchema\SchemaContract;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * A pattern field processor for filtering WYSIWYG content fields.
- *
- * @PatternFieldProcessor(
- *   id = "wysiwyg",
- *   label = @Translation("WYSIWYG"),
- *   description = @Translation("WYSIWYG content processor.")
- * )
  */
+#[PatternFieldProcessor(
+  id: 'wysiwyg',
+  label: new TranslatableMarkup('WYSIWYG'),
+  description: new TranslatableMarkup('WYSIWYG content processor'),
+)]
 class WysiwygFieldProcessor extends PatternFieldProcessorBase {
-
-  /**
-   * Global settings for the Patternkit module.
-   *
-   * @var \Drupal\Core\Config\ImmutableConfig
-   */
-  protected ImmutableConfig $patternkitSettings;
-
-  /**
-   * The renderer service for generating processed output.
-   *
-   * @var \Drupal\Core\Render\RendererInterface
-   */
-  protected RendererInterface $renderer;
 
   /**
    * Constructor for the WysiwygFieldProcessor plugin.
@@ -47,11 +34,14 @@ class WysiwygFieldProcessor extends PatternFieldProcessorBase {
    * @param \Drupal\Core\Render\RendererInterface $renderer
    *   The renderer service for rendering output.
    */
-  public function __construct(array $configuration, string $plugin_id, $plugin_definition, ImmutableConfig $patternkitSettings, RendererInterface $renderer) {
+  public function __construct(
+    array $configuration,
+    string $plugin_id,
+    $plugin_definition,
+    protected ImmutableConfig $patternkitSettings,
+    protected RendererInterface $renderer,
+  ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
-
-    $this->patternkitSettings = $patternkitSettings;
-    $this->renderer = $renderer;
   }
 
   /**

@@ -9,6 +9,7 @@ use Drupal\patternkit\Entity\Pattern;
  * Tests for the Pattern class.
  *
  * @coversDefaultClass \Drupal\patternkit\Entity\Pattern
+ * @group patternkit
  */
 class PatternTest extends PatternkitKernelTestBase {
 

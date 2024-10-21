@@ -3,20 +3,20 @@
 namespace Drupal\patternkit\Plugin\PatternLibrary;
 
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Template\TwigEnvironment;
-use Drupal\patternkit\Asset\PatternLibraryParser\FilePatternLibraryParser;
+use Drupal\patternkit\Attribute\PatternLibrary;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternLibraryPluginDefault;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Twig\Loader\FilesystemLoader;
 
 /**
- * Provides mechanisms for parsing and rendering a File Library of patterns.
- *
- * @PatternLibrary(
- *   id = "file",
- * )
+ * Provides mechanisms for parsing and rendering a file library of patterns.
  */
+#[PatternLibrary(
+  id: 'file',
+  label: new TranslatableMarkup('File'),
+)]
 class PatternLibraryFile extends PatternLibraryPluginDefault implements ContainerFactoryPluginInterface {
 
   /**
@@ -25,20 +25,6 @@ class PatternLibraryFile extends PatternLibraryPluginDefault implements Containe
    * @var \Drupal\Core\Template\TwigEnvironment
    */
   protected TwigEnvironment $twig;
-
-  /**
-   * Twig file loader.
-   *
-   * @var \Twig\Loader\FilesystemLoader
-   */
-  protected FilesystemLoader $twigLoader;
-
-  /**
-   * File pattern library parser service.
-   *
-   * @var \Drupal\patternkit\Asset\PatternLibraryParser\FilePatternLibraryParser
-   */
-  protected FilePatternLibraryParser $fileParser;
 
   /**
    * Creates a new File Pattern Library using the given container.

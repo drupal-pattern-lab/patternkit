@@ -5,8 +5,10 @@ namespace Drupal\patternkit_media_library\Plugin\PatternFieldProcessor;
 use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Render\BubbleableMetadata;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\filter\FilterPluginManager;
 use Drupal\filter\Plugin\FilterInterface;
+use Drupal\patternkit\Attribute\PatternFieldProcessor;
 use Drupal\patternkit\Plugin\PatternFieldProcessor\PatternFieldProcessorBase;
 use Drupal\patternkit_media_library\Form\MediaLibrarySettingsForm;
 use Swaggest\JsonSchema\SchemaContract;
@@ -31,28 +33,13 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   "format" => "image-media|video-media"
  * }
  * @endcode
- *
- * @PatternFieldProcessor(
- *   id = "media",
- *   label = @Translation("Media"),
- *   description = @Translation("Media token content processor.")
- * )
  */
+#[PatternFieldProcessor(
+  id: 'media',
+  label: new TranslatableMarkup('Media'),
+  description: new TranslatableMarkup('Media token content processor'),
+)]
 class MediaFieldProcessor extends PatternFieldProcessorBase {
-
-  /**
-   * Global settings for the Patternkit Media Library module.
-   *
-   * @var \Drupal\Core\Config\ImmutableConfig
-   */
-  protected ImmutableConfig $settings;
-
-  /**
-   * The filter plugin manager service.
-   *
-   * @var \Drupal\filter\FilterPluginManager
-   */
-  protected FilterPluginManager $filterPluginManager;
 
   /**
    * The media embed filter plugin.
@@ -86,11 +73,14 @@ class MediaFieldProcessor extends PatternFieldProcessorBase {
    * @param \Drupal\filter\FilterPluginManager $filterPluginManager
    *   The plugin manager for filter plugins.
    */
-  public function __construct(array $configuration, string $plugin_id, $plugin_definition, ImmutableConfig $settings, FilterPluginManager $filterPluginManager) {
+  public function __construct(
+    array $configuration,
+    string $plugin_id,
+    $plugin_definition,
+    protected ImmutableConfig $settings,
+    protected FilterPluginManager $filterPluginManager,
+  ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
-
-    $this->settings = $settings;
-    $this->filterPluginManager = $filterPluginManager;
   }
 
   /**

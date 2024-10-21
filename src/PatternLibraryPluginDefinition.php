@@ -9,6 +9,8 @@ use Drupal\Core\Plugin\Definition\DependentPluginDefinitionTrait;
 
 /**
  * Provides an implementation of a definition and its metadata.
+ *
+ * @todo Remove this class since it doesn't add needed functionality.
  */
 class PatternLibraryPluginDefinition extends PluginDefinition implements DerivablePluginDefinitionInterface, DependentPluginDefinitionInterface {
 

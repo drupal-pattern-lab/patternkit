@@ -3,6 +3,8 @@
 namespace Drupal\patternkit_test\Plugin\PatternFieldProcessor;
 
 use Drupal\Core\Render\BubbleableMetadata;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
+use Drupal\patternkit\Attribute\PatternFieldProcessor;
 use Drupal\patternkit\Exception\SchemaException;
 use Drupal\patternkit\Plugin\PatternFieldProcessor\PatternFieldProcessorBase;
 use Swaggest\JsonSchema\SchemaContract;
@@ -12,13 +14,12 @@ use Swaggest\JsonSchema\SchemaContract;
  *
  * When processing patterns, if this processor encounters a value with an
  * 'exception' key, a new SchemaException is thrown.
- *
- * @PatternFieldProcessor(
- *   id = "exception",
- *   label = @Translation("Exception"),
- *   description = @Translation("Testing processor to throw exceptions.")
- * )
  */
+#[PatternFieldProcessor(
+  id: 'exception',
+  label: new TranslatableMarkup('Exception'),
+  description: new TranslatableMarkup('Testing processor to throw exceptions'),
+)]
 class ExceptionThrowerProcessor extends PatternFieldProcessorBase {
 
   /**

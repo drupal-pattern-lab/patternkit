@@ -7,6 +7,8 @@ use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Plugin\DefaultPluginManager;
 use Drupal\Core\Render\BubbleableMetadata;
+use Drupal\patternkit\Annotation\PatternFieldProcessor as PatternFieldProcessorAnnotation;
+use Drupal\patternkit\Attribute\PatternFieldProcessor as PatternFieldProcessorAttribute;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Exception\SchemaException;
 use Drupal\patternkit\Schema\SchemaWalkerFactory;
@@ -49,7 +51,8 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager implements
       $namespaces,
       $module_handler,
       'Drupal\patternkit\Plugin\PatternFieldProcessor\PatternFieldProcessorInterface',
-      'Drupal\patternkit\Annotation\PatternFieldProcessor'
+      PatternFieldProcessorAttribute::class,
+      PatternFieldProcessorAnnotation::class,
     );
 
     $this->alterInfo('pattern_field_processor_info');

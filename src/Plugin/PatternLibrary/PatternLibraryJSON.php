@@ -5,19 +5,21 @@ namespace Drupal\patternkit\Plugin\PatternLibrary;
 use Drupal\Component\Serialization\SerializationInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\patternkit\Asset\PatternLibraryParserInterface;
+use Drupal\patternkit\Attribute\PatternLibrary;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternFormBuilderInterface;
 use Drupal\patternkit\PatternLibraryPluginDefault;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Provides mechanisms for parsing and rendering a Library of patterns.
- *
- * @PatternLibrary(
- *   id = "json",
- * )
+ * Provides mechanisms for parsing and rendering a JSON library of patterns.
  */
+#[PatternLibrary(
+  id: 'json',
+  label: new TranslatableMarkup('JSON'),
+)]
 class PatternLibraryJSON extends PatternLibraryPluginDefault implements ContainerFactoryPluginInterface {
 
   /**

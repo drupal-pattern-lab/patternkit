@@ -9,7 +9,7 @@ use Drupal\patternkit\PatternLibraryPluginDefinition;
 /**
  * Defines a Pattern Library annotation object.
  *
- * Pattern Libraries such as 'twig', 'REST', 'react' etc. define methods for
+ * Pattern libraries such as 'file, 'json', 'twig', etc. define methods for
  * parsing, loading, editing, and rendering their patterns.
  *
  * Plugin namespace: Plugin\PatternLibrary
