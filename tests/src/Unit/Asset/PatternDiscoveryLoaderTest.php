@@ -258,62 +258,7 @@ class PatternDiscoveryLoaderTest extends UnitTestCase {
    * @uses \Drupal\patternkit\Asset\PatternDiscoveryLoader::getLibraryObject()
    * @uses \Drupal\patternkit\Asset\PatternDiscoveryLoader::__construct
    */
-  public function testPluginExceptionWithFallback(): void {
-    // Override the pattern definition to look for a more specific plugin that
-    // is unavailable. It should fall back to the known 'twig' plugin and follow
-    // expected behavior from there on.
-    $library_definition = static::$libraryDefinition;
-    $library_definition['patterns']['my/pattern/path']['plugin'] = 'twig.unknown';
-
-    $this->setDefaultExpectations([
-      'library_definition' => $library_definition,
-    ]);
-
-    $this->patternLibraryPluginManager->createInstance('twig.unknown')
-      ->willThrow(new PluginException('Unknown plugin'))->shouldBeCalledOnce();
-
-    $actual = $this->loader->getPatternsByNamespace('@example');
-    $this->assertEquals(static::$mockPatternDiscovery, $actual);
-  }
-
-  /**
-   * @covers ::getPatternsByNamespace
-   * @covers ::getLibraryPlugin
-   * @uses \Drupal\patternkit\Asset\PatternDiscoveryLoader::getLibraryObject()
-   * @uses \Drupal\patternkit\Asset\PatternDiscoveryLoader::__construct
-   */
-  public function testPluginExceptionWithoutFallback(): void {
-    // Override the pattern definition to look for a more specific plugin that
-    // is unavailable. It should fall back to the known 'twig' plugin and follow
-    // expected behavior from there on.
-    $library_definition = static::$libraryDefinition;
-    $library_definition['patterns']['my/pattern/path']['plugin'] = 'missing_plugin.unknown';
-
-    $this->setDefaultExpectations([
-      'library_definition' => $library_definition,
-    ]);
-
-    $exception_message = $this->getRandomGenerator()->sentences(5);
-
-    $this->patternLibraryPluginManager->createInstance('missing_plugin.unknown')
-      ->willThrow(new PluginException($exception_message))->shouldBeCalledOnce();
-    $this->patternLibraryPluginManager->createInstance('missing_plugin')
-      ->willThrow(new PluginException($exception_message))->shouldBeCalledOnce();
-
-    $this->expectException(InvalidLibraryFileException::class);
-    $this->expectExceptionMessage("Error loading pattern libraries via missing_plugin: ");
-    $this->expectExceptionMessage($exception_message);
-
-    $this->loader->getPatternsByNamespace('@example');
-  }
-
-  /**
-   * @covers ::getPatternsByNamespace
-   * @covers ::getLibraryPlugin
-   * @uses \Drupal\patternkit\Asset\PatternDiscoveryLoader::getLibraryObject()
-   * @uses \Drupal\patternkit\Asset\PatternDiscoveryLoader::__construct
-   */
-  public function testPluginExceptionWithoutFallback2(): void {
+  public function testPluginException(): void {
     // Override the pattern definition to look for an unavailable plugin. This
     // should cause an exception to be thrown.
     $library_definition = static::$libraryDefinition;
@@ -348,7 +293,7 @@ class PatternDiscoveryLoaderTest extends UnitTestCase {
       'library' => [],
       'plugins' => [],
     ];
-    $this->patternLibraryPluginManager->getSortedDefinitions()
+    $this->patternLibraryPluginManager->getDefinitions()
       ->willReturn($library_plugin_definitions);
 
     // Unset the plugin definition to trigger the expected warning.

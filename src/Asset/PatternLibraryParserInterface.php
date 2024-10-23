@@ -89,8 +89,8 @@ interface PatternLibraryParserInterface {
    * @param string $path
    *   The relative path to the extension.
    *
-   * @return array
-   *   An array of parsed library data.
+   * @return array<string, mixed>
+   *   An array of parsed library data keyed by the pattern path.
    *
    * @throws \Drupal\Core\Asset\Exception\InvalidLibraryFileException
    *   Thrown when a parser exception was thrown.

@@ -2,30 +2,25 @@
 
 namespace Drupal\patternkit;
 
-use Drupal\Component\Plugin\CategorizingPluginManagerInterface;
 use Drupal\Component\Plugin\Exception\PluginException;
 use Drupal\Component\Plugin\Exception\PluginNotFoundException;
+use Drupal\Component\Plugin\FallbackPluginManagerInterface;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Extension\ThemeHandlerInterface;
-use Drupal\Core\Plugin\CategorizingPluginManagerTrait;
 use Drupal\Core\Plugin\DefaultPluginManager;
-use Drupal\Core\Plugin\FilteredPluginManagerTrait;
 use Drupal\patternkit\Annotation\PatternLibrary as PatternLibraryAnnotation;
 use Drupal\patternkit\Attribute\PatternLibrary as PatternLibraryAttribute;
 use Drupal\patternkit\Entity\PatternInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 
 /**
  * The plugin manager service for pattern library parser plugins.
- *
- * @todo Implement FallbackPluginManagerInterface to take responsibility for loading fallback plugins.
- * @todo Remove unused categorization functionality.
- * @todo Remove unused filtering functionality.
  */
-class PatternLibraryPluginManager extends DefaultPluginManager implements CategorizingPluginManagerInterface {
+class PatternLibraryPluginManager extends DefaultPluginManager implements FallbackPluginManagerInterface, LoggerAwareInterface {
 
-  use FilteredPluginManagerTrait;
-  use CategorizingPluginManagerTrait;
+  use LoggerAwareTrait;
 
   /**
    * Manages plugins that provide parsing and editing for pattern libraries.
@@ -61,7 +56,13 @@ class PatternLibraryPluginManager extends DefaultPluginManager implements Catego
   }
 
   /**
-   * {@inheritdoc}
+   * A string identifying the plugin type.
+   *
+   * This string should be unique and generally will correspond to the string
+   * used by the discovery, e.g. the annotation class or the YAML file name.
+   *
+   * @return string
+   *   A string identifying the plugin type.
    */
   protected function getType(): string {
     return 'pattern_library';
@@ -75,22 +76,6 @@ class PatternLibraryPluginManager extends DefaultPluginManager implements Catego
   }
 
   /**
-   * Returns an array of layout labels grouped by category.
-   *
-   * @return string[][]
-   *   A nested array of labels suitable for #options.
-   */
-  public function getLayoutOptions(): array {
-    $layout_options = [];
-    foreach ($this->getGroupedDefinitions() as $category => $layout_definitions) {
-      foreach ($layout_definitions as $name => $layout_definition) {
-        $layout_options[$category][$name] = $layout_definition->getLabel();
-      }
-    }
-    return $layout_options;
-  }
-
-  /**
    * Load the pattern library plugin used by a given pattern.
    *
    * @param \Drupal\patternkit\Entity\PatternInterface $pattern
@@ -100,10 +85,6 @@ class PatternLibraryPluginManager extends DefaultPluginManager implements Catego
    *   The loaded pattern library plugin for the given pattern.
    *
    * @throws \Drupal\Component\Plugin\Exception\PluginException
-   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
-   *
-   * @todo Reimplement with proper fallback plugin loading.
-   * @see \Drupal\Component\Plugin\FallbackPluginManagerInterface
    */
   public function getPluginForPattern(PatternInterface $pattern): PatternLibraryPluginInterface {
     $plugin_id = $pattern->getLibraryPluginId();
@@ -111,17 +92,43 @@ class PatternLibraryPluginManager extends DefaultPluginManager implements Catego
       $plugin = $this->createInstance($plugin_id);
     }
     catch (PluginException $exception) {
-      // Allow plugin fall-backs of type 'base_plugin.override_plugin'.
-      $plugin_id = strstr($plugin_id, '.', TRUE);
-      if (empty($plugin_id)) {
-        throw new PluginNotFoundException($plugin_id,
-          "Unable to fetch assets for pattern " . $pattern->getPath());
-      }
-      $plugin = $this->createInstance($plugin_id);
+      throw new PluginException(
+        message: 'Unable to fetch assets for pattern ' . $pattern->getPath(),
+        previous: $exception,
+      );
     }
 
     assert($plugin instanceof PatternLibraryPluginInterface);
     return $plugin;
+  }
+
+  /**
+   * {@inheritdoc}
+   *
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   *   When a fallback plugin may not be identified.
+   */
+  public function getFallbackPluginId($plugin_id, array $configuration = []): string {
+    // Allow plugin fall-backs of type 'base_plugin.override_plugin'.
+    if ($pos = strrpos($plugin_id, '.')) {
+      return substr($plugin_id, 0, $pos);
+    }
+    else {
+      throw new PluginNotFoundException($plugin_id);
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function handlePluginNotFound($plugin_id, array $configuration): object {
+    $this->logger->warning('The "%plugin_id" library plugin was not found', ['%plugin_id' => $plugin_id]);
+    $fallback_id = $this->getFallbackPluginId($plugin_id, $configuration);
+
+    // Override parent method to call createInstance() on this class instead of
+    // on the factory allowing fallback handling until no fallback ID is found
+    // eventually throwing the exception higher.
+    return $this->createInstance($fallback_id, $configuration);
   }
 
 }

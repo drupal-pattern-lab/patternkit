@@ -26,7 +26,6 @@ use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Entity\PatternkitBlock as EntityPatternkitBlock;
 use Drupal\patternkit\Event\PatternUpdateEvent;
 use Drupal\patternkit\Exception\UnknownPatternException;
-use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\patternkit\PatternRepository;
 use Drupal\patternkit\PatternkitEnvironment;
@@ -1089,27 +1088,8 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       $cached_pattern = $pattern_cache ? end($pattern_cache) : NULL;
     }
 
-    // @phpstan-ignore return.type
+    assert($cached_pattern === NULL || $cached_pattern instanceof PatternInterface);
     return $cached_pattern;
-  }
-
-  /**
-   * Load the patternkit library plugin for a given pattern.
-   *
-   * @param \Drupal\patternkit\Entity\PatternInterface $pattern
-   *   The pattern entity to load the library plugin for.
-   *
-   * @return \Drupal\patternkit\PatternLibraryPluginInterface
-   *   The loaded library plugin instance.
-   *
-   * @throws \Drupal\Component\Plugin\Exception\PluginException
-   */
-  protected function getLibraryPlugin(PatternInterface $pattern): PatternLibraryPluginInterface {
-    $library_id = $pattern->getLibraryPluginId();
-    /** @var \Drupal\patternkit\PatternLibraryPluginInterface $plugin */
-    $plugin = $this->patternLibraryPluginManager->createInstance($library_id);
-
-    return $plugin;
   }
 
   /**

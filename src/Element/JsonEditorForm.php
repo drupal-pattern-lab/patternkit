@@ -188,6 +188,8 @@ class JsonEditorForm extends FormElementBase implements ContainerFactoryPluginIn
    *
    * @return array
    *   The modified element.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\PluginException
    */
   public function buildEditorForm(array $element): array {
     // Stop early if the pattern entity is unavailable.

@@ -106,26 +106,18 @@ class PatternDiscoveryLoader implements LoggerAwareInterface {
       // Propagate the library namespace down for access from each plugin.
       $info['namespace'] = $namespace;
 
-      /** @var \Drupal\patternkit\PatternLibraryPluginInterface $plugin */
       try {
         $plugin = $this->getLibraryPlugin($info);
       }
       catch (PluginException $exception) {
-        // Allow plugin fall-backs of type 'base_plugin.override_plugin'.
-        // @todo Move fall-back handling into plugin manager.
-        $plugin_id = strstr($info['plugin'], '.', TRUE);
-        if (empty($plugin_id)) {
-          throw new InvalidLibraryFileException("Error loading pattern libraries via $plugin_id: " . $exception->getMessage());
-        }
-        try {
-          $plugin = $this->libraryPluginManager->createInstance($plugin_id);
-        }
-        catch (PluginException $exception) {
-          throw new InvalidLibraryFileException("Error loading pattern libraries via $plugin_id: " . $exception->getMessage());
-        }
+        throw new InvalidLibraryFileException(
+          message: "Error loading pattern libraries: " . $exception->getMessage(),
+          previous: $exception,
+        );
       }
 
       // Record the plugin that was identified for parsing this library.
+      assert($plugin instanceof PatternLibraryPluginInterface);
       $info['plugin'] = $plugin->getPluginId();
 
       // Update the pattern info for this library on the library definition.
@@ -135,6 +127,7 @@ class PatternDiscoveryLoader implements LoggerAwareInterface {
       // Use the plugin to discover patterns for the given pattern library path.
       $discovered_patterns = $plugin->getMetadata($libraryObj->getExtension(), $libraryObj, $path);
       $patterns = array_merge($patterns, $discovered_patterns);
+
       if (empty($discovered_patterns)) {
         $this->logger->info("No patterns found in %library library for path %path.",
           [
@@ -175,15 +168,15 @@ class PatternDiscoveryLoader implements LoggerAwareInterface {
         . " Recommend setting the key to one of the available plugins: %plugins.", [
           '%library' => $library_info['namespace'],
           '%default' => self::DEFAULT_LIBRARY_PLUGIN_ID,
-          '%plugins' => implode(', ', array_keys($this->libraryPluginManager->getSortedDefinitions())),
+          '%plugins' => implode(', ', array_keys($this->libraryPluginManager->getDefinitions())),
         ]
       );
       $library_info['plugin'] = self::DEFAULT_LIBRARY_PLUGIN_ID;
     }
 
-    /** @var \Drupal\patternkit\PatternLibraryPluginInterface $plugin */
     $plugin = $this->libraryPluginManager->createInstance($library_info['plugin']);
 
+    assert($plugin instanceof PatternLibraryPluginInterface);
     return $plugin;
   }
 

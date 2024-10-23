@@ -4,7 +4,6 @@ namespace Drupal\patternkit\Annotation;
 
 use Drupal\Component\Annotation\Plugin;
 use Drupal\patternkit\PatternLibraryPluginDefault;
-use Drupal\patternkit\PatternLibraryPluginDefinition;
 
 /**
  * Defines a Pattern Library annotation object.
@@ -54,17 +53,6 @@ class PatternLibrary extends Plugin {
   public string $description;
 
   /**
-   * The human-readable category.
-   *
-   * @var string
-   *
-   * @see \Drupal\Component\Plugin\CategorizingPluginManagerInterface
-   *
-   * @ingroup plugin_translatable
-   */
-  public string $category;
-
-  /**
    * The layout plugin class.
    *
    * This default value is used for plugins defined in layouts.yml that do not
@@ -73,12 +61,5 @@ class PatternLibrary extends Plugin {
    * @var string
    */
   public string $class = PatternLibraryPluginDefault::class;
-
-  /**
-   * {@inheritdoc}
-   */
-  public function get(): PatternLibraryPluginDefinition {
-    return new PatternLibraryPluginDefinition($this->definition);
-  }
 
 }

@@ -31,8 +31,6 @@ class PatternLibrary extends Plugin {
    *   (optional) The human-readable name of the plugin.
    * @param \Drupal\Core\StringTranslation\TranslatableMarkup|null $description
    *   (optional) The description of the plugin.
-   * @param \Drupal\Core\StringTranslation\TranslatableMarkup|null $category
-   *   (optional) The human-readable category.
    * @param class-string $class
    *   (optional) The layout plugin class. This default value is used for
    *   plugins defined in layouts.yml that do not specify a class themselves.
@@ -43,7 +41,6 @@ class PatternLibrary extends Plugin {
     string $id,
     public readonly ?TranslatableMarkup $label = NULL,
     public readonly ?TranslatableMarkup $description = NULL,
-    public readonly ?TranslatableMarkup $category = NULL,
     public string $class = PatternLibraryPluginDefault::class,
     ?string $deriver = NULL,
   ) {

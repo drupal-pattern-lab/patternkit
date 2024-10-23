@@ -53,8 +53,8 @@ interface PatternLibraryPluginInterface extends PluginInspectionInterface {
    * @param string $path
    *   The path to the pattern library collection.
    *
-   * @return \Drupal\patternkit\Entity\Pattern[]
-   *   The resulting pattern metadata.
+   * @return array<string, array<string, mixed>>
+   *   The resulting pattern metadata keyed by the pattern path.
    */
   public function getMetadata(Extension $extension, PatternLibrary $library, string $path): array;
 
