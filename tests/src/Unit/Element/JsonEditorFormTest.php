@@ -3,6 +3,7 @@
 namespace Drupal\Tests\patternkit\Unit\Element;
 
 use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Tests\Core\Render\RendererTestBase;
@@ -12,6 +13,7 @@ use Drupal\patternkit\Exception\UnknownPatternException;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\patternkit\PatternRepository;
+use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
@@ -50,6 +52,13 @@ class JsonEditorFormTest extends RendererTestBase {
    * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\PatternRepository>
    */
   protected ObjectProphecy $patternRepository;
+
+  /**
+   * A mocked config factory service.
+   *
+   * @var \PHPUnit\Framework\MockObject\MockObject|\Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected MockObject|ConfigFactoryInterface $configFactory;
 
   /**
    * The string translation service.

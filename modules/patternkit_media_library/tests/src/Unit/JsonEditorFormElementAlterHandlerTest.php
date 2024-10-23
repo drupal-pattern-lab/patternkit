@@ -34,6 +34,13 @@ class JsonEditorFormElementAlterHandlerTest extends UnitTestCase {
   protected ObjectProphecy $urlGenerator;
 
   /**
+   * A mocked contexts manager service.
+   *
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Cache\Context\CacheContextsManager>
+   */
+  protected ObjectProphecy $contextManager;
+
+  /**
    * An assembled service container for testing.
    *
    * @var \Drupal\Component\DependencyInjection\ContainerInterface
