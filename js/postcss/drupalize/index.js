@@ -2,21 +2,20 @@
  * @type {import('postcss').PluginCreator}
  */
 
-
 /**
  * Append suffixes to all provided selectors.
  *
  * @param {string} selector
  *   The selector to be manipulated.
- * @param {string|array<string>} suffixes
+ * @param {string|string[]} suffixes
  *   A suffix or suffixes to be appended to the selector. If multiple suffixes
  *   are provided, an array of multiple selectors, each with a separate
  *   suffix, will be returned.
  *
- * @return {array<string>}
+ * @return {string[]}
  *   An array of all new selectors with the appended suffix(es).
  */
-function appendSuffixes (selector, suffixes) {
+function appendSuffixes(selector, suffixes) {
   if (!Array.isArray(suffixes)) {
     suffixes = [suffixes];
   }
@@ -45,15 +44,15 @@ function appendSuffixes (selector, suffixes) {
  *
  * @param {string} selector
  *   The selector to be manipulated.
- * @param {string|array<string>} prefixes
+ * @param {string|string[]} prefixes
  *   A prefix or prefixes to be prepended to the selector. If multiple prefixes
  *   are provided, an array of multiple selectors, each with a separate
  *   prefix, will be returned.
  *
- * @return {array<string>}
+ * @return {string[]}
  *   An array of all new selectors with the prepended prefix(es).
  */
-function prependPrefixes (selector, prefixes) {
+function prependPrefixes(selector, prefixes) {
   if (!Array.isArray(prefixes)) {
     prefixes = [prefixes];
   }
@@ -64,19 +63,19 @@ function prependPrefixes (selector, prefixes) {
 /**
  * Create the postcss-drupalize plugin for processing.
  *
- * @param {?prefixes: array<string>, ?suffixes: array<string>, ?filter: string} opts
- *   An array of options for configuration of the plugin behavior. Valid options
- *   include:
- *   - prefixes: {array<string>} An array of prefixes to apply to selectors.
- *   - suffixes: {array<string>} An array of suffixes to apply to selectors. A
- *     space before the suffix is NOT assumed to allow for the addition of
+ * @param {Object} opts
+ *   An array of options for configuration of the plugin behavior.
+ * @param {string[]} [opts.prefixes] An array of prefixes to apply to selectors.
+ * @param {string[]} [opts.suffixes] An array of suffixes to apply to selectors.
+ *     A space before the suffix is NOT assumed to allow for the addition of
  *     pseudo-classes. If a space is needed it should be included in the suffix.
- *   - filter: {string} A filter string to limit which selectors the processor
- *     should apply to. Only selectors including the filter value will be
- *     altered.
+ * @param {string[]} [opts.filter] A filter string to limit which selectors the
+ *     processor should apply to. Only selectors including the filter value will
+ *     be altered.
  *
- * @returns {{prepare(): ({}), postcssPlugin: string}|{}|{Rule(*): void}}
- *   The postcss-drupalize plugin creation data.
+ * @return {Object} The postcss-drupalize plugin creation data.
+ * @return {'postcss-drupalize'} return.postcssPlugin The plugin name.
+ * @return {({})} return.prepare The plugin preparation callback.
  */
 module.exports = (opts = {}) => {
   // Identify prefixes to be assigned.
@@ -99,29 +98,31 @@ module.exports = (opts = {}) => {
           // Print each selector on a new line.
           rule.raws.between = '\r\n';
 
-          let altered_selectors = [];
+          let alteredSelectors = [];
           rule.selectors.forEach((selector) => {
             if (filter && !selector.includes(filter)) {
-              altered_selectors.push(selector);
+              alteredSelectors.push(selector);
               return;
             }
 
             if (prefixes.length > 0) {
-              altered_selectors = altered_selectors
-                .concat(prependPrefixes(selector, prefixes));
+              alteredSelectors = alteredSelectors.concat(
+                prependPrefixes(selector, prefixes),
+              );
             }
             if (suffixes.length > 0) {
-              altered_selectors = altered_selectors
-                .concat(appendSuffixes(selector, suffixes));
+              alteredSelectors = alteredSelectors.concat(
+                appendSuffixes(selector, suffixes),
+              );
             }
           });
 
           // Flatten all the selectors to a single layer for assignment.
-          rule.selectors = altered_selectors.flat();
-        }
-      }
-    }
-  }
-}
+          rule.selectors = alteredSelectors.flat();
+        },
+      };
+    },
+  };
+};
 
-module.exports.postcss = true
+module.exports.postcss = true;

@@ -4,3 +4,6 @@
 /modules/patternkit_media_library/js/*.js
 !/modules/patternkit_media_library/js/*.es6.js
 /tests/modules/patternkit_test/lib/patternkit
+
+# Ignore example lib files until they can be updated.
+modules/patternkit_example/lib

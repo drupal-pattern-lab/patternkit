@@ -6,7 +6,7 @@
 /* eslint-env node */
 
 const gulp = require('gulp');
-const export_sass = require('node-sass-export');
+const exportSass = require('node-sass-export');
 const importOnce = require('node-sass-import-once');
 const plugins = require('gulp-load-plugins')();
 const path = require('path');
@@ -30,7 +30,7 @@ options.theme = {
 };
 
 options.sass = {
-  functions: export_sass(`${options.theme.patterns}/`),
+  functions: exportSass(`${options.theme.patterns}/`),
   importer: importOnce,
   includePaths: [`${options.theme.patterns}/`, `${options.paths.patternlib}/`],
   outputStyle: 'expanded',

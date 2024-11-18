@@ -63,6 +63,14 @@ variables:
 # View these jobs at https://git.drupalcode.org/project/gitlab_templates/-/blob/main/includes/include.drupalci.main.yml
 ################
 
+# Install NPM dependencies as well.
+composer:
+  after_script:
+    - npm ci
+
+eslint:
+  allow_failure: false
+
 phpcs:
   allow_failure: false
 

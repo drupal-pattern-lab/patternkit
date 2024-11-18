@@ -21,6 +21,7 @@
     "ajv": "^6.12.2",
     "babelify": "^10.0.0",
     "browserify": "^16.5.1",
+    "eslint": "^6.8.0",
     "eslint-config-drupal": "^5.0.2",
     "eslint-plugin-yml": "^1.14.0",
     "gulp": "^4.0.2",
@@ -40,5 +41,9 @@
     "postversion": "git push && git push --tags",
     "serve-test": "http-server --p 9001",
     "watch": "gulp watch"
-  }
+  },
+  "dependencies": {
+    "eslint-config-drupal": "^5.0.2"
+  },
+  "packageManager": "yarn@4.5.1"
 }

@@ -1,7 +1,7 @@
 name: patternkit
 type: drupal
 docroot: web
-php_version: "8.1"
+php_version: "8.3"
 webserver_type: nginx-fpm
 xdebug_enabled: false
 additional_hostnames: []
@@ -12,8 +12,8 @@ database:
 use_dns_when_possible: true
 composer_version: "2"
 web_environment: []
-nodejs_version: "18"
-corepack_enable: false
+nodejs_version: "20"
+corepack_enable: true
 
 # Key features of DDEV's config.yaml:
 

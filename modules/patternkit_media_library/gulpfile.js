@@ -10,19 +10,17 @@ const gulpConfig = {
   main: 'patternkit.jsoneditor.media_library.es6.js',
 };
 
-const compileEs6 = function () {
+function compileEs6() {
   return browserify(`${gulpConfig.dist}/${gulpConfig.main}`)
     .transform(babelify)
     .bundle()
     .pipe(source(gulpConfig.main.replace('.es6', '')))
     .pipe(buffer())
     .pipe(gulp.dest(gulpConfig.dist));
-};
+}
 
 gulp.task('compile:es6', compileEs6);
 
-gulp.task('watch', function () {
-  return gulp.watch(gulpConfig.src, 'compile:es6');
-});
+gulp.task('watch', () => gulp.watch(gulpConfig.src, 'compile:es6'));
 
 gulp.task('default', compileEs6);
