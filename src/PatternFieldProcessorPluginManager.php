@@ -7,6 +7,7 @@ use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Plugin\DefaultPluginManager;
 use Drupal\Core\Render\BubbleableMetadata;
+use Drupal\Core\State\StateInterface;
 use Drupal\patternkit\Annotation\PatternFieldProcessor as PatternFieldProcessorAnnotation;
 use Drupal\patternkit\Attribute\PatternFieldProcessor as PatternFieldProcessorAttribute;
 use Drupal\patternkit\Entity\PatternInterface;
@@ -38,6 +39,8 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager implements
    *   The serialization service for unserializing schemas.
    * @param \Drupal\patternkit\Schema\SchemaWalkerFactory $schemaWalkerFactory
    *   The SchemaWalkerFactory service.
+   * @param \Drupal\Core\State\StateInterface $state
+   *   The state manager service.
    */
   public function __construct(
     \Traversable $namespaces,
@@ -45,6 +48,7 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager implements
     ModuleHandlerInterface $module_handler,
     protected readonly SerializationInterface $serializer,
     protected readonly SchemaWalkerFactory $schemaWalkerFactory,
+    protected readonly StateInterface $state,
   ) {
     parent::__construct(
       'Plugin/PatternFieldProcessor',
@@ -183,6 +187,7 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager implements
    */
   public function traverseSchema(string $schema_json, object|array $values, callable $callback, ...$args): mixed {
     $schemaWalker = $this->schemaWalkerFactory->createFromString($schema_json, $values);
+    $logging_enabled = $this->state->get('patternkit.unknown_schema_logging_enabled', TRUE);
 
     // Iterate over the values provided for the schema.
     foreach ($schemaWalker as $key => $value) {
@@ -198,14 +203,20 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager implements
       else {
         $path = $schemaWalker->getSubIterator()->getSchema()->getDocumentPath();
         $valuePath = PointerUtil::getDataPointer($path);
-        $this->logger->debug("Unknown property schema for %key at %path given the value:"
-          . "<br /><pre>@propertyValue</pre>"
-          . "<br /><br /><strong>Full value set</strong><br /><pre>@values</pre>", [
-            '%key' => $key,
-            '%path' => $valuePath,
-            '@propertyValue' => var_export($value, TRUE),
-            '@values' => var_export($values, TRUE),
-          ]);
+
+        if ($logging_enabled) {
+          $this->logger->debug(
+            "Unknown property schema for %key at %path given the value:"
+            . "<br /><pre>@propertyValue</pre>"
+            . "<br /><br /><strong>Full value set</strong><br /><pre>@values</pre>",
+            [
+              '%key' => $key,
+              '%path' => $valuePath,
+              '@propertyValue' => var_export($value, TRUE),
+              '@values' => var_export($values, TRUE),
+            ]
+          );
+        }
       }
     }
 

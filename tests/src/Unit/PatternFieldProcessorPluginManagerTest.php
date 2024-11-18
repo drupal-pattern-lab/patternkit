@@ -7,6 +7,7 @@ use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Render\BubbleableMetadata;
+use Drupal\Core\State\StateInterface;
 use Drupal\Tests\UnitTestCase;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\patternkit\Entity\Pattern;
@@ -124,6 +125,13 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
   protected LoggerInterface&MockObject $logger;
 
   /**
+   * A mocked state service.
+   *
+   * @var \Drupal\Core\State\StateInterface&\PHPUnit\Framework\MockObject\MockObject
+   */
+  protected StateInterface&MockObject $state;
+
+  /**
    * The Drupal container to configure for dependency services.
    *
    * @var \Symfony\Component\DependencyInjection\ContainerInterface
@@ -164,6 +172,7 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
     $this->moduleHandler = $this->createMock(ModuleHandlerInterface::class);
     $this->serializer = new Json();
     $this->logger = $this->createMock(LoggerInterface::class);
+    $this->state = $this->createMock(StateInterface::class);
 
     // Expect no errors to be logged unless overridden in a specific test.
     $this->logger->expects($this->never())->method('error');
@@ -189,6 +198,7 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
       $this->moduleHandler,
       $this->serializer,
       $this->schemaWalkerFactory,
+      $this->state,
     );
     $this->pluginManager->setLogger($this->logger);
 
@@ -274,6 +284,7 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
       $this->moduleHandler,
       $this->serializer,
       $this->schemaWalkerFactory,
+      $this->state,
     );
     $pluginManager->setLogger($errorLogger);
 

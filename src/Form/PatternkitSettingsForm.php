@@ -7,6 +7,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Config\TypedConfigManagerInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\State\StateInterface;
 use Drupal\patternkit\Asset\LibraryNamespaceResolverInterface;
 use Drupal\patternkit\Asset\PatternDiscoveryInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -24,20 +25,6 @@ class PatternkitSettingsForm extends ConfigFormBase {
   const SETTINGS = 'patternkit.settings';
 
   /**
-   * The library namespace resolver service for loading library definitions.
-   *
-   * @var \Drupal\patternkit\Asset\LibraryNamespaceResolverInterface
-   */
-  protected LibraryNamespaceResolverInterface $libraryNamespaceResolver;
-
-  /**
-   * The pattern discovery service for loading patterns.
-   *
-   * @var \Drupal\patternkit\Asset\PatternDiscoveryInterface
-   */
-  protected PatternDiscoveryInterface $patternDiscovery;
-
-  /**
    * Constructor for PatternkitSettingsForm.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
@@ -48,16 +35,16 @@ class PatternkitSettingsForm extends ConfigFormBase {
    *   The library namespace resolver service.
    * @param \Drupal\patternkit\Asset\PatternDiscoveryInterface $patternDiscovery
    *   The pattern discovery service.
+   * @param \Drupal\Core\State\StateInterface $state
+   *   The state management service.
    */
   public function __construct(
     ConfigFactoryInterface $config_factory,
     TypedConfigManagerInterface $typed_config_manager,
-    LibraryNamespaceResolverInterface $libraryNamespaceResolver,
-    PatternDiscoveryInterface $patternDiscovery,
+    protected LibraryNamespaceResolverInterface $libraryNamespaceResolver,
+    protected PatternDiscoveryInterface $patternDiscovery,
+    protected StateInterface $state,
   ) {
-    $this->libraryNamespaceResolver = $libraryNamespaceResolver;
-    $this->patternDiscovery = $patternDiscovery;
-
     parent::__construct($config_factory, $typed_config_manager);
   }
 
@@ -70,6 +57,7 @@ class PatternkitSettingsForm extends ConfigFormBase {
       $container->get('config.typed'),
       $container->get('patternkit.library.namespace_resolver'),
       $container->get('patternkit.pattern.discovery'),
+      $container->get('state'),
     );
   }
 
@@ -164,6 +152,13 @@ class PatternkitSettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('entity_cache_tag_invalidation') ?? FALSE,
     ];
 
+    $form['advanced_settings']['unknown_schema_logging_enabled'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Unknown schema logging enabled'),
+      '#description' => $this->t('If enabled, warnings will be logged when unknown schemas are encountered during Pattern processing.'),
+      '#default_value' => $this->state->get('patternkit.unknown_schema_logging_enabled', TRUE),
+    ];
+
     return parent::buildForm($form, $form_state);
   }
 
@@ -190,6 +185,11 @@ class PatternkitSettingsForm extends ConfigFormBase {
       ->set('patternkit_libraries', $form_state->getValue('patternkit_libraries'))
       ->set('entity_cache_tag_invalidation', $form_state->getValue('entity_cache_tag_invalidation'))
       ->save();
+
+    // Store the log suppression setting in state instead of config, so it may
+    // be managed independently per deployment environment.
+    $this->state->set('patternkit.unknown_schema_logging_enabled',
+      $form_state->getValue('unknown_schema_logging_enabled', TRUE));
 
     $libraries = $this->libraryNamespaceResolver->getLibraryDefinitions();
     $count = count($libraries);
