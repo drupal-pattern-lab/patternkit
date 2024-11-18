@@ -4,6 +4,7 @@ namespace Drupal\patternkit\Element;
 
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Render\BubbleableMetadata;
+use Drupal\Core\Render\Element;
 use Drupal\Core\Render\Element\RenderElementBase;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Exception\PatternAssetException;
@@ -211,6 +212,21 @@ class Pattern extends RenderElementBase implements ContainerFactoryPluginInterfa
 
     // Ensure all metadata persists to the result.
     $metadata->applyTo($elements);
+
+    // Persist the cache keys and bin data if set since these aren't captured by
+    // cacheable dependency metadata.
+    if (isset($element['#cache']['keys'])) {
+      $elements['#cache']['keys'] = $element['#cache']['keys'];
+    }
+    if (isset($element['#cache']['bin'])) {
+      $elements['#cache']['bin'] = $element['#cache']['bin'];
+    }
+
+    // Persist render array children if defined.
+    $children = Element::children($element, TRUE);
+    foreach ($children as $key) {
+      $elements[$key] = $element[$key];
+    }
 
     return $elements;
   }

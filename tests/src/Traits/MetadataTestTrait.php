@@ -38,6 +38,12 @@ trait MetadataTestTrait {
   public static function assertBubbleableMetadata(array $element, $expected): void {
     $metadata = BubbleableMetadata::createFromRenderArray($element);
 
+    if (isset($expected['keys'])) {
+      static::assertEqualsCanonicalizing($expected['keys'], $element['#cache']['keys']);
+    }
+    if (isset($expected['bin'])) {
+      static::assertEqualsCanonicalizing($expected['bin'], $element['#cache']['bin']);
+    }
     if (isset($expected['tags'])) {
       static::assertEqualsCanonicalizing($expected['tags'], $metadata->getCacheTags());
     }

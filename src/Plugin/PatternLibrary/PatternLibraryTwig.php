@@ -60,7 +60,7 @@ class PatternLibraryTwig extends PatternLibraryJSON {
       $output = [
         '#type' => 'inline_template',
         '#template' => $template,
-        '#context' => $pattern->config,
+        '#context' => $pattern->config + ['pattern' => $pattern],
       ];
       if ($this->getTwigEnvironment()->isDebug()) {
         $hash = $pattern->getHash();

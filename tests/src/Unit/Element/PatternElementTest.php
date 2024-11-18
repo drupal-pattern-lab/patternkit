@@ -158,15 +158,12 @@ class PatternElementTest extends RendererTestBase {
   /**
    * @covers ::preRenderPatternElement
    * @covers ::getPatternLibraryPlugin
+   *
+   * @dataProvider providerPreRenderPatternElement()
    */
-  public function testPreRenderPatternElement() {
+  public function testPreRenderPatternElement(array $element) {
     $patternMock = $this->getPatternMock();
-    $element = [
-      '#type' => 'pattern',
-      '#pattern' => $patternMock,
-      '#config' => [],
-      '#context' => [],
-    ];
+    $element['#pattern'] = $patternMock;
 
     $returnString = $this->getRandomGenerator()->string();
     $returnValue = [
@@ -175,17 +172,101 @@ class PatternElementTest extends RendererTestBase {
     $this->libraryPlugin->expects($this->once())
       ->method('render')
       ->with($this->callback(function ($arg) use ($patternMock): bool {
+        // Confirm the mock pattern was the first array element passed in.
         return $arg[0] == $patternMock;
       }))
       ->willReturn($returnValue);
 
     $result = $this->patternElement->preRenderPatternElement($element);
 
-    // @todo Restore this back to rendering once double-escaping in the renderer is resolved.
+    // @todo Restore this back to rendering once double-escaping in the renderer
+    //   is resolved.
     // Sometimes, rendering with special characters gets HTML encoded causing
     // inconsistent test failures unrelated to the actual code functionality
     // being tested.
     $this->assertEquals($returnString, $result['#markup']);
+
+    // Confirm cache metadata persisted through.
+    if (isset($element['#cache'])) {
+      // Ensure keys for basic metadata exist for comparison since they'll be
+      // stubbed out as empty arrays if not present.
+      $this->assertEquals($element['#cache'] + [
+        'contexts' => [],
+        'tags' => [],
+        'max-age' => [],
+      ], $result['#cache']);
+    }
+
+    // Confirm any child elements persisted through.
+    // Child elements would be any array keys not beginning with a '#'.
+    $child_elements = array_filter($element, fn($key) => !str_starts_with($key, '#'), ARRAY_FILTER_USE_KEY);
+    foreach ($child_elements as $key => $value) {
+      $this->assertEquals($value, $result[$key]);
+    }
+  }
+
+  /**
+   * Data provider for testPreRenderPatternElement().
+   */
+  public static function providerPreRenderPatternElement() {
+    return [
+      'basic' => [
+        [
+          '#type' => 'pattern',
+          '#config' => [],
+          '#context' => [],
+        ],
+      ],
+      'basic cache metadata' => [
+        [
+          '#type' => 'pattern',
+          '#config' => [],
+          '#context' => [],
+          // Add cache and metadata to test persistence through to output.
+          '#cache' => [
+            'contexts' => [],
+            'tags' => ['my', 'cache', 'tags'],
+            'max-age' => '123',
+          ],
+        ],
+      ],
+      'cache bin' => [
+        [
+          '#type' => 'pattern',
+          '#config' => [],
+          '#context' => [],
+          // Add cache and context values to test persistence through to output.
+          '#cache' => [
+            'bin' => 'patternkit_test',
+          ],
+        ],
+      ],
+      'cache keys' => [
+        [
+          '#type' => 'pattern',
+          '#config' => [],
+          '#context' => [],
+          // Add cache and context values to test persistence through to output.
+          '#cache' => [
+            'keys' => ['pattern:1', 'pattern:2'],
+            'contexts' => [],
+            'tags' => ['my', 'cache', 'tags'],
+            'max-age' => '123',
+          ],
+        ],
+      ],
+      'child element' => [
+        [
+          '#type' => 'pattern',
+          '#config' => [],
+          '#context' => [],
+          // Add a child element to be persisted as well.
+          'some_child' => [
+            '#type' => 'pattern_child',
+          ],
+        ],
+      ],
+    ];
   }
 
   /**
