@@ -20,7 +20,9 @@ patternkit.jsoneditor:
     theme:
       css/patternkit.css: {}
   js:
-    js/patternkit.jsoneditor.js: {}
+    js/patternkit.jsoneditor.js:
+      attributes:
+        type: 'module'
   dependencies:
     - core/drupal.dialog
     - core/drupal.dialog.ajax

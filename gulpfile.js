@@ -1,16 +1,11 @@
 const gulp = require('gulp');
-const babelify = require('babelify');
-const browserify = require('browserify');
-const buffer = require('vinyl-buffer');
-const source = require('vinyl-source-stream');
 const rename = require('gulp-rename');
 const postcss = require('gulp-postcss');
 const drupalize = require('./js/postcss/drupalize');
 
 const gulpConfig = {
-  src: './js/**es6.js',
   dist: './js',
-  main: 'patternkit.jsoneditor.es6.js',
+  main: 'patternkit.jsoneditor.js',
   lib: [
     './node_modules/@json-editor/json-editor/dist/**',
     './node_modules/ajv/dist/ajv.min.js',
@@ -19,16 +14,6 @@ const gulpConfig = {
     './node_modules/handlebars/dist/handlebars.min.js',
   ],
 };
-
-// @todo Move to Rollup from Browserify to support modular bundling.
-gulp.task('compile:es6', () =>
-  browserify(`${gulpConfig.dist}/${gulpConfig.main}`)
-    .transform(babelify)
-    .bundle()
-    .pipe(source(gulpConfig.main.replace('.es6', '')))
-    .pipe(buffer())
-    .pipe(gulp.dest(gulpConfig.dist)),
-);
 
 gulp.task('copy:lib', () =>
   gulp.src(gulpConfig.lib).pipe(gulp.dest(gulpConfig.dist)),
@@ -70,12 +55,9 @@ gulp.task('prefix-css:cygnet-theme', () =>
     .pipe(gulp.dest('./css/cygnet')),
 );
 
-gulp.task('watch', () => gulp.watch(gulpConfig.src, 'compile:es6'));
-
 gulp.task(
   'default',
   gulp.parallel([
-    'compile:es6',
     'copy:lib',
     'prefix-css:cygnet-theme',
     'prefix-css:cygnet-theme-upstream',
