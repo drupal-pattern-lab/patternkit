@@ -8,7 +8,7 @@ use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\patternkit\BulkOperations\Worker\LayoutDiscoveryBatchWorker;
 
 /**
- * Batching service for discovering and queuing layouts for update.
+ * Batching service for discovering and queueing layouts for update.
  */
 class LayoutDiscoveryBatchManager {
 

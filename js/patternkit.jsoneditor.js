@@ -16,6 +16,8 @@
  * @external once
  *
  * @todo .patternkit-editor-target .card all: initial
+ *
+ * cspell:ignore iconlib
  */
 
 import {patternkitEditorCKEditor5} from './patternkit.jsoneditor.ckeditor5.js';
@@ -57,6 +59,7 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
    setDefaults() {
      JSONEditor.defaults.options.theme = this.settings.theme;
      JSONEditor.defaults.options.iconlib = this.settings.icons;
+     // cspell:disable-next-line
      JSONEditor.defaults.options.keep_oneof_values = false;
      JSONEditor.defaults.options.disable_edit_json = this.settings.disableJsonEditButton;
      JSONEditor.defaults.options.disable_collapse = false;

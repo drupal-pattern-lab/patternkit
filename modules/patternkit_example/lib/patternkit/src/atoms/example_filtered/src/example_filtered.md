@@ -8,7 +8,7 @@ The JSON schema file delineates the schema of the pattern. In some cases, librar
 ## example_filtered.md
 This file. The text here should appear as pattern documentation in any Style Guide, Pattern Library, or pattern developer tool.
 
-This documentation often will include Style Rulesets, brand guidelines, designer intention, as well as usage advice.
+This documentation often will include style rulesets, brand guidelines, designer intention, as well as usage advice.
 
 ## example_filtered.scss
 Optional SASS to be compiled to CSS
@@ -20,7 +20,7 @@ Optional Typescript file to be transpiled to the final JS module. In some librar
 The HTML template for the pattern. Some libraries may also use Nunjucks, JSX, or Handlebars.
 
 ## example_filtered.yml
-Sample data for the pattern. This can be used to generate demo sites, style guide example_filtereds, or pre-fill schema editors.
+Sample data for the pattern. This can be used to generate demo sites, style guide example_filtered, or pre-fill schema editors.
 
 ## index.js
 The Web Component entry point.

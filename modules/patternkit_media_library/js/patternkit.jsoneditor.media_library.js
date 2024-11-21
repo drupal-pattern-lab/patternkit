@@ -1,6 +1,8 @@
 /**
  * @file
  * Provides media selection editor integration with JSON editor.
+ *
+ * cspell:ignore formname
  */
 
 /*globals Console:false */

@@ -8,13 +8,13 @@ The JSON schema file delineates the schema of the pattern. In some cases, librar
 ## example.md
 This file. The text here should appear as pattern documentation in any Style Guide, Pattern Library, or pattern developer tool.
 
-This documentation often will include Style Rulesets, brand guidelines, designer intention, as well as usage advice.
+This documentation often will include style rulesets, brand guidelines, designer intention, as well as usage advice.
 
 ## example.scss
 Optional SASS to be compiled to CSS
 
 ## example.ts
-Optional Typescript file to be transpiled to the final JS module. In some libraries, vanilla JS or other variants are used. 
+Optional Typescript file to be transpiled to the final JS module. In some libraries, vanilla JS or other variants are used.
 
 ## example.twig
 The HTML template for the pattern. Some libraries may also use Nunjucks, JSX, or Handlebars.

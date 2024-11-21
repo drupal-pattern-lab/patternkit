@@ -138,7 +138,7 @@ the problem:
   the cursor to the end of a line, explain if you used the mouse, or a keyboard
   shortcut, and if so which one?
 * **Provide specific examples to demonstrate the steps**. Include links to files
-  or GitHub projects, or copy/pasteable snippets, which you use in those
+  or GitHub projects, or copy/paste-able snippets, which you use in those
   examples. If you're providing snippets in the issue,
   use [Markdown code blocks](https://help.github.com/articles/markdown-basics/#multiple-lines).
 * **Describe the behavior you observed after following the steps** and point out
@@ -164,9 +164,8 @@ Provide more context by answering these questions:
 * **Did the problem start happening recently** (e.g. after updating to a new
   version) or was this always a problem?
 * If the problem started happening recently, **can you reproduce the problem in
-  an older version?** What's the most recent version in which the problem doesn'
-  t happen? You can download older versions of Patternkit
-  from [the releases page](https://www.drupal.org/project/patternkit/releases).
+  an older version?** What's the most recent version in which the problem doesn't
+  happen? You can download older versions of Patternkit from [the releases page](https://www.drupal.org/project/patternkit/releases).
 * **Can you reliably reproduce the issue?** If not, provide details about how
   often the problem happens and under which conditions it normally happens.
 * For files-system related files (e.g. opening and editing files), **does the
@@ -215,7 +214,7 @@ Create an issue and provide the following information:
   suggestion.
 * **Provide a step-by-step description of the suggested enhancement** in as many
   details as possible.
-* **Provide specific examples to demonstrate the steps**. Include copy/pasteable
+* **Provide specific examples to demonstrate the steps**. Include copy/paste-able
   snippets which you use in those examples, as \<code\> blocks.
 * **Describe the current behavior** and **explain which behavior you expected to
   see instead** and why.

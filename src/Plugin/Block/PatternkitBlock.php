@@ -45,7 +45,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 #[Block(
   id: 'patternkit_block',
   admin_label: new TranslatableMarkup('Patternkit block'),
-  category: new TranslatableMarkup('Pattternkit Reusable'),
+  category: new TranslatableMarkup('Patternkit Reusable'),
   deriver: 'Drupal\patternkit\Plugin\Derivative\PatternkitBlock'
 )]
 class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterface, PatternkitEnvironmentAwareInterface {
@@ -293,7 +293,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     // Handle pattern updates if needed.
     $this->promptForPatternUpdates($form, $form_state);
 
-    // @todo Re-enable the other formats like JSON and webcomponent.
+    // @todo Re-enable the other formats like JSON and web component.
     $form['presentation_style'] = [
       '#type'          => 'select',
       '#title'         => $this->t('Presentation style'),

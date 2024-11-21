@@ -63,6 +63,19 @@ variables:
 # View these jobs at https://git.drupalcode.org/project/gitlab_templates/-/blob/main/includes/include.drupalci.main.yml
 ################
 
+cspell:
+  variables:
+    _CSPELL_IGNORE_PATHS: >
+      "CODE_OF_CONDUCT.md",
+      "css/cygnet/cygnet--prefixed-for-drupal.css",
+      "css/cygnet/cygnet--prefixed-for-drupal--upstream.css",
+      "js/*.min.js",
+      "js/handlebars.js",
+      "js/jsoneditor.js",
+      "js/nonmin/*",
+      "npm-shrinkwrap.json",
+      "tslint.json"
+
 # Install NPM dependencies as well.
 composer:
   after_script:

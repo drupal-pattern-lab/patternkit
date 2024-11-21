@@ -92,6 +92,7 @@ class PatternDiscoveryLoaderTest extends UnitTestCase {
    * @see \Drupal\Tests\patternkit\Unit\Asset\PatternDiscoveryLoaderTest::$mockPatternDiscovery
    */
   protected static array $mockPatternData = [
+    // cspell:ignore abcd, efg, hijk, lmnop
     'my_pattern' => ['abcd' => 'efg'],
     'my_second_pattern' => ['hijk' => 'lmnop'],
   ];

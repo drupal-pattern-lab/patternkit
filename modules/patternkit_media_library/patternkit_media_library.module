@@ -12,7 +12,7 @@ use Drupal\patternkit_media_library\JsonEditorFormElementAlterHandler;
  */
 function patternkit_media_library_element_info_alter(array &$info): void {
   if (isset($info['jsoneditor_form'])) {
-    // Add a prerenderer for handling media library customizations.
+    // Add a pre-renderer for handling media library customizations.
     $info['jsoneditor_form']['#pre_render'][] = [
       JsonEditorFormElementAlterHandler::class,
       'attachMediaLibrarySupport',

@@ -240,8 +240,7 @@ class ContextBuilder {
     // Apply the remote reference provider if applicable.
     if (array_key_exists('refProvider', $options)) {
       if ($options['refProvider'] === NULL) {
-        // @phpstan-ignore property.notFound
-        $context->remoteRefPovider = NULL;
+        $context->remoteRefProvider = NULL;
       }
       else {
         $context->setRemoteRefProvider($options['refProvider']);

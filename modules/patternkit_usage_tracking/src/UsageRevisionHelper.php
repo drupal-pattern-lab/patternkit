@@ -216,8 +216,8 @@ class UsageRevisionHelper {
     }
 
     if ($update_callback) {
-      $persistences = array_intersect_key($original, $new);
-      foreach ($persistences as $key => $persisted) {
+      $persistence = array_intersect_key($original, $new);
+      foreach ($persistence as $key => $persisted) {
         call_user_func($update_callback, $key, $persisted, $new[$key]);
       }
     }
@@ -361,7 +361,7 @@ class UsageRevisionHelper {
    * When the content of an entity translation is updated, the active revision
    * ID for all translations may have been changed leading to usage records in
    * layouts on those translations no longer pointing to the latest revision. In
-   * this scenario, the revision IDs referenced in the related usgae records
+   * this scenario, the revision IDs referenced in the related usage records
    * will need to be updated as well.
    *
    * @param \Drupal\Core\Entity\ContentEntityInterface $entity

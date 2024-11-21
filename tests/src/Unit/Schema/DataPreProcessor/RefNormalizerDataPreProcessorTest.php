@@ -79,7 +79,7 @@ class RefNormalizerDataPreProcessorTest extends UnitTestCase {
   /**
    * A helper function to reveal mocks and prepare the schema context.
    *
-   * This is helpful to defer instantation of the mocks and allow preparation
+   * This is helpful to defer instantiation of the mocks and allow preparation
    * of them in individual tests.
    *
    * @return \Swaggest\JsonSchema\Context

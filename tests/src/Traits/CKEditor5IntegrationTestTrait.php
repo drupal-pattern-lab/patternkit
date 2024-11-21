@@ -67,7 +67,7 @@ trait CKEditor5IntegrationTestTrait {
     $ckeditor_id = $this->getCkeditorIdForElement($schema_path);
 
     // We cannot trust on CKEditor updating the textarea every time model
-    // changes. Therefore, the most reliable way to get downcasted data is to
+    // changes. Therefore, the most reliable way to get downcast data is to
     // use the CKEditor API.
     $javascript = <<<JS
       (function(){
@@ -90,7 +90,7 @@ trait CKEditor5IntegrationTestTrait {
     $ckeditor_id = $this->getCkeditorIdForElement($schema_path);
 
     // We cannot trust on CKEditor updating the textarea every time model
-    // changes. Therefore, the most reliable way to get downcasted data is to
+    // changes. Therefore, the most reliable way to get downcast data is to
     // use the CKEditor API.
     $javascript = <<<JS
       (function(){

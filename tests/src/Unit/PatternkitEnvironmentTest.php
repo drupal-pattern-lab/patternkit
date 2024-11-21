@@ -77,6 +77,7 @@ class PatternkitEnvironmentTest extends UnitTestCase {
       TRUE,
     ];
 
+    // cspell:disable-next-line
     $cases['unconfigured option with defined features'] = [
       ['features' => ['my_feature' => TRUE]],
       'undefined_feature',

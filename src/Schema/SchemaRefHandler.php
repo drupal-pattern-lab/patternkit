@@ -75,7 +75,7 @@ class SchemaRefHandler {
 
     $matches = [];
     if (preg_match('&^(?<namespace>@[^/#]+)/(?<path>[^#]+)(#(?<pointer>.+))?$&', $ref, $matches)) {
-      // Since pattern references may sometimes contain relative pathing, this
+      // Since pattern references may sometimes contain relative paths, this
       // will need to be resolved to a direct path before it will match an
       // indexed pattern identifier.
       if (str_contains($matches['path'], './')) {

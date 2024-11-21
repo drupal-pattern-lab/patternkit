@@ -136,6 +136,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
    */
   public static function discoverComponents(string $path, array $filter = []): array {
     $components = [];
+    // cspell:ignore rdit
     $rdit = new RecursiveDirectoryIterator($path, \FilesystemIterator::KEY_AS_PATHNAME | \FilesystemIterator::CURRENT_AS_FILEINFO);
     /** @var \Symfony\Component\Finder\SplFileInfo $file */
     foreach (new \RecursiveIteratorIterator($rdit) as $file) {

@@ -227,7 +227,7 @@ class JsonEditorFormBuilder implements PatternFormBuilderInterface, LoggerAwareI
         $editor_settings = &$element['#attached']['drupalSettings']['patternkitEditor'];
         $editor_settings['wysiwygEditorName'] = $editor;
         $editor_settings['patternkitCKEditorConfig'] = $editor_instance->getJSSettings($editor_entity);
-        // Pushes the selected toolbar to drupalSettings, for use clientside
+        // Pushes the selected toolbar to drupalSettings, for use client-side
         // in DrupalCKEditor5.afterInputReady.
         $editor_settings['patternkitCKEditorConfig']['selected_toolbar'] = $selected_toolbar;
       }

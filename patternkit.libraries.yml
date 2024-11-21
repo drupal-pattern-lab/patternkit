@@ -1,3 +1,4 @@
+#cspell:ignore nonmin
 jsoneditor:
   version: VERSION
   js:

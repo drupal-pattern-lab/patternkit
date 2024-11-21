@@ -2,6 +2,9 @@
 /*globals Drupal:false */
 /*globals jQuery:false */
 /*globals JSONEditor:false */
+/**
+ * cspell:ignore editjson btntype addproperty
+ */
 
 /**
  * Duplicates json-editor trigger utility.
@@ -271,7 +274,7 @@ class PatternkitJsoneditorEditorObject extends JSONEditor.defaults.editors.objec
       this.controls.appendChild(this.editjson_control)
       this.controls.insertBefore(this.editjson_holder, this.controls.childNodes[0])
 
-      /* Edit JSON Buttton disabled */
+      /* Edit JSON Button disabled */
       if (this.schema.options && typeof this.schema.options.disable_edit_json !== 'undefined') {
         if (this.schema.options.disable_edit_json) this.editjson_control.style.display = 'none'
       } else if (this.jsoneditor.options.disable_edit_json) {

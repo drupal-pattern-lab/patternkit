@@ -8,7 +8,7 @@ The JSON schema file delineates the schema of the pattern. In some cases, librar
 ## example_filtered_multiple.md
 This file. The text here should appear as pattern documentation in any Style Guide, Pattern Library, or pattern developer tool.
 
-This documentation often will include Style Rulesets, brand guidelines, designer intention, as well as usage advice.
+This documentation often will include style rulesets, brand guidelines, designer intention, as well as usage advice.
 
 ## example_filtered_multiple.scss
 Optional SASS to be compiled to CSS

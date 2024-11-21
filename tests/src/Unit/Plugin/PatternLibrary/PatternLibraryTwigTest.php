@@ -11,7 +11,7 @@ use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 
 /**
- * Unit tests for the PatternLibraryTwig libary plugin.
+ * Unit tests for the PatternLibraryTwig library plugin.
  *
  * @coversDefaultClass \Drupal\patternkit\Plugin\PatternLibrary\PatternLibraryTwig
  * @group patternkit

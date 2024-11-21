@@ -7,7 +7,7 @@ use Drupal\patternkit_usage_tracking\BulkOperations\LayoutUsageTrackingBatchMana
 use Drupal\patternkit_usage_tracking\Plugin\QueueWorker\PatternUsageQueueWorker;
 
 /**
- * Batch worker for discovering and queuing layouts for tracking pattern usages.
+ * Batch worker for layout discovery and queueing to tracking pattern usages.
  */
 class LayoutDiscoveryBatchWorker extends PatternkitLayoutDiscoveryBatchWorker {
 

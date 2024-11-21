@@ -6,7 +6,7 @@ use Drupal\patternkit\BulkOperations\LayoutDiscoveryBatchManager as PatternkitLa
 use Drupal\patternkit_usage_tracking\BulkOperations\Worker\LayoutDiscoveryBatchWorker;
 
 /**
- * Batching service for discovering and queuing layouts for usage scanning.
+ * Batching service for layout discovery and queueing for usage scanning.
  */
 class LayoutDiscoveryBatchManager extends PatternkitLayoutDiscoveryBatchManager {
 

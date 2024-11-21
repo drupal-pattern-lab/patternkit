@@ -23,7 +23,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Batch worker for discovering and queuing layouts for update.
+ * Batch worker for discovering and queueing layouts for update.
  */
 class LayoutDiscoveryBatchWorker implements ContainerInjectionInterface {
 
@@ -350,7 +350,7 @@ class LayoutDiscoveryBatchWorker implements ContainerInjectionInterface {
       $query = $this->getEntityQuery();
       $context['sandbox']['total'] = (int) $query->count()->execute();
 
-      // Setup sandbox variables and queuing.
+      // Setup sandbox variables and queueing.
       $context['sandbox']['current_item'] = 0;
       $context['finished'] = 0;
     }

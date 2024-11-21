@@ -2,6 +2,9 @@
 /*globals Drupal:false */
 /*globals jQuery:false */
 /*globals JSONEditor:false */
+/**
+ * cspell:ignore btntype
+ */
 
 /**
  * Duplicates json-editor trigger utility.

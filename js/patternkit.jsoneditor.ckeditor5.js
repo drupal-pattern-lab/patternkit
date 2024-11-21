@@ -8,6 +8,8 @@
  * @external Drupal
  * @external jQuery
  * @external JSONEditor
+ *
+ * cspell:ignore schemaformat
  */
 
 export class DrupalCKEditor5 extends JSONEditor.defaults.editors.string {

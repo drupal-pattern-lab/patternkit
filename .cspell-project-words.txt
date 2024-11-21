@@ -1,0 +1,44 @@
+# Dependencies and related tools
+drupalize
+fontawesome
+jsoneditor
+patternfly
+patternlib
+swaggest
+twigphp
+webrh
+xcache
+
+# Service names
+patternkit.opener.jsonlibrary
+twig.loader.patternlibrary
+
+# Terms
+rulesets
+styleguides
+subpattern
+subschema
+wysiwygs
+
+# Names and one-offs
+CloudNyne
+DRUPALDIR
+pkexample
+tada
+
+# CSS classes
+btntype
+moveup
+movedown
+schemapath
+schematype
+tabholder
+
+# Drush commands
+pkbu
+pkcc
+pkinfo
+pklist
+pklu
+pkschema
+pkuscan
