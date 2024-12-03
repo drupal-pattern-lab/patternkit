@@ -15,7 +15,6 @@ use Drupal\Core\TypedData\DataDefinition;
   id: 'serialized_data',
   label: new TranslatableMarkup('Serialized field data'),
   description: new TranslatableMarkup('A field containing a serialized string value.'),
-  category: 'Field'
 )]
 class SerializedData extends FieldItemBase {
 
