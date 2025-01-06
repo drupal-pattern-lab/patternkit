@@ -26,9 +26,6 @@ parameters:
   excludePaths:
     - src/Form/PatternkitTranslateBlockForm.php
 
-  scanDirectories:
-    - %currentWorkingDirectory%/web/core
-    - %currentWorkingDirectory%/vendor/drush/drush/src-symfony-compatibility
   stubFiles:
     - stubs/Behat/Mink/WebAssert.stub
     - stubs/Drupal/FunctionalJavascriptTests/WebDriverTestBase.stub

@@ -20,3 +20,14 @@ parameters:
       #^Method Drupal\\patternkit_usage_tracking\\PatternUsageManager\:\:\w+\(\) should return array\<Drupal\\patternkit_usage_tracking\\Entity\\PatternUsage\> but returns array\<Drupal\\Core\\Entity\\EntityInterface\>\.$#
       '''
       path: modules/patternkit_usage_tracking/src/PatternUsageManager.php
+
+    #########################
+    # Drush scanning is missing.
+    #########################
+    - message: "#^Call to method isVerbose\\(\\) on an unknown class Drush\\\\Style\\\\DrushStyle\\.$#"
+      count: 1
+      path: src/Commands/UpdateCommands.php
+
+    - message: "#^Call to method writeln\\(\\) on an unknown class Drush\\\\Style\\\\DrushStyle\\.$#"
+      count: 1
+      path: src/Commands/UpdateCommands.php
