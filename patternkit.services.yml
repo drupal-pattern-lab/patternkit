@@ -75,6 +75,8 @@ services:
     arguments:
       - '@patternkit.library.namespace_resolver'
       - '@plugin.manager.library.pattern'
+    calls:
+      - ['setLogger', ['@logger.channel.patternkit']]
     public: false
   patternkit.pattern.dependency_resolver:
     class: Drupal\patternkit\Asset\PatternDependencyResolver

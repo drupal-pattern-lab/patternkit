@@ -330,7 +330,7 @@ class LayoutHelper implements LoggerAwareInterface {
           $filter .= '.' . $display_mode;
         }
       }
-    };
+    }
 
     // Get definitions for types of section storage to be updated.
     $storage_definitions = $this->sectionStorageManager->getDefinitions();

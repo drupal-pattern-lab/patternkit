@@ -1,0 +1,5 @@
+name: 'Patternkit plugin test'
+type: module
+description: 'Support module for testing libraries with special plugins.'
+package: Testing
+version: VERSION

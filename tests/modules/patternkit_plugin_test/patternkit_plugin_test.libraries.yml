@@ -1,0 +1,4 @@
+patternkit_svg:
+  drupalSettings: { }
+  patterns:
+    images/icons: { plugin: file.svg }
