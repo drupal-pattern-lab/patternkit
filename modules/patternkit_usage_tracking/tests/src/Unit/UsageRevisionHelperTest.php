@@ -387,14 +387,9 @@ class UsageRevisionHelperTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::trackOnEntityUpdate
-   * @covers ::loadPreviouslyTrackedPatterns
-   * @covers ::trackChanges
-   * @covers ::shouldTrackEntity
-   * @covers ::updateRelatedTranslations
-   * @covers ::__construct
-   * @covers ::<protected>
+   * @covers \Drupal\patternkit_usage_tracking\UsageRevisionHelper
    * @covers \Drupal\patternkit_usage_tracking\PatternLayoutDiscoveryTrait
+   * @covers \Drupal\patternkit_usage_tracking\PatternLayoutUsageInsertTrait
    *
    * @dataProvider providerTrackOnEntityUpdate
    */

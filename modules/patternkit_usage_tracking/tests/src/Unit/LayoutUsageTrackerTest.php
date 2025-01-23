@@ -187,7 +187,6 @@ class LayoutUsageTrackerTest extends UnitTestCase {
   /**
    * @covers ::trackOnEntityUpdate
    * @covers ::__construct
-   * @covers ::<protected>
    */
   public function testTrackOnEntityUpdate(): void {
     $mock = $this->getPartialMock([
@@ -211,7 +210,6 @@ class LayoutUsageTrackerTest extends UnitTestCase {
   /**
    * @covers ::trackOnEntityUpdate
    * @covers ::__construct
-   * @covers ::<protected>
    */
   public function testTrackOnEntityUpdateOnlyLatestRevision(): void {
     $mock = $this->getPartialMock([
@@ -242,7 +240,7 @@ class LayoutUsageTrackerTest extends UnitTestCase {
    * @covers ::getPatternsByLayoutComponentByEntity
    * @covers ::shouldTrackEntity
    * @covers ::__construct
-   * @covers ::<protected>
+   * @covers \Drupal\patternkit_usage_tracking\PatternLayoutDiscoveryTrait::getNestedPatterns
    */
   public function testTrackOnEntityCreation(): void {
     $layout = $this->prophesize(SectionListInterface::class)
@@ -311,13 +309,9 @@ class LayoutUsageTrackerTest extends UnitTestCase {
 
   /**
    * @covers ::trackOnEntityCreation
-   * @covers ::getNestedPatterns
-   * @covers ::identifyPatternsByComponent
-   * @covers ::getPatternsByLayoutComponent
-   * @covers ::getPatternsByLayoutComponentByEntity
    * @covers ::shouldTrackEntity
    * @covers ::__construct
-   * @covers ::<protected>
+   * @covers \Drupal\patternkit_usage_tracking\PatternLayoutDiscoveryTrait
    */
   public function testTrackOnEntityCreationWithNestedPatterns(): void {
     $layout = $this->prophesize(SectionListInterface::class)

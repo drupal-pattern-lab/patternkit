@@ -125,7 +125,7 @@ class TwigPatternLibraryParserTest extends PatternLibraryParserTestBase {
 
   /**
    * @covers ::parsePatternLibraryInfo
-   * @covers ::<protected>
+   * @covers \Drupal\patternkit\Asset\PatternLibraryParser\TwigPatternLibraryParser
    * @uses \Drupal\patternkit\Asset\PatternLibraryParser\TwigPatternLibraryParser::createPattern()
    * @uses \Drupal\patternkit\Asset\PatternLibraryParserBase
    */

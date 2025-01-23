@@ -3,12 +3,10 @@
 namespace Drupal\patternkit_usage_tracking;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface;
 use Drupal\patternkit\LayoutHelper;
 use Drupal\patternkit\Utility\PatternDetector;
 
@@ -21,79 +19,35 @@ class LayoutUsageTracker {
   use PatternLayoutUsageInsertTrait;
 
   /**
-   * Entity type manager service.
-   *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
-   */
-  protected EntityTypeManagerInterface $entityTypeManager;
-
-  /**
-   * Entity field manager service.
-   *
-   * @var \Drupal\Core\Entity\EntityFieldManagerInterface
-   */
-  protected EntityFieldManagerInterface $entityFieldManager;
-
-  /**
-   * The configuration factory service.
-   *
-   * @var \Drupal\Core\Config\ConfigFactoryInterface
-   */
-  protected ConfigFactoryInterface $configFactory;
-
-  /**
-   * The track config.
-   *
-   * @var \Drupal\Core\Config\ImmutableConfig
-   */
-  protected ImmutableConfig $config;
-
-  /**
-   * The pattern usage revision helper service.
-   *
-   * @var \Drupal\patternkit_usage_tracking\UsageRevisionHelper
-   */
-  protected UsageRevisionHelper $revisionHelper;
-
-  /**
    * Create a new instance of a LayoutUsageDetector.
    *
-   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The EntityTypeManager service.
-   * @param \Drupal\Core\Entity\EntityFieldManagerInterface $entity_field_manager
+   * @param \Drupal\Core\Entity\EntityFieldManagerInterface $entityFieldManager
    *   The EntityFieldManager service.
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
    *   The factory for configuration objects.
-   * @param \Drupal\patternkit_usage_tracking\PatternUsageManager $tracking_storage
+   * @param \Drupal\patternkit_usage_tracking\PatternUsageManager $trackingStorage
    *   The pattern usage tracking storage.
-   * @param \Drupal\patternkit\LayoutHelper $layout_helper
+   * @param \Drupal\patternkit\LayoutHelper $layoutHelper
    *   The patternkit layout helper service.
-   * @param \Drupal\patternkit\Utility\PatternDetector $pattern_detector
+   * @param \Drupal\patternkit\Utility\PatternDetector $patternDetector
    *   The pattern detector service.
-   * @param \Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface $section_storage_manager
+   * @param \Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface $sectionStorageManager
    *   The section storage manager service.
-   * @param \Drupal\patternkit_usage_tracking\UsageRevisionHelper $revision_helper
+   * @param \Drupal\patternkit_usage_tracking\UsageRevisionHelper $revisionHelper
    *   The pattern usage revision helper service.
    */
   public function __construct(
-    EntityTypeManagerInterface $entity_type_manager,
-    EntityFieldManagerInterface $entity_field_manager,
-    ConfigFactoryInterface $config_factory,
-    PatternUsageManager $tracking_storage,
-    LayoutHelper $layout_helper,
-    PatternDetector $pattern_detector,
-    SectionStorageManagerInterface $section_storage_manager,
-    UsageRevisionHelper $revision_helper,
-  ) {
-    $this->entityTypeManager = $entity_type_manager;
-    $this->entityFieldManager = $entity_field_manager;
-    $this->configFactory = $config_factory;
-    $this->trackingStorage = $tracking_storage;
-    $this->layoutHelper = $layout_helper;
-    $this->patternDetector = $pattern_detector;
-    $this->sectionStorageManager = $section_storage_manager;
-    $this->revisionHelper = $revision_helper;
-  }
+    protected EntityTypeManagerInterface $entityTypeManager,
+    protected EntityFieldManagerInterface $entityFieldManager,
+    protected ConfigFactoryInterface $configFactory,
+    protected PatternUsageManager $trackingStorage,
+    protected LayoutHelper $layoutHelper,
+    protected PatternDetector $patternDetector,
+    protected $sectionStorageManager,
+    protected UsageRevisionHelper $revisionHelper,
+  ) {}
 
   /**
    * Test whether an entity should be tracked by this plugin.

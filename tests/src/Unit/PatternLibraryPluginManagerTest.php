@@ -99,6 +99,7 @@ class PatternLibraryPluginManagerTest extends UnitTestCase {
    *   The plugin ID to generate a fallback for.
    *
    * @covers ::getFallbackPluginId
+   * @covers \Drupal\patternkit\PatternLibraryPluginManager
    *
    * @dataProvider providerGetFallbackPluginId()
    */
@@ -121,6 +122,7 @@ class PatternLibraryPluginManagerTest extends UnitTestCase {
    * Test getFallbackPluginId() behavior with no successful result available.
    *
    * @covers ::getFallbackPluginId()
+   * @covers \Drupal\patternkit\PatternLibraryPluginManager
    */
   public function testGetFallbackPluginIdFailure(): void {
     $pluginManager = $this->getPluginManager();
@@ -135,6 +137,7 @@ class PatternLibraryPluginManagerTest extends UnitTestCase {
    * Test valid calls to createInstance().
    *
    * @covers ::createInstance
+   * @covers \Drupal\patternkit\PatternLibraryPluginManager
    */
   public function testCreateInstance(): void {
     $pluginManager = $this->getPluginManager();
@@ -160,6 +163,7 @@ class PatternLibraryPluginManagerTest extends UnitTestCase {
    * @covers ::createInstance
    * @covers ::handlePluginNotFound
    * @covers ::getFallbackPluginId
+   * @covers \Drupal\patternkit\PatternLibraryPluginManager
    */
   public function testCreateInstanceWithFallback(): void {
     $pluginManager = $this->getPluginManager();
@@ -213,6 +217,7 @@ class PatternLibraryPluginManagerTest extends UnitTestCase {
    * @covers ::createInstance
    * @covers ::handlePluginNotFound
    * @covers ::getFallbackPluginId
+   * @covers \Drupal\patternkit\PatternLibraryPluginManager
    */
   public function testCreateInstanceWithFallbackFailure(): void {
     $pluginManager = $this->getPluginManager();

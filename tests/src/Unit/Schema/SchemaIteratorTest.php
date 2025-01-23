@@ -326,8 +326,7 @@ class SchemaIteratorTest extends UnitTestCase {
 
   /**
    * @covers ::getPropertySchema
-   * @covers ::<public>
-   * @uses \Drupal\patternkit\Schema\SchemaIterator::__construct
+   * @covers \Drupal\patternkit\Schema\SchemaIterator
    */
   public function testGetPropertySchema() {
     $schema_json = $this->loadFixture('schemas/composed_component.json');
