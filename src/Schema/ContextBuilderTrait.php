@@ -6,6 +6,8 @@ namespace Drupal\patternkit\Schema;
  * A trait for accessing the ContextBuilder service and setting it for use.
  *
  * @see \Drupal\patternkit\Schema\ContextBuilder
+ *
+ * @internal
  */
 trait ContextBuilderTrait {
 

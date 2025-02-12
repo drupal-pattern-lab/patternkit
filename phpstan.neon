@@ -59,9 +59,6 @@ parameters:
 
     # Ignore dependency injection warnings for intentional lazy-loader methods.
     - message: '#^\\Drupal calls should be avoided in classes, use dependency injection instead$#'
-      count: 2
-      path: src/Event/PatternUpdateEvent.php
-    - message: '#^\\Drupal calls should be avoided in classes, use dependency injection instead$#'
       count: 1
       path: src/LayoutHelper.php
     - message: '#^\\Drupal calls should be avoided in classes, use dependency injection instead$#'

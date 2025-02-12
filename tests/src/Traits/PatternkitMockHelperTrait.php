@@ -225,7 +225,7 @@ trait PatternkitMockHelperTrait {
     $map = [
       'hash' => 'getHash',
       'asset_id' => 'getAssetId',
-      'name' => 'getAssetId',
+      'name' => 'getName',
       'version' => 'getVersion',
       'library' => 'getLibrary',
       'category' => 'getCategory',

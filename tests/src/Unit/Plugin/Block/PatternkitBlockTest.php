@@ -219,7 +219,7 @@ class PatternkitBlockTest extends UnitTestCase {
     $this->contextRepository->getAvailableContexts()->willReturn([]);
 
     $this->defaultDefinitionPattern = $this->getMockPatternEntity([
-      'name' => self::DEFAULT_PATTERN_ID,
+      'asset_id' => self::DEFAULT_PATTERN_ID,
       'library' => '@patternkit',
       'path' => 'atoms/example/src/example',
     ]);
@@ -575,10 +575,10 @@ class PatternkitBlockTest extends UnitTestCase {
    * @uses \Drupal\patternkit\Plugin\Block\PatternkitBlock
    */
   public function testGetBasePattern(): void {
-    $patternName = '@my/pattern';
+    $assetId = '@my/pattern';
 
     $prophecy = $this->getMockPatternEntity([
-      'name' => $patternName,
+      'asset_id' => $assetId,
     ]);
     $this->patternStorage->loadRevision(Argument::type('int'))
       ->willReturn($prophecy->reveal());
@@ -593,7 +593,7 @@ class PatternkitBlockTest extends UnitTestCase {
     $pattern = $patternProphecy->reveal();
 
     // Expect the base pattern to be loaded using our pattern name.
-    $this->patternRepository->getPattern($patternName, TRUE)
+    $this->patternRepository->getPattern($assetId, TRUE)
       ->shouldBeCalledOnce()
       ->willReturn($pattern);
 
@@ -652,7 +652,7 @@ class PatternkitBlockTest extends UnitTestCase {
 
     // Mock a base pattern to be returned.
     $basePatternProphecy = $this->getMockPatternEntity([
-      'name' => $expectations['pattern_id'],
+      'asset_id' => $expectations['pattern_id'],
       'library' => $expectations['library'],
       'path' => $expectations['path'],
     ]);

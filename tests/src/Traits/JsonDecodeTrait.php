@@ -6,6 +6,8 @@ namespace Drupal\Tests\patternkit\Traits;
  * A helper trait to consistently decode JSON strings throughout test classes.
  *
  * This trait is only intended for use in tests.
+ *
+ * @internal
  */
 trait JsonDecodeTrait {
 

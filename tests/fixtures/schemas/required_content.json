@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "category": "test",
+  "title": "Example component with required properties",
+  "type": "object",
+  "properties": {
+    "text": {
+      "title": "Required Text",
+      "type": "string"
+    },
+    "optional_text": {
+      "title": "Optional Text",
+      "type": "string"
+    },
+    "optional_number": {
+      "title": "Optional Number"
+    }
+  },
+  "required": [
+    "text"
+  ]
+}

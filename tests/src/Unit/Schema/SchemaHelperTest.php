@@ -30,7 +30,7 @@ class SchemaHelperTest extends UnitTestCase {
   /**
    * A prophecy mock for the context builder service.
    *
-   * @var \Drupal\patternkit\Schema\ContextBuilder|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Schema\ContextBuilder>
    */
   protected ObjectProphecy $contextBuilder;
 

@@ -6,6 +6,8 @@ namespace Drupal\Tests\patternkit\Traits;
  * A helper trait to load schemas from fixture files.
  *
  * This trait is only intended for use in tests.
+ *
+ * @internal
  */
 trait SchemaFixtureTrait {
 
@@ -22,7 +24,7 @@ trait SchemaFixtureTrait {
    *   Returns the contents of the fixture file or FALSE if it was unable to
    *   read.
    */
-  public function loadFixture(string $path, ?string $module_path = NULL) {
+  public function loadFixture(string $path, ?string $module_path = NULL): false|string {
     $module_path ??= __DIR__ . '/../../..';
     $fixture_path = $module_path . '/tests/fixtures/';
 
