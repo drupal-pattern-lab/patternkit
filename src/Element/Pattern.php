@@ -3,17 +3,20 @@
 namespace Drupal\patternkit\Element;
 
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\Core\Render\Attribute\RenderElement;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Render\Element\RenderElementBase;
 use Drupal\patternkit\Entity\PatternInterface;
-use Drupal\patternkit\Exception\PatternAssetException;
+use Drupal\patternkit\Event\PatternRenderFailureEvent;
 use Drupal\patternkit\Exception\UnknownPatternException;
 use Drupal\patternkit\PatternFieldProcessorPluginManager;
+use Drupal\patternkit\PatternkitEvents;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\patternkit\PatternRepository;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Provides a render element to display a pattern.
@@ -38,30 +41,14 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * ];
  * @endcode
  *
- * @RenderElement("pattern")
+ * @see \Drupal\patternkit\Element\PatternError
+ * @see \Drupal\patternkit\PatternkitEvents::RENDER_FAILURE
+ * @see \Drupal\patternkit\EventSubscriber\RenderFailureErrorDisplaySubscriber
  */
+#[RenderElement(
+  id: "pattern",
+)]
 class Pattern extends RenderElementBase implements ContainerFactoryPluginInterface {
-
-  /**
-   * The pattern field processor plugin manager.
-   *
-   * @var \Drupal\patternkit\PatternFieldProcessorPluginManager
-   */
-  protected PatternFieldProcessorPluginManager $fieldProcessorPluginManager;
-
-  /**
-   * The pattern library plugin manager.
-   *
-   * @var \Drupal\patternkit\PatternLibraryPluginManager
-   */
-  protected PatternLibraryPluginManager $libraryPluginManager;
-
-  /**
-   * The pattern repository service for loading patterns.
-   *
-   * @var \Drupal\patternkit\PatternRepository
-   */
-  protected PatternRepository $patternRepository;
 
   /**
    * {@inheritdoc}
@@ -93,20 +80,19 @@ class Pattern extends RenderElementBase implements ContainerFactoryPluginInterfa
    *   The pattern library parser plugin manager service.
    * @param \Drupal\patternkit\PatternRepository $patternRepository
    *   The pattern repository service.
+   * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $eventDispatcher
+   *   The event dispatcher service.
    */
   public function __construct(
     array $configuration,
     $plugin_id,
     $plugin_definition,
-    PatternFieldProcessorPluginManager $fieldProcessorPluginManager,
-    PatternLibraryPluginManager $libraryPluginManager,
-    PatternRepository $patternRepository,
+    protected PatternFieldProcessorPluginManager $fieldProcessorPluginManager,
+    protected PatternLibraryPluginManager $libraryPluginManager,
+    protected PatternRepository $patternRepository,
+    protected EventDispatcherInterface $eventDispatcher,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
-
-    $this->fieldProcessorPluginManager = $fieldProcessorPluginManager;
-    $this->libraryPluginManager = $libraryPluginManager;
-    $this->patternRepository = $patternRepository;
   }
 
   /**
@@ -120,6 +106,7 @@ class Pattern extends RenderElementBase implements ContainerFactoryPluginInterfa
       $container->get('plugin.manager.pattern_field_processor'),
       $container->get('plugin.manager.library.pattern'),
       $container->get('patternkit.pattern.repository'),
+      $container->get('event_dispatcher'),
     );
   }
 
@@ -133,26 +120,27 @@ class Pattern extends RenderElementBase implements ContainerFactoryPluginInterfa
    *   The modified element.
    */
   public function loadPattern(array $element): array {
+    // If the pattern is specified as a string, assume it is the pattern name
+    // and attempt to load it.
     if (isset($element['#pattern']) && is_string($element['#pattern'])) {
       $pattern_id = $element['#pattern'];
 
       try {
         $element['#pattern'] = $this->patternRepository->getPattern($pattern_id);
       }
-      catch (UnknownPatternException $exception) {
-        // Replace the pattern output with an error element for more
-        // sophisticated output handling.
-        // @see \Drupal\patternkit\Element\PatternError
-        $elements = [];
-        $elements['error'] = [
-          '#type' => 'pattern_error',
-          '#pattern' => $element['#pattern'],
-          '#config' => $element['#config'] ?? [],
-          '#context' => $element['#context'] ?? [],
-          '#exception' => $exception,
-        ];
+      catch (\Throwable $exception) {
+        // Dispatch an event for the render failure to allow subscribers to
+        // react and handle it appropriately.
+        $event = $this->dispatchRenderFailureEvent($element, $exception);
 
-        return $elements;
+        // If the event was handled, update the elements to be returned.
+        if ($event->isHandled()) {
+          return $event->getElement();
+        }
+        else {
+          // Propagate the exception if an event dispatcher didn't handle it.
+          throw $exception;
+        }
       }
     }
 
@@ -167,47 +155,46 @@ class Pattern extends RenderElementBase implements ContainerFactoryPluginInterfa
    *
    * @return array
    *   The modified element.
-   *
-   * @throws \Drupal\Component\Plugin\Exception\PluginException
    */
   public function preRenderPatternElement(array $element): array {
-    /** @var \Drupal\patternkit\Entity\PatternInterface|null $pattern */
-    $pattern = $element['#pattern'];
-
-    // Fail early if a pattern was unable to be loaded.
-    if ($pattern === NULL) {
-      return [
-        '#markup' => $this->t('Pattern unavailable.'),
-      ];
-    }
-
     // Capture base bubbleable metadata.
     $metadata = BubbleableMetadata::createFromRenderArray($element);
 
-    // Ensure the metadata from the pattern is present.
-    $metadata->addCacheableDependency($pattern);
-
-    $pattern->config = $element['#config'];
-    $pattern->context = $element['#context'];
+    $pattern = $element['#pattern'] ?? NULL;
 
     try {
+      // Fail early if a pattern was unable to be loaded.
+      if (!($pattern instanceof PatternInterface)) {
+        throw new UnknownPatternException('No pattern entity available for rendering.');
+      }
+
+      // Ensure the metadata from the pattern is present.
+      $metadata->addCacheableDependency($pattern);
+
+      // Capture instance data for the pattern and apply preprocessing
+      // throughout schema values.
+      $pattern->config = $element['#config'];
+      $pattern->context = $element['#context'];
       $this->fieldProcessorPluginManager->processSchemaValues($pattern, $pattern->config, $pattern->context, $metadata);
 
+      // Use the pattern's library plugin to produce rendered output.
       $library_plugin = $this->getPatternLibraryPlugin($pattern);
       $elements = $library_plugin->render([$pattern]);
     }
-    catch (PatternAssetException $exception) {
-      // Replace the pattern output with an error element for more sophisticated
-      // output handling.
-      // @see \Drupal\patternkit\Element\PatternError
-      $elements = [];
-      $elements['error'] = [
-        '#type' => 'pattern_error',
-        '#pattern' => $element['#pattern'],
-        '#config' => $element['#config'],
-        '#context' => $element['#context'],
-        '#exception' => $exception,
-      ];
+    catch (\Throwable $exception) {
+      // Dispatch an event for the render failure to allow subscribers to react
+      // and handle it appropriately.
+      $event = $this->dispatchRenderFailureEvent($element, $exception);
+
+      // If the event was handled, update the elements to be returned.
+      if ($event->isHandled()) {
+        $elements = $event->getElement();
+      }
+      else {
+        $elements = [
+          '#markup' => $this->t('This content is unavailable.'),
+        ];
+      }
     }
 
     // Ensure all metadata persists to the result.
@@ -249,6 +236,22 @@ class Pattern extends RenderElementBase implements ContainerFactoryPluginInterfa
     /** @var \Drupal\patternkit\PatternLibraryPluginInterface $plugin */
     $plugin = $this->libraryPluginManager->createInstance($library_plugin_id);
     return $plugin;
+  }
+
+  /**
+   * Create a new render failure event instance for dispatching.
+   *
+   * @param array $element
+   *   The render element resulting in a failure.
+   * @param \Throwable $exception
+   *   The exception encountered leading to the render failure.
+   *
+   * @return \Drupal\patternkit\Event\PatternRenderFailureEvent
+   *   The configured render failure event for dispatching.
+   */
+  protected function dispatchRenderFailureEvent(array $element, \Throwable $exception): PatternRenderFailureEvent {
+    $event = new PatternRenderFailureEvent($element, $exception);
+    return $this->eventDispatcher->dispatch($event, PatternkitEvents::RENDER_FAILURE);
   }
 
 }

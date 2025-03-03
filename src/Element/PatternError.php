@@ -2,6 +2,7 @@
 
 namespace Drupal\patternkit\Element;
 
+use Drupal\Core\Render\Attribute\RenderElement;
 use Drupal\Core\Render\Element\RenderElementBase;
 use Drupal\patternkit\Entity\Pattern;
 
@@ -19,6 +20,7 @@ use Drupal\patternkit\Entity\Pattern;
  * - '#exception': The exception object causing the render failure.
  *
  * Usage Example:
+ *
  * @code
  * $build['failed_pattern'] = [
  *   '#type' => 'pattern_error',
@@ -34,8 +36,13 @@ use Drupal\patternkit\Entity\Pattern;
  * ];
  * @endcode
  *
- * @RenderElement("pattern_error")
+ * @see \Drupal\patternkit\Element\Pattern
+ * @see \Drupal\patternkit\PatternkitEvents::RENDER_FAILURE
+ * @see \Drupal\patternkit\EventSubscriber\RenderFailureErrorDisplaySubscriber
  */
+#[RenderElement(
+  id: 'pattern_error',
+)]
 class PatternError extends RenderElementBase {
 
   /**

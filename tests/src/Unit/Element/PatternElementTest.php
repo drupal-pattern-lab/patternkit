@@ -2,18 +2,22 @@
 
 namespace Drupal\Tests\patternkit\Unit\Element;
 
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\StringTranslation\TranslationInterface;
-use Drupal\Tests\Core\Render\RendererTestBase;
 use Drupal\patternkit\Element\Pattern;
 use Drupal\patternkit\Entity\Pattern as EntityPattern;
 use Drupal\patternkit\Entity\PatternInterface;
+use Drupal\patternkit\Event\PatternRenderFailureEvent;
 use Drupal\patternkit\Exception\SchemaValidationException;
 use Drupal\patternkit\Exception\UnknownPatternException;
 use Drupal\patternkit\PatternFieldProcessorPluginManager;
+use Drupal\patternkit\PatternkitEvents;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\patternkit\PatternRepository;
+use Drupal\Tests\Core\Render\RendererTestBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Test functionality for the Pattern render element.
@@ -54,6 +58,13 @@ class PatternElementTest extends RendererTestBase {
   protected PatternRepository $patternRepository;
 
   /**
+   * A mocked event dispatcher service.
+   *
+   * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface&\PHPUnit\Framework\MockObject\MockObject
+   */
+  protected EventDispatcherInterface $eventDispatcher;
+
+  /**
    * The string translation service.
    *
    * @var \Drupal\Core\StringTranslation\TranslationInterface&\PHPUnit\Framework\MockObject\MockObject
@@ -92,6 +103,13 @@ class PatternElementTest extends RendererTestBase {
 
     $this->patternRepository = $this->createMock(PatternRepository::class);
 
+    // Mock the event dispatcher and return the dispatched event instance
+    // automatically.
+    $this->eventDispatcher = $this->createMock(EventDispatcherInterface::class);
+    $this->eventDispatcher->method('dispatch')
+      ->with($this->isInstanceOf(PatternRenderFailureEvent::class), PatternkitEvents::RENDER_FAILURE)
+      ->willReturnArgument(0);
+
     // Mock the string translation service.
     $this->translation = $this->getStringTranslationStub();
 
@@ -100,6 +118,7 @@ class PatternElementTest extends RendererTestBase {
     $this->container->set('plugin.manager.library.pattern', $this->patternLibraryPluginManager);
     $this->container->set('plugin.manager.pattern_field_processor', $this->patternFieldProcessorPluginManager);
     $this->container->set('patternkit.pattern.repository', $this->patternRepository);
+    $this->container->set('event_dispatcher', $this->eventDispatcher);
     $this->container->set('string_translation', $this->translation);
 
     $this->patternElement = Pattern::create($this->container, [], 'pattern', []);
@@ -121,8 +140,9 @@ class PatternElementTest extends RendererTestBase {
    * @covers ::loadPattern
    */
   public function testLoadPattern() {
+    // Scenario 1: Load a known pattern from string name.
     $patternMock = $this->createMock(PatternInterface::class);
-    $element = [
+    $expectedElement = [
       '#type' => 'pattern',
       '#pattern' => $patternMock,
     ];
@@ -131,28 +151,26 @@ class PatternElementTest extends RendererTestBase {
       ->with('@my/pattern')
       ->willReturn($patternMock);
 
-    $this->assertEquals($element, $this->patternElement->loadPattern([
+    // Expect the pattern element with the loaded pattern to be returned.
+    $this->assertEquals($expectedElement, $this->patternElement->loadPattern([
       '#type' => 'pattern',
       '#pattern' => '@my/pattern',
     ]));
 
+    // Scenario 2: Attempt to load an unknown pattern from a string name.
     $exception = new UnknownPatternException('My expected exception');
     $this->patternRepository->method('getPattern')
       ->with('@unknown/pattern')
       ->willThrowException($exception);
 
-    $this->assertEquals([
-      'error' => [
-        '#type' => 'pattern_error',
-        '#pattern' => '@unknown/pattern',
-        '#config' => [],
-        '#context' => [],
-        '#exception' => $exception,
-      ],
-    ], $this->patternElement->loadPattern([
+    // Expect the exception to remain unhandled and get thrown.
+    // NB. In kernel testing the display for the pattern_error element can be
+    // verified since event dispatching is now required for it to be replaced.
+    $this->expectException(UnknownPatternException::class);
+    $this->patternElement->loadPattern([
       '#type' => 'pattern',
       '#pattern' => '@unknown/pattern',
-    ]));
+    ]);
   }
 
   /**
@@ -315,13 +333,13 @@ class PatternElementTest extends RendererTestBase {
     $output = $this->patternElement->preRenderPatternElement($pattern);
 
     // Expect error output.
-    $this->assertEquals([
-      '#markup' => 'Pattern unavailable.',
-    ], $output);
+    $this->assertArrayHasKey('#markup', $output);
+    $this->assertInstanceOf(TranslatableMarkup::class, $output['#markup']);
+    $this->assertEquals('This content is unavailable.', $output['#markup']->getUntranslatedString());
   }
 
   /**
-   * Test pattern prerendering with an exception during processing.
+   * Test pattern pre-rendering with an exception during processing.
    *
    * @covers ::preRenderPatternElement
    */
@@ -349,13 +367,13 @@ class PatternElementTest extends RendererTestBase {
 
     $output = $this->patternElement->preRenderPatternElement($pattern);
 
-    // Expect to receive an error render element back for rendering.
-    $this->assertArrayHasKey('error', $output);
-    $this->assertEquals('pattern_error', $output['error']['#type']);
-    $this->assertEquals($patternMock, $output['error']['#pattern']);
-    $this->assertEquals($config, $output['error']['#config']);
-    $this->assertEquals($context, $output['error']['#context']);
-    $this->assertEquals($exception, $output['error']['#exception']);
+    // Expect to receive a basic error message to display.
+    // NB. More robust error-handling with the pattern_error element can be
+    // tested with kernel testing since that is now replaced using event
+    // dispatching.
+    $this->assertArrayHasKey('#markup', $output);
+    $this->assertInstanceOf(TranslatableMarkup::class, $output['#markup']);
+    $this->assertEquals('This content is unavailable.', $output['#markup']->getUntranslatedString());
   }
 
   /**

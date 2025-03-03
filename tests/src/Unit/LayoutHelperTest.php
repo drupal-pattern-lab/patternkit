@@ -758,7 +758,6 @@ class LayoutHelperTest extends UnitTestCase {
     $display->getCacheTags()->willReturn([]);
     $display->getCacheMaxAge()->willReturn([]);
 
-    // @phpstan-ignore return.type
     return $display;
   }
 

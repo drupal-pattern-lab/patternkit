@@ -142,6 +142,10 @@ services:
     class: Drupal\patternkit\Routing\PatternkitTranslateBlockFormRouteSubscriber
     tags:
       - { name: event_subscriber }
+  patternkit.subscriber.render_error:
+    class: Drupal\patternkit\EventSubscriber\RenderFailureErrorDisplaySubscriber
+    tags:
+      - { name: event_subscriber }
   patternkit.environment:
     class: Drupal\patternkit\PatternkitEnvironment
     arguments: ['%patternkit.config%']

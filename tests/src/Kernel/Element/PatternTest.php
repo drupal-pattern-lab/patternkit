@@ -3,11 +3,11 @@
 namespace Drupal\Tests\patternkit\Kernel\Element;
 
 use Drupal\Core\Render\RendererInterface;
-use Drupal\KernelTests\KernelTestBase;
-use Drupal\Tests\patternkit\Traits\MetadataTestTrait;
 use Drupal\patternkit\Asset\PatternDiscoveryInterface;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternInterface;
+use Drupal\Tests\patternkit\Kernel\PatternkitKernelTestBase;
+use Drupal\Tests\patternkit\Traits\MetadataTestTrait;
 
 /**
  * Tests for the Pattern element class.
@@ -15,7 +15,7 @@ use Drupal\patternkit\Entity\PatternInterface;
  * @coversDefaultClass \Drupal\patternkit\Element\Pattern
  * @group patternkit
  */
-class PatternTest extends KernelTestBase {
+class PatternTest extends PatternkitKernelTestBase {
 
   use MetadataTestTrait;
 
@@ -23,9 +23,7 @@ class PatternTest extends KernelTestBase {
    * {@inheritdoc}
    */
   protected static $modules = [
-    'patternkit',
     'patternkit_example',
-    'text',
     'system',
     'node',
     'user',
