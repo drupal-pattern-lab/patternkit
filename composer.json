@@ -35,7 +35,8 @@
         "phpstan/phpstan": "@stable",
         "phpstan/phpstan-deprecation-rules": "@stable",
         "phpstan/phpstan-phpunit": "@stable",
-        "drush/drush": "^12.4.3 | ^13"
+        "drush/drush": "^12.4.3 | ^13",
+        "palantirnet/drupal-rector": "^0.20.3"
     },
     "conflict": {
         "drush/drush": "<12.4.3"

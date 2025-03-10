@@ -2,18 +2,20 @@
 
 namespace Drupal\Tests\patternkit\Kernel\Schema;
 
+use Drupal\patternkit\Schema\DataPreProcessorFactory;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\patternkit\Schema\DataPreProcessor\BundleReferenceDataPreProcessor;
 use Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor;
 use Drupal\patternkit\Schema\DataPreProcessor\RefNormalizerDataPreProcessor;
 use Drupal\patternkit\Schema\DataPreProcessor\SchemaRefObserver;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Integration tests to confirm registration of data preprocessors.
- *
- * @coversDefaultClass \Drupal\patternkit\Schema\DataPreProcessorFactory
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(DataPreProcessorFactory::class)]
 class DataPreProcessorFactoryIntegrationTest extends KernelTestBase {
 
   /**
@@ -37,9 +39,6 @@ class DataPreProcessorFactoryIntegrationTest extends KernelTestBase {
 
   /**
    * Confirm discovery of known data preprocessors.
-   *
-   * @covers ::addPreProcessor
-   * @covers ::getPreProcessor
    */
   public function testDiscoveredPreProcessors() {
     $factory = $this->container->get('patternkit.schema.data_preprocessor.factory');

@@ -2,26 +2,34 @@
 
 namespace Drupal\Tests\patternkit_usage_tracking\Functional;
 
+use Drupal\patternkit_usage_tracking\PatternUsageEntityOperations;
+use Drupal\patternkit_usage_tracking\LayoutUsageTracker;
+use Drupal\patternkit_usage_tracking\UsageRevisionHelper;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Plugin\Context\EntityContext;
-use Drupal\Tests\patternkit\Functional\PatternkitBrowserTestBase;
-use Drupal\Tests\patternkit_usage_tracking\Traits\PatternUsageAssertionTrait;
 use Drupal\layout_builder\Context\LayoutBuilderContextTrait;
 use Drupal\layout_builder\Section;
 use Drupal\layout_builder\SectionComponent;
 use Drupal\layout_builder\SectionStorageInterface;
 use Drupal\node\Entity\Node;
+use Drupal\Tests\patternkit\Functional\PatternkitBrowserTestBase;
+use Drupal\Tests\patternkit_usage_tracking\Traits\PatternUsageAssertionTrait;
+use PHPUnit\Framework\Attributes\CoversFunction;
+use PHPUnit\Framework\Attributes\Depends;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests for validating usage tracking during entity operations.
- *
- * @group patternkit
- * @group patternkit_usage_tracking
- *
- * @covers \Drupal\patternkit_usage_tracking\PatternUsageEntityOperations
- * @covers \Drupal\patternkit_usage_tracking\LayoutUsageTracker
  */
+#[Group('patternkit')]
+#[Group('patternkit_usage_tracking')]
+#[CoversClass(PatternUsageEntityOperations::class)]
+#[CoversClass(LayoutUsageTracker::class)]
+#[CoversClass(UsageRevisionHelper::class)]
+#[CoversFunction('patternkit_usage_tracking_entity_predelete')]
+#[CoversFunction('patternkit_usage_tracking_entity_update')]
 class EntityOperationsTest extends PatternkitBrowserTestBase {
 
   use LayoutBuilderContextTrait;
@@ -63,9 +71,6 @@ class EntityOperationsTest extends PatternkitBrowserTestBase {
 
   /**
    * Test pattern discovery during an update operation.
-   *
-   * @covers \patternkit_usage_tracking_entity_update()
-   * @covers \Drupal\patternkit_usage_tracking\UsageRevisionHelper
    */
   public function testLayoutUpdate(): void {
     // Place an example block in the layout.
@@ -134,12 +139,8 @@ class EntityOperationsTest extends PatternkitBrowserTestBase {
 
   /**
    * Test detection of deleted pattern usages.
-   *
-   * @covers \patternkit_usage_tracking_entity_update()
-   * @covers \Drupal\patternkit_usage_tracking\UsageRevisionHelper
-   *
-   * @depends testLayoutUpdate
    */
+  #[Depends('testLayoutUpdate')]
   public function testUsageDeletion(): void {
     $pattern_name = '@patternkit/atoms/example/src/example';
     $pattern_with_reference = '@patternkit/atoms/example_ref/src/example_ref';
@@ -303,9 +304,6 @@ class EntityOperationsTest extends PatternkitBrowserTestBase {
 
   /**
    * Test usage removal when an entity is deleted.
-   *
-   * @covers \patternkit_usage_tracking_entity_predelete()
-   * @covers \Drupal\patternkit_usage_tracking\UsageRevisionHelper
    */
   public function testEntityDeletion(): void {
     $pattern_name = '@patternkit/atoms/example/src/example';

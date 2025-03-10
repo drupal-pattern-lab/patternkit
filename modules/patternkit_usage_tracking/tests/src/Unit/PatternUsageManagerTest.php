@@ -7,22 +7,21 @@ use Drupal\Core\Entity\ContentEntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\Query\QueryInterface;
 use Drupal\Core\Language\LanguageInterface;
-use Drupal\Tests\UnitTestCase;
 use Drupal\patternkit_usage_tracking\Entity\PatternUsage;
 use Drupal\patternkit_usage_tracking\PatternUsageManager;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 
 /**
  * Test the PatternUsageManager service.
- *
- * @coversDefaultClass \Drupal\patternkit_usage_tracking\PatternUsageManager
- * @covers \Drupal\patternkit_usage_tracking\PatternUsageManager::__construct()
- * @covers \Drupal\patternkit_usage_tracking\PatternUsageManager::storage()
- * @group patternkit
- * @group patternkit_usage_tracking
  */
+#[Group('patternkit')]
+#[Group('patternkit_usage_tracking')]
+#[CoversClass(PatternUsageManager::class)]
 class PatternUsageManagerTest extends UnitTestCase {
 
   use ProphecyTrait;
@@ -72,9 +71,6 @@ class PatternUsageManagerTest extends UnitTestCase {
     $this->entity->language()->willReturn($language->reveal());
   }
 
-  /**
-   * @covers ::deleteByTranslation
-   */
   public function testDeleteByTranslation(): void {
     $entity_type = $this->getRandomGenerator()->string();
     $id = rand();
@@ -108,9 +104,6 @@ class PatternUsageManagerTest extends UnitTestCase {
     $this->patternUsageManager->deleteByTranslation($this->entity->reveal());
   }
 
-  /**
-   * @covers ::loadByPattern
-   */
   public function testLoadByPattern(): void {
     $pattern_id = '@pattern/' . $this->getRandomGenerator()->string();
 
@@ -130,9 +123,6 @@ class PatternUsageManagerTest extends UnitTestCase {
     $this->assertSame($records, $actual);
   }
 
-  /**
-   * @covers ::loadByEntityAndPattern
-   */
   public function testLoadByEntityAndPattern(): void {
     $entity_type = $this->getRandomGenerator()->string();
     $id = rand();
@@ -160,9 +150,6 @@ class PatternUsageManagerTest extends UnitTestCase {
     $this->assertSame($records, $actual);
   }
 
-  /**
-   * @covers ::deleteTrackingInformation
-   */
   public function testDeleteTrackingInformation(): void {
     // Mock records to return.
     $records = [];
@@ -183,9 +170,6 @@ class PatternUsageManagerTest extends UnitTestCase {
     $this->patternUsageManager->deleteTrackingInformation();
   }
 
-  /**
-   * @covers ::deleteByEntity
-   */
   public function testDeleteByEntity(): void {
     $entity_type = $this->getRandomGenerator()->string();
     $id = rand();
@@ -214,10 +198,6 @@ class PatternUsageManagerTest extends UnitTestCase {
     $this->patternUsageManager->deleteByEntity($this->entity->reveal());
   }
 
-  /**
-   * @covers ::loadByEntity
-   * @covers ::getLastRecordedRevisionIdByEntity
-   */
   public function testLoadByEntity(): void {
     $entity_type = $this->getRandomGenerator()->string();
     $id = rand();
@@ -252,10 +232,6 @@ class PatternUsageManagerTest extends UnitTestCase {
     $this->assertSame($records, $actual);
   }
 
-  /**
-   * @covers ::loadByEntity
-   * @covers ::getLastRecordedRevisionIdByEntity
-   */
   public function testLoadByEntityWithTranslations(): void {
     $entity_type = $this->getRandomGenerator()->string();
     $id = rand();
@@ -292,9 +268,6 @@ class PatternUsageManagerTest extends UnitTestCase {
     $this->assertSame($records, $actual);
   }
 
-  /**
-   * @covers ::register
-   */
   public function testRegister(): void {
     $entity_type = $this->getRandomGenerator()->string();
     $id = rand();
@@ -328,9 +301,6 @@ class PatternUsageManagerTest extends UnitTestCase {
     $this->patternUsageManager->register($this->entity->reveal(), $pattern_id, $path);
   }
 
-  /**
-   * @covers ::deleteByEntityAndUuid
-   */
   public function testDeleteByEntityAndUuid(): void {
     $entity_type = $this->getRandomGenerator()->string();
     $id = rand();

@@ -2,17 +2,21 @@
 
 namespace Drupal\Tests\patternkit\Unit\Asset;
 
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\Component\Plugin\Exception\PluginException;
 use Drupal\Core\Asset\Exception\InvalidLibraryFileException;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Extension\Extension;
 use Drupal\Core\Extension\ExtensionList;
-use Drupal\Tests\UnitTestCase;
 use Drupal\patternkit\Asset\LibraryNamespaceResolverInterface;
 use Drupal\patternkit\Asset\PatternDiscoveryLoader;
 use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\Group;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
@@ -21,10 +25,9 @@ use Symfony\Component\Serializer\Serializer;
 
 /**
  * Tests for the PatternDiscoveryLoader class.
- *
- * @coversDefaultClass \Drupal\patternkit\Asset\PatternDiscoveryLoader
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(PatternDiscoveryLoader::class)]
 class PatternDiscoveryLoaderTest extends UnitTestCase {
 
   use ProphecyTrait;
@@ -181,13 +184,7 @@ class PatternDiscoveryLoaderTest extends UnitTestCase {
       ->shouldBeCalledOnce();
   }
 
-  /**
-   * @covers ::getPatternsByNamespace
-   * @covers ::__construct
-   * @covers ::getLibraryObject
-   * @uses \Drupal\patternkit\Asset\PatternDiscoveryLoader::getLibraryPlugin()
-   * @dataProvider providerGetPatternsByNamespace
-   */
+  #[DataProvider('providerGetPatternsByNamespace')]
   public function testGetPatternsByNamespace(
     array $library_definition,
     array $plugin_data,
@@ -253,12 +250,6 @@ class PatternDiscoveryLoaderTest extends UnitTestCase {
     return $cases;
   }
 
-  /**
-   * @covers ::getPatternsByNamespace
-   * @covers ::getLibraryPlugin
-   * @uses \Drupal\patternkit\Asset\PatternDiscoveryLoader::getLibraryObject()
-   * @uses \Drupal\patternkit\Asset\PatternDiscoveryLoader::__construct
-   */
   public function testPluginException(): void {
     // Override the pattern definition to look for an unavailable plugin. This
     // should cause an exception to be thrown.
@@ -281,12 +272,6 @@ class PatternDiscoveryLoaderTest extends UnitTestCase {
     $this->loader->getPatternsByNamespace('@example');
   }
 
-  /**
-   * @covers ::getLibraryPlugin
-   * @covers ::getPatternsByNamespace
-   * @covers ::__construct
-   * @covers ::getLibraryObject
-   */
   public function testGetLibraryPluginNoPlugin(): void {
     // Mock discovered plugin definitions for confirmation in log message.
     $library_plugin_definitions = [
@@ -322,9 +307,8 @@ class PatternDiscoveryLoaderTest extends UnitTestCase {
 
   /**
    * Test behavior if no library version is defined.
-   *
-   * @coversNothing
    */
+  #[CoversNothing]
   public function testWithoutLibraryVersion(): void {
     // Unset the library version.
     $library_definition = static::$libraryDefinition;

@@ -2,10 +2,14 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
-use Drupal\Tests\UnitTestCase;
-use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
+use Drupal\patternkit\Schema\SchemaIterator;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\patternkit\Schema\PatternkitRefProvider;
 use Drupal\patternkit\Schema\SchemaWalker;
+use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\UsesClass;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Swaggest\JsonSchema\Context;
@@ -13,12 +17,13 @@ use Swaggest\JsonSchema\Schema;
 
 /**
  * Test functionality for the Schema Walker iterator class.
- *
- * @coversDefaultClass \Drupal\patternkit\Schema\SchemaWalker
- * @covers \Drupal\patternkit\Schema\SchemaIterator
- * @uses \Drupal\patternkit\Schema\SchemaHelper
- * @group patternkit
  */
+#[Group('patternkit')]
+#[UsesClass('\Drupal\patternkit\Schema\SchemaHelper')]
+#[UsesClass('\Swaggest\JsonSchema\Context')]
+#[UsesClass('\Swaggest\JsonSchema\Schema')]
+#[CoversClass(SchemaWalker::class)]
+#[CoversClass(SchemaIterator::class)]
 class SchemaWalkerTest extends UnitTestCase {
 
   use JsonDecodeTrait;
@@ -150,8 +155,6 @@ class SchemaWalkerTest extends UnitTestCase {
 
   /**
    * Test iteration over a schema without references.
-   *
-   * @covers ::__construct
    */
   public function testBasicIteration(): void {
     $flat_schema_json = <<<JSON
@@ -264,10 +267,6 @@ class SchemaWalkerTest extends UnitTestCase {
 
   /**
    * Test iteration with referenced schemas.
-   *
-   * @covers ::__construct
-   * @uses \Swaggest\JsonSchema\Context
-   * @uses \Swaggest\JsonSchema\Schema
    */
   public function testIteratingReferences(): void {
     $this->refProvider = $this->prophesize(PatternkitRefProvider::class);

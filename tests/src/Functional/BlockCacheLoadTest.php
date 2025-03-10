@@ -2,14 +2,16 @@
 
 namespace Drupal\Tests\patternkit\Functional;
 
+use Drupal\patternkit\Plugin\Block\PatternkitBlock;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\node\Entity\Node;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Testing to confirm loading of patterns from entity cache.
- *
- * @covers \Drupal\patternkit\Plugin\Block\PatternkitBlock
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(PatternkitBlock::class)]
 class BlockCacheLoadTest extends PatternkitBrowserTestBase {
 
   /**

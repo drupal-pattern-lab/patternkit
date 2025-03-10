@@ -2,10 +2,9 @@
 
 namespace Drupal\Tests\patternkit\Unit;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Tests\UnitTestCase;
-use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\patternkit\Asset\PatternDependencyResolver;
 use Drupal\patternkit\Asset\PatternDiscoveryInterface;
 use Drupal\patternkit\Entity\PatternInterface;
@@ -15,6 +14,10 @@ use Drupal\patternkit\Schema\ContextBuilder;
 use Drupal\patternkit\Schema\DataPreProcessor\BundleReferenceDataPreProcessor;
 use Drupal\patternkit\Schema\DataPreProcessorFactory;
 use Drupal\patternkit\Schema\SchemaRefHandler;
+use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\UsesClass;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
@@ -23,11 +26,13 @@ use Swaggest\JsonSchema\RemoteRef\Preloaded;
 
 /**
  * Unit tests for the PatternRepository class.
- *
- * @coversDefaultClass \Drupal\patternkit\PatternRepository
- * @uses \Drupal\patternkit\Schema\ContextBuilderTrait
- * @group patternkit
  */
+#[Group('patternkit')]
+#[UsesClass('\Drupal\patternkit\Schema\ContextBuilderTrait')]
+#[UsesClass('\Drupal\patternkit\Schema\DataPreProcessor\BundleReferenceDataPreProcessor')]
+#[UsesClass('\Drupal\patternkit\Schema\UnresolvedSchema')]
+#[UsesClass('\Swaggest\JsonSchema\RemoteRef\Preloaded')]
+#[CoversClass(PatternRepository::class)]
 class PatternRepositoryTest extends UnitTestCase {
 
   use JsonDecodeTrait;
@@ -115,11 +120,6 @@ class PatternRepositoryTest extends UnitTestCase {
     return $repository;
   }
 
-  /**
-   * @covers ::getPattern
-   * @covers ::patternStorage
-   * @covers ::__construct
-   */
   public function testGetPattern() {
     $pattern_id = '@my/pattern';
     $pattern_definition = [
@@ -138,10 +138,6 @@ class PatternRepositoryTest extends UnitTestCase {
 
   /**
    * Test static caching behavior for the getPattern method.
-   *
-   * @covers ::getPattern
-   * @covers ::patternStorage
-   * @covers ::__construct
    */
   public function testGetPatternCaching() {
     $pattern_id = '@my/pattern';
@@ -169,11 +165,6 @@ class PatternRepositoryTest extends UnitTestCase {
 
   /**
    * Test getting pattern definitions with bundling.
-   *
-   * @covers ::getPattern
-   * @covers ::bundleSchema
-   * @covers ::patternStorage
-   * @covers ::__construct
    */
   public function testGetPatternWithBundling() {
     $pattern_id = '@my/pattern';
@@ -219,21 +210,12 @@ class PatternRepositoryTest extends UnitTestCase {
     $this->assertSame($pattern->reveal(), $result);
   }
 
-  /**
-   * @covers ::getPattern
-   * @covers ::patternStorage
-   * @covers ::__construct
-   */
   public function testGetUnknownPattern() {
     $this->expectException(UnknownPatternException::class);
     $this->expectExceptionMessage('No known pattern definition for "@unknown/pattern".');
     $this->getPatternRepository()->getPattern('@unknown/pattern');
   }
 
-  /**
-   * @covers ::getAllPatternNames
-   * @covers ::__construct
-   */
   public function testGetAllPatternNames() {
     $pattern_definitions = [
       '@patternkit' => [
@@ -262,16 +244,6 @@ class PatternRepositoryTest extends UnitTestCase {
     $this->assertEquals($expected_results, $this->getPatternRepository()->getAllPatternNames());
   }
 
-  /**
-   * @covers ::getBundledPatternSchema
-   * @covers ::getPatternStack
-   * @covers ::getPattern
-   * @covers ::patternStorage
-   * @covers ::__construct
-   * @uses \Drupal\patternkit\Schema\DataPreProcessor\BundleReferenceDataPreProcessor
-   * @uses \Drupal\patternkit\Schema\UnresolvedSchema
-   * @uses \Swaggest\JsonSchema\RemoteRef\Preloaded
-   */
   public function testGetBundledPatternSchema() {
     $pattern_id = "@my/parent/pattern";
     $pattern_dependencies = [

@@ -2,17 +2,18 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
-use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\patternkit\Exception\MissingDataPreProcessorException;
 use Drupal\patternkit\Schema\DataPreProcessorFactory;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Group;
 use Swaggest\JsonSchema\DataPreProcessor;
 
 /**
  * Unit tests for the DataPreProcessorFactory class.
- *
- * @coversDefaultClass \Drupal\patternkit\Schema\DataPreProcessorFactory
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(DataPreProcessorFactory::class)]
 class DataPreProcessorFactoryTest extends UnitTestCase {
 
   /**
@@ -31,10 +32,6 @@ class DataPreProcessorFactoryTest extends UnitTestCase {
     $this->factory = new DataPreProcessorFactory();
   }
 
-  /**
-   * @covers ::addPreProcessor
-   * @covers ::getPreProcessor
-   */
   public function testAddPreProcessor() {
     $preprocessor = $this->createMock(DataPreProcessor::class);
 
@@ -42,10 +39,6 @@ class DataPreProcessorFactoryTest extends UnitTestCase {
     $this->assertEquals($preprocessor, $this->factory->getPreProcessor('test'));
   }
 
-  /**
-   * @covers ::getPreProcessor
-   * @covers ::addPreProcessor
-   */
   public function testGetPreProcessor() {
     $preprocessor = $this->createMock(DataPreProcessor::class);
 

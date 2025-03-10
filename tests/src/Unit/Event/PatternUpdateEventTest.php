@@ -2,22 +2,22 @@
 
 namespace Drupal\Tests\patternkit\Event;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Event\PatternUpdateEvent;
 use Drupal\patternkit\Exception\SchemaValidationException;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock;
 use Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait;
 use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Group;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 
 /**
  * Tests for the PatternUpdateEvent class.
- *
- * @coversDefaultClass \Drupal\patternkit\Event\PatternUpdateEvent
- *
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(PatternUpdateEvent::class)]
 class PatternUpdateEventTest extends UnitTestCase {
 
   use ProphecyTrait;
@@ -87,11 +87,6 @@ class PatternUpdateEventTest extends UnitTestCase {
     ]);
   }
 
-  /**
-   * @covers ::isAltered
-   * @covers ::__construct
-   * @covers ::setContent
-   */
   public function testIsAltered() {
     $event = $this->getEvent();
 
@@ -103,11 +98,6 @@ class PatternUpdateEventTest extends UnitTestCase {
     $this->assertTrue($event->isAltered());
   }
 
-  /**
-   * @covers ::isValid
-   * @covers ::__construct
-   * @uses \Drupal\patternkit\Event\PatternUpdateEvent::getContent()
-   */
   public function testIsValid() {
     // Create an event that will pass validation.
     $validEvent = $this->getEvent(shouldFailValidation: FALSE);
@@ -124,31 +114,18 @@ class PatternUpdateEventTest extends UnitTestCase {
     $this->assertFalse($invalidEvent->isValid());
   }
 
-  /**
-   * @covers ::getOriginalPattern
-   * @covers ::__construct
-   */
   public function testGetOriginalPattern() {
     $event = $this->getEvent();
 
     $this->assertSame($this->oldPatternProphecy->reveal(), $event->getOriginalPattern());
   }
 
-  /**
-   * @covers ::getOriginalPatternAssetId
-   * @covers ::__construct
-   */
   public function testGetOriginalPatternAssetId() {
     $event = $this->getEvent();
 
     $this->assertEquals('@patternkit/old/pattern', $event->getOriginalPatternAssetId());
   }
 
-  /**
-   * @covers ::setContent
-   * @covers ::__construct
-   * @covers \Drupal\patternkit\Event\PatternUpdateEvent
-   */
   public function testSetContentException() {
     // Enforce a content validation failure for testing.
     $event = $this->getEvent(shouldFailValidation: TRUE);
@@ -161,73 +138,42 @@ class PatternUpdateEventTest extends UnitTestCase {
     $event->setContent(['invalid' => 'content']);
   }
 
-  /**
-   * @covers ::getPlugin
-   * @covers ::__construct
-   */
   public function testGetPlugin() {
     $event = $this->getEvent();
 
     $this->assertSame($this->patternkitBlockProphecy->reveal(), $event->getPlugin());
   }
 
-  /**
-   * @covers ::getPattern
-   * @covers ::__construct
-   */
   public function testGetPattern() {
     $event = $this->getEvent();
 
     $this->assertSame($this->newPatternProphecy->reveal(), $event->getPattern());
   }
 
-  /**
-   * @covers ::getPatternName
-   * @covers ::__construct
-   */
   public function testGetPatternName() {
     $event = $this->getEvent();
 
     $this->assertEquals('New Pattern Name', $event->getPatternName());
   }
 
-  /**
-   * @covers ::getOriginalPatternName
-   * @covers ::__construct
-   */
   public function testGetOriginalPatternName() {
     $event = $this->getEvent();
 
     $this->assertEquals('Old Pattern Name', $event->getOriginalPatternName());
   }
 
-  /**
-   * @covers ::getPatternAssetId
-   * @covers ::__construct
-   */
   public function testGetPatternAssetId() {
     $event = $this->getEvent();
 
     $this->assertEquals('@patternkit/new/pattern', $event->getPatternAssetId());
   }
 
-  /**
-   * @covers ::getContent
-   * @covers ::__construct
-   */
   public function testGetContent() {
     $event = $this->getEvent();
 
     $this->assertEquals($this->unchangedData, $event->getContent());
   }
 
-  /**
-   * @covers ::getOriginalContent
-   * @covers ::getContent
-   * @covers ::setContent
-   * @covers ::isAltered
-   * @covers ::__construct
-   */
   public function testContentUpdating() {
     $event = $this->getEvent();
 

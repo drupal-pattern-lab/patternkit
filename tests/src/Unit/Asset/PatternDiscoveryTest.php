@@ -2,15 +2,18 @@
 
 namespace Drupal\Tests\patternkit\Unit\Asset;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
-use Drupal\Tests\UnitTestCase;
 use Drupal\patternkit\Asset\LibraryNamespaceResolverInterface;
 use Drupal\patternkit\Asset\PatternDiscovery;
 use Drupal\patternkit\Asset\PatternDiscoveryLoader;
 use Drupal\patternkit\Exception\UnknownPatternException;
 use Drupal\patternkit\PatternkitEnvironment;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\MockBuilder;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -19,11 +22,11 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Tests for the PatternDiscovery class.
- *
- * @coversDefaultClass \Drupal\patternkit\Asset\PatternDiscovery
- * @uses \Drupal\patternkit\PatternkitEnvironmentAwareTrait
- * @group patternkit
  */
+#[Group('patternkit')]
+#[UsesClass('\Drupal\Core\Cache\Cache')]
+#[UsesClass('\Drupal\patternkit\PatternkitEnvironmentAwareTrait')]
+#[CoversClass(PatternDiscovery::class)]
 class PatternDiscoveryTest extends UnitTestCase {
 
   use ProphecyTrait;
@@ -121,14 +124,6 @@ class PatternDiscoveryTest extends UnitTestCase {
 
   /**
    * Test namespace loading with a cache miss.
-   *
-   * @covers ::getPatternsByNamespace
-   * @covers ::cacheGet
-   * @covers ::cacheSet
-   * @covers ::useCaches
-   * @covers ::getCacheTags
-   * @covers ::buildPatternDefinitions
-   * @covers ::__construct
    */
   public function testGetPatternsByNamespaceWithCacheMiss(): void {
     $namespace = '@patternkit';
@@ -170,11 +165,6 @@ class PatternDiscoveryTest extends UnitTestCase {
 
   /**
    * Test namespace loading with a cache hit.
-   *
-   * @covers ::getPatternsByNamespace
-   * @covers ::cacheGet
-   * @covers ::useCaches
-   * @covers ::__construct
    */
   public function testGetPatternsByNamespaceWithCacheHit(): void {
     $namespace = '@patternkit';
@@ -214,14 +204,6 @@ class PatternDiscoveryTest extends UnitTestCase {
 
   /**
    * Test cache handling with the bypass option enabled.
-   *
-   * @covers ::useCaches
-   * @covers ::cacheGet
-   * @covers ::cacheSet
-   * @covers ::getPatternsByNamespace
-   * @covers ::buildPatternDefinitions
-   * @covers ::__construct
-   * @uses \Drupal\patternkit\Asset\PatternDiscovery::getCacheTags()
    */
   public function testCacheBypass(): void {
     $namespace = '@patternkit';
@@ -253,14 +235,6 @@ class PatternDiscoveryTest extends UnitTestCase {
 
   /**
    * Test memory reset when cache use gets disabled.
-   *
-   * @covers ::useCaches
-   * @covers ::cacheGet
-   * @covers ::cacheSet
-   * @covers ::getPatternsByNamespace
-   * @covers ::buildPatternDefinitions
-   * @covers ::__construct
-   * @uses \Drupal\patternkit\Asset\PatternDiscovery::getCacheTags()
    */
   public function testCacheBypassReset(): void {
     $namespace = '@patternkit';
@@ -322,10 +296,6 @@ class PatternDiscoveryTest extends UnitTestCase {
 
   /**
    * Test behavior when looking up an unknown namespace.
-   *
-   * @covers ::getPatternsByNamespace
-   * @covers ::buildPatternDefinitions
-   * @covers ::__construct
    */
   public function testGetPatternsByNamespaceWithUnknownNamespace(): void {
     $namespace = '@unknown';
@@ -342,11 +312,6 @@ class PatternDiscoveryTest extends UnitTestCase {
     $this->discovery->getPatternsByNamespace($namespace);
   }
 
-  /**
-   * @covers ::getPatternDefinition
-   * @covers ::getNamespaceFromPatternIdentifier
-   * @uses \Drupal\patternkit\Asset\PatternDiscovery::__construct
-   */
   public function testGetPatternDefinition(): void {
     // Get the partial mock for testing.
     /** @var \PHPUnit\Framework\MockObject\MockObject&\Drupal\patternkit\Asset\PatternDiscovery $mock */
@@ -370,13 +335,6 @@ class PatternDiscoveryTest extends UnitTestCase {
     $this->assertNull($mock->getPatternDefinition($unknown_pattern_id));
   }
 
-  /**
-   * @covers ::getPatternDefinition
-   * @covers ::__construct
-   * @covers ::buildPatternDefinitions
-   * @covers ::getNamespaceFromPatternIdentifier
-   * @covers ::getPatternsByNamespace
-   */
   public function testGetPatternDefinitionWithUnknownNamespace(): void {
     $namespace = '@unknown';
     $pattern_id = '@unknown/pattern/id';
@@ -396,10 +354,6 @@ class PatternDiscoveryTest extends UnitTestCase {
     $this->assertNull($this->discovery->getPatternDefinition($pattern_id));
   }
 
-  /**
-   * @covers ::getPatternDefinitions
-   * @uses \Drupal\patternkit\Asset\PatternDiscovery::__construct
-   */
   public function testGetPatternDefinitions(): void {
     $mock_library_definitions = [
       // Mock a library definition with patterns defined.
@@ -445,12 +399,6 @@ class PatternDiscoveryTest extends UnitTestCase {
     $this->assertEquals($expected, $mock->getPatternDefinitions());
   }
 
-  /**
-   * @covers ::clearCachedDefinitions
-   * @covers ::getCacheTags
-   * @covers ::__construct
-   * @uses \Drupal\Core\Cache\Cache::invalidateTags()
-   */
   public function testClearCachedDefinitions(): void {
     // Prepare a cache tags invalidator to monitor.
     $invalidator = $this->prophesize(CacheTagsInvalidatorInterface::class);
@@ -463,18 +411,10 @@ class PatternDiscoveryTest extends UnitTestCase {
     $this->discovery->clearCachedDefinitions();
   }
 
-  /**
-   * @covers ::getCacheTags
-   * @covers ::__construct
-   */
   public function testGetCacheTags(): void {
     $this->assertEquals(PatternDiscovery::CACHE_TAGS, $this->discovery->getCacheTags());
   }
 
-  /**
-   * @covers ::rebuild
-   * @uses \Drupal\patternkit\Asset\PatternDiscovery::__construct
-   */
   public function testRebuild(): void {
     // Get the partial mock for testing.
     /** @var \PHPUnit\Framework\MockObject\MockObject&\Drupal\patternkit\Asset\PatternDiscovery $mock */

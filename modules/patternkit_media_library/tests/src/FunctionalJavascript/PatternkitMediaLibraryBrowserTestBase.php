@@ -2,12 +2,12 @@
 
 namespace Drupal\Tests\patternkit_media_library\FunctionalJavascript;
 
-use Drupal\Tests\TestFileCreationTrait;
-use Drupal\Tests\media\Traits\MediaTypeCreationTrait;
-use Drupal\Tests\patternkit\FunctionalJavascript\PatternkitBrowserTestBase;
 use Drupal\file\Entity\File;
 use Drupal\media\Entity\Media;
 use Drupal\media\MediaInterface;
+use Drupal\Tests\media\Traits\MediaTypeCreationTrait;
+use Drupal\Tests\patternkit\FunctionalJavascript\PatternkitBrowserTestBase;
+use Drupal\Tests\TestFileCreationTrait;
 use PHPUnit\Framework\ExpectationFailedException;
 
 /**

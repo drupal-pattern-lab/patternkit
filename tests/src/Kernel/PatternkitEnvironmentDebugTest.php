@@ -2,14 +2,16 @@
 
 namespace Drupal\Tests\patternkit\Kernel;
 
+use Drupal\patternkit\PatternkitEnvironment;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\KernelTests\KernelTestBase;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Test PatternkitEnvironment behavior with debugging parameters enabled.
- *
- * @coversDefaultClass \Drupal\patternkit\PatternkitEnvironment
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(PatternkitEnvironment::class)]
 class PatternkitEnvironmentDebugTest extends KernelTestBase {
 
   /**
@@ -38,8 +40,6 @@ class PatternkitEnvironmentDebugTest extends KernelTestBase {
 
   /**
    * Test debug configuration.
-   *
-   * @covers ::isDebug
    */
   public function testIsDebug() {
     $this->assertTrue($this->environment->isDebug());
@@ -47,8 +47,6 @@ class PatternkitEnvironmentDebugTest extends KernelTestBase {
 
   /**
    * Test feature option behaviors.
-   *
-   * @covers ::getFeatureOption
    */
   public function testGetFeatureOption() {
     $actual = $this->environment->getFeatureOption('unknown_feature', TRUE);

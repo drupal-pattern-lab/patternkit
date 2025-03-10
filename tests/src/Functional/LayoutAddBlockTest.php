@@ -2,11 +2,13 @@
 
 namespace Drupal\Tests\patternkit\Functional;
 
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
+
 /**
  * Addition of PK block with Layout Builder.
- *
- * @group patternkit
  */
+#[Group('patternkit')]
 class LayoutAddBlockTest extends PatternkitBrowserTestBase {
 
   /**
@@ -42,9 +44,8 @@ class LayoutAddBlockTest extends PatternkitBrowserTestBase {
    *   The assertions to be made during the test.
    *
    * @throws \Behat\Mink\Exception\ElementNotFoundException
-   *
-   * @dataProvider providerTestPatternkitBlock
    */
+  #[DataProvider('providerTestPatternkitBlock')]
   public function testExampleBlocks(
     string $patternName,
     array $dataValues,

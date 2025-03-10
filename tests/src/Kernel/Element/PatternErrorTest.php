@@ -7,8 +7,11 @@ use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\DependencyInjection\ServiceModifierInterface;
 use Drupal\Core\Render\RendererInterface;
 use Drupal\patternkit\Asset\PatternDiscoveryInterface;
-use Drupal\patternkit\Entity\Pattern;
+use Drupal\patternkit\Element\Pattern as ElementPattern;
+use Drupal\patternkit\Element\PatternError;
+use Drupal\patternkit\Entity\Pattern as EntityPattern;
 use Drupal\patternkit\Entity\PatternInterface;
+use Drupal\patternkit\EventSubscriber\RenderFailureErrorDisplaySubscriber;
 use Drupal\patternkit\Exception\SchemaReferenceException;
 use Drupal\patternkit\Exception\UnknownPatternException;
 use Drupal\patternkit\PatternFieldProcessorPluginManager;
@@ -16,19 +19,18 @@ use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\Tests\patternkit\Kernel\PatternkitKernelTestBase;
 use Drupal\Tests\patternkit\Traits\MetadataTestTrait;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 use Prophecy\Argument;
 use Prophecy\Prophecy\ObjectProphecy;
 
 /**
  * Tests for the Pattern Error element class.
- *
- * @coversDefaultClass \Drupal\patternkit\Element\PatternError
- * @covers \Drupal\patternkit\Element\PatternError
- * @covers \Drupal\patternkit\Element\Pattern
- * @covers \Drupal\patternkit\EventSubscriber\RenderFailureErrorDisplaySubscriber
- *
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(ElementPattern::class)]
+#[CoversClass(PatternError::class)]
+#[CoversClass(RenderFailureErrorDisplaySubscriber::class)]
 class PatternErrorTest extends PatternkitKernelTestBase implements ServiceModifierInterface {
 
   use MetadataTestTrait;
@@ -115,8 +117,6 @@ class PatternErrorTest extends PatternkitKernelTestBase implements ServiceModifi
 
   /**
    * Test when a pattern element is given an unknown pattern name.
-   *
-   * @covers ::preRenderPatternErrorElement
    */
   public function testUnknownPatternStringError(): void {
     $pattern_id = '@patternkit/unknown/pattern';
@@ -150,8 +150,6 @@ class PatternErrorTest extends PatternkitKernelTestBase implements ServiceModifi
 
   /**
    * Test when a pattern element encounters a schema processing error.
-   *
-   * @covers ::preRenderPatternErrorElement
    */
   public function testPatternSchemaError(): void {
     $pattern_id = '@patternkit/atoms/example/src/example';
@@ -190,8 +188,6 @@ class PatternErrorTest extends PatternkitKernelTestBase implements ServiceModifi
 
   /**
    * Test when a pattern element encounters a plugin exception.
-   *
-   * @covers ::preRenderPatternErrorElement
    */
   public function testPatternPluginError(): void {
     $pattern_id = '@patternkit/atoms/example/src/example';
@@ -245,7 +241,7 @@ class PatternErrorTest extends PatternkitKernelTestBase implements ServiceModifi
    */
   protected function loadPattern(string $pattern_id): PatternInterface {
     $definition = $this->patternDiscovery->getPatternDefinition($pattern_id);
-    return Pattern::create($definition);
+    return EntityPattern::create($definition);
   }
 
 }

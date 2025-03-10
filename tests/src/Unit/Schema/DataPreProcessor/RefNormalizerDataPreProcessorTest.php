@@ -2,22 +2,24 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema\DataPreProcessor;
 
-use Drupal\Tests\UnitTestCase;
-use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\patternkit\Schema\DataPreProcessor\RefNormalizerDataPreProcessor;
 use Drupal\patternkit\Schema\SchemaRefHandler;
 use Drupal\patternkit\Schema\UnresolvedSchema;
+use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\UsesClass;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Swaggest\JsonSchema\Context;
 
 /**
  * Unit tests for the RefNormalizerDataPreProcessor.
- *
- * @coversDefaultClass \Drupal\patternkit\Schema\DataPreProcessor\RefNormalizerDataPreProcessor
- * @uses \Drupal\patternkit\Schema\UnresolvedSchema
- * @uses \Swaggest\JsonSchema\Context
- * @group patternkit
  */
+#[Group('patternkit')]
+#[UsesClass('\Drupal\patternkit\Schema\UnresolvedSchema')]
+#[UsesClass('\Swaggest\JsonSchema\Context')]
+#[CoversClass(RefNormalizerDataPreProcessor::class)]
 class RefNormalizerDataPreProcessorTest extends UnitTestCase {
 
   use JsonDecodeTrait;
@@ -40,7 +42,7 @@ class RefNormalizerDataPreProcessorTest extends UnitTestCase {
   /**
    * The mocked SchemaRefHandler service.
    *
-   * @var \Drupal\patternkit\Schema\SchemaRefHandler|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Schema\SchemaRefHandler>
    */
   protected $schemaRefHandler;
 
@@ -94,10 +96,6 @@ class RefNormalizerDataPreProcessorTest extends UnitTestCase {
     return $this->context;
   }
 
-  /**
-   * @covers ::process
-   * @covers ::__construct
-   */
   public function testProcess() {
     $this->schemaRefHandler->normalizeNamespacedSchemaReference('@my/example/reference')
       ->willReturn('/api/patternkit/my/example/reference?asset=schema')

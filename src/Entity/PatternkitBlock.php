@@ -2,10 +2,10 @@
 
 namespace Drupal\patternkit\Entity;
 
+use Drupal\block_content\Entity\BlockContent;
 use Drupal\Core\Entity\EditorialContentEntityBase;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
-use Drupal\block_content\Entity\BlockContent;
 
 /**
  * Defines the custom block entity class.

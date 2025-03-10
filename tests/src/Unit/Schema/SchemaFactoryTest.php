@@ -2,9 +2,12 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
-use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\patternkit\Schema\ContextBuilder;
 use Drupal\patternkit\Schema\SchemaFactory;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\UsesClass;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
@@ -13,10 +16,10 @@ use Swaggest\JsonSchema\SchemaContract;
 
 /**
  * Test functionality for the Schema Factory service.
- *
- * @coversDefaultClass \Drupal\patternkit\Schema\SchemaFactory
- * @group patternkit
  */
+#[Group('patternkit')]
+#[UsesClass('\Swaggest\JsonSchema\Schema')]
+#[CoversClass(SchemaFactory::class)]
 class SchemaFactoryTest extends UnitTestCase {
 
   use ProphecyTrait;
@@ -59,11 +62,6 @@ class SchemaFactoryTest extends UnitTestCase {
 
   /**
    * Test schema creation without a provided context.
-   *
-   * @covers ::createInstance
-   * @covers ::decodeJson
-   * @covers ::__construct
-   * @uses \Swaggest\JsonSchema\Schema
    */
   public function testCreateInstanceWithoutContext() {
     $this->contextBuilder->getDefaultContext()
@@ -79,11 +77,6 @@ class SchemaFactoryTest extends UnitTestCase {
 
   /**
    * Test schema creation without a provided context.
-   *
-   * @covers ::createInstance
-   * @covers ::decodeJson
-   * @covers ::__construct
-   * @uses \Swaggest\JsonSchema\Schema
    */
   public function testCreateInstanceWithContext() {
     $context = new Context();

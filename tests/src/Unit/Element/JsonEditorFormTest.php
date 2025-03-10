@@ -2,17 +2,19 @@
 
 namespace Drupal\Tests\patternkit\Unit\Element;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\StringTranslation\TranslationInterface;
-use Drupal\Tests\Core\Render\RendererTestBase;
 use Drupal\patternkit\Element\JsonEditorForm;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Exception\UnknownPatternException;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\patternkit\PatternRepository;
+use Drupal\Tests\Core\Render\RendererTestBase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -21,12 +23,9 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Test functionality for the JsonEditorForm render element.
- *
- * @coversDefaultClass \Drupal\patternkit\Element\JsonEditorForm
- * @covers ::__construct
- * @covers ::create
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(JsonEditorForm::class)]
 class JsonEditorFormTest extends RendererTestBase {
 
   use ArraySubsetAsserts;
@@ -112,9 +111,6 @@ class JsonEditorFormTest extends RendererTestBase {
     $this->element = JsonEditorForm::create($this->container, [], 'jsoneditor_form', []);
   }
 
-  /**
-   * @covers ::getInfo
-   */
   public function testGetInfo() {
     $info = $this->element->getInfo();
     $this->assertArrayHasKey('#pre_render', $info);
@@ -124,9 +120,6 @@ class JsonEditorFormTest extends RendererTestBase {
     $this->assertArrayHasKey('#theme_wrappers', $info);
   }
 
-  /**
-   * @covers ::loadPattern
-   */
   public function testLoadPatternFromName() {
     // Prepare the element to be pre-rendered.
     $pattern_name = 'my_pattern';
@@ -157,8 +150,6 @@ class JsonEditorFormTest extends RendererTestBase {
 
   /**
    * Test behavior when a loaded Pattern entity is passed into the element.
-   *
-   * @covers ::loadPattern
    */
   public function testLoadPatternWithPresetPattern() {
     // Mock the pattern to be passed into the element.
@@ -190,8 +181,6 @@ class JsonEditorFormTest extends RendererTestBase {
 
   /**
    * Test behavior with no pattern specified.
-   *
-   * @covers ::loadPattern
    */
   public function testLoadPatternWithNoPattern() {
     // Prepare the element to be pre-rendered.
@@ -218,8 +207,6 @@ class JsonEditorFormTest extends RendererTestBase {
 
   /**
    * Test behavior with an unknown pattern specified.
-   *
-   * @covers ::loadPattern
    */
   public function testLoadPatternWithUnknownPattern() {
     $random = $this->getRandomGenerator();
@@ -256,11 +243,6 @@ class JsonEditorFormTest extends RendererTestBase {
     $this->assertArraySubset($render_element, $result);
   }
 
-  /**
-   * @covers ::buildEditorForm
-   * @covers ::editorSettings
-   * @covers ::defaultEditorSettings
-   */
   public function testBuildEditorForm() {
     $random = $this->getRandomGenerator();
 
@@ -300,9 +282,6 @@ class JsonEditorFormTest extends RendererTestBase {
     $this->assertEquals($editor, $result['editor']);
   }
 
-  /**
-   * @covers ::processEditorForm
-   */
   public function testProcessEditorForm() {
     $random = $this->getRandomGenerator();
 

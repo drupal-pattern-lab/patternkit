@@ -2,12 +2,14 @@
 
 namespace Drupal\Tests\patternkit_usage_tracking\FunctionalJavascript;
 
+use PHPUnit\Framework\Attributes\Group;
+
 /**
  * End to end flow to test content translation in patternkit usage report.
- *
- * @group patternkit
- * @group patternkit_usage_tracking
  */
+#[Group('patternkit')]
+#[Group('patternkit_translation')]
+#[Group('patternkit_usage_tracking')]
 class LanguageTranslationTest extends ContentTranslationTestBase {
 
   /**

@@ -16,17 +16,17 @@ use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\patternkit\PatternRepository;
 use Drupal\Tests\Core\Render\RendererTestBase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Test functionality for the Pattern render element.
- *
- * @coversDefaultClass \Drupal\patternkit\Element\Pattern
- * @covers ::__construct
- * @covers ::create
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(Pattern::class)]
 class PatternElementTest extends RendererTestBase {
 
   /**
@@ -124,10 +124,7 @@ class PatternElementTest extends RendererTestBase {
     $this->patternElement = Pattern::create($this->container, [], 'pattern', []);
   }
 
-  /**
-   * @covers ::getInfo
-   */
-  public function testGetInfo() {
+  public function testGetInfo(): void {
     $patternElement = Pattern::create($this->container, [], 'test', 'test');
     $info = $patternElement->getInfo();
     $this->assertArrayHasKey('#pre_render', $info);
@@ -136,10 +133,7 @@ class PatternElementTest extends RendererTestBase {
     $this->assertArrayHasKey('#context', $info);
   }
 
-  /**
-   * @covers ::loadPattern
-   */
-  public function testLoadPattern() {
+  public function testLoadPattern(): void {
     // Scenario 1: Load a known pattern from string name.
     $patternMock = $this->createMock(PatternInterface::class);
     $expectedElement = [
@@ -173,13 +167,8 @@ class PatternElementTest extends RendererTestBase {
     ]);
   }
 
-  /**
-   * @covers ::preRenderPatternElement
-   * @covers ::getPatternLibraryPlugin
-   *
-   * @dataProvider providerPreRenderPatternElement()
-   */
-  public function testPreRenderPatternElement(array $element) {
+  #[DataProvider('providerPreRenderPatternElement')]
+  public function testPreRenderPatternElement(array $element): void {
     $patternMock = $this->getPatternMock();
     $element['#pattern'] = $patternMock;
 
@@ -226,7 +215,7 @@ class PatternElementTest extends RendererTestBase {
   /**
    * Data provider for testPreRenderPatternElement().
    */
-  public static function providerPreRenderPatternElement() {
+  public static function providerPreRenderPatternElement(): array {
     return [
       'basic' => [
         [
@@ -289,11 +278,8 @@ class PatternElementTest extends RendererTestBase {
 
   /**
    * Test that config values are passed for plugin processing.
-   *
-   * @covers ::preRenderPatternElement
-   * @covers ::getPatternLibraryPlugin
    */
-  public function testPreRenderProcessesConfigValues() {
+  public function testPreRenderProcessesConfigValues(): void {
     // Create a unique config set for confirmation in the mock.
     $config = [
       'test_value' => $this->getRandomGenerator()->string(),
@@ -318,11 +304,9 @@ class PatternElementTest extends RendererTestBase {
   }
 
   /**
-   * Test pattern prerendering without a pattern for input.
-   *
-   * @covers ::preRenderPatternElement
+   * Test pattern pre-rendering without a pattern for input.
    */
-  public function testPreRenderPatternElementWithoutPattern() {
+  public function testPreRenderPatternElementWithoutPattern(): void {
     $pattern = [
       '#type' => 'pattern',
       '#pattern' => NULL,
@@ -340,10 +324,8 @@ class PatternElementTest extends RendererTestBase {
 
   /**
    * Test pattern pre-rendering with an exception during processing.
-   *
-   * @covers ::preRenderPatternElement
    */
-  public function testPreRenderElementWithError() {
+  public function testPreRenderElementWithError(): void {
     // Prepare to throw an exception during processing to test error handling.
     $exception = new SchemaValidationException('Expected exception.');
     $this->patternFieldProcessorPluginManager->expects($this->once())

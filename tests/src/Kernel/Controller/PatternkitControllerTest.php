@@ -2,20 +2,23 @@
 
 namespace Drupal\Tests\patternkit\Kernel\Controller;
 
+use PHPUnit\Framework\Attributes\CoversClass;
+use Drupal\patternkit\Controller\PatternkitController;
+use Drupal\patternkit\Plugin\Derivative\PatternkitBlock;
 use Drupal\Tests\patternkit\Kernel\PatternkitKernelTestBase;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
-use Drupal\patternkit\Controller\PatternkitController;
-use Drupal\patternkit\Plugin\Derivative\PatternkitBlock;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\UsesClass;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Test integrated usage of the PatternkitController class.
- *
- * @coversDefaultClass \Drupal\patternkit\Controller\PatternkitController
- * @group patternkit
  */
+#[Group('patternkit')]
+#[UsesClass('\Drupal\patternkit\Plugin\Derivative\PatternkitBlock')]
+#[CoversClass(PatternkitController::class)]
 class PatternkitControllerTest extends PatternkitKernelTestBase {
 
   use PatternkitExampleLibraryAwareTrait;
@@ -44,10 +47,6 @@ class PatternkitControllerTest extends PatternkitKernelTestBase {
     $this->controller = PatternkitController::create($this->container);
   }
 
-  /**
-   * @covers ::add
-   * @uses \Drupal\patternkit\Plugin\Derivative\PatternkitBlock::assetToDerivativeId()
-   */
   public function testAdd(): void {
     $patterns = $this->getPatternNames();
     $ids = array_map([PatternkitBlock::class, 'assetToDerivativeId'], $patterns);
@@ -61,8 +60,6 @@ class PatternkitControllerTest extends PatternkitKernelTestBase {
   /**
    * Test a successful response from the apiPattern method.
    *
-   * @covers ::apiPattern
-   *
    * @todo Test content of the pattern object more completely.
    */
   public function testApiPattern(): void {
@@ -74,13 +71,11 @@ class PatternkitControllerTest extends PatternkitKernelTestBase {
     $this->assertEquals('200', $response->getStatusCode());
 
     $content = static::decodeJson($response->getContent());
-    $this->assertFalse(isset($content->error));
+    $this->assertObjectNotHasProperty('error', $content);
   }
 
   /**
    * Test a failed lookup response from the apiPattern method.
-   *
-   * @covers ::apiPattern
    */
   public function testApiPatternUnknownResult(): void {
     $pattern_id = 'unknown/pattern';
@@ -91,15 +86,12 @@ class PatternkitControllerTest extends PatternkitKernelTestBase {
     $this->assertEquals('404', $response->getStatusCode());
 
     $content = static::decodeJson($response->getContent());
-    $this->assertTrue(isset($content->error));
+    $this->assertObjectHasProperty('error', $content);
     $this->assertEquals('No known pattern definition for "@unknown/pattern".', $content->error);
   }
 
   /**
    * Test a successful response from the apiPatternSchema method.
-   *
-   * @covers ::apiPattern
-   * @covers ::apiPatternSchema
    */
   public function testApiPatternSchema(): void {
     $pattern_id = 'patternkit/atoms/example/src/example';
@@ -114,15 +106,12 @@ class PatternkitControllerTest extends PatternkitKernelTestBase {
     $this->assertEquals('200', $response->getStatusCode());
 
     $content = static::decodeJson($response->getContent());
-    $this->assertFalse(isset($content->error));
+    $this->assertObjectNotHasProperty('error', $content);
     $this->assertJsonStringEqualsJsonFile($schema_path, $response->getContent());
   }
 
   /**
    * Test a failed lookup response from the apiPatternSchema method.
-   *
-   * @covers ::apiPattern
-   * @covers ::apiPatternSchema
    */
   public function testApiPatternSchemaUnknownResult(): void {
     $pattern_id = 'unknown/pattern';
@@ -136,7 +125,7 @@ class PatternkitControllerTest extends PatternkitKernelTestBase {
     $this->assertEquals('404', $response->getStatusCode());
 
     $content = static::decodeJson($response->getContent());
-    $this->assertTrue(isset($content->error));
+    $this->assertObjectHasProperty('error', $content);
     $this->assertEquals('No known pattern definition for "@unknown/pattern".', $content->error);
   }
 

@@ -2,13 +2,13 @@
 
 namespace Drupal\patternkit;
 
+use Drupal\block\BlockInterface;
 use Drupal\Component\Plugin\Exception\PluginException;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\KeyValueStore\KeyValueExpirableFactoryInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\block\BlockInterface;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Entity\PatternkitBlock as EntityPatternkitBlock;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock;

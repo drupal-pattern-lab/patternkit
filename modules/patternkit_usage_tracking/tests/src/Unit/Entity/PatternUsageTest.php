@@ -3,16 +3,18 @@
 namespace Drupal\Tests\patternkit_usage_tracking\Unit\Entity;
 
 use Drupal\Core\Field\BaseFieldDefinition;
-use Drupal\Tests\UnitTestCase;
 use Drupal\patternkit_usage_tracking\Entity\PatternUsage;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests for the PatternUsage entity type.
- *
- * @coversDefaultClass \Drupal\patternkit_usage_tracking\Entity\PatternUsage
- * @group patternkit
- * @group patternkit_usage_tracking
  */
+#[Group('patternkit')]
+#[Group('patternkit_usage_tracking')]
+#[CoversClass(PatternUsage::class)]
 class PatternUsageTest extends UnitTestCase {
 
   /**
@@ -22,11 +24,8 @@ class PatternUsageTest extends UnitTestCase {
    *   The usage path to be parsed.
    * @param array{section: int, uuid: string, content_path: string, top_pattern: string, nested_pattern?: string} $expected
    *   The expected parsed output for the usage path.
-   *
-   * @covers ::parseUsagePath
-   *
-   * @dataProvider providerParseUsagePath
    */
+  #[DataProvider('providerParseUsagePath')]
   public function testParseUsagePath(string $path, array $expected): void {
     $stub = $this->getMockBuilder(PatternUsage::class)
       ->disableOriginalConstructor()
@@ -70,11 +69,7 @@ class PatternUsageTest extends UnitTestCase {
     return $cases;
   }
 
-  /**
-   * @covers ::isNested
-   *
-   * @dataProvider providerIsNested
-   */
+  #[DataProvider('providerIsNested')]
   public function testIsNested(string $path, bool $expected): void {
     $stub = $this->getMockBuilder(PatternUsage::class)
       ->disableOriginalConstructor()
@@ -103,11 +98,7 @@ class PatternUsageTest extends UnitTestCase {
     ];
   }
 
-  /**
-   * @covers ::getLayoutPath
-   *
-   * @dataProvider providerGetLayoutPath
-   */
+  #[DataProvider('providerGetLayoutPath')]
   public function testGetLayoutPath(string $path, string $expected): void {
     $stub = $this->getMockBuilder(PatternUsage::class)
       ->disableOriginalConstructor()
@@ -138,9 +129,6 @@ class PatternUsageTest extends UnitTestCase {
     return $cases;
   }
 
-  /**
-   * @covers ::setPath
-   */
   public function testSetPath(): void {
     // Define the record's current parent UUID to test against.
     $current_uuid = '5137f6a8-018c-11ee-be56-0242ac120002';
@@ -172,11 +160,7 @@ class PatternUsageTest extends UnitTestCase {
     $stub->setPath($invalid_path);
   }
 
-  /**
-   * @covers ::getContentPath
-   *
-   * @dataProvider providerGetContentPath
-   */
+  #[DataProvider('providerGetContentPath')]
   public function testGetContentPath(string $path, ?string $expected): void {
     $stub = $this->getMockBuilder(PatternUsage::class)
       ->disableOriginalConstructor()
@@ -207,11 +191,7 @@ class PatternUsageTest extends UnitTestCase {
     return $cases;
   }
 
-  /**
-   * @covers ::getComponentUuidDefaultValue
-   *
-   * @dataProvider providerGetComponentUuidDefaultValue
-   */
+  #[DataProvider('providerGetComponentUuidDefaultValue')]
   public function testGetComponentUuidDefaultValue(string $path, string $expected): void {
     $stub = $this->getMockBuilder(PatternUsage::class)
       ->disableOriginalConstructor()

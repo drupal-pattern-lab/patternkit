@@ -6,27 +6,26 @@ use Drupal\patternkit\Event\PatternUpdateEvent;
 use Drupal\patternkit\Exception\SchemaValidationException;
 use Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait;
 use Drupal\Tests\patternkit\Traits\SchemaFixtureTrait;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Depends;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\UsesClass;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 
 /**
  * Test PatternUpdateEvent behavior with default contexts.
- *
- * @coversDefaultClass \Drupal\patternkit\Event\PatternUpdateEvent
- * @covers ::__construct
- * @covers \Drupal\patternkit\PatternValidationTrait::validateContent
- * @uses \Drupal\patternkit\PatternValidationTrait::schemaFactory
- * @uses \Drupal\patternkit\PatternValidationTrait::contextBuilder
- * @uses \Drupal\patternkit\Schema\ContextBuilder
- * @uses \Drupal\patternkit\Schema\DataPreProcessor\DataPreProcessorCollection
- * @uses \Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor
- * @uses \Drupal\patternkit\Schema\DataPreProcessor\TokenValidationDataPreProcessor
- * @uses \Drupal\patternkit\Schema\PatternkitRefProvider
- * @uses \Drupal\patternkit\Schema\SchemaFactory
- * @uses \Drupal\patternkit\Schema\SchemaFactoryTrait
- *
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(PatternUpdateEvent::class)]
+#[UsesClass('\Drupal\patternkit\Schema\ContextBuilder')]
+#[UsesClass('\Drupal\patternkit\Schema\DataPreProcessor\DataPreProcessorCollection')]
+#[UsesClass('\Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor')]
+#[UsesClass('\Drupal\patternkit\Schema\DataPreProcessor\TokenValidationDataPreProcessor')]
+#[UsesClass('\Drupal\patternkit\Schema\PatternkitRefProvider')]
+#[UsesClass('\Drupal\patternkit\Schema\SchemaFactory')]
+#[UsesClass('\Drupal\patternkit\Schema\SchemaFactoryTrait')]
 class PatternkitUpdateEventTest extends PatternkitKernelTestBase {
 
   use PatternkitMockHelperTrait;
@@ -117,11 +116,8 @@ class PatternkitUpdateEventTest extends PatternkitKernelTestBase {
    *     argument to be passed to setContent().
    *   - 'contentIsValid': (bool) A boolean argument declaring whether the
    *     validation operation is expected to succeed or fail.
-   *
-   * @covers ::validateContent
-   *
-   * @dataProvider providerSetContent
    */
+  #[DataProvider('providerSetContent')]
   public function testValidateContent(
     array $content,
     string $schemaFixture,
@@ -158,14 +154,9 @@ class PatternkitUpdateEventTest extends PatternkitKernelTestBase {
    *     argument to be passed to setContent().
    *   - 'contentIsValid': (bool) A boolean argument declaring whether the
    *     validation operation is expected to succeed or fail.
-   *
-   * @covers ::setContent
-   * @uses \Drupal\patternkit\Event\PatternUpdateEvent::validateContent()
-   * @uses \Drupal\patternkit\Event\PatternUpdateEvent::getExceptions()
-   *
-   * @dataProvider providerSetContent
-   * @depends testValidateContent
    */
+  #[Depends('testValidateContent')]
+  #[DataProvider('providerSetContent')]
   public function testSetContent(
     array $content,
     string $schemaFixture,
@@ -210,15 +201,9 @@ class PatternkitUpdateEventTest extends PatternkitKernelTestBase {
    *     argument to be passed to setContent().
    *   - 'contentIsValid': (bool) A boolean argument declaring whether the
    *     validation operation is expected to succeed or fail.
-   *
-   * @covers ::hasExceptions
-   * @uses \Drupal\patternkit\Event\PatternUpdateEvent::validateContent()
-   * @uses \Drupal\patternkit\Event\PatternUpdateEvent::setContent()
-   * @uses \Drupal\patternkit\Event\PatternUpdateEvent::getExceptions()
-   *
-   * @dataProvider providerSetContent
-   * @depends testSetContent
    */
+  #[Depends('testSetContent')]
+  #[DataProvider('providerSetContent')]
   public function testHasExceptions(
     array $content,
     string $schemaFixture,
@@ -264,14 +249,9 @@ class PatternkitUpdateEventTest extends PatternkitKernelTestBase {
    *     argument to be passed to setContent().
    *   - 'contentIsValid': (bool) A boolean argument declaring whether the
    *     validation operation is expected to succeed or fail.
-   *
-   * @covers ::getExceptions
-   * @uses \Drupal\patternkit\Event\PatternUpdateEvent::validateContent()
-   * @uses \Drupal\patternkit\Event\PatternUpdateEvent::setContent()
-   *
-   * @dataProvider providerSetContent
-   * @depends testSetContent
    */
+  #[Depends('testSetContent')]
+  #[DataProvider('providerSetContent')]
   public function testGetExceptions(
     array $content,
     string $schemaFixture,

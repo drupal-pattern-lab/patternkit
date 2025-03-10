@@ -2,6 +2,9 @@
 
 namespace Drupal\Tests\patternkit\Unit;
 
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Drupal\block\BlockInterface;
 use Drupal\Component\Plugin\Exception\PluginException;
 use Drupal\Core\Block\BlockPluginInterface;
 use Drupal\Core\Block\Plugin\Block\Broken;
@@ -10,10 +13,6 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\KeyValueStore\KeyValueExpirableFactoryInterface;
-use Drupal\TestTools\Random;
-use Drupal\Tests\UnitTestCase;
-use Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait;
-use Drupal\block\BlockInterface;
 use Drupal\layout_builder\SectionComponent;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternInterface;
@@ -22,6 +21,10 @@ use Drupal\patternkit\Exception\UnknownPatternException;
 use Drupal\patternkit\LayoutHelper;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock as BlockPatternkitBlock;
 use Drupal\patternkit\UpdateHelper;
+use Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait;
+use Drupal\Tests\UnitTestCase;
+use Drupal\TestTools\Random;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -30,11 +33,9 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Unit tests for the UpdateHelper service.
- *
- * @coversDefaultClass \Drupal\patternkit\UpdateHelper
- * @covers ::__construct
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(UpdateHelper::class)]
 class UpdateHelperTest extends UnitTestCase {
 
   use ProphecyTrait;
@@ -170,10 +171,8 @@ class UpdateHelperTest extends UnitTestCase {
 
   /**
    * Tests the isPatternkitComponent method.
-   *
-   * @covers ::isPatternkitComponent
-   * @dataProvider providerIsPatternkitComponent
    */
+  #[DataProvider('providerIsPatternkitComponent')]
   public function testIsPatternkitComponent(string $plugin_id, bool $expected) {
     $updateHelper = $this->getUpdateHelper();
 
@@ -197,10 +196,8 @@ class UpdateHelperTest extends UnitTestCase {
 
   /**
    * Tests the getBlockFromComponent method.
-   *
-   * @covers ::getBlockFromComponent
-   * @dataProvider providerGetBlockFromComponent
    */
+  #[DataProvider('providerGetBlockFromComponent')]
   public function testGetBlockFromComponent(bool $entity_exists): void {
     $plugin = $this->prophesize(BlockPatternkitBlock::class);
     $block = $this->prophesize(EntityPatternkitBlock::class);
@@ -228,8 +225,6 @@ class UpdateHelperTest extends UnitTestCase {
 
   /**
    * Tests the getPatternFromComponent method.
-   *
-   * @covers ::getPatternFromComponent
    */
   public function testGetPatternFromComponent(): void {
     $plugin = $this->prophesize(BlockPatternkitBlock::class);
@@ -244,12 +239,6 @@ class UpdateHelperTest extends UnitTestCase {
     $this->assertEquals($pattern->reveal(), $actual);
   }
 
-  /**
-   * @covers ::updateBlockComponentPattern
-   * @covers ::isPatternkitComponent
-   * @covers ::getBlockFromComponent
-   * @covers ::getPatternFromComponent
-   */
   public function testUpdateBlockComponentPattern(): void {
     $configuration = [
       'pattern' => 123,
@@ -333,10 +322,8 @@ class UpdateHelperTest extends UnitTestCase {
    * case from the data provider would be more ideal, but since the data
    * is only run once and can only provide static arguments this isn't easily
    * achievable.
-   *
-   * @covers ::updateBlockComponentPattern
-   * @dataProvider providerUpdateBlockComponentPatternWithFailures
    */
+  #[DataProvider('providerUpdateBlockComponentPatternWithFailures')]
   public function testUpdateBlockComponentPatternWithFailures(string $scenario): void {
     $configuration = [
       'pattern' => 123,
@@ -516,9 +503,6 @@ class UpdateHelperTest extends UnitTestCase {
     return $cases;
   }
 
-  /**
-   * @covers ::updateBlockComponents
-   */
   public function testUpdateBlockComponents(): void {
     $filter = [];
     $blocks = [];
@@ -560,10 +544,6 @@ class UpdateHelperTest extends UnitTestCase {
     $this->assertEquals(2, $mock->updateBlockComponents());
   }
 
-  /**
-   * @covers ::updateAllPatternComponents
-   * @covers ::layoutHelper
-   */
   public function testUpdateAllPatternComponentsWithoutLayoutBuilder(): void {
     $this->moduleHandler->moduleExists('layout_builder')
       ->willReturn(FALSE);
@@ -578,11 +558,6 @@ class UpdateHelperTest extends UnitTestCase {
     $this->assertEquals([3, 0], $mock->updateAllPatternComponents());
   }
 
-  /**
-   * @covers ::updateAllPatternComponents
-   * @covers ::layoutHelper
-   * @covers ::setLayoutHelper
-   */
   public function testUpdateAllPatternComponentsWithoutFilters(): void {
     $this->layoutHelper = $this->prophesize(LayoutHelper::class);
     $this->layoutHelper->setUpdateHelper(Argument::type(UpdateHelper::class))
@@ -610,10 +585,7 @@ class UpdateHelperTest extends UnitTestCase {
     $this->assertEquals([8, 2], $mock->updateAllPatternComponents());
   }
 
-  /**
-   * @covers ::updateAllPatternComponents
-   * @dataProvider providerUpdateAllPatternComponentsWithFilters
-   */
+  #[DataProvider('providerUpdateAllPatternComponentsWithFilters')]
   public function testUpdateAllPatternComponentsWithFilters(array $filter, array $expected_logging, array $options): void {
     [
       'layout_helper' => $use_layout_helper,
@@ -749,11 +721,8 @@ class UpdateHelperTest extends UnitTestCase {
    * @param string $component_type
    *   The type of component to be tested with. Valid options are 'block' or
    *   'layout'.
-   *
-   * @covers ::filterComponent
-   * @covers ::isPatternkitComponent
-   * @dataProvider providerFilterComponent
    */
+  #[DataProvider('providerFilterComponent')]
   public function testFilterComponent(array $component, array $filter, bool $expected, string $component_type) {
     $component = $this->getMockComponent($component_type, $component);
 
@@ -870,11 +839,8 @@ class UpdateHelperTest extends UnitTestCase {
    * case from the data provider would be more ideal, but since the data
    * is only run once and can only provide static arguments this isn't easily
    * achievable.
-   *
-   * @covers ::filterComponent
-   * @covers ::isPatternkitComponent
-   * @dataProvider providerFilterComponentWithErrors
    */
+  #[DataProvider('providerFilterComponentWithErrors')]
   public function testFilterComponentWithErrors(string $scenario, string $component_type) {
     $derivative_id = $this->getRandomGenerator()->string();
     $plugin_id = 'patternkit:' . $derivative_id;

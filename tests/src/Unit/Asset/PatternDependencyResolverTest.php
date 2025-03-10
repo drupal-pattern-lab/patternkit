@@ -2,25 +2,31 @@
 
 namespace Drupal\Tests\patternkit\Unit\Asset;
 
+use Drupal\patternkit\Asset\PatternDependencyResolver;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Tests\UnitTestCase;
 use Drupal\patternkit\Asset\PatternDiscoveryInterface;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Schema\ContextBuilder;
 use Drupal\patternkit\Schema\DataPreProcessorFactory;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\UsesClass;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Psr\Log\LoggerInterface;
 
 /**
  * Unit tests for the PatternDependencyResolver class.
- *
- * @coversDefaultClass \Drupal\patternkit\Asset\PatternDependencyResolver
- * @uses \Drupal\patternkit\Schema\ContextBuilderTrait
- * @covers ::__construct()
- * @group patternkit
  */
+#[Group('patternkit')]
+#[UsesClass('\Drupal\patternkit\Schema\ContextBuilderTrait')]
+#[UsesClass('\Drupal\patternkit\Schema\DataPreProcessor\SchemaRefObserver')]
+#[UsesClass('\Drupal\patternkit\Schema\UnresolvedSchema')]
+#[UsesClass('\MJS\TopSort\Implementations\FixedArraySort')]
+#[CoversClass(PatternDependencyResolver::class)]
 class PatternDependencyResolverTest extends UnitTestCase {
 
   use ProphecyTrait;
@@ -136,10 +142,8 @@ class PatternDependencyResolverTest extends UnitTestCase {
 
   /**
    * Test recursive pattern dependency resolution.
-   *
-   * @covers ::resolvePatternDependencies
-   * @dataProvider providerResolvePatternDependencies
    */
+  #[DataProvider('providerResolvePatternDependencies')]
   public function testResolvePatternDependencies(array $dependencies, string $pattern_id, array $known_dependencies, array $expected) {
     $this->resolver->setDependencies($dependencies);
 
@@ -213,11 +217,6 @@ class PatternDependencyResolverTest extends UnitTestCase {
 
   /**
    * Test loading and ordering of pattern dependencies for loading.
-   *
-   * @covers ::getOrderedDependencies
-   * @covers ::getPatternLoadOrder
-   * @uses \Drupal\patternkit\Asset\PatternDependencyResolver::getPatternLoadOrder()
-   * @uses \Drupal\patternkit\Asset\PatternDependencyResolver::resolvePatternDependencies()
    */
   public function testGetOrderedDependencies() {
     $this->resolver->setDependencies(static::$patternDependencies);
@@ -233,13 +232,6 @@ class PatternDependencyResolverTest extends UnitTestCase {
     ], array_flip($ordered_dependencies));
   }
 
-  /**
-   * @covers ::getAllPatternDependencies
-   * @covers ::getSchemaDependencies
-   * @covers ::patternStorage
-   * @uses \Drupal\patternkit\Schema\UnresolvedSchema
-   * @uses \Drupal\patternkit\Schema\DataPreProcessor\SchemaRefObserver
-   */
   public function testGetAllPatternDependencies() {
     $pattern_definitions = [
       '@namespace' => [
@@ -273,11 +265,6 @@ class PatternDependencyResolverTest extends UnitTestCase {
     $this->assertEquals($expected_results, $dependencies);
   }
 
-  /**
-   * @covers ::getPatternLoadOrder
-   * @uses \Drupal\patternkit\Asset\PatternDependencyResolver::getAllPatternDependencies()
-   * @uses \MJS\TopSort\Implementations\FixedArraySort
-   */
   public function testGetPatternLoadOrderWithoutArguments() {
     // Don't use the class instance variable since the pointers will cause an
     // error.
@@ -302,10 +289,6 @@ class PatternDependencyResolverTest extends UnitTestCase {
     ], array_flip($order));
   }
 
-  /**
-   * @covers ::getPatternLoadOrder
-   * @uses \MJS\TopSort\Implementations\FixedArraySort
-   */
   public function testGetPatternLoadOrderWithArguments() {
     // Don't use the class instance variable since the pointers will cause an
     // error.

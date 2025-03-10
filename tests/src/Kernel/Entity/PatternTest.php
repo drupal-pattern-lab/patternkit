@@ -2,15 +2,17 @@
 
 namespace Drupal\tests\patternkit\Kernel\Entity;
 
-use Drupal\Tests\patternkit\Kernel\PatternkitKernelTestBase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\patternkit\Entity\Pattern;
+use Drupal\Tests\patternkit\Kernel\PatternkitKernelTestBase;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests for the Pattern class.
- *
- * @coversDefaultClass \Drupal\patternkit\Entity\Pattern
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(Pattern::class)]
 class PatternTest extends PatternkitKernelTestBase {
 
   /**
@@ -37,13 +39,8 @@ class PatternTest extends PatternkitKernelTestBase {
    *   Should the pattern instance cache tag be returned?
    * @param bool $shouldReturnAssetTag
    *   Should the pattern asset cache tag be returned?
-   *
-   * @dataProvider providerGetCacheTags
-   *
-   * @covers ::getCacheTags
-   * @covers ::getCacheTagsToInvalidate
-   * @covers ::shouldInvalidateCacheTags
    */
+  #[DataProvider('providerGetCacheTags')]
   public function testGetCacheTags(
     bool $isNew,
     bool $isDefault,
@@ -122,12 +119,8 @@ class PatternTest extends PatternkitKernelTestBase {
    *   Should the pattern instance cache tag be returned?
    * @param bool $shouldReturnAssetTag
    *   Should the pattern asset cache tag be returned?
-   *
-   * @dataProvider providerGetCacheTagsToInvalidate
-   *
-   * @covers ::getCacheTagsToInvalidate
-   * @covers ::shouldInvalidateCacheTags
    */
+  #[DataProvider('providerGetCacheTagsToInvalidate')]
   public function testGetCacheTagsToInvalidate(
     bool $isNew,
     bool $isDefault,

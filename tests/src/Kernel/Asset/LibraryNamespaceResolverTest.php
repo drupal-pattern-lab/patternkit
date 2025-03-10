@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\patternkit\Kernel\Asset;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Cache\MemoryBackend;
@@ -9,13 +10,15 @@ use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\DependencyInjection\ServiceModifierInterface;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\patternkit\Asset\LibraryNamespaceResolver;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Test the LibraryNamespaceResolver service.
  *
- * @coversDefaultClass \Drupal\patternkit\Asset\LibraryNamespaceResolver
- * @group patternkit
+ * @todo Expand to test handling of externally sourced patterns.
  */
+#[Group('patternkit')]
+#[CoversClass(LibraryNamespaceResolver::class)]
 class LibraryNamespaceResolverTest extends KernelTestBase implements ServiceModifierInterface {
 
   /**
@@ -55,11 +58,6 @@ class LibraryNamespaceResolverTest extends KernelTestBase implements ServiceModi
     $container->setDefinition('patternkit.library.namespace_resolver', $definition);
   }
 
-  /**
-   * @covers ::getLibraryDefinitions
-   *
-   * @todo Expand to test handling of externally sourced patterns.
-   */
   public function testGetLibraryDefinitions() {
     $definitions = $this->resolver->getLibraryDefinitions();
 
@@ -95,9 +93,6 @@ class LibraryNamespaceResolverTest extends KernelTestBase implements ServiceModi
 
   /**
    * Test to confirm persistence of discovered data in the cache.
-   *
-   * @covers ::getLibraryDefinitions
-   * @covers ::destruct
    */
   public function testLibraryCachePersistence() {
     // Ensure the cache is starting empty.
@@ -116,9 +111,6 @@ class LibraryNamespaceResolverTest extends KernelTestBase implements ServiceModi
 
   /**
    * Test to confirm loading of cached library data.
-   *
-   * @covers ::getLibraryDefinitions
-   * @covers ::destruct
    */
   public function testLibraryCacheLoading() {
     // Prepare dummy data to seed the cache with.
@@ -143,10 +135,6 @@ class LibraryNamespaceResolverTest extends KernelTestBase implements ServiceModi
    * and cached during a request, but a later request uses a new library that
    * isn't discovered and cached yet. In this case, the service should perform
    * a discovery to load all libraries from all enabled extensions.
-   *
-   * @covers ::getLibraryFromNamespace
-   * @covers ::resolveCacheMiss
-   * @covers ::destruct
    */
   public function testCacheMissLoading() {
     // Seed the cache with incomplete dummy data.
@@ -172,8 +160,6 @@ class LibraryNamespaceResolverTest extends KernelTestBase implements ServiceModi
 
   /**
    * Test to confirm handling of known and unknown namespace requests.
-   *
-   * @covers ::getLibraryFromNamespace
    */
   public function testCacheMissResults() {
     // Ensure the cache is starting empty.
@@ -191,9 +177,6 @@ class LibraryNamespaceResolverTest extends KernelTestBase implements ServiceModi
 
   /**
    * Test the discovery process to ensure repeated invalidation isn't triggered.
-   *
-   * @covers ::getLibraryDefinitions
-   * @covers ::invalidateCache
    */
   public function testCacheInvalidationsDuringBuild(): void {
     // Mock a functional cache backend to monitor for invalidation calls.

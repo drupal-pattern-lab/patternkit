@@ -2,9 +2,15 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
-use Drupal\Tests\UnitTestCase;
-use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\patternkit\Schema\UnresolvedSchema;
+use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\Depends;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\UsesClass;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Swaggest\JsonSchema\Context;
@@ -15,12 +21,11 @@ use Swaggest\JsonSchema\SchemaContract;
 
 /**
  * Unit tests for the UnresolvedSchema class.
- *
- * @coversDefaultClass \Drupal\patternkit\Schema\UnresolvedSchema
- * @uses \Swaggest\JsonSchema\Schema
- * @uses \Swaggest\JsonSchema\Context
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(UnresolvedSchema::class)]
+#[UsesClass('\Swaggest\JsonSchema\Schema')]
+#[UsesClass('\Swaggest\JsonSchema\Context')]
 class UnresolvedSchemaTest extends UnitTestCase {
 
   use JsonDecodeTrait;
@@ -83,11 +88,6 @@ class UnresolvedSchemaTest extends UnitTestCase {
 
   /**
    * Test schema import behavior without resolving references.
-   *
-   * @covers ::import
-   * @uses \Drupal\patternkit\Schema\UnresolvedSchema::jsonSerialize()
-   * @uses \Drupal\patternkit\Schema\UnresolvedSchema::disableAutomaticDereferencing()
-   * @uses \Drupal\patternkit\Schema\UnresolvedSchema::setUpProperties()
    */
   public function testImport(): UnresolvedSchema {
     $this->refProvider->getSchemaData('@my/example/reference')
@@ -110,13 +110,8 @@ class UnresolvedSchemaTest extends UnitTestCase {
 
   /**
    * Test various import scenarios to confirm behavior.
-   *
-   * @covers ::import
-   * @covers ::setUpProperties
-   * @covers ::disableAutomaticDereferencing
-   * @covers ::jsonSerialize
-   * @dataProvider providerImportScenarios
    */
+  #[DataProvider('providerImportScenarios')]
   public function testImportScenarios(string $json): void {
     $schema_data = static::decodeJson($json);
     $schema = UnresolvedSchema::import($schema_data);
@@ -167,11 +162,8 @@ class UnresolvedSchemaTest extends UnitTestCase {
 
   /**
    * Test schema resolution after the initial import.
-   *
-   * @covers ::resolve
-   * @covers ::jsonSerialize
-   * @depends testImport
    */
+  #[Depends('testImport')]
   public function testResolve(UnresolvedSchema $schema): SchemaContract {
     $this->refProvider->getSchemaData('@my/example/reference')
       ->willReturn(static::decodeJson(static::$referencedSchemaJson))
@@ -192,10 +184,9 @@ class UnresolvedSchemaTest extends UnitTestCase {
 
   /**
    * Test validation behavior after an unresolved schema is resolved.
-   *
-   * @coversNothing
-   * @depends testResolve
    */
+  #[Depends('testResolve')]
+  #[CoversNothing]
   public function testResolvedValidation(SchemaContract $schema): void {
     $valid_data = <<<JSON
       {
@@ -229,11 +220,6 @@ class UnresolvedSchemaTest extends UnitTestCase {
 
   /**
    * Test side effects from using the import method.
-   *
-   * @covers ::import
-   * @covers ::disableAutomaticDereferencing
-   * @covers ::setUpProperties
-   * @covers ::jsonSerialize
    */
   public function testImportSideEffects(): void {
     // Confirm state before execution.
@@ -259,10 +245,6 @@ class UnresolvedSchemaTest extends UnitTestCase {
 
   /**
    * Test serialization to confirm loaded references remain unresolved.
-   *
-   * @covers ::jsonSerialize
-   * @uses \Drupal\patternkit\Schema\UnresolvedSchema::import
-   * @uses \Drupal\patternkit\Schema\UnresolvedSchema::setUpProperties
    */
   public function testJsonSerialize(): void {
     $json = <<<JSON

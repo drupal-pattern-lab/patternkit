@@ -2,18 +2,19 @@
 
 namespace Drupal\Tests\patternkit\Kernel\Asset\PatternLibraryParser;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\KernelTests\KernelTestBase;
-use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
 use Drupal\patternkit\Asset\PatternDiscoveryInterface;
 use Drupal\patternkit\Asset\PatternLibraryParserBase;
 use Drupal\patternkit\Asset\PatternLibraryParserInterface;
+use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Test Pattern Library Parser plugins.
- *
- * @coversDefaultClass \Drupal\patternkit\Asset\PatternLibraryParserBase
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(PatternLibraryParserBase::class)]
 class PatternLibraryParserTestBase extends KernelTestBase {
 
   use PatternkitExampleLibraryAwareTrait;
@@ -54,8 +55,6 @@ class PatternLibraryParserTestBase extends KernelTestBase {
 
   /**
    * Test basic component discovery.
-   *
-   * @covers ::discoverComponents
    */
   public function testDiscoverComponents() {
     $module_path = $this->getModulePath('patternkit_example');
@@ -68,23 +67,14 @@ class PatternLibraryParserTestBase extends KernelTestBase {
     $this->assertEquals($expected_components, $components);
   }
 
-  /**
-   * @covers ::createPattern
-   */
   public function testCreatePattern() {
     $this->markTestIncomplete('Test not yet implemented.');
   }
 
-  /**
-   * @covers ::fetchPatternAssets
-   */
   public function testFetchPatternAssets() {
     $this->markTestIncomplete('Test not yet implemented.');
   }
 
-  /**
-   * @covers ::parsePatternLibraryInfo
-   */
   public function testParsePatternLibraryInfo() {
     $this->markTestIncomplete('Test not yet implemented.');
   }

@@ -2,23 +2,25 @@
 
 namespace Drupal\Tests\patternkit\Unit\Plugin\PatternFieldProcessor;
 
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Template\TwigEnvironment;
 use Drupal\Core\Utility\Token;
-use Drupal\Tests\UnitTestCase;
 use Drupal\node\NodeInterface;
 use Drupal\patternkit\Plugin\PatternFieldProcessor\TokenProcessor;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\MockObject\MockObject;
 use Swaggest\JsonSchema\Schema;
 use Swaggest\JsonSchema\SchemaContract;
 
 /**
  * Tests for the TokenProcessor plugin.
- *
- * @coversDefaultClass \Drupal\patternkit\Plugin\PatternFieldProcessor\TokenProcessor
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(TokenProcessor::class)]
 class TokenProcessorTest extends UnitTestCase {
 
   /**
@@ -75,11 +77,8 @@ class TokenProcessorTest extends UnitTestCase {
 
   /**
    * Tests applies method in various use cases.
-   *
-   * @covers ::applies
-   * @covers ::__construct
-   * @dataProvider providerApplies
    */
+  #[DataProvider('providerApplies')]
   public function testApplies(SchemaContract $propertySchema, bool $expected) {
     $this->assertEquals($expected, $this->plugin->applies($propertySchema));
   }
@@ -175,10 +174,6 @@ class TokenProcessorTest extends UnitTestCase {
     return $cases;
   }
 
-  /**
-   * @covers ::apply
-   * @covers ::__construct
-   */
   public function testApplyReplace() {
     $schema_json = <<<JSON
       {
@@ -214,10 +209,6 @@ class TokenProcessorTest extends UnitTestCase {
     $this->assertEquals($expected, $result);
   }
 
-  /**
-   * @covers ::apply
-   * @covers ::__construct
-   */
   public function testApplyReplacePlain() {
     $schema_json = <<<JSON
       {

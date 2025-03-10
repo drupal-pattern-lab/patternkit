@@ -2,14 +2,17 @@
 
 namespace Drupal\Tests\patternkit\Unit;
 
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\Component\Plugin\Exception\PluginNotFoundException;
 use Drupal\Component\Plugin\Factory\FactoryInterface;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Extension\ThemeHandlerInterface;
-use Drupal\Tests\UnitTestCase;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Group;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
@@ -17,10 +20,9 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Unit tests for the PatternLibraryPluginManager service.
- *
- * @coversDefaultClass \Drupal\patternkit\PatternLibraryPluginManager
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(PatternLibraryPluginManager::class)]
 class PatternLibraryPluginManagerTest extends UnitTestCase {
 
   use ProphecyTrait;
@@ -97,12 +99,8 @@ class PatternLibraryPluginManagerTest extends UnitTestCase {
    *   The expected result.
    * @param string $pluginId
    *   The plugin ID to generate a fallback for.
-   *
-   * @covers ::getFallbackPluginId
-   * @covers \Drupal\patternkit\PatternLibraryPluginManager
-   *
-   * @dataProvider providerGetFallbackPluginId()
    */
+  #[DataProvider('providerGetFallbackPluginId')]
   public function testGetFallbackPluginId(string $expected, string $pluginId): void {
     $pluginManager = $this->getPluginManager();
     $this->assertEquals($expected, $pluginManager->getFallbackPluginId($pluginId));
@@ -120,9 +118,6 @@ class PatternLibraryPluginManagerTest extends UnitTestCase {
 
   /**
    * Test getFallbackPluginId() behavior with no successful result available.
-   *
-   * @covers ::getFallbackPluginId()
-   * @covers \Drupal\patternkit\PatternLibraryPluginManager
    */
   public function testGetFallbackPluginIdFailure(): void {
     $pluginManager = $this->getPluginManager();
@@ -135,9 +130,6 @@ class PatternLibraryPluginManagerTest extends UnitTestCase {
 
   /**
    * Test valid calls to createInstance().
-   *
-   * @covers ::createInstance
-   * @covers \Drupal\patternkit\PatternLibraryPluginManager
    */
   public function testCreateInstance(): void {
     $pluginManager = $this->getPluginManager();
@@ -159,11 +151,6 @@ class PatternLibraryPluginManagerTest extends UnitTestCase {
 
   /**
    * Test calls to createInstance() requiring loading of fallback plugins.
-   *
-   * @covers ::createInstance
-   * @covers ::handlePluginNotFound
-   * @covers ::getFallbackPluginId
-   * @covers \Drupal\patternkit\PatternLibraryPluginManager
    */
   public function testCreateInstanceWithFallback(): void {
     $pluginManager = $this->getPluginManager();
@@ -213,11 +200,6 @@ class PatternLibraryPluginManagerTest extends UnitTestCase {
 
   /**
    * Test calls to createInstance() with fallbacks and eventual failure.
-   *
-   * @covers ::createInstance
-   * @covers ::handlePluginNotFound
-   * @covers ::getFallbackPluginId
-   * @covers \Drupal\patternkit\PatternLibraryPluginManager
    */
   public function testCreateInstanceWithFallbackFailure(): void {
     $pluginManager = $this->getPluginManager();

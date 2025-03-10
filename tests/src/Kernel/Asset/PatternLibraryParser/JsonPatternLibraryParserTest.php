@@ -2,17 +2,18 @@
 
 namespace Drupal\Tests\patternkit\Kernel\Asset\PatternLibraryParser;
 
-use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\patternkit\Asset\PatternLibraryParser\JSONPatternLibraryParser;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternLibrary;
+use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Test description.
- *
- * @coversDefaultClass \Drupal\patternkit\Asset\PatternLibraryParser\JSONPatternLibraryParser
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(JSONPatternLibraryParser::class)]
 class JsonPatternLibraryParserTest extends PatternLibraryParserTestBase {
 
   use PatternkitExampleLibraryAwareTrait;
@@ -26,9 +27,6 @@ class JsonPatternLibraryParserTest extends PatternLibraryParserTestBase {
     $this->plugin = $this->container->get('patternkit.asset.library.parser.json');
   }
 
-  /**
-   * @covers ::createPattern
-   */
   public function testCreatePattern() {
     $pattern_name = '@patternkit/atoms/example/src/example';
     $values = [
@@ -47,9 +45,6 @@ class JsonPatternLibraryParserTest extends PatternLibraryParserTestBase {
     $this->assertEquals($values['hidden'], $pattern->hidden);
   }
 
-  /**
-   * @covers ::fetchPatternAssets
-   */
   public function testFetchPatternAssets() {
     $pattern_name = '@patternkit/atoms/example/src/example';
     $pattern_definition = $this->patternDiscovery->getPatternDefinition($pattern_name);
@@ -84,8 +79,6 @@ class JsonPatternLibraryParserTest extends PatternLibraryParserTestBase {
 
   /**
    * Test basic component discovery.
-   *
-   * @covers ::discoverComponents
    */
   public function testDiscoverComponents() {
     $module_path = $this->getModulePath('patternkit_example');
@@ -98,9 +91,6 @@ class JsonPatternLibraryParserTest extends PatternLibraryParserTestBase {
     $this->assertEquals($expected_components, $components);
   }
 
-  /**
-   * @covers ::parsePatternLibraryInfo
-   */
   public function testParsePatternLibraryInfo() {
     $module_path = $this->getModulePath('patternkit_test');
     $lib_path = $module_path . '/lib/patternkit/src';

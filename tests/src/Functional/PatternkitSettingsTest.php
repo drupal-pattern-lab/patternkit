@@ -2,12 +2,15 @@
 
 namespace Drupal\Tests\patternkit\Functional;
 
+use Drupal\patternkit\Form\PatternkitSettingsForm;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
+
 /**
  * E2E testing for the Patternkit settings forms.
- *
- * @coversDefaultClass \Drupal\patternkit\Form\PatternkitSettingsForm
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(PatternkitSettingsForm::class)]
 class PatternkitSettingsTest extends PatternkitBrowserTestBase {
 
   /**

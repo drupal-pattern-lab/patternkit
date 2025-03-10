@@ -2,21 +2,24 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema\DataPreProcessor;
 
-use Drupal\Tests\UnitTestCase;
-use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor;
+use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\UsesClass;
 use Swaggest\JsonSchema\Context;
 use Swaggest\JsonSchema\RemoteRef\Preloaded;
 use Swaggest\JsonSchema\Schema;
 
 /**
  * Unit tests for the ObjectCoercionDataPreProcessor.
- *
- * @coversDefaultClass \Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor
- * @uses \Swaggest\JsonSchema\Schema
- * @uses \Swaggest\JsonSchema\Context
- * @group patternkit
  */
+#[Group('patternkit')]
+#[UsesClass('\Swaggest\JsonSchema\Context')]
+#[UsesClass('\Swaggest\JsonSchema\Schema')]
+#[CoversClass(ObjectCoercionDataPreProcessor::class)]
 class ObjectCoercionDataPreProcessorTest extends UnitTestCase {
 
   use JsonDecodeTrait;
@@ -196,10 +199,7 @@ class ObjectCoercionDataPreProcessorTest extends UnitTestCase {
     $this->context->setDataPreProcessor($this->dataPreProcessor);
   }
 
-  /**
-   * @covers ::process
-   * @dataProvider providerProcess
-   */
+  #[DataProvider('providerProcess')]
   public function testProcess($data, Schema $schema, $expected) {
     $result = $this->dataPreProcessor->process($data, $schema);
     $this->assertEquals($expected, $result);
@@ -278,10 +278,7 @@ class ObjectCoercionDataPreProcessorTest extends UnitTestCase {
     return $cases;
   }
 
-  /**
-   * @covers ::process
-   * @dataProvider providerSchemaValidation
-   */
+  #[DataProvider('providerSchemaValidation')]
   public function testSchemaValidation(string $schema, $value) {
     $schema = Schema::import(static::decodeJson($schema), $this->context);
 

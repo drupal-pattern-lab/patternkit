@@ -2,12 +2,16 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
-use Drupal\Tests\UnitTestCase;
-use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\patternkit\Exception\SchemaValidationException;
 use Drupal\patternkit\Schema\ContextBuilder;
 use Drupal\patternkit\Schema\SchemaHelper;
+use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\UsesClass;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
@@ -18,10 +22,10 @@ use Swaggest\JsonSchema\SchemaContract;
 
 /**
  * Tests the SchemaHelper utility class.
- *
- * @coversDefaultClass \Drupal\patternkit\Schema\SchemaHelper
- * @group patternkit
  */
+#[Group('patternkit')]
+#[UsesClass('\Drupal\patternkit\Exception\SchemaException')]
+#[CoversClass(SchemaHelper::class)]
 class SchemaHelperTest extends UnitTestCase {
 
   use JsonDecodeTrait;
@@ -154,10 +158,7 @@ class SchemaHelperTest extends UnitTestCase {
     $this->context = new Context();
   }
 
-  /**
-   * @covers ::isCompositionSchema
-   * @dataProvider providerIsCompositionSchema
-   */
+  #[DataProvider('providerIsCompositionSchema')]
   public function testIsCompositionSchema(SchemaContract $schema, bool $expected) {
     $this->assertEquals($expected, SchemaHelper::isCompositionSchema($schema));
   }
@@ -184,11 +185,6 @@ class SchemaHelperTest extends UnitTestCase {
     return $cases;
   }
 
-  /**
-   * @covers ::getCompositionSchema
-   * @covers ::getConstraintFromObject
-   * @covers ::manuallyTestConstraints
-   */
   public function testGetCompositionSchema() {
     $schema = Schema::import(static::decodeJson(static::$flatSchema));
     $itemsSchema = $schema->getProperties()->breakpoints->items;
@@ -222,9 +218,6 @@ class SchemaHelperTest extends UnitTestCase {
 
   /**
    * Verify the default schema is loaded if none is provided.
-   *
-   * @covers ::getCompositionSchema
-   * @uses \Drupal\patternkit\Schema\SchemaHelper::manuallyTestConstraints()
    */
   public function testGetCompositionSchemaLoadsDefaultSchema(): void {
     // Prepare mock data to run on.
@@ -239,9 +232,6 @@ class SchemaHelperTest extends UnitTestCase {
 
   /**
    * Verify the default schema is not loaded if one is provided.
-   *
-   * @covers ::getCompositionSchema
-   * @uses \Drupal\patternkit\Schema\SchemaHelper::manuallyTestConstraints()
    */
   public function testGetCompositionSchemaDoesNotLoadDefaultSchema(): void {
     // Prepare mock data to run on.
@@ -256,9 +246,6 @@ class SchemaHelperTest extends UnitTestCase {
 
   /**
    * Test expectations for throwing validation exceptions.
-   *
-   * @covers ::getCompositionSchema
-   * @uses \Drupal\patternkit\Exception\SchemaException
    */
   public function testGetCompositionSchemaValidationException() {
     $exceptionMessage = 'Encountered intentional validation exception';
@@ -277,9 +264,6 @@ class SchemaHelperTest extends UnitTestCase {
     SchemaHelper::getCompositionSchema($schema->reveal(), 'my_value');
   }
 
-  /**
-   * @covers ::isValid
-   */
   public function testIsValid(): void {
     $valid_data = 'valid';
     $invalid_data = 'invalid';
@@ -297,8 +281,6 @@ class SchemaHelperTest extends UnitTestCase {
 
   /**
    * Verify the default schema is loaded if none is provided.
-   *
-   * @covers ::isValid
    */
   public function testIsValidLoadsDefaultContext(): void {
     $valid_data = 'valid';
@@ -314,8 +296,6 @@ class SchemaHelperTest extends UnitTestCase {
 
   /**
    * Verify the default schema is not loaded if one is provided.
-   *
-   * @covers ::isValid
    */
   public function testIsValidDoesNotLoadDefaultContext(): void {
     $valid_data = 'valid';

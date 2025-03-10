@@ -8,8 +8,11 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\GeneratedUrl;
 use Drupal\Core\Routing\UrlGeneratorInterface;
-use Drupal\Tests\UnitTestCase;
 use Drupal\patternkit_media_library\JsonEditorFormElementAlterHandler;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -17,11 +20,13 @@ use Prophecy\Prophecy\ObjectProphecy;
 
 /**
  * Unit tests for the JsonEditorFormElementAlterHandler class.
- *
- * @coversDefaultClass \Drupal\patternkit_media_library\JsonEditorFormElementAlterHandler
- * @group patternkit
- * @group patternkit_media_library
  */
+#[Group('patternkit')]
+#[Group('patternkit_media_library')]
+#[CoversClass(JsonEditorFormElementAlterHandler::class)]
+#[UsesClass('\Drupal')]
+#[UsesClass('\Drupal\Core\Render\BubbleableMetadata')]
+#[UsesClass('\Drupal\Core\GeneratedUrl')]
 class JsonEditorFormElementAlterHandlerTest extends UnitTestCase {
 
   use ProphecyTrait;
@@ -96,13 +101,6 @@ class JsonEditorFormElementAlterHandlerTest extends UnitTestCase {
     \Drupal::setContainer($this->container);
   }
 
-  /**
-   * @covers ::attachMediaLibrarySupport
-   * @uses \Drupal::config()
-   * @uses \Drupal::urlGenerator()
-   * @uses \Drupal\Core\Render\BubbleableMetadata
-   * @uses \Drupal\Core\GeneratedUrl
-   */
   public function testAttachMediaLibrarySupport(): void {
     // Mock the route lookup.
     $route = 'patternkit.media_library';

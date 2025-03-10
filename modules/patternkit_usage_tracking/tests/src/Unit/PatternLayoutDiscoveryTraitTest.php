@@ -4,14 +4,16 @@ namespace Drupal\Tests\patternkit_usage_tracking\Unit;
 
 use Drupal\Core\Block\Plugin\Block\Broken;
 use Drupal\Core\Entity\ContentEntityInterface;
-use Drupal\Tests\UnitTestCase;
-use Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait;
 use Drupal\layout_builder\SectionListInterface;
 use Drupal\layout_builder\SectionStorageInterface;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\LayoutHelper;
 use Drupal\patternkit\Utility\PatternDetector;
 use Drupal\patternkit_usage_tracking\PatternLayoutDiscoveryTrait;
+use Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
@@ -19,13 +21,11 @@ use Prophecy\Prophecy\ObjectProphecy;
 /**
  * Tests for the PatternLayoutDiscoveryTrait implementation.
  *
- * @coversDefaultClass \Drupal\patternkit_usage_tracking\PatternLayoutDiscoveryTrait
- *
- * @group patternkit
- * @group patternkit_usage_tracking
- *
  * @phpstan-import-type LBComponentMockConfig from PatternkitMockHelperTrait
  */
+#[Group('patternkit')]
+#[Group('patternkit_usage_tracking')]
+#[CoversClass(PatternLayoutDiscoveryTrait::class)]
 class PatternLayoutDiscoveryTraitTest extends UnitTestCase {
 
   use PatternkitMockHelperTrait;
@@ -64,11 +64,6 @@ class PatternLayoutDiscoveryTraitTest extends UnitTestCase {
     $this->discovery = new TestClass($this->layoutHelper->reveal(), $this->patternDetector->reveal());
   }
 
-  /**
-   * @covers ::getPatternsByLayoutComponent
-   * @covers ::identifyPatternsByComponent
-   * @covers ::getNestedPatterns
-   */
   public function testGetPatternsByLayoutComponentWithoutNesting(): void {
     // Mock layout data with pattern components to be discovered.
     $data = [
@@ -125,11 +120,6 @@ class PatternLayoutDiscoveryTraitTest extends UnitTestCase {
     ], $patterns['uuid_2']);
   }
 
-  /**
-   * @covers ::getPatternsByLayoutComponent
-   * @covers ::identifyPatternsByComponent
-   * @covers ::getNestedPatterns
-   */
   public function testGetPatternsByLayoutComponentWithNesting(): void {
     // Mock layout data with pattern components to be discovered.
     $data = [
@@ -196,11 +186,6 @@ class PatternLayoutDiscoveryTraitTest extends UnitTestCase {
     ], $patterns['uuid_2']);
   }
 
-  /**
-   * @covers ::getPatternsByLayoutComponent
-   * @covers ::identifyPatternsByComponent
-   * @covers ::getNestedPatterns
-   */
   public function testGetPatternsByLayoutComponentWithBrokenPlugin(): void {
     // Mock a broken block plugin to be included in the test data.
     $broken_block = $this->prophesize(Broken::class);
@@ -253,9 +238,6 @@ class PatternLayoutDiscoveryTraitTest extends UnitTestCase {
     ], $patterns['uuid_2']);
   }
 
-  /**
-   * @covers ::getPatternsByLayoutComponentByEntity
-   */
   public function testGetPatternsByLayoutComponentByEntityWithoutLayout(): void {
     // Partially mock the test subject since underlying functionality is covered
     // in other tests.
@@ -280,9 +262,6 @@ class PatternLayoutDiscoveryTraitTest extends UnitTestCase {
     $this->assertEquals([], $mock->getPatternsByLayoutComponentByEntity($entity));
   }
 
-  /**
-   * @covers ::getPatternsByLayoutComponentByEntity
-   */
   public function testGetPatternsByLayoutComponentByEntityWithLayout(): void {
     // Partially mock the test subject since underlying functionality is covered
     // in other tests.

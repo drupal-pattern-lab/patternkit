@@ -2,20 +2,21 @@
 
 namespace Drupal\Tests\patternkit\Unit\Plugin\PatternLibrary;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
 use Drupal\Core\Template\TwigEnvironment;
-use Drupal\Tests\UnitTestCase;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Plugin\PatternLibrary\PatternLibraryTwig;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Group;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 
 /**
  * Unit tests for the PatternLibraryTwig library plugin.
- *
- * @coversDefaultClass \Drupal\patternkit\Plugin\PatternLibrary\PatternLibraryTwig
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(PatternLibraryTwig::class)]
 class PatternLibraryTwigTest extends UnitTestCase {
 
   use ArraySubsetAsserts;
@@ -47,8 +48,6 @@ class PatternLibraryTwigTest extends UnitTestCase {
 
   /**
    * Test the render function.
-   *
-   * @covers ::render
    */
   public function testRender(): void {
     $this->plugin = $this->createPartialMock(PatternLibraryTwig::class, [

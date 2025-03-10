@@ -2,20 +2,22 @@
 
 namespace Drupal\Tests\patternkit\Unit\Plugin\PatternFieldProcessor;
 
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Render\RendererInterface;
-use Drupal\Tests\UnitTestCase;
 use Drupal\patternkit\Plugin\PatternFieldProcessor\WysiwygFieldProcessor;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Group;
 use Swaggest\JsonSchema\Schema;
 use Swaggest\JsonSchema\SchemaContract;
 
 /**
  * Tests for the WysiwygFieldProcessor plugin.
- *
- * @coversDefaultClass \Drupal\patternkit\Plugin\PatternFieldProcessor\WysiwygFieldProcessor
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(WysiwygFieldProcessor::class)]
 class WysiwygFieldProcessorTest extends UnitTestCase {
 
   /**
@@ -72,12 +74,8 @@ class WysiwygFieldProcessorTest extends UnitTestCase {
 
   /**
    * Tests applies method in various use cases.
-   *
-   * @covers ::applies
-   * @covers ::__construct
-   * @covers ::getTextProfile
-   * @dataProvider providerApplies
    */
+  #[DataProvider('providerApplies')]
   public function testApplies(SchemaContract $propertySchema, bool $expected) {
     $this->assertEquals($expected, $this->plugin->applies($propertySchema));
   }
@@ -173,11 +171,6 @@ class WysiwygFieldProcessorTest extends UnitTestCase {
     return $cases;
   }
 
-  /**
-   * @covers ::apply
-   * @covers ::__construct
-   * @covers ::getTextProfile
-   */
   public function testApply() {
     $schema_json = <<<JSON
 {
@@ -217,11 +210,6 @@ JSON;
     $this->assertStringContainsString($value, $result);
   }
 
-  /**
-   * @covers ::getTextProfile
-   * @covers ::__construct
-   * @covers ::getTextProfile
-   */
   public function testGetTextProfile() {
     // See the mocked config value in ::setUp.
     $this->assertEquals('basic_html', $this->plugin->getTextProfile());

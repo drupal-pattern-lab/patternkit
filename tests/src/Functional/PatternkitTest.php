@@ -6,12 +6,12 @@ use Drupal\node\Entity\Node;
 use Drupal\patternkit\Element\PatternError;
 use Drupal\patternkit\PatternRepository;
 use Drupal\patternkit\Plugin\Derivative\PatternkitBlock;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Basic E2E testing for Patternkit.
- *
- * @group patternkit
  */
+#[Group('patternkit')]
 class PatternkitTest extends PatternkitBrowserTestBase {
 
   /**

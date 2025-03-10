@@ -1,0 +1,22 @@
+#!/bin/bash
+
+## Description: Run rector inside the web container
+## Usage: rector [flags] [args]
+## Example: "ddev rector" or "ddev rector -n"
+## ProjectTypes: drupal,drupal8,drupal9,drupal10,drupal11
+## ExecRaw: true
+
+if ! command -v rector >/dev/null; then
+  echo "rector is not available. You may need to 'ddev poser'"
+  exit 1
+fi
+test -e rector.php || cp vendor/palantirnet/drupal-rector/rector.php .
+#rector process web/modules/custom/patternkit "$@"
+
+# Export environment variables to sidestep issues with finding the Drupal root.
+# See vendor/palantirnet/drupal-rector/config/drupal-phpunit-bootstrap-file.php
+# See \DrupalFinder\DrupalFinder
+export DRUPAL_FINDER_DRUPAL_ROOT="/var/www/html/web"
+export DRUPAL_FINDER_COMPOSER_ROOT="/var/www/html"
+export DRUPAL_FINDER_VENDOR_DIR="/var/www/html/vendor"
+rector "$@"

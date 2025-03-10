@@ -8,13 +8,13 @@ use Drupal\media\Entity\Media;
 use Drupal\media\MediaInterface;
 use Drupal\node\Entity\Node;
 use Drupal\patternkit_media_library\Form\MediaLibrarySettingsForm;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Browser test functionality for selecting media in JSON editor forms.
- *
- * @group patternkit
- * @group patternkit_media_library
  */
+#[Group('patternkit')]
+#[Group('patternkit_media_library')]
 class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase {
 
   /**

@@ -2,14 +2,14 @@
 
 namespace Drupal\Tests\patternkit\Unit;
 
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\State\StateInterface;
-use Drupal\Tests\UnitTestCase;
-use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Exception\SchemaReferenceException;
 use Drupal\patternkit\PatternFieldProcessorPluginManager;
@@ -21,6 +21,10 @@ use Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor;
 use Drupal\patternkit\Schema\PatternkitRefProvider;
 use Drupal\patternkit\Schema\SchemaFactory;
 use Drupal\patternkit\Schema\SchemaWalkerFactory;
+use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\Constraint\Constraint;
 use PHPUnit\Framework\Constraint\IsType;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -32,17 +36,15 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Test functionality for the Pattern Field Processor Plugin Manager.
- *
- * @coversDefaultClass \Drupal\patternkit\PatternFieldProcessorPluginManager
- * @covers ::__construct
- * @uses \Drupal\patternkit\Schema\SchemaFactory
- * @uses \Drupal\patternkit\Schema\SchemaHelper
- * @uses \Drupal\patternkit\Schema\SchemaIterator
- * @uses \Drupal\patternkit\Schema\SchemaWalker
- * @uses \Drupal\patternkit\Schema\SchemaWalkerFactory
- * @uses \Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor
- * @group patternkit
  */
+#[Group('patternkit')]
+#[UsesClass('\Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor')]
+#[UsesClass('\Drupal\patternkit\Schema\SchemaFactory')]
+#[UsesClass('\Drupal\patternkit\Schema\SchemaHelper')]
+#[UsesClass('\Drupal\patternkit\Schema\SchemaIterator')]
+#[UsesClass('\Drupal\patternkit\Schema\SchemaWalker')]
+#[UsesClass('\Drupal\patternkit\Schema\SchemaWalkerFactory')]
+#[CoversClass(PatternFieldProcessorPluginManager::class)]
 class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
 
   use JsonDecodeTrait;
@@ -211,10 +213,6 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
 
   /**
    * Test error-handling for the processSchemaValues method.
-   *
-   * @covers ::processSchemaValues
-   * @covers ::loadProcessors
-   * @covers ::traverseSchema
    */
   public function testProcessSchemaValuesWithErrors() {
     // Prepare the schema for the pattern being processed.
@@ -300,11 +298,8 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
 
   /**
    * Test schema traversal to ensure the callback receives expected arguments.
-   *
-   * @covers ::traverseSchema
-   * @covers ::applyProcessors
-   * @dataProvider providerTraverseSchema
    */
+  #[DataProvider('providerTraverseSchema')]
   public function testTraverseSchema(string $schema_json, $values, callable $expectationsCallback) {
     // Mock the callback for confirming it's called with expected properties.
     $processorMock = $this->createMock(PatternFieldProcessorInterface::class);
@@ -487,9 +482,6 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
 
   /**
    * Test schema traversal to confirm value changes are applied.
-   *
-   * @covers ::traverseSchema
-   * @covers ::applyProcessors
    */
   public function testTraverseSchemaProcessing() {
     // Prepare the schema for the pattern being processed.
@@ -577,10 +569,6 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
     ], $processed_values, 'Processed config values did not include processed value changes.');
   }
 
-  /**
-   * @covers ::traverseSchema
-   * @covers ::applyProcessors
-   */
   public function testTraverseSchemaWithErrors() {
     // Prepare the schema for the pattern being processed.
     $schema_json = <<<JSON
@@ -644,9 +632,6 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
 
   /**
    * Test property traversal with array properties.
-   *
-   * @covers ::traverseSchema
-   * @covers ::applyProcessors
    */
   public function testTraverseSchemaWithArrays() {
     // Prepare the schema for the pattern being processed.
@@ -778,9 +763,6 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
 
   /**
    * Test property traversal with array properties containing references.
-   *
-   * @covers ::traverseSchema
-   * @covers ::applyProcessors
    */
   public function testTraverseSchemaWithArraysWithRefs() {
     // Prepare the schema for the pattern being processed.

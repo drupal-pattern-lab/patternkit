@@ -2,14 +2,46 @@
 
 namespace Drupal\Tests\patternkit\Kernel;
 
+use Drupal\patternkit\PatternRepository;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\KernelTests\KernelTestBase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\UsesClass;
 
 /**
  * Test integrated usage of the PatternRepository service.
- *
- * @coversDefaultClass \Drupal\patternkit\PatternRepository
- * @group patternkit
  */
+#[Group('patternkit')]
+#[UsesClass('\Drupal\patternkit\Asset\LibraryNamespaceResolver')]
+#[UsesClass('\Drupal\patternkit\Asset\PatternDependencyResolver')]
+#[UsesClass('\Drupal\patternkit\Asset\PatternDiscovery')]
+#[UsesClass('\Drupal\patternkit\Asset\PatternDiscoveryLoader')]
+#[UsesClass('\Drupal\patternkit\Asset\PatternLibraryParserBase')]
+#[UsesClass('\Drupal\patternkit\Asset\PatternLibraryParser\JSONPatternLibraryParser')]
+#[UsesClass('\Drupal\patternkit\Asset\PatternLibraryParser\TwigPatternLibraryParser')]
+#[UsesClass('\Drupal\patternkit\Attribute\PatternLibrary')]
+#[UsesClass('\Drupal\patternkit\Entity\Pattern')]
+#[UsesClass('\Drupal\patternkit\JsonEditorFormBuilder')]
+#[UsesClass('\Drupal\patternkit\PatternLibrary')]
+#[UsesClass('\Drupal\patternkit\PatternLibraryJSONParserTrait')]
+#[UsesClass('\Drupal\patternkit\PatternLibraryPluginDefault')]
+#[UsesClass('\Drupal\patternkit\PatternLibraryPluginManager')]
+#[UsesClass('\Drupal\patternkit\PatternkitEnvironment')]
+#[UsesClass('\Drupal\patternkit\PatternkitEnvironmentAwareTrait')]
+#[UsesClass('\Drupal\patternkit\Plugin\PatternLibrary\PatternLibraryJSON')]
+#[UsesClass('\Drupal\patternkit\Plugin\PatternLibrary\PatternLibraryTwig')]
+#[UsesClass('\Drupal\patternkit\Schema\ContextBuilder')]
+#[UsesClass('\Drupal\patternkit\Schema\ContextBuilderTrait')]
+#[UsesClass('\Drupal\patternkit\Schema\DataPreProcessorFactory')]
+#[UsesClass('\Drupal\patternkit\Schema\DataPreProcessor\BundleReferenceDataPreProcessor')]
+#[UsesClass('\Drupal\patternkit\Schema\DataPreProcessor\DataPreProcessorCollection')]
+#[UsesClass('\Drupal\patternkit\Schema\DataPreProcessor\RefNormalizerDataPreProcessor')]
+#[UsesClass('\Drupal\patternkit\Schema\DataPreProcessor\SchemaRefObserver')]
+#[UsesClass('\Drupal\patternkit\Schema\DataPreProcessor\TokenValidationDataPreProcessor')]
+#[UsesClass('\Drupal\patternkit\Schema\PatternkitRefProvider')]
+#[UsesClass('\Drupal\patternkit\Schema\SchemaRefHandler')]
+#[UsesClass('\Drupal\patternkit\Schema\UnresolvedSchema')]
+#[CoversClass(PatternRepository::class)]
 class PatternRepositoryTest extends KernelTestBase {
 
   /**
@@ -56,10 +88,6 @@ class PatternRepositoryTest extends KernelTestBase {
 
   /**
    * Confirm bundling schemas without dependencies leaves the schema unchanged.
-   *
-   * @covers ::getBundledPatternSchema
-   * @covers ::getPatternStack
-   * @covers ::getPattern
    */
   public function testGetBundledPatternSchemaWithoutDependencies() {
     // Identify a pattern without external references that should remain
@@ -78,10 +106,6 @@ class PatternRepositoryTest extends KernelTestBase {
 
   /**
    * Test caching behavior for bundling in the getPattern() method.
-   *
-   * @covers ::getPattern
-   * @covers ::getBundledPatternSchema
-   * @covers ::bundleSchema
    */
   public function testGetPatternCaching() {
     $pattern_id = '@patternkit/atoms/example_ref/src/example_ref';

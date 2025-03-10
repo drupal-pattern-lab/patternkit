@@ -3,12 +3,17 @@
 namespace Drupal\Tests\patternkit\Unit\Schema\DataPreProcessor;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
-use Drupal\Tests\UnitTestCase;
-use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\patternkit\Schema\ContextBuilder;
 use Drupal\patternkit\Schema\DataPreProcessor\SchemaRefObserver;
 use Drupal\patternkit\Schema\SchemaRefHandler;
 use Drupal\patternkit\Schema\UnresolvedSchema;
+use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Depends;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\UsesClass;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
@@ -18,13 +23,15 @@ use Swaggest\JsonSchema\Schema;
 
 /**
  * Unit tests for the SchemaRefObserver data preprocessor.
- *
- * @coversDefaultClass \Drupal\patternkit\Schema\DataPreProcessor\SchemaRefObserver
- * @uses \Drupal\patternkit\Schema\UnresolvedSchema
- * @uses \Swaggest\JsonSchema\Schema
- * @uses \Swaggest\JsonSchema\Context
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(SchemaRefObserver::class)]
+#[UsesClass('\Drupal\patternkit\Schema\SchemaHelper')]
+#[UsesClass('\Drupal\patternkit\Schema\UnresolvedSchema')]
+#[UsesClass('\Swaggest\JsonSchema\Context')]
+#[UsesClass('\Swaggest\JsonSchema\RemoteRef\Preloaded')]
+#[UsesClass('\Swaggest\JsonSchema\Schema')]
+#[CoversClass(SchemaRefObserver::class)]
 class SchemaRefObserverTest extends UnitTestCase {
 
   use JsonDecodeTrait;
@@ -99,14 +106,8 @@ class SchemaRefObserverTest extends UnitTestCase {
 
   /**
    * Test reference discovery in given JSON schemas.
-   *
-   * @covers ::process
-   * @covers ::processImport
-   * @covers ::getReferences
-   * @covers ::trackReference
-   * @covers ::__construct
-   * @dataProvider providerGetReferences
    */
+  #[DataProvider('providerGetReferences')]
   public function testGetReferences(string $schema_json, array $expected_references): void {
     $schema_data = static::decodeJson($schema_json);
     UnresolvedSchema::import($schema_data, $this->context);
@@ -158,14 +159,6 @@ class SchemaRefObserverTest extends UnitTestCase {
 
   /**
    * Test discovery of references in an array of anyOf references.
-   *
-   * @covers ::process
-   * @covers ::processImport
-   * @covers ::getReferences
-   * @covers ::getAssetFromReference
-   * @covers ::trackReference
-   * @covers ::__construct
-   * @uses \Drupal\patternkit\Schema\UnresolvedSchema
    */
   public function testGetReferencesAnyOf(): SchemaRefObserver {
     $schema_json = <<<JSON
@@ -240,17 +233,9 @@ class SchemaRefObserverTest extends UnitTestCase {
 
   /**
    * Test discovery of external references during schema import.
-   *
-   * @covers ::process
-   * @covers ::processImport
-   * @covers ::getExternalReferences
-   * @covers ::getAssetFromReference
-   * @covers ::__construct
-   * @uses \Drupal\patternkit\Schema\UnresolvedSchema
-   *
-   * @depends testGetReferencesAnyOf
-   * @dataProvider providerGetExternalReferencesDuringImport
    */
+  #[Depends('testGetReferencesAnyOf')]
+  #[DataProvider('providerGetExternalReferencesDuringImport')]
   public function testGetExternalReferencesDuringImport($exclusions, $expected, SchemaRefObserver $observer): void {
     $references = $observer->getExternalReferences($exclusions);
 
@@ -310,17 +295,9 @@ class SchemaRefObserverTest extends UnitTestCase {
    * Test discovery of external references during schema import.
    *
    * Include unresolved references in results.
-   *
-   * @covers ::process
-   * @covers ::processImport
-   * @covers ::getExternalReferences
-   * @covers ::getAssetFromReference
-   * @covers ::__construct
-   * @uses \Drupal\patternkit\Schema\UnresolvedSchema
-   *
-   * @depends testGetReferencesAnyOf
-   * @dataProvider providerGetExternalReferencesDuringImportWithUnresolvedReferences
    */
+  #[Depends('testGetReferencesAnyOf')]
+  #[DataProvider('providerGetExternalReferencesDuringImportWithUnresolvedReferences')]
   public function testGetExternalReferencesDuringImportWithUnresolvedReferences($exclusions, $expected, SchemaRefObserver $observer): void {
     $references = $observer->getExternalReferences($exclusions, TRUE);
 
@@ -395,12 +372,6 @@ class SchemaRefObserverTest extends UnitTestCase {
 
   /**
    * Test behavior with no references discovered.
-   *
-   * @covers ::process
-   * @covers ::processImport
-   * @covers ::getReferences
-   * @covers ::getExternalReferences
-   * @covers ::__construct
    */
   public function testNoDiscoveredReferences(): void {
     UnresolvedSchema::import((object) [], $this->context);
@@ -412,18 +383,6 @@ class SchemaRefObserverTest extends UnitTestCase {
 
   /**
    * Test detection of pattern references within content.
-   *
-   * @covers ::process
-   * @covers ::processImport
-   * @covers ::processValidation
-   * @covers ::resetReferences
-   * @covers ::getReferences
-   * @covers ::getAssetFromReference
-   * @covers ::trackReference
-   * @covers ::__construct
-   * @uses \Swaggest\JsonSchema\RemoteRef\Preloaded
-   * @uses \Swaggest\JsonSchema\Schema
-   * @uses \Drupal\patternkit\Schema\SchemaHelper
    */
   public function testUsageDetection(): void {
     // Prepare a referenced schema.

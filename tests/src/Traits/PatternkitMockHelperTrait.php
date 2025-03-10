@@ -2,8 +2,8 @@
 
 namespace Drupal\Tests\patternkit\Traits;
 
-use Drupal\Core\Entity\EntityInterface;
 use Drupal\block\BlockInterface;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\layout_builder\SectionComponent;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Entity\PatternkitBlock as EntityPatternkitBlock;

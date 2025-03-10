@@ -11,17 +11,21 @@ use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Plugin\Context\ContextHandlerInterface;
 use Drupal\Core\Plugin\Context\ContextRepositoryInterface;
 use Drupal\Core\Utility\Token;
-use Drupal\Tests\UnitTestCase;
-use Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Entity\PatternkitBlock as EntityPatternkitBlock;
 use Drupal\patternkit\Event\PatternUpdateEvent;
-use Drupal\patternkit\PatternLibraryPluginManager;
-use Drupal\patternkit\PatternRepository;
 use Drupal\patternkit\PatternkitEnvironment;
 use Drupal\patternkit\PatternkitEvents;
+use Drupal\patternkit\PatternLibraryPluginManager;
+use Drupal\patternkit\PatternRepository;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock;
+use Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -31,10 +35,11 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Tests for the PatternkitBlock block plugin.
- *
- * @coversDefaultClass \Drupal\patternkit\Plugin\Block\PatternkitBlock
- * @group patternkit
  */
+#[Group('patternkit')]
+#[UsesClass('\Drupal\Core\Render\BubbleableMetadata')]
+#[UsesClass('\Drupal\patternkit\Event\PatternUpdateEvent')]
+#[CoversClass(PatternkitBlock::class)]
 class PatternkitBlockTest extends UnitTestCase {
 
   use ProphecyTrait;
@@ -311,10 +316,6 @@ class PatternkitBlockTest extends UnitTestCase {
 
   /**
    * Test the default configuration for the plugin.
-   *
-   * @covers ::defaultConfiguration
-   * @covers ::__construct
-   * @uses \Drupal\patternkit\Plugin\Block\PatternkitBlock
    */
   public function testDefaultConfiguration(): void {
     $configuration = $this->getTestSubject()->defaultConfiguration();
@@ -328,10 +329,6 @@ class PatternkitBlockTest extends UnitTestCase {
     $this->assertNull($configuration['version']);
   }
 
-  /**
-   * @covers ::getPatternId
-   * @uses \Drupal\patternkit\Plugin\Block\PatternkitBlock
-   */
   public function testGetPatternId(): void {
     $plugin = $this->getTestSubject();
 
@@ -340,9 +337,6 @@ class PatternkitBlockTest extends UnitTestCase {
 
   /**
    * Test Pattern entity loading with default database caching behavior.
-   *
-   * @covers ::getPatternEntity
-   * @uses \Drupal\patternkit\Plugin\Block\PatternkitBlock
    */
   public function testGetPatternEntityWithCache(): void {
     // Mock the pattern revision ID to be loaded.
@@ -365,11 +359,6 @@ class PatternkitBlockTest extends UnitTestCase {
 
   /**
    * Test Pattern entity loading with database caching behavior disabled.
-   *
-   * @covers ::getPatternEntity
-   * @covers ::getEnvironmentFeature
-   * @covers ::getPatternId
-   * @uses \Drupal\patternkit\Plugin\Block\PatternkitBlock
    */
   public function testGetPatternEntityWithoutCache(): void {
     // Mock the pattern revision ID to be loaded.
@@ -404,9 +393,6 @@ class PatternkitBlockTest extends UnitTestCase {
 
   /**
    * Test Pattern entity loading with a load failure.
-   *
-   * @covers ::getPatternEntity
-   * @uses \Drupal\patternkit\Plugin\Block\PatternkitBlock
    */
   public function testGetPatternEntityWithLoadFailure(): void {
     // Mock the pattern revision ID to be loaded.
@@ -442,10 +428,6 @@ class PatternkitBlockTest extends UnitTestCase {
     $this->assertSame($pattern, $plugin->getPatternEntity());
   }
 
-  /**
-   * @covers ::getBlockEntity
-   * @uses \Drupal\patternkit\Plugin\Block\PatternkitBlock
-   */
   public function testGetBlockEntityWithRevisionId(): void {
     $configuration = [
       'patternkit_block_rid' => 123,
@@ -460,10 +442,6 @@ class PatternkitBlockTest extends UnitTestCase {
     $this->assertSame($block->reveal(), $plugin->getBlockEntity());
   }
 
-  /**
-   * @covers ::getBlockEntity
-   * @uses \Drupal\patternkit\Plugin\Block\PatternkitBlock
-   */
   public function testGetBlockEntityWithBlockId(): void {
     $configuration = [
       'patternkit_block_id' => 123,
@@ -478,10 +456,6 @@ class PatternkitBlockTest extends UnitTestCase {
     $this->assertSame($block->reveal(), $plugin->getBlockEntity());
   }
 
-  /**
-   * @covers ::getBlockEntity
-   * @uses \Drupal\patternkit\Plugin\Block\PatternkitBlock
-   */
   public function testGetBlockEntityWithMissingBlock(): void {
     $configuration = [
       'patternkit_block_rid' => 123,
@@ -498,10 +472,6 @@ class PatternkitBlockTest extends UnitTestCase {
     $plugin->getBlockEntity();
   }
 
-  /**
-   * @covers ::getBlockEntity
-   * @uses \Drupal\patternkit\Plugin\Block\PatternkitBlock
-   */
   public function testGetBlockEntityWithNewBlock(): void {
     // Don't provide a block entity reference as if a new block is being
     // created.
@@ -516,10 +486,6 @@ class PatternkitBlockTest extends UnitTestCase {
     $this->assertSame($block->reveal(), $plugin->getBlockEntity());
   }
 
-  /**
-   * @covers ::getBlockEntity
-   * @uses \Drupal\patternkit\Plugin\Block\PatternkitBlock
-   */
   public function testGetBlockEntityWithTranslation(): void {
     // Include a language code to trigger attempts to load a translation.
     $configuration = [
@@ -542,10 +508,6 @@ class PatternkitBlockTest extends UnitTestCase {
     $this->assertSame($translatedBlock->reveal(), $plugin->getBlockEntity());
   }
 
-  /**
-   * @covers ::getBlockEntity
-   * @uses \Drupal\patternkit\Plugin\Block\PatternkitBlock
-   */
   public function testGetBlockEntityWithoutAvailableTranslation(): void {
     // Include a language code to trigger attempts to load a translation.
     $configuration = [
@@ -569,11 +531,6 @@ class PatternkitBlockTest extends UnitTestCase {
     $this->assertSame($block->reveal(), $plugin->getBlockEntity());
   }
 
-  /**
-   * @covers ::getBasePattern
-   * @covers ::getPatternEntity
-   * @uses \Drupal\patternkit\Plugin\Block\PatternkitBlock
-   */
   public function testGetBasePattern(): void {
     $assetId = '@my/pattern';
 
@@ -603,9 +560,6 @@ class PatternkitBlockTest extends UnitTestCase {
 
   /**
    * Test loading the cached pattern entity with a defined revision ID.
-   *
-   * @covers ::getCachedPatternEntity
-   * @uses \Drupal\patternkit\Plugin\Block\PatternkitBlock
    */
   public function testGetCachedPatternEntityWithPatternRevision(): void {
     // Define a specific revision ID to be loaded.
@@ -636,9 +590,6 @@ class PatternkitBlockTest extends UnitTestCase {
 
   /**
    * Test loading the cached pattern entity without a defined revision ID.
-   *
-   * @covers ::getCachedPatternEntity
-   * @uses \Drupal\patternkit\Plugin\Block\PatternkitBlock
    */
   public function testGetCachedPatternEntityWithoutRevision(): void {
     // Consolidate expectation values for reuse and reference.
@@ -679,10 +630,6 @@ class PatternkitBlockTest extends UnitTestCase {
     $this->assertSame($resultPatternProphecy->reveal(), $plugin->getCachedPatternEntity());
   }
 
-  /**
-   * @covers ::build
-   * @uses \Drupal\Core\Render\BubbleableMetadata
-   */
   public function testBuild(): void {
     $blockCacheData = [
       'contexts' => [],
@@ -750,10 +697,6 @@ class PatternkitBlockTest extends UnitTestCase {
     $this->assertEqualsCanonicalizing([], $element['#attached']);
   }
 
-  /**
-   * @covers ::cachePatternEntity
-   * @uses \Drupal\patternkit\Plugin\Block\PatternkitBlock
-   */
   public function testCachePatternEntity(): void {
     // Mock a cached pattern with an older hash.
     $cachedPattern = $this->getMockPatternEntity([
@@ -820,10 +763,6 @@ class PatternkitBlockTest extends UnitTestCase {
     $this->assertSame($cachedPattern->reveal(), $result);
   }
 
-  /**
-   * @covers ::cachePatternEntity
-   * @uses \Drupal\patternkit\Plugin\Block\PatternkitBlock
-   */
   public function testCachePatternEntityWithNewPattern(): void {
     // Mock a pattern without existing IDs to represent a new Pattern entity.
     $pattern = $this->getMockPatternEntity([
@@ -863,9 +802,6 @@ class PatternkitBlockTest extends UnitTestCase {
 
   /**
    * Test when a matching pattern exists in the cache but wasn't loaded.
-   *
-   * @covers ::cachePatternEntity
-   * @uses \Drupal\patternkit\Plugin\Block\PatternkitBlock
    */
   public function testCachePatternEntityWithUncachedPattern(): void {
     // Mock a cached Pattern with an older hash.
@@ -916,12 +852,9 @@ class PatternkitBlockTest extends UnitTestCase {
   /**
    * Test saving block content without serialized block content.
    *
-   * @covers ::saveBlockContent
-   * @uses \Drupal\patternkit\Plugin\Block\PatternkitBlock
-   * @dataProvider providerSaveBlockContent
-   *
    * @todo Test with serialized block content separately.
    */
+  #[DataProvider('providerSaveBlockContent')]
   public function testSaveBlockContent(bool $new_revision, bool $duplicate_block): void {
     $configuration = [
       'patternkit_block_rid' => 123,
@@ -995,11 +928,6 @@ class PatternkitBlockTest extends UnitTestCase {
 
   /**
    * Test updatePattern() when both pattern parameters are provided.
-   *
-   * @covers ::updatePattern
-   * @covers ::getUpdatedPatternRevision
-   * @covers ::__construct
-   * @uses \Drupal\patternkit\Event\PatternUpdateEvent
    */
   public function testUpdatePatternWithParameters(): void {
     /**
@@ -1045,11 +973,6 @@ class PatternkitBlockTest extends UnitTestCase {
 
   /**
    * Test updatePattern() when pattern parameters are not provided.
-   *
-   * @covers ::updatePattern
-   * @covers ::getUpdatedPatternRevision
-   * @covers ::__construct
-   * @uses \Drupal\patternkit\Event\PatternUpdateEvent
    */
   public function testUpdatePatternWithoutParameters(): void {
     /**
@@ -1099,11 +1022,6 @@ class PatternkitBlockTest extends UnitTestCase {
 
   /**
    * Test updatePattern() when a new revision has to be created.
-   *
-   * @covers ::updatePattern
-   * @covers ::getUpdatedPatternRevision
-   * @covers ::__construct
-   * @uses \Drupal\patternkit\Event\PatternUpdateEvent
    */
   public function testUpdatePatternWithoutExistingRevision(): void {
     /**
@@ -1172,10 +1090,6 @@ class PatternkitBlockTest extends UnitTestCase {
 
   /**
    * Test updatePattern() when no update is needed.
-   *
-   * @covers ::updatePattern
-   * @covers ::__construct
-   * @uses \Drupal\patternkit\Event\PatternUpdateEvent
    */
   public function testUpdatePatternWithoutUpdateNeeded(): void {
     /**
@@ -1233,11 +1147,6 @@ class PatternkitBlockTest extends UnitTestCase {
     $this->assertEquals($originalConfiguration, $plugin->getConfiguration());
   }
 
-  /**
-   * @covers ::updatePattern
-   * @covers ::getUpdatedPatternRevision
-   * @covers ::__construct
-   */
   public function testUpdateEventDispatchingWithoutAlterations(): void {
     /**
      * @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\PatternInterface $cachedPattern
@@ -1286,11 +1195,7 @@ class PatternkitBlockTest extends UnitTestCase {
   }
 
   /**
-   * @covers ::updatePattern
-   * @covers ::getUpdatedPatternRevision
-   * @covers ::updateBlockEntity
-   * @covers ::__construct
-   * @covers ::getPatternId
+   * Test content alteration through event dispatching.
    *
    * @see \Drupal\Tests\patternkit\Unit\Plugin\Block\PatternkitBlockTest::$mockedFunctions
    * @see \Drupal\patternkit\Plugin\Block\serialize()

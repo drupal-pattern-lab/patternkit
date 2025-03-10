@@ -2,20 +2,21 @@
 
 namespace Drupal\Tests\patternkit\Unit;
 
-use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\patternkit\PatternkitEnvironment;
 use Drupal\patternkit\PatternkitEnvironmentAwareInterface;
 use Drupal\patternkit\PatternkitEnvironmentAwareTrait;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Group;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Unit tests for PatternkitEnvironmentTrait.
- *
- * @coversDefaultClass \Drupal\patternkit\PatternkitEnvironmentAwareTrait
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(PatternkitEnvironmentAwareTrait::class)]
 class PatternkitEnvironmentAwareTraitTest extends UnitTestCase {
 
   use ProphecyTrait;
@@ -45,10 +46,6 @@ class PatternkitEnvironmentAwareTraitTest extends UnitTestCase {
     $this->sut = new PatternkitEnvironmentAwareTraitClass();
   }
 
-  /**
-   * @covers ::setPatternkitEnvironment
-   * @covers ::patternkitEnvironment
-   */
   public function testSetPatternkitEnvironment() {
     // The environment should not be pulled from the container if it was already
     // explicitly set.
@@ -62,9 +59,6 @@ class PatternkitEnvironmentAwareTraitTest extends UnitTestCase {
     $this->assertSame($environment, $this->sut->patternkitEnvironment());
   }
 
-  /**
-   * @covers ::patternkitEnvironment
-   */
   public function testPatternkitEnvironment() {
     $environment = $this->environment->reveal();
 
@@ -80,11 +74,6 @@ class PatternkitEnvironmentAwareTraitTest extends UnitTestCase {
     $this->assertSame($environment, $this->sut->patternkitEnvironment());
   }
 
-  /**
-   * @covers ::isDebug
-   * @covers ::patternkitEnvironment
-   * @covers ::setPatternkitEnvironment
-   */
   public function testIsDebug() {
     $this->environment->isDebug()
       ->willReturn(TRUE)
@@ -95,11 +84,6 @@ class PatternkitEnvironmentAwareTraitTest extends UnitTestCase {
     $this->assertTrue($this->sut->isDebug());
   }
 
-  /**
-   * @covers ::getEnvironmentFeature
-   * @covers ::patternkitEnvironment
-   * @covers ::setPatternkitEnvironment
-   */
   public function testGetEnvironmentFeature() {
     $this->environment->getFeatureOption('configured_option', FALSE)
       ->willReturn(TRUE)

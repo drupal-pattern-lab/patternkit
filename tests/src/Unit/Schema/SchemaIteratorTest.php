@@ -2,12 +2,15 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
-use Drupal\Tests\UnitTestCase;
-use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
-use Drupal\Tests\patternkit\Traits\SchemaFixtureTrait;
 use Drupal\patternkit\Schema\ContextBuilder;
 use Drupal\patternkit\Schema\SchemaIterator;
+use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
+use Drupal\Tests\patternkit\Traits\SchemaFixtureTrait;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\UsesClass;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Swaggest\JsonSchema\Context;
@@ -15,11 +18,10 @@ use Swaggest\JsonSchema\Schema;
 
 /**
  * Test the SchemaIterator class implementation.
- *
- * @coversDefaultClass \Drupal\patternkit\Schema\SchemaIterator
- * @uses \Drupal\patternkit\Schema\SchemaHelper
- * @group patternkit
  */
+#[Group('patternkit')]
+#[UsesClass('\Drupal\patternkit\Schema\SchemaHelper')]
+#[CoversClass(SchemaIterator::class)]
 class SchemaIteratorTest extends UnitTestCase {
 
   use JsonDecodeTrait;
@@ -29,7 +31,7 @@ class SchemaIteratorTest extends UnitTestCase {
   /**
    * A prophecy mock for the context builder service.
    *
-   * @var \Drupal\patternkit\Schema\ContextBuilder|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Schema\ContextBuilder>
    */
   protected ObjectProphecy $contextBuilder;
 
@@ -139,15 +141,6 @@ class SchemaIteratorTest extends UnitTestCase {
     $this->context = new Context();
   }
 
-  /**
-   * @covers ::getPropertySchema
-   * @covers ::hasChildren
-   * @covers ::getChildren
-   * @covers ::next
-   * @covers ::rewind
-   * @covers ::seek
-   * @uses \Drupal\patternkit\Schema\SchemaIterator::__construct
-   */
   public function testIteration() {
     $values = [
       'text' => 'test',
@@ -225,10 +218,6 @@ class SchemaIteratorTest extends UnitTestCase {
     $this->assertEquals($schema->getProperties()->breakpoints, $iterator->getPropertySchema());
   }
 
-  /**
-   * @covers ::getSchema
-   * @uses \Drupal\patternkit\Schema\SchemaIterator::__construct
-   */
   public function testGetSchema() {
     $values = [
       'text' => 'test',
@@ -252,12 +241,6 @@ class SchemaIteratorTest extends UnitTestCase {
     $this->assertEquals($subSchema, $iterator->getSchema());
   }
 
-  /**
-   * @covers ::hasChildren
-   * @uses \Drupal\patternkit\Schema\SchemaIterator::__construct
-   * @uses \Drupal\patternkit\Schema\SchemaIterator::getPropertySchema
-   * @uses \Drupal\patternkit\Schema\SchemaIterator::next
-   */
   public function testHasChildren() {
     $values = [
       'text' => 'test',
@@ -285,14 +268,6 @@ class SchemaIteratorTest extends UnitTestCase {
     $this->assertTrue($iterator->hasChildren());
   }
 
-  /**
-   * @covers ::getChildren
-   * @covers ::__construct
-   * @uses \Drupal\patternkit\Schema\SchemaIterator::getPropertySchema
-   * @uses \Drupal\patternkit\Schema\SchemaIterator::next
-   * @uses \Drupal\patternkit\Schema\SchemaIterator::getSchema
-   * @uses \Drupal\patternkit\Schema\SchemaIterator::hasChildren()
-   */
   public function testGetChildren() {
     $values = [
       'text' => 'test',
@@ -324,10 +299,6 @@ class SchemaIteratorTest extends UnitTestCase {
     $this->assertTrue($iterator->hasChildren());
   }
 
-  /**
-   * @covers ::getPropertySchema
-   * @covers \Drupal\patternkit\Schema\SchemaIterator
-   */
   public function testGetPropertySchema() {
     $schema_json = $this->loadFixture('schemas/composed_component.json');
 

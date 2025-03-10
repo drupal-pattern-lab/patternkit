@@ -2,19 +2,19 @@
 
 namespace Drupal\Tests\patternkit\EventSubscriber;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\patternkit\Event\PatternUpdateEvent;
 use Drupal\patternkit\EventSubscriber\PatternUpdateEventSubscriberBase;
 use Drupal\patternkit\PatternkitEvents;
 use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Group;
 use Prophecy\PhpUnit\ProphecyTrait;
 
 /**
  * Tests for the PatternUpdateEventSubscriberBase class.
- *
- * @coversDefaultClass \Drupal\patternkit\EventSubscriber\PatternUpdateEventSubscriberBase
- *
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(PatternUpdateEventSubscriberBase::class)]
 class PatternUpdateEventSubscriberBaseTest extends UnitTestCase {
 
   use ProphecyTrait;
@@ -36,9 +36,6 @@ class PatternUpdateEventSubscriberBaseTest extends UnitTestCase {
       ->reveal();
   }
 
-  /**
-   * @covers ::getSubscribedEvents
-   */
   public function testGetSubscribedEvents(): void {
     $events = PatternUpdateEventSubscriberBase::getSubscribedEvents();
     $this->assertArrayHasKey(PatternkitEvents::PATTERN_UPDATE, $events);
@@ -49,8 +46,6 @@ class PatternUpdateEventSubscriberBaseTest extends UnitTestCase {
 
   /**
    * Test onPatternUpdate when an event is applicable.
-   *
-   * @covers ::onPatternUpdate
    */
   public function testOnPatternUpdateIsApplicable(): void {
     $subscriber = $this->getMockBuilder(PatternUpdateEventSubscriberBase::class)
@@ -74,8 +69,6 @@ class PatternUpdateEventSubscriberBaseTest extends UnitTestCase {
 
   /**
    * Test onPatternUpdate when an event is not applicable.
-   *
-   * @covers ::onPatternUpdate
    */
   public function testOnPatternUpdateNotApplicable(): void {
     $subscriber = $this->getMockBuilder(PatternUpdateEventSubscriberBase::class)

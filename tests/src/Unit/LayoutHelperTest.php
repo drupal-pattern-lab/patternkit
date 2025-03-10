@@ -2,6 +2,11 @@
 
 namespace Drupal\Tests\patternkit\Unit;
 
+use Drupal\Core\Plugin\Context\Context;
+use Drupal\Core\Plugin\Context\ContextDefinition;
+use Drupal\Core\Plugin\Context\EntityContext;
+use Drupal\Core\Plugin\Context\EntityContextDefinition;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\Core\Config\Entity\ConfigEntityType;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\EntityStorageInterface;
@@ -12,7 +17,6 @@ use Drupal\Core\KeyValueStore\KeyValueStoreInterface;
 use Drupal\Core\TypedData\DataDefinition;
 use Drupal\Core\TypedData\TypedDataInterface;
 use Drupal\Core\TypedData\TypedDataManagerInterface;
-use Drupal\Tests\UnitTestCase;
 use Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay;
 use Drupal\layout_builder\LayoutTempstoreRepositoryInterface;
 use Drupal\layout_builder\Section;
@@ -24,6 +28,9 @@ use Drupal\patternkit\LayoutHelper;
 use Drupal\patternkit\PatternRepository;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock;
 use Drupal\patternkit\UpdateHelper;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\UsesClass;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
@@ -32,9 +39,14 @@ use Psr\Log\LoggerInterface;
 /**
  * Unit tests for the LayoutHelper service.
  *
- * @coversDefaultClass \Drupal\patternkit\LayoutHelper
- * @group patternkit
+ * @todo Add test coverage for filtering components.
  */
+#[Group('patternkit')]
+#[CoversClass(LayoutHelper::class)]
+#[UsesClass(Context::class)]
+#[UsesClass(ContextDefinition::class)]
+#[UsesClass(EntityContext::class)]
+#[UsesClass(EntityContextDefinition::class)]
 class LayoutHelperTest extends UnitTestCase {
 
   use ProphecyTrait;
@@ -153,12 +165,6 @@ class LayoutHelperTest extends UnitTestCase {
     return $layoutHelper;
   }
 
-  /**
-   * @covers ::getPatternComponentsFromLayout
-   * @covers ::setUpdateHelper
-   * @covers ::updateHelper
-   * @covers ::__construct
-   */
   public function testGetPatternComponentsFromLayout(): void {
     // Mock a section/component hierarchy, but instead of components we'll just
     // include a boolean value to indicate if it should be considered a
@@ -191,15 +197,6 @@ class LayoutHelperTest extends UnitTestCase {
     ], $layoutHelper->getPatternComponentsFromLayout($sectionStorage->reveal()));
   }
 
-  /**
-   * @covers ::updateLayoutBuilderComponents
-   * @covers ::applyToSectionComponents
-   * @covers ::getBufferedLogger
-   * @covers ::getUpdateCallback
-   * @covers ::__construct
-   *
-   * @todo Add test coverage for filtering.
-   */
   public function testUpdateLayoutBuilderComponents(): void {
     $component = $this->prophesize(SectionComponent::class);
     $seed_data = [
@@ -309,11 +306,6 @@ class LayoutHelperTest extends UnitTestCase {
     $this->assertEquals($expected['entities'], $entity_count);
   }
 
-  /**
-   * @covers ::applyToSectionComponents
-   * @covers ::setUpdateHelper
-   * @covers ::__construct
-   */
   public function testApplyToSectionComponents(): void {
     $generator = $this->getRandomGenerator();
     $component_hierarchy = [
@@ -401,8 +393,7 @@ class LayoutHelperTest extends UnitTestCase {
     $return_output = [FALSE, FALSE, TRUE, FALSE, TRUE, FALSE, FALSE];
 
     // Prepare an observable callback function to confirm execution.
-    $callback_mock = $this->getMockBuilder(ObservableCallbackClass::class)
-      ->getMock();
+    $callback_mock = $this->createMock(ObservableCallbackClass::class);
     $callback_mock->expects($this->exactly(7))
       ->method('myCallback')
       ->willReturnCallback(function (string $key, SectionStorageInterface $sectionStorage, object $item, string $additional_arg) use (&$expected_args, &$return_output): bool {
@@ -428,17 +419,6 @@ class LayoutHelperTest extends UnitTestCase {
     $this->assertEmpty($return_output);
   }
 
-  /**
-   * @covers ::getSectionStorageFromEntities
-   * @covers ::setUpdateHelper
-   * @covers ::__construct
-   * @uses \Drupal\Core\Plugin\Context\Context
-   * @uses \Drupal\Core\Plugin\Context\ContextDefinition
-   * @uses \Drupal\Core\Plugin\Context\EntityContext
-   * @uses \Drupal\Core\Plugin\Context\EntityContextDefinition
-   *
-   * @todo Add test coverage for filtering.
-   */
   public function testGetSectionStorageFromEntities(): void {
     $seed_data = [
       'displays' => [
@@ -587,11 +567,6 @@ class LayoutHelperTest extends UnitTestCase {
     $this->assertContainsOnlyInstancesOf(SectionStorageInterface::class, $actual);
   }
 
-  /**
-   * @covers ::getSectionStorageFromTempStore
-   * @covers ::setUpdateHelper
-   * @covers ::__construct
-   */
   public function testGetSectionStorageFromTempStore(): void {
     $generator = $this->getRandomGenerator();
     $seed_data = [

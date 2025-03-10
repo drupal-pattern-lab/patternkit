@@ -2,10 +2,13 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema\DataPreProcessor;
 
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\Core\Utility\Token;
-use Drupal\Tests\UnitTestCase;
-use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\patternkit\Schema\DataPreProcessor\TokenValidationDataPreProcessor;
+use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Group;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Swaggest\JsonSchema\Context;
@@ -14,10 +17,9 @@ use Swaggest\JsonSchema\Schema;
 
 /**
  * Test the TokenValidationDataPreProcessor class.
- *
- * @coversDefaultClass \Drupal\patternkit\Schema\DataPreProcessor\TokenValidationDataPreProcessor
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(TokenValidationDataPreProcessor::class)]
 class TokenValidationDataPreProcessorTest extends UnitTestCase {
 
   use ProphecyTrait;
@@ -72,11 +74,7 @@ class TokenValidationDataPreProcessorTest extends UnitTestCase {
     $this->context->setDataPreProcessor($this->dataPreProcessor);
   }
 
-  /**
-   * @covers ::process
-   * @covers ::__construct
-   * @dataProvider providerProcess
-   */
+  #[DataProvider('providerProcess')]
   public function testProcess($data, string $schema_json, bool $import, bool $schema_should_change): void {
     $schema = Schema::import(static::decodeJson($schema_json));
 

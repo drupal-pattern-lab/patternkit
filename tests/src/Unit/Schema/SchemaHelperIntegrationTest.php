@@ -2,12 +2,14 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
-use Drupal\Tests\UnitTestCase;
-use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\patternkit\Schema\ContextBuilder;
 use Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor;
 use Drupal\patternkit\Schema\SchemaHelper;
+use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Group;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Swaggest\JsonSchema\Context;
@@ -18,10 +20,10 @@ use Swaggest\JsonSchema\Schema;
  *
  * Tests the SchemaHelper utility class with expected behaviors from configured
  * context components.
- *
- * @coversDefaultClass \Drupal\patternkit\Schema\SchemaHelper
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(SchemaHelper::class)]
+#[CoversClass(ObjectCoercionDataPreProcessor::class)]
 class SchemaHelperIntegrationTest extends UnitTestCase {
 
   use JsonDecodeTrait;
@@ -30,7 +32,7 @@ class SchemaHelperIntegrationTest extends UnitTestCase {
   /**
    * A prophecy mock for the context builder service.
    *
-   * @var \Drupal\patternkit\Schema\ContextBuilder|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Schema\ContextBuilder>
    */
   protected ObjectProphecy $contextBuilder;
 
@@ -164,12 +166,6 @@ class SchemaHelperIntegrationTest extends UnitTestCase {
     return $this->context;
   }
 
-  /**
-   * @covers ::getCompositionSchema
-   * @covers ::getConstraintFromObject
-   * @covers ::manuallyTestConstraints
-   * @covers \Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor
-   */
   public function testGetCompositionSchemaWithDataCoercion() {
     $this->context = new Context();
     $this->context->setDataPreProcessor(new ObjectCoercionDataPreProcessor());

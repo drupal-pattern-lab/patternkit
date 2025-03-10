@@ -2,22 +2,23 @@
 
 namespace Drupal\Tests\patternkit\Kernel\Asset;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheBackendInterface;
-use Drupal\Tests\patternkit\Kernel\PatternkitKernelTestBase;
-use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
 use Drupal\patternkit\Asset\PatternDiscovery;
 use Drupal\patternkit\Asset\PatternDiscoveryInterface;
+use Drupal\Tests\patternkit\Kernel\PatternkitKernelTestBase;
+use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
+use PHPUnit\Framework\Attributes\Group;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 
 /**
  * Test cache usage within the PatternDiscovery class.
- *
- * @coversDefaultClass \Drupal\patternkit\Asset\PatternDiscovery
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(PatternDiscovery::class)]
 class PatternDiscoveryCacheTest extends PatternkitKernelTestBase {
 
   use ProphecyTrait;
@@ -66,9 +67,6 @@ class PatternDiscoveryCacheTest extends PatternkitKernelTestBase {
     $this->expectedDefinitions['@patternkit'] = $this->getPatternNames();
   }
 
-  /**
-   * @covers ::getPatternsByNamespace
-   */
   public function testGetPatternsByNamespace(): void {
     $definitions = $this->discovery->getPatternsByNamespace('@patternkit');
 
@@ -77,9 +75,6 @@ class PatternDiscoveryCacheTest extends PatternkitKernelTestBase {
     $this->assertEqualsCanonicalizing($this->expectedDefinitions['@patternkit'], array_keys($definitions));
   }
 
-  /**
-   * @covers ::getPatternDefinitions
-   */
   public function testGetPatternDefinitions(): void {
     $definitions = $this->discovery->getPatternDefinitions();
 
@@ -92,9 +87,6 @@ class PatternDiscoveryCacheTest extends PatternkitKernelTestBase {
     $this->assertEqualsCanonicalizing($this->expectedDefinitions['@patternkit'], array_keys($definitions['@patternkit']));
   }
 
-  /**
-   * @covers ::clearCachedDefinitions
-   */
   public function testClearCachedDefinitions(): void {
     /** @var \Drupal\Core\Cache\CacheBackendInterface $cache */
     $cache = $this->container->get('cache.patternkit');
@@ -139,10 +131,6 @@ class PatternDiscoveryCacheTest extends PatternkitKernelTestBase {
 
   /**
    * Validate lookup of library namespaces is stored in independent bins.
-   *
-   * @covers ::getPatternsByNamespace
-   * @covers ::setCacheBackend
-   * @uses \Drupal\patternkit\Asset\PatternDiscovery::buildPatternDefinitions()
    */
   public function testIndependentCacheBins(): void {
     $this->mockCacheBackend();
@@ -182,14 +170,6 @@ class PatternDiscoveryCacheTest extends PatternkitKernelTestBase {
     $this->discovery->getPatternsByNamespace('@patternkit_twig');
   }
 
-  /**
-   * @covers ::cacheGet
-   * @covers ::cacheSet
-   * @covers ::useCaches
-   * @covers ::setCacheBackend
-   * @covers ::getPatternDefinitions
-   * @covers ::getPatternsByNamespace
-   */
   public function testUseCaches(): void {
     $this->mockCacheBackend();
 

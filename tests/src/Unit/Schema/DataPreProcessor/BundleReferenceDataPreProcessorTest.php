@@ -2,20 +2,22 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema\DataPreProcessor;
 
-use Drupal\Tests\UnitTestCase;
-use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\patternkit\Schema\DataPreProcessor\BundleReferenceDataPreProcessor;
 use Drupal\patternkit\Schema\SchemaRefHandler;
+use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Group;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Swaggest\JsonSchema\Schema;
 
 /**
  * Unit tests for the BundleReferenceDataPreProcessor.
- *
- * @coversDefaultClass \Drupal\patternkit\Schema\DataPreProcessor\BundleReferenceDataPreProcessor
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(BundleReferenceDataPreProcessor::class)]
 class BundleReferenceDataPreProcessorTest extends UnitTestCase {
 
   use JsonDecodeTrait;
@@ -31,7 +33,7 @@ class BundleReferenceDataPreProcessorTest extends UnitTestCase {
   /**
    * The mocked SchemaRefHandler service.
    *
-   * @var \Drupal\patternkit\Schema\SchemaRefHandler|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Schema\SchemaRefHandler>
    */
   protected ObjectProphecy $schemaRefHandler;
 
@@ -44,13 +46,7 @@ class BundleReferenceDataPreProcessorTest extends UnitTestCase {
     $this->schemaRefHandler = $this->prophesize(SchemaRefHandler::class);
   }
 
-  /**
-   * @covers ::process
-   * @covers ::setBundleMap
-   * @covers ::__construct
-   *
-   * @dataProvider providerProcess
-   */
+  #[DataProvider('providerProcess')]
   public function testProcess($data, array $map, $expected) {
     $schema = $this->createMock(Schema::class);
 

@@ -2,22 +2,28 @@
 
 namespace Drupal\Tests\patternkit_usage_tracking\Functional;
 
+use Drupal\patternkit_usage_tracking\PatternUsageEntityOperations;
+use Drupal\patternkit_usage_tracking\LayoutUsageTracker;
+use Drupal\patternkit_usage_tracking\UsageRevisionHelper;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\layout_builder\Context\LayoutBuilderContextTrait;
+use Drupal\node\Entity\Node;
 use Drupal\Tests\content_moderation\Traits\ContentModerationTestTrait;
 use Drupal\Tests\patternkit\Functional\PatternkitBrowserTestBase;
 use Drupal\Tests\patternkit_usage_tracking\Traits\PatternUsageAssertionTrait;
-use Drupal\layout_builder\Context\LayoutBuilderContextTrait;
-use Drupal\node\Entity\Node;
+use PHPUnit\Framework\Attributes\CoversFunction;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests for validating usage tracking during entity operations with revisions.
- *
- * @group patternkit
- * @group patternkit_usage_tracking
- *
- * @covers \Drupal\patternkit_usage_tracking\PatternUsageEntityOperations
- * @covers \Drupal\patternkit_usage_tracking\LayoutUsageTracker
  */
+#[Group('patternkit')]
+#[Group('patternkit_usage_tracking')]
+#[CoversClass(PatternUsageEntityOperations::class)]
+#[CoversClass(LayoutUsageTracker::class)]
+#[CoversClass(UsageRevisionHelper::class)]
+#[CoversFunction('patternkit_usage_tracking_entity_update')]
 class EntityRevisionsTest extends PatternkitBrowserTestBase {
 
   use LayoutBuilderContextTrait;
@@ -67,9 +73,6 @@ class EntityRevisionsTest extends PatternkitBrowserTestBase {
 
   /**
    * Test pattern discovery during an update operation.
-   *
-   * @covers \patternkit_usage_tracking_entity_update()
-   * @covers \Drupal\patternkit_usage_tracking\UsageRevisionHelper
    */
   public function testLayoutUpdate(): void {
     // Place an example block in the layout.

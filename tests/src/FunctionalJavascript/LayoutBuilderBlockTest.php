@@ -3,12 +3,12 @@
 namespace Drupal\Tests\patternkit\FunctionalJavascript;
 
 use Drupal\node\Entity\Node;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * End-to-end testing for patternkit block placement in layout builder layouts.
- *
- * @group patternkit
  */
+#[Group('patternkit')]
 class LayoutBuilderBlockTest extends PatternkitBrowserTestBase {
 
   /**

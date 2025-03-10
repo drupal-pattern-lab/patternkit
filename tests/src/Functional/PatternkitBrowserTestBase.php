@@ -4,11 +4,11 @@ namespace Drupal\Tests\patternkit\Functional;
 
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\RevisionableStorageInterface;
+use Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\patternkit\Traits\PatternkitBlockHelperTrait;
 use Drupal\Tests\patternkit\Traits\SchemaFixtureTrait;
-use Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay;
 use Drupal\user\UserInterface;
 
 /**

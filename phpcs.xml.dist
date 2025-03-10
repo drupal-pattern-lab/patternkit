@@ -29,4 +29,8 @@
     <exclude-pattern>*Commands\.php</exclude-pattern>
   </rule>
 
+  <rule ref="Drupal.Commenting.FunctionComment.Missing">
+    <exclude-pattern>*tests/*\.php</exclude-pattern>
+  </rule>
+
 </ruleset>

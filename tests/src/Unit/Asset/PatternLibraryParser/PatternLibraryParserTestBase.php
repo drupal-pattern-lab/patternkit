@@ -13,14 +13,17 @@ use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 use Drupal\Core\Theme\ComponentPluginManager;
 use Drupal\Core\Theme\ThemeManagerInterface;
-use Drupal\Tests\UnitTestCase;
-use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\patternkit\Asset\PatternDependencyResolver;
 use Drupal\patternkit\Asset\PatternLibraryParserInterface;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\PatternkitEnvironment;
 use Drupal\patternkit\PatternkitEnvironmentAwareInterface;
 use Drupal\patternkit\Schema\DataPreProcessorFactory;
+use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
+use Drupal\Tests\UnitTestCase;
+use org\bovigo\vfs\vfsStream;
+use org\bovigo\vfs\vfsStreamDirectory;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\MockObject\MockBuilder;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -28,18 +31,14 @@ use Prophecy\Prophecy\ObjectProphecy;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use org\bovigo\vfs\vfsStream;
-use org\bovigo\vfs\vfsStreamDirectory;
 
 /**
  * A base test class for testing PatternLibraryParser implementations.
  *
- * @group patternkit
- *
  * @todo Use a mocked serializer instead of injecting a real instance.
- *
  * @template T of \Drupal\patternkit\Asset\PatternLibraryParserInterface
  */
+#[Group('patternkit')]
 abstract class PatternLibraryParserTestBase extends UnitTestCase {
 
   use JsonDecodeTrait;

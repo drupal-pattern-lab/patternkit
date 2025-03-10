@@ -2,15 +2,16 @@
 
 namespace Drupal\Tests\patternkit_usage_tracking\Unit;
 
+use Drupal\patternkit_usage_tracking\PatternLayoutDiscoveryTrait;
+use Drupal\patternkit_usage_tracking\PatternLayoutUsageInsertTrait;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Language\LanguageInterface;
-use Drupal\TestTools\Random;
-use Drupal\Tests\UnitTestCase;
-use Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait;
 use Drupal\layout_builder\SectionListInterface;
 use Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface;
 use Drupal\patternkit\Entity\PatternInterface;
@@ -19,6 +20,10 @@ use Drupal\patternkit\Utility\PatternDetector;
 use Drupal\patternkit_usage_tracking\Entity\PatternUsage;
 use Drupal\patternkit_usage_tracking\PatternUsageManager;
 use Drupal\patternkit_usage_tracking\UsageRevisionHelper;
+use Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait;
+use Drupal\Tests\UnitTestCase;
+use Drupal\TestTools\Random;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -26,11 +31,6 @@ use Prophecy\Prophecy\ObjectProphecy;
 
 /**
  * Test the UsageRevisionHelper service.
- *
- * @coversDefaultClass \Drupal\patternkit_usage_tracking\UsageRevisionHelper
- *
- * @group patternkit
- * @group patternkit_usage_tracking
  *
  * @phpstan-import-type LBComponentMockConfig from PatternkitMockHelperTrait
  * @phpstan-type MockComponentData array{
@@ -41,6 +41,11 @@ use Prophecy\Prophecy\ObjectProphecy;
  *    content_path?: string,
  *  }
  */
+#[Group('patternkit')]
+#[Group('patternkit_usage_tracking')]
+#[CoversClass(UsageRevisionHelper::class)]
+#[CoversClass(PatternLayoutDiscoveryTrait::class)]
+#[CoversClass(PatternLayoutUsageInsertTrait::class)]
 class UsageRevisionHelperTest extends UnitTestCase {
 
   use PatternkitMockHelperTrait;
@@ -166,10 +171,6 @@ class UsageRevisionHelperTest extends UnitTestCase {
       ->getMock();
   }
 
-  /**
-   * @covers ::shouldTrackEntity
-   * @covers ::__construct
-   */
   public function testShouldTrackEntity(): void {
     $mock = $this->getPartialMock(['isLayoutCompatibleEntity']);
 
@@ -216,12 +217,7 @@ class UsageRevisionHelperTest extends UnitTestCase {
       'Expected TRUE when tracking an entity with full compatibility.');
   }
 
-  /**
-   * @covers ::loadPreviouslyTrackedPatterns
-   * @covers ::__construct
-   *
-   * @dataProvider providerLoadPreviouslyTrackedPatterns
-   */
+  #[DataProvider('providerLoadPreviouslyTrackedPatterns')]
   public function testLoadPreviouslyTrackedPatterns(array $loaded_records, array $expected): void {
     // Load record data into mocked record entities.
     [
@@ -386,13 +382,7 @@ class UsageRevisionHelperTest extends UnitTestCase {
     return $cases;
   }
 
-  /**
-   * @covers \Drupal\patternkit_usage_tracking\UsageRevisionHelper
-   * @covers \Drupal\patternkit_usage_tracking\PatternLayoutDiscoveryTrait
-   * @covers \Drupal\patternkit_usage_tracking\PatternLayoutUsageInsertTrait
-   *
-   * @dataProvider providerTrackOnEntityUpdate
-   */
+  #[DataProvider('providerTrackOnEntityUpdate')]
   public function testTrackOnEntityUpdate(array $edited_data, array $loaded_records, array $expected_calls, array $nested_content_mapping = []): void {
     $new_revision_id = rand(0, 100);
     $this->entity->getRevisionId()->willReturn($new_revision_id);
@@ -965,10 +955,6 @@ class UsageRevisionHelperTest extends UnitTestCase {
     return $cases;
   }
 
-  /**
-   * @covers ::trackChanges
-   * @covers ::__construct
-   */
   public function testTrackChanges(): void {
     $random = $this->getRandomGenerator();
     $original = [

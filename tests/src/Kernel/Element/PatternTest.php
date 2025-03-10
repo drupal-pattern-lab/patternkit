@@ -8,13 +8,14 @@ use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\Tests\patternkit\Kernel\PatternkitKernelTestBase;
 use Drupal\Tests\patternkit\Traits\MetadataTestTrait;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests for the Pattern element class.
- *
- * @coversDefaultClass \Drupal\patternkit\Element\Pattern
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(Pattern::class)]
 class PatternTest extends PatternkitKernelTestBase {
 
   use MetadataTestTrait;
@@ -59,8 +60,6 @@ class PatternTest extends PatternkitKernelTestBase {
 
   /**
    * Test for the presence of default pattern cache data.
-   *
-   * @covers ::preRenderPatternElement
    */
   public function testBasicPatternCacheData() {
     // Load our pattern instance.
@@ -100,8 +99,6 @@ class PatternTest extends PatternkitKernelTestBase {
 
   /**
    * Test for the presence of default pattern cache data.
-   *
-   * @covers ::preRenderPatternElement
    */
   public function testCustomCacheDataPersistence() {
     // Load our pattern instance.

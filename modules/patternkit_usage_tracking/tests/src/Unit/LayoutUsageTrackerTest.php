@@ -2,14 +2,13 @@
 
 namespace Drupal\Tests\patternkit_usage_tracking\Unit;
 
+use Drupal\patternkit_usage_tracking\PatternLayoutUsageInsertTrait;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldItemListInterface;
-use Drupal\Tests\UnitTestCase;
-use Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait;
 use Drupal\layout_builder\SectionListInterface;
 use Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface;
 use Drupal\patternkit\Entity\PatternInterface;
@@ -18,6 +17,10 @@ use Drupal\patternkit\Utility\PatternDetector;
 use Drupal\patternkit_usage_tracking\LayoutUsageTracker;
 use Drupal\patternkit_usage_tracking\PatternUsageManager;
 use Drupal\patternkit_usage_tracking\UsageRevisionHelper;
+use Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -25,13 +28,12 @@ use Prophecy\Prophecy\ObjectProphecy;
 
 /**
  * Test the LayoutUsageTracker service.
- *
- * @coversDefaultClass \Drupal\patternkit_usage_tracking\LayoutUsageTracker
- * @covers \Drupal\patternkit_usage_tracking\PatternLayoutUsageInsertTrait
- *
- * @group patternkit
- * @group patternkit_usage_tracking
  */
+#[Group('patternkit')]
+#[Group('patternkit_usage_tracking')]
+#[CoversClass(LayoutUsageTracker::class)]
+#[CoversClass(PatternLayoutUsageInsertTrait::class)]
+#[CoversClass('\Drupal\patternkit_usage_tracking\PatternLayoutDiscoveryTrait')]
 class LayoutUsageTrackerTest extends UnitTestCase {
 
   use ProphecyTrait;
@@ -153,10 +155,6 @@ class LayoutUsageTrackerTest extends UnitTestCase {
       ->getMock();
   }
 
-  /**
-   * @covers ::shouldTrackEntity
-   * @covers ::__construct
-   */
   public function testShouldTrackEntity(): void {
     $mock = $this->getPartialMock(['isLayoutCompatibleEntity']);
 
@@ -184,10 +182,6 @@ class LayoutUsageTrackerTest extends UnitTestCase {
       'Expected TRUE when tracking an entity with full compatibility.');
   }
 
-  /**
-   * @covers ::trackOnEntityUpdate
-   * @covers ::__construct
-   */
   public function testTrackOnEntityUpdate(): void {
     $mock = $this->getPartialMock([
       'trackOnEntityCreation',
@@ -207,10 +201,6 @@ class LayoutUsageTrackerTest extends UnitTestCase {
     $mock->trackOnEntityUpdate($this->entity->reveal());
   }
 
-  /**
-   * @covers ::trackOnEntityUpdate
-   * @covers ::__construct
-   */
   public function testTrackOnEntityUpdateOnlyLatestRevision(): void {
     $mock = $this->getPartialMock([
       'trackOnEntityCreation',
@@ -233,15 +223,6 @@ class LayoutUsageTrackerTest extends UnitTestCase {
     $mock->trackOnEntityUpdate($this->entity->reveal());
   }
 
-  /**
-   * @covers ::trackOnEntityCreation
-   * @covers ::identifyPatternsByComponent
-   * @covers ::getPatternsByLayoutComponent
-   * @covers ::getPatternsByLayoutComponentByEntity
-   * @covers ::shouldTrackEntity
-   * @covers ::__construct
-   * @covers \Drupal\patternkit_usage_tracking\PatternLayoutDiscoveryTrait::getNestedPatterns
-   */
   public function testTrackOnEntityCreation(): void {
     $layout = $this->prophesize(SectionListInterface::class)
       ->willImplement(FieldItemListInterface::class);
@@ -307,12 +288,6 @@ class LayoutUsageTrackerTest extends UnitTestCase {
     $mock->trackOnEntityCreation($this->entity->reveal());
   }
 
-  /**
-   * @covers ::trackOnEntityCreation
-   * @covers ::shouldTrackEntity
-   * @covers ::__construct
-   * @covers \Drupal\patternkit_usage_tracking\PatternLayoutDiscoveryTrait
-   */
   public function testTrackOnEntityCreationWithNestedPatterns(): void {
     $layout = $this->prophesize(SectionListInterface::class)
       ->willImplement(FieldItemListInterface::class);
@@ -391,10 +366,6 @@ class LayoutUsageTrackerTest extends UnitTestCase {
     $mock->trackOnEntityCreation($this->entity->reveal());
   }
 
-  /**
-   * @covers ::trackOnEntityDelete
-   * @covers ::__construct
-   */
   public function testTrackOnEntityDelete(): void {
     $this->usageManager->deleteByEntity($this->entity->reveal())
       ->shouldBeCalledOnce();

@@ -2,12 +2,13 @@
 
 namespace Drupal\Tests\patternkit_media_library\Functional;
 
+use PHPUnit\Framework\Attributes\Group;
+
 /**
  * Basic E2E testing for Patternkit Media Library.
- *
- * @group patternkit
- * @group patternkit_media_library
  */
+#[Group('patternkit')]
+#[Group('patternkit_media_library')]
 class PatternkitMediaLibraryTest extends PatternkitMediaLibraryBrowserTestBase {
 
   /**

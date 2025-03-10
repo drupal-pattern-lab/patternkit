@@ -2,23 +2,22 @@
 
 namespace Drupal\Tests\patternkit\Unit;
 
-use Drupal\TestTools\Random;
-use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\patternkit\PatternkitEnvironment;
+use Drupal\Tests\UnitTestCase;
+use Drupal\TestTools\Random;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Test the PatternkitEnvironment class.
- *
- * @coversDefaultClass \Drupal\patternkit\PatternkitEnvironment
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(PatternkitEnvironment::class)]
 class PatternkitEnvironmentTest extends UnitTestCase {
 
   /**
    * Test debug flag behavior.
-   *
-   * @covers ::__construct
-   * @covers ::isDebug
    */
   public function testIsDebug() {
     // Test default instantiation.
@@ -38,11 +37,7 @@ class PatternkitEnvironmentTest extends UnitTestCase {
     $this->assertTrue($environment->isDebug());
   }
 
-  /**
-   * @covers ::__construct
-   * @covers ::getFeatureOption
-   * @dataProvider providerGetFeatureOption
-   */
+  #[DataProvider('providerGetFeatureOption')]
   public function testGetFeatureOption(array $config, string $feature_name, $default, $expected) {
     // Test default instantiation.
     $environment = new PatternkitEnvironment($config);

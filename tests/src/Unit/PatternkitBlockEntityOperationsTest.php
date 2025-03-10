@@ -2,29 +2,31 @@
 
 namespace Drupal\Tests\patternkit\Unit;
 
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\Core\Block\BlockPluginInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\RevisionableInterface;
-use Drupal\Tests\UnitTestCase;
 use Drupal\layout_builder\Section;
 use Drupal\layout_builder\SectionComponent;
 use Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface;
 use Drupal\layout_builder\SectionStorageInterface;
 use Drupal\patternkit\PatternkitBlockEntityOperations;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Group;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 
 /**
  * Unit tests for the PatternkitBlockEntityOperations service.
- *
- * @coversDefaultClass \Drupal\patternkit\PatternkitBlockEntityOperations
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(PatternkitBlockEntityOperations::class)]
 class PatternkitBlockEntityOperationsTest extends UnitTestCase {
 
   use ProphecyTrait;
@@ -85,11 +87,6 @@ class PatternkitBlockEntityOperationsTest extends UnitTestCase {
     );
   }
 
-  /**
-   * @covers ::handlePreSave
-   * @covers ::getPatternBlockComponents
-   * @covers ::saveBlockComponent
-   */
   public function testHandlePresave() {
     $entity = $this->prophesize(EntityInterface::class);
     $entity_type = $this->prophesize(EntityTypeInterface::class);
@@ -159,9 +156,6 @@ class PatternkitBlockEntityOperationsTest extends UnitTestCase {
     $mock->handlePreSave($entity->reveal());
   }
 
-  /**
-   * @covers ::handlePreSave
-   */
   public function testHandlePresaveForNonLayoutEntity() {
     $entity = $this->prophesize(EntityInterface::class);
 
@@ -185,11 +179,8 @@ class PatternkitBlockEntityOperationsTest extends UnitTestCase {
    *   uses the default entity section storage.
    * @param bool $isRevisionable
    *   Whether the mocked entity should be indicated as revisionable.
-   *
-   * @covers ::handlePreSave
-   * @covers ::getPatternBlockComponents
-   * @dataProvider providerHandlePresaveOperationFlags
    */
+  #[DataProvider('providerHandlePresaveOperationFlags')]
   public function testHandlePresaveOperationFlags(bool $usesDefaultStorage, bool $isRevisionable): void {
     $entity = $this->prophesize(EntityInterface::class);
 

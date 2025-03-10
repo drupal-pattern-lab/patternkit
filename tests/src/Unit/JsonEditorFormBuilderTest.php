@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\patternkit\Unit;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
 use Drupal\Component\Plugin\Exception\PluginException;
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -11,7 +12,6 @@ use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\State\StateInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\StringTranslation\TranslationInterface;
-use Drupal\Tests\UnitTestCase;
 use Drupal\editor\Entity\Editor;
 use Drupal\editor\Plugin\EditorManager;
 use Drupal\editor\Plugin\EditorPluginInterface;
@@ -19,6 +19,9 @@ use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Form\PatternLibraryJSONForm;
 use Drupal\patternkit\JsonEditorFormBuilder;
 use Drupal\patternkit\PatternLibraryPluginManager;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -29,11 +32,12 @@ use Webmozart\Assert\InvalidArgumentException;
 
 /**
  * Unit tests for the JsonEditorFormBuilder service.
- *
- * @coversDefaultClass \Drupal\patternkit\JsonEditorFormBuilder
- * @covers ::__construct()
- * @group patternkit
  */
+#[Group('patternkit')]
+#[UsesClass('\Drupal\Core\Render\BubbleableMetadata')]
+#[UsesClass('\Swaggest\JsonSchema\Schema')]
+#[UsesClass('\Webmozart\Assert\Assert')]
+#[CoversClass(JsonEditorFormBuilder::class)]
 class JsonEditorFormBuilderTest extends UnitTestCase {
 
   use ProphecyTrait;
@@ -170,14 +174,6 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
     $this->pattern->getSchema()->willReturn($this->schema);
   }
 
-  /**
-   * @covers ::buildEditorForm
-   * @covers ::supportsWysiwygEditor
-   * @covers ::attachAssets
-   * @covers ::getThemeAttachments
-   * @covers ::getIconAttachments
-   * @uses \Drupal\Core\Render\BubbleableMetadata::mergeAttachments()
-   */
   public function testBuildEditorFormWithoutWysiwyg(): void {
     $settings = [
       // Provide a query string to sidestep loading it during this test.
@@ -207,10 +203,6 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
     $this->assertEquals($expected, $form['#attached']['drupalSettings']['patternkitEditor']);
   }
 
-  /**
-   * @covers ::buildEditorForm
-   * @uses \Webmozart\Assert\Assert
-   */
   public function testBuildEditorFormWithoutSchemaData(): void {
     $this->expectException(InvalidArgumentException::class);
     $this->expectExceptionMessage('If no pattern is provided, the schema should be assigned in $settings["schemaJson"].');
@@ -219,11 +211,6 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
     $this->builder->buildEditorForm();
   }
 
-  /**
-   * @covers ::buildEditorForm
-   * @uses \Webmozart\Assert\Assert
-   * @uses \Swaggest\JsonSchema\Schema
-   */
   public function testBuildEditorFormWithInvalidSchemaData(): void {
     $schema = $this->prophesize(Schema::class);
     $settings = ['schemaJson' => $schema];
@@ -235,15 +222,6 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
     $this->builder->buildEditorForm(settings: $settings);
   }
 
-  /**
-   * @covers ::buildEditorForm
-   * @covers ::supportsWysiwygEditor
-   * @covers ::attachAssets
-   * @covers ::getThemeAttachments
-   * @covers ::getIconAttachments
-   * @uses \Drupal\Core\Render\BubbleableMetadata::mergeAttachments()
-   * @uses \Webmozart\Assert\Assert
-   */
   public function testBuildEditorFormWithoutPattern(): void {
     $settings = [
       // Provide a query string to sidestep loading it during this test.
@@ -267,18 +245,6 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
     $this->assertEquals($settings, $form['#attached']['drupalSettings']['patternkitEditor']);
   }
 
-  /**
-   * @covers ::buildEditorForm
-   * @covers ::supportsWysiwygEditor
-   * @covers ::setEditorPluginManager
-   * @covers ::getEditorPluginManager
-   * @covers ::prepareWysiwygEditor
-   * @covers ::config
-   * @covers ::attachAssets
-   * @covers ::getThemeAttachments
-   * @covers ::getIconAttachments
-   * @uses \Drupal\Core\Render\BubbleableMetadata::mergeAttachments()
-   */
   public function testBuildEditorFormWithWysiwyg(): void {
     $settings = [
       // Provide a query string to sidestep loading it during this test.
@@ -360,13 +326,6 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
     $this->assertEquals($selected_toolbar, $patternkitCKEditorConfig['selected_toolbar']);
   }
 
-  /**
-   * @covers ::buildEditorForm
-   * @covers ::supportsWysiwygEditor
-   * @covers ::attachAssets
-   * @covers ::getThemeAttachments
-   * @uses \Drupal\Core\Render\BubbleableMetadata::mergeAttachments()
-   */
   public function testThemeLoadFailure(): void {
     $settings = [
       // Provide a query string to sidestep loading it during this test.
@@ -399,13 +358,6 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
     $this->assertEquals($expected, $form['#attached']['drupalSettings']['patternkitEditor']);
   }
 
-  /**
-   * @covers ::buildEditorForm
-   * @covers ::supportsWysiwygEditor
-   * @covers ::attachAssets
-   * @covers ::getIconAttachments
-   * @uses \Drupal\Core\Render\BubbleableMetadata::mergeAttachments()
-   */
   public function testIconsLoadFailure(): void {
     $settings = [
       // Provide a query string to sidestep loading it during this test.
@@ -440,13 +392,6 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
 
   /**
    * Test behavior when an editor plugin fails to load.
-   *
-   * @covers ::buildEditorForm
-   * @covers ::supportsWysiwygEditor
-   * @covers ::attachAssets
-   * @covers ::getEditorPluginManager
-   * @covers ::prepareWysiwygEditor
-   * @covers ::config
    */
   public function testEditorPluginException(): void {
     $settings = [

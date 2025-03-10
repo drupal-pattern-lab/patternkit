@@ -2,14 +2,19 @@
 
 namespace Drupal\Tests\patternkit\Functional;
 
+use Drupal\patternkit\Plugin\Block\PatternkitBlock;
+use Drupal\patternkit\Element\PatternError;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\Core\Url;
 use Drupal\node\Entity\Node;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Block placement and cache testing for patternkit blocks.
- *
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(PatternkitBlock::class)]
+#[CoversClass(PatternError::class)]
 class BlockTest extends PatternkitBrowserTestBase {
 
   /**
@@ -116,9 +121,6 @@ class BlockTest extends PatternkitBrowserTestBase {
 
   /**
    * Test behavior when block content fails JSON decoding.
-   *
-   * @covers \Drupal\patternkit\Plugin\Block\PatternkitBlock::build()
-   * @covers \Drupal\patternkit\Element\PatternError
    */
   public function testConfigDecodeException(): void {
     // Place an example block in the layout.
@@ -145,9 +147,6 @@ class BlockTest extends PatternkitBrowserTestBase {
 
   /**
    * Test behavior when block entity fails to load.
-   *
-   * @covers \Drupal\patternkit\Plugin\Block\PatternkitBlock::build()
-   * @covers \Drupal\patternkit\Element\PatternError
    */
   public function testBlockLoadFailure(): void {
     // Place an example block in the layout.

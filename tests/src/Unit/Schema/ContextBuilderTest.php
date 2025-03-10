@@ -2,8 +2,12 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
-use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\patternkit\Schema\ContextBuilder;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\UsesClass;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Swaggest\JsonSchema\Context;
 use Swaggest\JsonSchema\DataPreProcessor;
@@ -12,12 +16,10 @@ use Webmozart\Assert\InvalidArgumentException;
 
 /**
  * Unit tests for the ContextBuilder class.
- *
- * @coversDefaultClass \Drupal\patternkit\Schema\ContextBuilder
- * @covers ::__construct
- * @uses \Swaggest\JsonSchema\Context
- * @group patternkit
  */
+#[Group('patternkit')]
+#[UsesClass('\Swaggest\JsonSchema\Context')]
+#[CoversClass(ContextBuilder::class)]
 class ContextBuilderTest extends UnitTestCase {
 
   use ProphecyTrait;
@@ -38,11 +40,6 @@ class ContextBuilderTest extends UnitTestCase {
     $this->contextBuilder = new ContextBuilder();
   }
 
-  /**
-   * @covers ::getDefaultOptions
-   * @uses \Drupal\patternkit\Schema\ContextBuilder::setDefaultOptions()
-   * @uses \Drupal\patternkit\Schema\ContextBuilder::validateOptions()
-   */
   public function testGetDefaultOptions() {
     $options = $this->contextBuilder->getDefaultOptions();
     $this->assertIsArray($options);
@@ -55,11 +52,6 @@ class ContextBuilderTest extends UnitTestCase {
     $this->assertEquals($defaults, $this->contextBuilder->getDefaultOptions());
   }
 
-  /**
-   * @covers ::setDefaultOptions
-   * @covers ::validateOptions
-   * @uses \Drupal\patternkit\Schema\ContextBuilder::getDefaultOptions()
-   */
   public function testSetDefaultOptions() {
     $defaults = [
       'applyDefaults' => TRUE,
@@ -69,12 +61,6 @@ class ContextBuilderTest extends UnitTestCase {
     $this->assertEquals($defaults, $this->contextBuilder->getDefaultOptions());
   }
 
-  /**
-   * @covers ::setDefaultOption
-   * @covers ::validateOptions
-   * @uses \Drupal\patternkit\Schema\ContextBuilder::setDefaultOptions()
-   * @uses \Drupal\patternkit\Schema\ContextBuilder::getDefaultOptions()
-   */
   public function testSetDefaultOption() {
     // Initialize the default options to a known value.
     $default_options = [
@@ -101,14 +87,6 @@ class ContextBuilderTest extends UnitTestCase {
     ], $this->contextBuilder->getDefaultOptions());
   }
 
-  /**
-   * @covers ::getDefaultContext
-   * @covers ::configureContextDefaults
-   * @covers ::applyOptions
-   * @covers ::validateOptions
-   * @uses \Drupal\patternkit\Schema\ContextBuilder::setDefaultOptions()
-   * @uses \Drupal\patternkit\Schema\ContextBuilder::applyOptions()
-   */
   public function testGetDefaultContext() {
     // Initialize the default options to a known value.
     $default_options = [
@@ -124,12 +102,6 @@ class ContextBuilderTest extends UnitTestCase {
     $this->assertContextConfiguration($default_options, $context);
   }
 
-  /**
-   * @covers ::setRemoteRefProvider
-   * @uses \Drupal\patternkit\Schema\ContextBuilder::getDefaultContext()
-   * @uses \Drupal\patternkit\Schema\ContextBuilder::configureContextDefaults()
-   * @uses \Drupal\patternkit\Schema\ContextBuilder::applyOptions()
-   */
   public function testSetRemoteRefProvider() {
     $refProvider = $this->prophesize(RemoteRefProvider::class)->reveal();
     $this->contextBuilder->setRemoteRefProvider($refProvider);
@@ -138,12 +110,6 @@ class ContextBuilderTest extends UnitTestCase {
     $this->assertSame($refProvider, $context->getRemoteRefProvider());
   }
 
-  /**
-   * @covers ::setDataPreProcessor
-   * @uses \Drupal\patternkit\Schema\ContextBuilder::getDefaultContext()
-   * @uses \Drupal\patternkit\Schema\ContextBuilder::configureContextDefaults()
-   * @uses \Drupal\patternkit\Schema\ContextBuilder::applyOptions()
-   */
   public function testSetDataPreProcessor() {
     $dataPreProcessor = $this->prophesize(DataPreProcessor::class)->reveal();
     $this->contextBuilder->setDataPreProcessor($dataPreProcessor);
@@ -152,14 +118,6 @@ class ContextBuilderTest extends UnitTestCase {
     $this->assertSame($dataPreProcessor, $context->getDataPreProcessor());
   }
 
-  /**
-   * @covers ::configureContextDefaults
-   * @covers ::applyOptions
-   * @covers ::validateOptions
-   * @uses \Drupal\patternkit\Schema\ContextBuilder::setDefaultOptions()
-   * @uses \Drupal\patternkit\Schema\ContextBuilder::setRemoteRefProvider()
-   * @uses \Drupal\patternkit\Schema\ContextBuilder::setDataPreProcessor()
-   */
   public function testConfigureContextDefaults() {
     // Initialize the default options to a known value.
     $default_options = [
@@ -187,13 +145,6 @@ class ContextBuilderTest extends UnitTestCase {
 
   /**
    * Validate configureContextDefaults doesn't override existing service values.
-   *
-   * @covers ::configureContextDefaults
-   * @covers ::applyOptions
-   * @covers ::validateOptions
-   * @uses \Drupal\patternkit\Schema\ContextBuilder::setDefaultOptions()
-   * @uses \Drupal\patternkit\Schema\ContextBuilder::setRemoteRefProvider()
-   * @uses \Drupal\patternkit\Schema\ContextBuilder::setDataPreProcessor()
    */
   public function testConfigureContextDefaultsWithPresets() {
     // Initialize the default options to a known value.
@@ -227,13 +178,6 @@ class ContextBuilderTest extends UnitTestCase {
     );
   }
 
-  /**
-   * @covers ::getConfiguredContext
-   * @covers ::applyOptions
-   * @covers ::validateOptions
-   * @uses \Drupal\patternkit\Schema\ContextBuilder::setDefaultOptions()
-   * @uses \Drupal\patternkit\Schema\ContextBuilder::setRemoteRefProvider()
-   * @uses \Drupal\patternkit\Schema\ContextBuilder::setDataPreProcessor()   */
   public function testGetConfiguredContext() {
     $refProvider = $this->prophesize(RemoteRefProvider::class)->reveal();
     $dataPreProcessor = $this->prophesize(DataPreProcessor::class)->reveal();
@@ -266,12 +210,8 @@ class ContextBuilderTest extends UnitTestCase {
 
   /**
    * Test option validation with various option values.
-   *
-   * @covers ::validateOptions
-   * @uses \Drupal\patternkit\Schema\ContextBuilder::setDefaultOptions()
-   *
-   * @dataProvider providerOptionValidation
    */
+  #[DataProvider('providerOptionValidation')]
   public function testOptionValidation(array $options, string $expected_exception_message) {
     $this->expectException(InvalidArgumentException::class);
     $this->expectExceptionMessage($expected_exception_message);

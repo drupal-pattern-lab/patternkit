@@ -2,19 +2,20 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\patternkit\Schema\SchemaFactory;
 use Drupal\patternkit\Schema\SchemaFactoryTrait;
 use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Group;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Unit tests for SchemaFactoryTrait.
- *
- * @coversDefaultClass \Drupal\patternkit\Schema\SchemaFactoryTrait
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(SchemaFactoryTrait::class)]
 class SchemaFactoryTraitTest extends UnitTestCase {
 
   use ProphecyTrait;
@@ -44,10 +45,6 @@ class SchemaFactoryTraitTest extends UnitTestCase {
     $this->sut = new SchemaFactoryTraitClass();
   }
 
-  /**
-   * @covers ::setSchemaFactory
-   * @covers ::schemaFactory
-   */
   public function testSetSchemaFactory() {
     // The service should not be pulled from the container if it was already
     // explicitly set.
@@ -61,9 +58,6 @@ class SchemaFactoryTraitTest extends UnitTestCase {
     $this->assertSame($schemaFactory, $this->sut->schemaFactory());
   }
 
-  /**
-   * @covers ::schemaFactory
-   */
   public function testSchemaFactory() {
     $schemaFactory = $this->schemaFactory->reveal();
 

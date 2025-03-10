@@ -2,23 +2,25 @@
 
 namespace Drupal\Tests\patternkit\Unit\Asset;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\Core\Asset\LibraryDiscoveryInterface;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\Extension;
 use Drupal\Core\Lock\LockBackendInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
-use Drupal\Tests\UnitTestCase;
 use Drupal\patternkit\Asset\LibraryNamespaceResolver;
+use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\Group;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Tests for the LibraryNamespaceResolver class.
- *
- * @coversDefaultClass \Drupal\patternkit\Asset\LibraryNamespaceResolver
- * @group patternkit
  */
+#[Group('patternkit')]
+#[Group('legacy')]
+#[CoversClass(LibraryNamespaceResolver::class)]
 class LibraryNamespaceResolverTest extends UnitTestCase {
 
   use ProphecyTrait;
@@ -26,21 +28,21 @@ class LibraryNamespaceResolverTest extends UnitTestCase {
   /**
    * The dependency container for fetching extension list services.
    *
-   * @var \Symfony\Component\DependencyInjection\ContainerInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Symfony\Component\DependencyInjection\ContainerInterface>
    */
   protected ObjectProphecy $container;
 
   /**
    * The library discovery service for loading library definitions.
    *
-   * @var \Drupal\Core\Asset\LibraryDiscoveryInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Asset\LibraryDiscoveryInterface>
    */
   protected ObjectProphecy $libraryDiscovery;
 
   /**
    * The stream wrapper manager service.
    *
-   * @var \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\StreamWrapper\StreamWrapperManagerInterface>
    */
   protected ObjectProphecy $streamWrapperManager;
 
@@ -54,14 +56,14 @@ class LibraryNamespaceResolverTest extends UnitTestCase {
   /**
    * The cache backend.
    *
-   * @var \Drupal\Core\Cache\CacheBackendInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Cache\CacheBackendInterface>
    */
   protected ObjectProphecy $cache;
 
   /**
    * The lock service.
    *
-   * @var \Drupal\Core\Lock\LockBackendInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Lock\LockBackendInterface>
    */
   protected ObjectProphecy $lock;
 
@@ -97,10 +99,6 @@ class LibraryNamespaceResolverTest extends UnitTestCase {
     );
   }
 
-  /**
-   * @covers ::getLibraryFromNamespace
-   * @group legacy
-   */
   public function testLibraryDeprecationWarning() {
     $namespaceResolver = $this->getMockBuilder(LibraryNamespaceResolver::class)
       ->disableOriginalConstructor()
@@ -128,11 +126,6 @@ class LibraryNamespaceResolverTest extends UnitTestCase {
 
   /**
    * Test handling of library definitions without versions defined.
-   *
-   * @covers ::getLibrariesByExtension
-   * @covers ::normalizeLibraryPatternData
-   * @covers ::invalidateCache
-   * @covers ::__construct
    */
   public function testNormalizeLibraryPatternDataWithoutVersions() {
     $library_data = [

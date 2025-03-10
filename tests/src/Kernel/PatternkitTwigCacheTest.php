@@ -3,13 +3,14 @@
 namespace Drupal\Tests\patternkit\Kernel;
 
 use Drupal\Core\Render\RendererInterface;
+use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Test Patternkit twig caching behavior with default parameters.
- *
- * @coversNothing
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversNothing]
 class PatternkitTwigCacheTest extends PatternkitKernelTestBase {
 
   /**

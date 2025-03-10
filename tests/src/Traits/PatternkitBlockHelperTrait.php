@@ -7,7 +7,6 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormState;
 use Drupal\layout_builder\LayoutEntityHelperTrait;
 use Drupal\layout_builder\SectionComponent;
-use Drupal\patternkit\Plugin\Block\PatternkitBlock;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock as BlockPatternkitBlock;
 use Drupal\patternkit\Plugin\Derivative\PatternkitBlock as DerivativePatternkitBlock;
 
@@ -47,7 +46,7 @@ trait PatternkitBlockHelperTrait {
    * @throws \Drupal\Core\Entity\EntityStorageException
    * @throws \JsonException
    */
-  protected function createPatternBlock(string $pattern_id, $config = []): PatternkitBlock {
+  protected function createPatternBlock(string $pattern_id, $config = []): BlockPatternkitBlock {
     // Encode to JSON if we got an array. Accept a string directly to support
     // block creation with invalid configuration values if necessary.
     if (is_array($config)) {

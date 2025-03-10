@@ -2,11 +2,12 @@
 
 namespace Drupal\Tests\patternkit\Functional;
 
+use PHPUnit\Framework\Attributes\Group;
+
 /**
  * End-to-end testing for placing and using a pattern block in default layouts.
- *
- * @group patternkit
  */
+#[Group('patternkit')]
 class DefaultLayoutTest extends PatternkitBrowserTestBase {
 
   /**

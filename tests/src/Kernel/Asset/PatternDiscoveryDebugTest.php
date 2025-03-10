@@ -2,18 +2,19 @@
 
 namespace Drupal\Tests\patternkit\Kernel\Asset;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\Core\Cache\CacheBackendInterface;
-use Drupal\Tests\patternkit\Kernel\PatternkitKernelTestBase;
 use Drupal\patternkit\Asset\PatternDiscovery;
 use Drupal\patternkit\Asset\PatternDiscoveryInterface;
+use Drupal\Tests\patternkit\Kernel\PatternkitKernelTestBase;
+use PHPUnit\Framework\Attributes\Group;
 use Prophecy\PhpUnit\ProphecyTrait;
 
 /**
  * Tests for the PatternDiscovery service with debug options enabled.
- *
- * @coversDefaultClass \Drupal\patternkit\Asset\PatternDiscovery
- * @group patternkit
  */
+#[Group('patternkit')]
+#[CoversClass(PatternDiscovery::class)]
 class PatternDiscoveryDebugTest extends PatternkitKernelTestBase {
 
   use ProphecyTrait;
@@ -62,9 +63,6 @@ class PatternDiscoveryDebugTest extends PatternkitKernelTestBase {
 
   /**
    * Ensure cache entries are not saved with debug mode enabled.
-   *
-   * @covers ::useCaches
-   * @covers ::__construct
    */
   public function testCacheSaveBypass() {
     // Confirm the cache starts out empty.
@@ -79,10 +77,6 @@ class PatternDiscoveryDebugTest extends PatternkitKernelTestBase {
     $this->assertFalse($this->cache->get($this->cacheBin), 'Expected to find no cache entry.');
   }
 
-  /**
-   * @covers ::useCaches
-   * @covers ::__construct
-   */
   public function testCacheLoadBypass() {
     // Seed the cache with dummy data to confirm what is returned.
     $dummy_data = [
