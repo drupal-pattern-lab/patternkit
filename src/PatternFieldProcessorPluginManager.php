@@ -212,8 +212,8 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager implements
             [
               '%key' => $key,
               '%path' => $valuePath,
-              '@propertyValue' => var_export($value, TRUE),
-              '@values' => var_export($values, TRUE),
+              '@propertyValue' => json_encode($value, JSON_PRETTY_PRINT),
+              '@values' => json_encode($values, JSON_PRETTY_PRINT),
             ]
           );
         }
