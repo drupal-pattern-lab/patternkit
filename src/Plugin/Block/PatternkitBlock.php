@@ -266,14 +266,25 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     // in layout builder and elsewhere.
     $configuration['reusable'] = $patternkit_block->isNew() ? $is_block_form : $patternkit_block->isReusable();
 
+    // Include a messages list wrapper to display AJAX warnings or messages.
+    // NB. The class must be added on a theme wrapper since the '#attributes'
+    // key is lost when the status_messages element renders as a placeholder.
+    $form['messages'] = [
+      '#theme' => 'status_messages',
+      '#message_list' => [],
+      '#theme_wrappers' => [
+        'container' => [
+          '#attributes' => [
+            'class' => ['patternkit-form-messages'],
+          ],
+        ],
+      ],
+    ];
+
     // Warn about accidental changes to reusable blocks.
     if (isset($configuration['reusable']) && $configuration['reusable']) {
-      $form['messages'] = [
-        '#theme' => 'status_messages',
-        '#message_list' => [
-          'warning' => [$this->t('This block is reusable! Any changes made will be applied globally.')],
-        ],
-      ];
+      $form['messages']['#message_list']['warning'][] =
+        $this->t('This block is reusable! Any changes made will be applied globally.');
     }
 
     $form['reusable'] = [
@@ -560,7 +571,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
           ['@version' => $pattern->getVersion()]
         );
       }
-      $form['schema_desc'] = ['#markup' => $success_message];
+      $form['messages']['#message_list']['status'][] = $success_message;
     }
 
     try {

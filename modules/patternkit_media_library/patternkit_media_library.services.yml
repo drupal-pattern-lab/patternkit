@@ -1,4 +1,11 @@
 services:
+  _defaults:
+    autoconfigure: true
+
+  logger.channel.patternkit_media_library:
+    parent: logger.channel_base
+    arguments: [ 'patternkit_media_library' ]
+
   patternkit.opener.jsonlibrary:
     class: Drupal\patternkit_media_library\MediaLibraryJSONLibraryOpener
     arguments:

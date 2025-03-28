@@ -4,61 +4,41 @@ namespace Drupal\patternkit_media_library;
 
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Ajax\AjaxResponse;
-use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Ajax\CloseDialogCommand;
+use Drupal\Core\Ajax\MessageCommand;
+use Drupal\Core\Ajax\ScrollTopCommand;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\File\FileUrlGeneratorInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Template\Attribute;
+use Drupal\Core\Utility\Error;
+use Drupal\file\FileInterface;
 use Drupal\media\MediaInterface;
 use Drupal\media_library\MediaLibraryOpenerInterface;
 use Drupal\media_library\MediaLibraryState;
 use Drupal\patternkit\AJAX\PatternkitEditorUpdateCommand;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 
 /**
  * The media library opener for field widgets.
  */
-class MediaLibraryJSONLibraryOpener implements MediaLibraryOpenerInterface {
+class MediaLibraryJSONLibraryOpener implements MediaLibraryOpenerInterface, LoggerAwareInterface {
 
-  /**
-   * The entity type manager.
-   *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
-   */
-  protected EntityTypeManagerInterface $entityTypeManager;
-
-  /**
-   * The file url generator service.
-   *
-   * @var \Drupal\Core\File\FileUrlGeneratorInterface
-   */
-  protected FileUrlGeneratorInterface $fileUrlGenerator;
-
-  /**
-   * The configuration factory service.
-   *
-   * @var \Drupal\Core\Config\ConfigFactoryInterface
-   */
-  protected ConfigFactoryInterface $configFactory;
-
-  /**
-   * The loaded settings for the Pattern Media Library module.
-   *
-   * @var array
-   */
-  protected array $settings;
+  use LoggerAwareTrait;
 
   /**
    * MediaLibraryFieldWidgetOpener constructor.
    *
-   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The entity type manager.
-   * @param \Drupal\Core\File\FileUrlGeneratorInterface $file_url_generator
+   * @param \Drupal\Core\File\FileUrlGeneratorInterface $fileUrlGenerator
    *   The file url generator service.
    */
-  public function __construct(EntityTypeManagerInterface $entity_type_manager, FileUrlGeneratorInterface $file_url_generator) {
-    $this->entityTypeManager = $entity_type_manager;
-    $this->fileUrlGenerator = $file_url_generator;
-  }
+  public function __construct(
+    protected EntityTypeManagerInterface $entityTypeManager,
+    protected FileUrlGeneratorInterface $fileUrlGenerator,
+  ) {}
 
   /**
    * {@inheritdoc}
@@ -90,19 +70,81 @@ class MediaLibraryJSONLibraryOpener implements MediaLibraryOpenerInterface {
       return $response;
     }
     try {
-      /** @var \Drupal\media\Entity\Media $media */
+      /** @var \Drupal\media\MediaInterface|null $media */
       $media = $this->entityTypeManager->getStorage('media')->load($mid);
 
-      if ($use_media_token) {
-        $value = $this->getMediaToken($media);
-      }
-      else {
-        $value = $this->getFileUrl($media);
+      // Fail here if the Media entity couldn't be loaded.
+      if (!($media instanceof MediaInterface)) {
+        $this->logger->error('Unable to load media entity "@mid" for media opener.', [
+          '@mid' => $mid,
+        ]);
+        return $response;
       }
 
-      $response->addCommand(new PatternkitEditorUpdateCommand($widget_id, $value));
+      if ($use_media_token) {
+        $media_token = $this->getMediaToken($media);
+        $response->addCommand(new PatternkitEditorUpdateCommand($widget_id, $media_token));
+      }
+      else {
+        $image_src = $this->getFileUrl($media);
+        $response->addCommand(new PatternkitEditorUpdateCommand($widget_id, $image_src));
+
+        // If we're populating the image src, also try to populate the image
+        // alt text and dimensions. If a schema doesn't match this format for
+        // an image field, this additional processing will be ignored
+        // altogether.
+        if (str_ends_with($widget_id, '.image.src')) {
+          // Attempt to load the source file to identify additional available
+          // attributes.
+          $image = $this->getSourceFile($media);
+
+          // Stop here if the image was not able to be loaded.
+          if ($image !== NULL) {
+            // Remove 'src' from the end of the widget path to easily append the
+            // additional attributes.
+            $widget_base_path = substr($widget_id, 0, -3);
+
+            $source_configuration = $media->getSource()?->getConfiguration();
+            $source_field_name = is_array($source_configuration) ? $source_configuration['source_field'] : NULL;
+
+            if ($source_field_name !== NULL) {
+              // Images will typically produce the following attributes: 'alt',
+              // 'height', 'target_id', 'title', and 'width'.
+              $attributes = $media->get($source_field_name)?->first()?->getValue() ?: [];
+              foreach ($attributes as $key => $value) {
+                // Only assign attributes with non-empty values, and ignore the
+                // internal value for the target_id referencing the file entity.
+                if ($key != 'target_id' && $value) {
+                  $target = $widget_base_path . $key;
+
+                  // If a field is not found in the schema client-side, the
+                  // command should fail silently.
+                  $response->addCommand(new PatternkitEditorUpdateCommand($target, $value));
+                }
+              }
+            }
+          }
+        }
+      }
     }
     catch (\Exception $exception) {
+      // Log the failure server-side for review and visibility.
+      Error::logException($this->logger, $exception);
+
+      // Display a message client-side for context when the value fails to be
+      // populated.
+      $response->addCommand(new MessageCommand(
+        'There was a problem selecting the media asset. Save your work.',
+        '.patternkit-form-messages .messages-list',
+        ['type' => 'warning']
+      ));
+
+      // A redundant close dialog command is added by the
+      // MediaLibrarySelectForm, but we have to close the media dialog first for
+      // the scroll command to take effect.
+      $response->addCommand(new CloseDialogCommand('#drupal-modal'));
+      $response->addCommand(new ScrollTopCommand('.patternkit-form-messages'));
+
       return $response;
     }
 
@@ -145,20 +187,39 @@ class MediaLibraryJSONLibraryOpener implements MediaLibraryOpenerInterface {
    * @throws \Drupal\Core\Entity\EntityMalformedException
    */
   protected function getFileUrl(MediaInterface $media): string {
-    $fid = $media->getSource()->getSourceFieldValue($media);
-    $file = $this->entityTypeManager->getStorage('file')->load($fid);
+    $file = $this->getSourceFile($media);
 
-    if ($file->hasLinkTemplate('canonical')) {
+    if ($file?->hasLinkTemplate('canonical')) {
       $url = $file->toUrl()->setAbsolute(FALSE);
     }
-    elseif ($file->access('download')) {
+    elseif ($file?->access('download')) {
       $url = $this->fileUrlGenerator->generateString($file->getFileUri());
     }
     else {
-      $url = $file->label();
+      $url = $file?->label();
     }
 
-    return $url;
+    return (string) $url;
+  }
+
+  /**
+   * Load the source file entity from the given media.
+   *
+   * @param \Drupal\media\MediaInterface $media
+   *   The media entity to load the source file from.
+   *
+   * @return \Drupal\file\FileInterface|null
+   *   The loaded source file entity or NULL if the file could not be loaded.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   */
+  protected function getSourceFile(MediaInterface $media): ?FileInterface {
+    $fid = $media->getSource()->getSourceFieldValue($media);
+    $file = $this->entityTypeManager->getStorage('file')->load($fid);
+
+    assert($file === NULL || $file instanceof FileInterface);
+    return $file;
   }
 
 }

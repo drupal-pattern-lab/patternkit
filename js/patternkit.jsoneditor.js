@@ -307,7 +307,15 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
      }
      // Ajax command response to allow updating Editor field values.
      Drupal.AjaxCommands.prototype.patternkitEditorUpdate = function (ajax, response, status) {
-       window.patternkitEditor.getEditor(response.selector).setValue(response.value);
+       let editor = window.patternkitEditor.getEditor(response.selector);
+
+       if (editor) {
+         editor.setValue(response.value);
+       }
+       else {
+         window.console?.debug('Unable to find an editor at "%s" to assign value "%s".',
+           response.selector, response.value);
+       }
      };
 
      let $target = $('#patternkit-editor-target', context);
