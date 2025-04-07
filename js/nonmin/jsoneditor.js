@@ -3,7 +3,7 @@
  * * @name JSON Editor
  * * @description JSON Schema Based Editor
  * * This library is the continuation of jdorn's great work (see also https://github.com/jdorn/json-editor/issues/800)
- * * @version "2.15.0"
+ * * @version "2.15.2"
  * * @author Jeremy Dorn
  * * @see https://github.com/jdorn/json-editor/
  * * @see https://github.com/json-editor/json-editor
@@ -519,7 +519,8 @@ var options = {
   show_errors: 'interaction',
   prompt_paste_max_length_reached: false,
   remove_false_properties: false,
-  enforce_const: false
+  enforce_const: false,
+  opt_in_widget: 'checkbox'
 };
 
 /* This assignment was previously in index.js but makes more sense here */
@@ -672,7 +673,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
  */
 var AbstractEditor = /*#__PURE__*/function () {
   function AbstractEditor(options, defaults) {
-    var _this$options$enforce;
+    var _this$options$enforce, _this$options$opt_in_;
     _classCallCheck(this, AbstractEditor);
     this.defaults = defaults;
     this.jsoneditor = options.jsoneditor;
@@ -686,7 +687,7 @@ var AbstractEditor = /*#__PURE__*/function () {
     this.active = true;
     this.isUiOnly = false;
     this.options = (0,_utilities_js__WEBPACK_IMPORTED_MODULE_33__.extend)({}, this.options || {}, this.schema.options || {}, options.schema.options || {}, options);
-    this.enforceConst = (_this$options$enforce = this.options.enforce_const) !== null && _this$options$enforce !== void 0 ? _this$options$enforce : this.jsoneditor.options.enforce_const;
+    this.enforceConstEnabled = (_this$options$enforce = this.options.enforce_const) !== null && _this$options$enforce !== void 0 ? _this$options$enforce : this.jsoneditor.options.enforce_const;
     this.formname = this.jsoneditor.options.form_name_root || 'root';
     if (!options.path && !this.schema.id) this.schema.id = this.formname;
     this.path = options.path || this.formname;
@@ -695,6 +696,7 @@ var AbstractEditor = /*#__PURE__*/function () {
     this.key = this.parent !== undefined ? this.path.split('.').slice(this.parent.path.split('.').length).join('.') : this.path;
     this.link_watchers = [];
     this.watchLoop = false;
+    this.optInWidget = (_this$options$opt_in_ = this.options.opt_in_widget) !== null && _this$options$opt_in_ !== void 0 ? _this$options$opt_in_ : this.jsoneditor.options.opt_in_widget;
     if (options.container) this.setContainer(options.container);
     this.registerDependencies();
   }
@@ -885,17 +887,16 @@ var AbstractEditor = /*#__PURE__*/function () {
     }
   }, {
     key: "setOptInCheckbox",
-    value: function setOptInCheckbox(header) {
+    value: function setOptInCheckbox() {
       var _this4 = this;
-      /* the active/deactive checbox control. */
-
-      this.optInLabel = this.theme.getHiddenLabel(this.formname + ' opt-in');
-      this.optInLabel.setAttribute('for', this.formname + '-opt-in');
-      this.optInCheckbox = document.createElement('input');
-      this.optInCheckbox.setAttribute('type', 'checkbox');
-      this.optInCheckbox.setAttribute('style', 'margin: 0 10px 0 0;');
-      this.optInCheckbox.setAttribute('id', this.formname + '-opt-in');
-      this.optInCheckbox.classList.add('json-editor-opt-in');
+      var optIn;
+      if (this.optInWidget === 'switch') {
+        optIn = this.theme.getOptInSwitch(this.formname);
+      } else {
+        optIn = this.theme.getOptInCheckbox(this.formname);
+      }
+      this.optInCheckbox = optIn.checkbox;
+      this.optInContainer = optIn.container;
       this.optInCheckbox.addEventListener('click', function () {
         if (_this4.isActive()) {
           _this4.deactivate();
@@ -912,9 +913,8 @@ var AbstractEditor = /*#__PURE__*/function () {
       if (parentOptInEnabled || !parentOptInDisabled && globalOptIn || !parentOptInDefined && globalOptIn) {
         /* and control to type object editors if they are not required */
         if (this.parent && this.parent.schema.type === 'object' && !this.isRequired() && this.header) {
-          this.header.appendChild(this.optInLabel);
-          this.header.appendChild(this.optInCheckbox);
-          this.header.insertBefore(this.optInCheckbox, this.header.firstChild);
+          this.header.insertBefore(this.optInContainer, this.header.firstChild);
+          this.optInAppended = true;
         }
       }
     }
@@ -937,7 +937,7 @@ var AbstractEditor = /*#__PURE__*/function () {
         this.theme.visuallyHidden(this.label);
         this.theme.visuallyHidden(this.header);
       }
-      if (this.enforceConst && this.schema["const"]) {
+      if (this.enforceConstEnabled && this.schema["const"]) {
         this.disable();
       }
     }
@@ -1238,7 +1238,16 @@ var AbstractEditor = /*#__PURE__*/function () {
   }, {
     key: "setValue",
     value: function setValue(value) {
+      value = this.applyConstFilter(value);
       this.value = value;
+    }
+  }, {
+    key: "applyConstFilter",
+    value: function applyConstFilter(value) {
+      if (this.enforceConstEnabled && typeof this.schema["const"] !== 'undefined') {
+        value = this.schema["const"];
+      }
+      return value;
     }
   }, {
     key: "getValue",
@@ -1288,7 +1297,7 @@ var AbstractEditor = /*#__PURE__*/function () {
   }, {
     key: "getDefault",
     value: function getDefault() {
-      if (this.enforceConst && this.schema["const"]) {
+      if (this.enforceConstEnabled && this.schema["const"]) {
         return this.schema["const"];
       }
       if (typeof this.schema["default"] !== 'undefined') {
@@ -1536,6 +1545,7 @@ var AceEditor = /*#__PURE__*/function (_StringEditor) {
   return _createClass(AceEditor, [{
     key: "setValue",
     value: function setValue(value, initial, fromTemplate) {
+      value = this.applyConstFilter(value);
       var res = _get(_getPrototypeOf(AceEditor.prototype), "setValue", this).call(this, value, initial, fromTemplate);
       if (res !== undefined && res.changed && this.ace_editor_instance) {
         this.ace_editor_instance.setValue(res.value);
@@ -1652,7 +1662,8 @@ __webpack_require__.r(__webpack_exports__);
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   ArrayEditor: () => (/* binding */ ArrayEditor)
+/* harmony export */   ArrayEditor: () => (/* binding */ ArrayEditor),
+/* harmony export */   supportDragDrop: () => (/* binding */ supportDragDrop)
 /* harmony export */ });
 /* harmony import */ var core_js_modules_es_symbol_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! core-js/modules/es.symbol.js */ "./node_modules/core-js/modules/es.symbol.js");
 /* harmony import */ var core_js_modules_es_symbol_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_symbol_js__WEBPACK_IMPORTED_MODULE_0__);
@@ -1680,42 +1691,45 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var core_js_modules_es_array_slice_js__WEBPACK_IMPORTED_MODULE_11___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_array_slice_js__WEBPACK_IMPORTED_MODULE_11__);
 /* harmony import */ var core_js_modules_es_array_some_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! core-js/modules/es.array.some.js */ "./node_modules/core-js/modules/es.array.some.js");
 /* harmony import */ var core_js_modules_es_array_some_js__WEBPACK_IMPORTED_MODULE_12___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_array_some_js__WEBPACK_IMPORTED_MODULE_12__);
-/* harmony import */ var core_js_modules_es_date_to_json_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! core-js/modules/es.date.to-json.js */ "./node_modules/core-js/modules/es.date.to-json.js");
-/* harmony import */ var core_js_modules_es_date_to_json_js__WEBPACK_IMPORTED_MODULE_13___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_date_to_json_js__WEBPACK_IMPORTED_MODULE_13__);
-/* harmony import */ var core_js_modules_es_date_to_primitive_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! core-js/modules/es.date.to-primitive.js */ "./node_modules/core-js/modules/es.date.to-primitive.js");
-/* harmony import */ var core_js_modules_es_date_to_primitive_js__WEBPACK_IMPORTED_MODULE_14___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_date_to_primitive_js__WEBPACK_IMPORTED_MODULE_14__);
-/* harmony import */ var core_js_modules_es_function_bind_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! core-js/modules/es.function.bind.js */ "./node_modules/core-js/modules/es.function.bind.js");
-/* harmony import */ var core_js_modules_es_function_bind_js__WEBPACK_IMPORTED_MODULE_15___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_function_bind_js__WEBPACK_IMPORTED_MODULE_15__);
-/* harmony import */ var core_js_modules_es_number_constructor_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! core-js/modules/es.number.constructor.js */ "./node_modules/core-js/modules/es.number.constructor.js");
-/* harmony import */ var core_js_modules_es_number_constructor_js__WEBPACK_IMPORTED_MODULE_16___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_number_constructor_js__WEBPACK_IMPORTED_MODULE_16__);
-/* harmony import */ var core_js_modules_es_object_create_js__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! core-js/modules/es.object.create.js */ "./node_modules/core-js/modules/es.object.create.js");
-/* harmony import */ var core_js_modules_es_object_create_js__WEBPACK_IMPORTED_MODULE_17___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_create_js__WEBPACK_IMPORTED_MODULE_17__);
-/* harmony import */ var core_js_modules_es_object_define_property_js__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! core-js/modules/es.object.define-property.js */ "./node_modules/core-js/modules/es.object.define-property.js");
-/* harmony import */ var core_js_modules_es_object_define_property_js__WEBPACK_IMPORTED_MODULE_18___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_define_property_js__WEBPACK_IMPORTED_MODULE_18__);
-/* harmony import */ var core_js_modules_es_object_get_own_property_descriptor_js__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! core-js/modules/es.object.get-own-property-descriptor.js */ "./node_modules/core-js/modules/es.object.get-own-property-descriptor.js");
-/* harmony import */ var core_js_modules_es_object_get_own_property_descriptor_js__WEBPACK_IMPORTED_MODULE_19___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_get_own_property_descriptor_js__WEBPACK_IMPORTED_MODULE_19__);
-/* harmony import */ var core_js_modules_es_object_get_prototype_of_js__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! core-js/modules/es.object.get-prototype-of.js */ "./node_modules/core-js/modules/es.object.get-prototype-of.js");
-/* harmony import */ var core_js_modules_es_object_get_prototype_of_js__WEBPACK_IMPORTED_MODULE_20___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_get_prototype_of_js__WEBPACK_IMPORTED_MODULE_20__);
-/* harmony import */ var core_js_modules_es_object_keys_js__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! core-js/modules/es.object.keys.js */ "./node_modules/core-js/modules/es.object.keys.js");
-/* harmony import */ var core_js_modules_es_object_keys_js__WEBPACK_IMPORTED_MODULE_21___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_keys_js__WEBPACK_IMPORTED_MODULE_21__);
-/* harmony import */ var core_js_modules_es_object_set_prototype_of_js__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! core-js/modules/es.object.set-prototype-of.js */ "./node_modules/core-js/modules/es.object.set-prototype-of.js");
-/* harmony import */ var core_js_modules_es_object_set_prototype_of_js__WEBPACK_IMPORTED_MODULE_22___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_set_prototype_of_js__WEBPACK_IMPORTED_MODULE_22__);
-/* harmony import */ var core_js_modules_es_object_to_string_js__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! core-js/modules/es.object.to-string.js */ "./node_modules/core-js/modules/es.object.to-string.js");
-/* harmony import */ var core_js_modules_es_object_to_string_js__WEBPACK_IMPORTED_MODULE_23___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_to_string_js__WEBPACK_IMPORTED_MODULE_23__);
-/* harmony import */ var core_js_modules_es_reflect_construct_js__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! core-js/modules/es.reflect.construct.js */ "./node_modules/core-js/modules/es.reflect.construct.js");
-/* harmony import */ var core_js_modules_es_reflect_construct_js__WEBPACK_IMPORTED_MODULE_24___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_reflect_construct_js__WEBPACK_IMPORTED_MODULE_24__);
-/* harmony import */ var core_js_modules_es_reflect_get_js__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! core-js/modules/es.reflect.get.js */ "./node_modules/core-js/modules/es.reflect.get.js");
-/* harmony import */ var core_js_modules_es_reflect_get_js__WEBPACK_IMPORTED_MODULE_25___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_reflect_get_js__WEBPACK_IMPORTED_MODULE_25__);
-/* harmony import */ var core_js_modules_es_string_iterator_js__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! core-js/modules/es.string.iterator.js */ "./node_modules/core-js/modules/es.string.iterator.js");
-/* harmony import */ var core_js_modules_es_string_iterator_js__WEBPACK_IMPORTED_MODULE_26___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_string_iterator_js__WEBPACK_IMPORTED_MODULE_26__);
-/* harmony import */ var core_js_modules_web_dom_collections_for_each_js__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! core-js/modules/web.dom-collections.for-each.js */ "./node_modules/core-js/modules/web.dom-collections.for-each.js");
-/* harmony import */ var core_js_modules_web_dom_collections_for_each_js__WEBPACK_IMPORTED_MODULE_27___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_web_dom_collections_for_each_js__WEBPACK_IMPORTED_MODULE_27__);
-/* harmony import */ var core_js_modules_web_dom_collections_iterator_js__WEBPACK_IMPORTED_MODULE_28__ = __webpack_require__(/*! core-js/modules/web.dom-collections.iterator.js */ "./node_modules/core-js/modules/web.dom-collections.iterator.js");
-/* harmony import */ var core_js_modules_web_dom_collections_iterator_js__WEBPACK_IMPORTED_MODULE_28___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_web_dom_collections_iterator_js__WEBPACK_IMPORTED_MODULE_28__);
-/* harmony import */ var _editor_js__WEBPACK_IMPORTED_MODULE_29__ = __webpack_require__(/*! ../editor.js */ "./src/editor.js");
-/* harmony import */ var _utilities_js__WEBPACK_IMPORTED_MODULE_30__ = __webpack_require__(/*! ../utilities.js */ "./src/utilities.js");
-/* harmony import */ var _array_css_js__WEBPACK_IMPORTED_MODULE_31__ = __webpack_require__(/*! ./array.css.js */ "./src/editors/array.css.js");
+/* harmony import */ var core_js_modules_es_array_splice_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! core-js/modules/es.array.splice.js */ "./node_modules/core-js/modules/es.array.splice.js");
+/* harmony import */ var core_js_modules_es_array_splice_js__WEBPACK_IMPORTED_MODULE_13___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_array_splice_js__WEBPACK_IMPORTED_MODULE_13__);
+/* harmony import */ var core_js_modules_es_date_to_json_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! core-js/modules/es.date.to-json.js */ "./node_modules/core-js/modules/es.date.to-json.js");
+/* harmony import */ var core_js_modules_es_date_to_json_js__WEBPACK_IMPORTED_MODULE_14___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_date_to_json_js__WEBPACK_IMPORTED_MODULE_14__);
+/* harmony import */ var core_js_modules_es_date_to_primitive_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! core-js/modules/es.date.to-primitive.js */ "./node_modules/core-js/modules/es.date.to-primitive.js");
+/* harmony import */ var core_js_modules_es_date_to_primitive_js__WEBPACK_IMPORTED_MODULE_15___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_date_to_primitive_js__WEBPACK_IMPORTED_MODULE_15__);
+/* harmony import */ var core_js_modules_es_function_bind_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! core-js/modules/es.function.bind.js */ "./node_modules/core-js/modules/es.function.bind.js");
+/* harmony import */ var core_js_modules_es_function_bind_js__WEBPACK_IMPORTED_MODULE_16___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_function_bind_js__WEBPACK_IMPORTED_MODULE_16__);
+/* harmony import */ var core_js_modules_es_number_constructor_js__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! core-js/modules/es.number.constructor.js */ "./node_modules/core-js/modules/es.number.constructor.js");
+/* harmony import */ var core_js_modules_es_number_constructor_js__WEBPACK_IMPORTED_MODULE_17___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_number_constructor_js__WEBPACK_IMPORTED_MODULE_17__);
+/* harmony import */ var core_js_modules_es_object_create_js__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! core-js/modules/es.object.create.js */ "./node_modules/core-js/modules/es.object.create.js");
+/* harmony import */ var core_js_modules_es_object_create_js__WEBPACK_IMPORTED_MODULE_18___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_create_js__WEBPACK_IMPORTED_MODULE_18__);
+/* harmony import */ var core_js_modules_es_object_define_property_js__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! core-js/modules/es.object.define-property.js */ "./node_modules/core-js/modules/es.object.define-property.js");
+/* harmony import */ var core_js_modules_es_object_define_property_js__WEBPACK_IMPORTED_MODULE_19___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_define_property_js__WEBPACK_IMPORTED_MODULE_19__);
+/* harmony import */ var core_js_modules_es_object_get_own_property_descriptor_js__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! core-js/modules/es.object.get-own-property-descriptor.js */ "./node_modules/core-js/modules/es.object.get-own-property-descriptor.js");
+/* harmony import */ var core_js_modules_es_object_get_own_property_descriptor_js__WEBPACK_IMPORTED_MODULE_20___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_get_own_property_descriptor_js__WEBPACK_IMPORTED_MODULE_20__);
+/* harmony import */ var core_js_modules_es_object_get_prototype_of_js__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! core-js/modules/es.object.get-prototype-of.js */ "./node_modules/core-js/modules/es.object.get-prototype-of.js");
+/* harmony import */ var core_js_modules_es_object_get_prototype_of_js__WEBPACK_IMPORTED_MODULE_21___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_get_prototype_of_js__WEBPACK_IMPORTED_MODULE_21__);
+/* harmony import */ var core_js_modules_es_object_keys_js__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! core-js/modules/es.object.keys.js */ "./node_modules/core-js/modules/es.object.keys.js");
+/* harmony import */ var core_js_modules_es_object_keys_js__WEBPACK_IMPORTED_MODULE_22___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_keys_js__WEBPACK_IMPORTED_MODULE_22__);
+/* harmony import */ var core_js_modules_es_object_set_prototype_of_js__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! core-js/modules/es.object.set-prototype-of.js */ "./node_modules/core-js/modules/es.object.set-prototype-of.js");
+/* harmony import */ var core_js_modules_es_object_set_prototype_of_js__WEBPACK_IMPORTED_MODULE_23___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_set_prototype_of_js__WEBPACK_IMPORTED_MODULE_23__);
+/* harmony import */ var core_js_modules_es_object_to_string_js__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! core-js/modules/es.object.to-string.js */ "./node_modules/core-js/modules/es.object.to-string.js");
+/* harmony import */ var core_js_modules_es_object_to_string_js__WEBPACK_IMPORTED_MODULE_24___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_to_string_js__WEBPACK_IMPORTED_MODULE_24__);
+/* harmony import */ var core_js_modules_es_reflect_construct_js__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! core-js/modules/es.reflect.construct.js */ "./node_modules/core-js/modules/es.reflect.construct.js");
+/* harmony import */ var core_js_modules_es_reflect_construct_js__WEBPACK_IMPORTED_MODULE_25___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_reflect_construct_js__WEBPACK_IMPORTED_MODULE_25__);
+/* harmony import */ var core_js_modules_es_reflect_get_js__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! core-js/modules/es.reflect.get.js */ "./node_modules/core-js/modules/es.reflect.get.js");
+/* harmony import */ var core_js_modules_es_reflect_get_js__WEBPACK_IMPORTED_MODULE_26___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_reflect_get_js__WEBPACK_IMPORTED_MODULE_26__);
+/* harmony import */ var core_js_modules_es_string_iterator_js__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! core-js/modules/es.string.iterator.js */ "./node_modules/core-js/modules/es.string.iterator.js");
+/* harmony import */ var core_js_modules_es_string_iterator_js__WEBPACK_IMPORTED_MODULE_27___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_string_iterator_js__WEBPACK_IMPORTED_MODULE_27__);
+/* harmony import */ var core_js_modules_web_dom_collections_for_each_js__WEBPACK_IMPORTED_MODULE_28__ = __webpack_require__(/*! core-js/modules/web.dom-collections.for-each.js */ "./node_modules/core-js/modules/web.dom-collections.for-each.js");
+/* harmony import */ var core_js_modules_web_dom_collections_for_each_js__WEBPACK_IMPORTED_MODULE_28___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_web_dom_collections_for_each_js__WEBPACK_IMPORTED_MODULE_28__);
+/* harmony import */ var core_js_modules_web_dom_collections_iterator_js__WEBPACK_IMPORTED_MODULE_29__ = __webpack_require__(/*! core-js/modules/web.dom-collections.iterator.js */ "./node_modules/core-js/modules/web.dom-collections.iterator.js");
+/* harmony import */ var core_js_modules_web_dom_collections_iterator_js__WEBPACK_IMPORTED_MODULE_29___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_web_dom_collections_iterator_js__WEBPACK_IMPORTED_MODULE_29__);
+/* harmony import */ var _editor_js__WEBPACK_IMPORTED_MODULE_30__ = __webpack_require__(/*! ../editor.js */ "./src/editor.js");
+/* harmony import */ var _utilities_js__WEBPACK_IMPORTED_MODULE_31__ = __webpack_require__(/*! ../utilities.js */ "./src/utilities.js");
+/* harmony import */ var _array_css_js__WEBPACK_IMPORTED_MODULE_32__ = __webpack_require__(/*! ./array.css.js */ "./src/editors/array.css.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+
 
 
 
@@ -1938,6 +1952,7 @@ var ArrayEditor = /*#__PURE__*/function (_AbstractEditor) {
     value: function onChildEditorChange(editor, eventData) {
       this.refreshValue();
       this.refreshTabs(true);
+      this.is_dirty = true;
       _get(_getPrototypeOf(ArrayEditor.prototype), "onChildEditorChange", this).call(this, editor, eventData);
     }
   }, {
@@ -1961,13 +1976,13 @@ var ArrayEditor = /*#__PURE__*/function (_AbstractEditor) {
           if (this.schema.additionalItems === true) {
             return {};
           } else if (this.schema.additionalItems) {
-            return (0,_utilities_js__WEBPACK_IMPORTED_MODULE_30__.extend)({}, this.schema.additionalItems);
+            return (0,_utilities_js__WEBPACK_IMPORTED_MODULE_31__.extend)({}, this.schema.additionalItems);
           }
         } else {
-          return (0,_utilities_js__WEBPACK_IMPORTED_MODULE_30__.extend)({}, this.schema.items[i]);
+          return (0,_utilities_js__WEBPACK_IMPORTED_MODULE_31__.extend)({}, this.schema.items[i]);
         }
       } else if (this.schema.items) {
-        return (0,_utilities_js__WEBPACK_IMPORTED_MODULE_30__.extend)({}, this.schema.items);
+        return (0,_utilities_js__WEBPACK_IMPORTED_MODULE_31__.extend)({}, this.schema.items);
       } else {
         return {};
       }
@@ -2127,6 +2142,7 @@ var ArrayEditor = /*#__PURE__*/function (_AbstractEditor) {
       var _this5 = this;
       var value = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
       var initial = arguments.length > 1 ? arguments[1] : undefined;
+      value = this.applyConstFilter(value);
       /* Make sure value has between minItems and maxItems items in it */
       value = this.ensureArraySize(value);
       var serialized = JSON.stringify(value);
@@ -2276,6 +2292,9 @@ var ArrayEditor = /*#__PURE__*/function (_AbstractEditor) {
           e.preventDefault();
           e.stopPropagation();
         });
+        this._supportDragDrop(this.rows[i].tab);
+      } else {
+        this._supportDragDrop(this.rows[i].container, true);
       }
       var controlsHolder = this.rows[i].title_controls || this.rows[i].array_controls;
 
@@ -2353,12 +2372,12 @@ var ArrayEditor = /*#__PURE__*/function (_AbstractEditor) {
           if (j === i) {
             /* Force generation of new UUID if the item has been cloned. */
             if (schema.items.type === 'string' && schema.items.format === 'uuid') {
-              row = (0,_utilities_js__WEBPACK_IMPORTED_MODULE_30__.generateUUID)();
+              row = (0,_utilities_js__WEBPACK_IMPORTED_MODULE_31__.generateUUID)();
             } else if (schema.items.type === 'object' && schema.items.properties) {
               for (var _i = 0, _Object$keys = Object.keys(row); _i < _Object$keys.length; _i++) {
                 var key = _Object$keys[_i];
                 if (schema.items.properties && schema.items.properties[key] && schema.items.properties[key].format === 'uuid') {
-                  row[key] = (0,_utilities_js__WEBPACK_IMPORTED_MODULE_30__.generateUUID)();
+                  row[key] = (0,_utilities_js__WEBPACK_IMPORTED_MODULE_31__.generateUUID)();
                 }
               }
             }
@@ -2428,6 +2447,24 @@ var ArrayEditor = /*#__PURE__*/function (_AbstractEditor) {
       return button;
     }
   }, {
+    key: "_supportDragDrop",
+    value: function _supportDragDrop(tab, useTrigger) {
+      var _this12 = this;
+      supportDragDrop(tab, function (i, j) {
+        var rows = _this12.getValue();
+        var tmp = rows[i];
+        rows.splice(i, 1);
+        rows.splice(j, 0, tmp);
+        _this12.setValue(rows);
+        _this12.active_tab = _this12.rows[j].tab;
+        _this12.refreshTabs();
+        _this12.onChange(true);
+        _this12.jsoneditor.trigger('moveRow', _this12.rows[j]);
+      }, {
+        useTrigger: useTrigger
+      });
+    }
+  }, {
     key: "addControls",
     value: function addControls() {
       this.collapsed = false;
@@ -2435,7 +2472,7 @@ var ArrayEditor = /*#__PURE__*/function (_AbstractEditor) {
 
       /* If it should start collapsed */
       if (this.options.collapsed) {
-        (0,_utilities_js__WEBPACK_IMPORTED_MODULE_30__.trigger)(this.toggle_button, 'click');
+        (0,_utilities_js__WEBPACK_IMPORTED_MODULE_31__.trigger)(this.toggle_button, 'click');
       }
 
       /* Collapse button disabled */
@@ -2458,7 +2495,7 @@ var ArrayEditor = /*#__PURE__*/function (_AbstractEditor) {
   }, {
     key: "_createToggleButton",
     value: function _createToggleButton() {
-      var _this12 = this;
+      var _this13 = this;
       var button = this.getButton('', 'collapse', 'button_collapse');
       button.classList.add('json-editor-btntype-toggle');
       this.title.insertBefore(button, this.title.childNodes[0]);
@@ -2467,18 +2504,18 @@ var ArrayEditor = /*#__PURE__*/function (_AbstractEditor) {
       button.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
-        if (_this12.panel) _this12.setButtonState(_this12.panel, _this12.collapsed);
-        if (_this12.tabs_holder) _this12.setButtonState(_this12.tabs_holder, _this12.collapsed);
-        if (_this12.collapsed) {
-          _this12.collapsed = false;
-          _this12.row_holder.style.display = rowHolderDisplay;
-          _this12.controls.style.display = controlsDisplay;
-          _this12.setButtonText(e.currentTarget, '', 'collapse', 'button_collapse');
+        if (_this13.panel) _this13.setButtonState(_this13.panel, _this13.collapsed);
+        if (_this13.tabs_holder) _this13.setButtonState(_this13.tabs_holder, _this13.collapsed);
+        if (_this13.collapsed) {
+          _this13.collapsed = false;
+          _this13.row_holder.style.display = rowHolderDisplay;
+          _this13.controls.style.display = controlsDisplay;
+          _this13.setButtonText(e.currentTarget, '', 'collapse', 'button_collapse');
         } else {
-          _this12.collapsed = true;
-          _this12.row_holder.style.display = 'none';
-          _this12.controls.style.display = 'none';
-          _this12.setButtonText(e.currentTarget, '', 'expand', 'button_expand');
+          _this13.collapsed = true;
+          _this13.row_holder.style.display = 'none';
+          _this13.controls.style.display = 'none';
+          _this13.setButtonText(e.currentTarget, '', 'expand', 'button_expand');
         }
       });
       return button;
@@ -2486,28 +2523,32 @@ var ArrayEditor = /*#__PURE__*/function (_AbstractEditor) {
   }, {
     key: "_createAddRowButton",
     value: function _createAddRowButton() {
-      var _this13 = this;
+      var _this14 = this;
       var button = this.getButton(this.getItemTitle(), 'add', 'button_add_row_title', [this.getItemTitle()]);
       button.classList.add('json-editor-btntype-add');
       button.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
-        var i = _this13.rows.length;
+        var i = _this14.rows.length;
         var editor;
-        if (_this13.row_cache[i]) {
-          editor = _this13.rows[i] = _this13.row_cache[i];
-          _this13.rows[i].setValue(_this13.rows[i].getDefault(), true);
-          _this13.rows[i].container.style.display = '';
-          if (_this13.rows[i].tab) _this13.rows[i].tab.style.display = '';
-          _this13.rows[i].register();
+        if (_this14.row_cache[i]) {
+          editor = _this14.rows[i] = _this14.row_cache[i];
+          _this14.rows[i].setValue(_this14.rows[i].getDefault(), true);
+          // override cached value, so optional properties are not checked.
+          if (typeof _this14.rows[i].deactivateNonRequiredProperties === 'function') {
+            _this14.rows[i].deactivateNonRequiredProperties(true);
+          }
+          _this14.rows[i].container.style.display = '';
+          if (_this14.rows[i].tab) _this14.rows[i].tab.style.display = '';
+          _this14.rows[i].register();
         } else {
-          editor = _this13.addRow();
+          editor = _this14.addRow();
         }
-        _this13.active_tab = _this13.rows[i].tab;
-        _this13.refreshTabs();
-        _this13.refreshValue();
-        _this13.onChange(true);
-        _this13.jsoneditor.trigger('addRow', editor);
+        _this14.active_tab = _this14.rows[i].tab;
+        _this14.refreshTabs();
+        _this14.refreshValue();
+        _this14.onChange(true);
+        _this14.jsoneditor.trigger('addRow', editor);
       });
       this.controls.appendChild(button);
       return button;
@@ -2515,28 +2556,28 @@ var ArrayEditor = /*#__PURE__*/function (_AbstractEditor) {
   }, {
     key: "_createDeleteLastRowButton",
     value: function _createDeleteLastRowButton() {
-      var _this14 = this;
+      var _this15 = this;
       var button = this.getButton('button_delete_last', 'subtract', 'button_delete_last_title', [this.getItemTitle()]);
       button.classList.add('json-editor-btntype-deletelast');
       button.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
-        if (!_this14.askConfirmation()) {
+        if (!_this15.askConfirmation()) {
           return false;
         }
-        var rows = _this14.getValue();
+        var rows = _this15.getValue();
         var newActiveTab = null;
         var editorValue = rows.pop();
-        _this14.setValue(rows);
-        if (_this14.rows[_this14.rows.length - 1]) {
-          newActiveTab = _this14.rows[_this14.rows.length - 1].tab;
+        _this15.setValue(rows);
+        if (_this15.rows[_this15.rows.length - 1]) {
+          newActiveTab = _this15.rows[_this15.rows.length - 1].tab;
         }
         if (newActiveTab) {
-          _this14.active_tab = newActiveTab;
-          _this14.refreshTabs();
+          _this15.active_tab = newActiveTab;
+          _this15.refreshTabs();
         }
-        _this14.onChange(true);
-        _this14.jsoneditor.trigger('deleteRow', editorValue);
+        _this15.onChange(true);
+        _this15.jsoneditor.trigger('deleteRow', editorValue);
       });
       this.controls.appendChild(button);
       return button;
@@ -2544,20 +2585,20 @@ var ArrayEditor = /*#__PURE__*/function (_AbstractEditor) {
   }, {
     key: "_createRemoveAllRowsButton",
     value: function _createRemoveAllRowsButton() {
-      var _this15 = this;
+      var _this16 = this;
       var button = this.getButton('button_delete_all', 'delete', 'button_delete_all_title');
       button.classList.add('json-editor-btntype-deleteall');
       button.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
-        if (!_this15.askConfirmation()) {
+        if (!_this16.askConfirmation()) {
           return false;
         }
-        var values = _this15.getValue();
-        _this15.empty(true);
-        _this15.setValue([]);
-        _this15.onChange(true);
-        _this15.jsoneditor.trigger('deleteAllRows', values);
+        var values = _this16.getValue();
+        _this16.empty(true);
+        _this16.setValue([]);
+        _this16.onChange(true);
+        _this16.jsoneditor.trigger('deleteAllRows', values);
       });
       this.controls.appendChild(button);
       return button;
@@ -2565,12 +2606,12 @@ var ArrayEditor = /*#__PURE__*/function (_AbstractEditor) {
   }, {
     key: "showValidationErrors",
     value: function showValidationErrors(errors) {
-      var _this16 = this;
+      var _this17 = this;
       /* Get all the errors that pertain to this editor */
       var myErrors = [];
       var otherErrors = [];
       errors.forEach(function (error) {
-        if (error.path === _this16.path) {
+        if (error.path === _this17.path) {
           myErrors.push(error);
         } else {
           otherErrors.push(error);
@@ -2583,7 +2624,7 @@ var ArrayEditor = /*#__PURE__*/function (_AbstractEditor) {
           this.error_holder.innerHTML = '';
           this.error_holder.style.display = '';
           myErrors.forEach(function (error) {
-            _this16.error_holder.appendChild(_this16.theme.getErrorMessage(error.message));
+            _this17.error_holder.appendChild(_this17.theme.getErrorMessage(error.message));
           });
           /* Hide error area */
         } else {
@@ -2597,8 +2638,64 @@ var ArrayEditor = /*#__PURE__*/function (_AbstractEditor) {
       });
     }
   }]);
-}(_editor_js__WEBPACK_IMPORTED_MODULE_29__.AbstractEditor);
-ArrayEditor.rules = _array_css_js__WEBPACK_IMPORTED_MODULE_31__["default"];
+}(_editor_js__WEBPACK_IMPORTED_MODULE_30__.AbstractEditor);
+ArrayEditor.rules = _array_css_js__WEBPACK_IMPORTED_MODULE_32__["default"];
+
+// drag/drop array item to adjust order
+// handler(fromIdx, toIdx, fromDom, toDom), opt={useTrigger}
+// useTrigger=true: pressing ctrl to enable drag
+function supportDragDrop(tab, handler) {
+  var opt = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  if (opt.useTrigger) {
+    tab.addEventListener('mousedown', function (e) {
+      if (e.ctrlKey) {
+        // window.console.log('enable drag')
+        tab.draggable = true;
+        var fn = function fn(e) {
+          tab.draggable = false;
+          // window.console.log('disable drag')
+          document.removeEventListener('dragend', fn);
+          document.removeEventListener('mouseup', fn);
+        };
+        document.addEventListener('dragend', fn);
+        document.addEventListener('mouseup', fn);
+      }
+    });
+  } else {
+    tab.draggable = true;
+  }
+  tab.addEventListener('dragstart', function (e) {
+    window.curDrag = tab;
+  });
+  tab.addEventListener('dragover', function (e) {
+    if (window.curDrag === null || window.curDrag === tab || window.curDrag.parentElement !== tab.parentElement) {
+      e.dataTransfer.dropEffect = 'none';
+    } else {
+      e.dataTransfer.dropEffect = 'move';
+    }
+    e.preventDefault();
+  });
+  tab.addEventListener('drop', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (window.curDrag === null || window.curDrag === tab || window.curDrag.parentElement !== tab.parentElement) {
+      return;
+    }
+    var getPos = function getPos(item) {
+      var i = 0;
+      var a = item.parentElement.firstElementChild;
+      while (a !== item && a !== null) {
+        a = a.nextSibling;
+        ++i;
+      }
+      return i;
+    };
+    var i = getPos(window.curDrag);
+    var j = getPos(tab);
+    handler(i, j, window.curDrag, tab);
+    window.curDrag = null;
+  });
+}
 
 /***/ }),
 
@@ -2701,6 +2798,7 @@ var ArrayChoicesEditor = /*#__PURE__*/function (_MultiSelectEditor) {
     key: "setValue",
     value: function setValue(value, initial) {
       if (this.choices_instance) {
+        value = this.applyConstFilter(value);
         /* Make sure we are dealing with an array of strings so we can check for strict equality */
         value = [].concat(value).map(function (e) {
           return "".concat(e);
@@ -2909,6 +3007,7 @@ var ArraySelect2Editor = /*#__PURE__*/function (_MultiSelectEditor) {
   return _createClass(ArraySelect2Editor, [{
     key: "setValue",
     value: function setValue(value, initial) {
+      value = this.applyConstFilter(value);
       if (this.select2_instance) {
         /* Make sure we are dealing with an array of strings so we can check for strict equality */
         value = [].concat(value).map(function (e) {
@@ -3114,6 +3213,7 @@ var ArraySelectizeEditor = /*#__PURE__*/function (_MultiSelectEditor) {
   return _createClass(ArraySelectizeEditor, [{
     key: "setValue",
     value: function setValue(value, initial) {
+      value = this.applyConstFilter(value);
       if (this.selectize_instance) {
         /* Make sure we are dealing with an array of strings so we can check for strict equality */
         value = [].concat(value).map(function (e) {
@@ -3636,6 +3736,7 @@ var Base64Editor = /*#__PURE__*/function (_AbstractEditor) {
   }, {
     key: "setValue",
     value: function setValue(val) {
+      val = this.applyConstFilter(val);
       if (this.value !== val) {
         if (this.schema.readOnly && this.schema["enum"] && !this.schema["enum"].includes(val)) this.value = this.schema["enum"][0];else this.value = val;
         this.input.value = this.value;
@@ -3954,6 +4055,7 @@ var CheckboxEditor = /*#__PURE__*/function (_AbstractEditor) {
   return _createClass(CheckboxEditor, [{
     key: "setValue",
     value: function setValue(value, initial) {
+      value = this.applyConstFilter(value);
       value = !!value;
       var changed = this.getValue() !== value;
       this.value = value;
@@ -3985,6 +4087,16 @@ var CheckboxEditor = /*#__PURE__*/function (_AbstractEditor) {
       return Math.min(12, Math.max(this.getTitle().length / 7, 2));
     }
   }, {
+    key: "setOptInCheckbox",
+    value: function setOptInCheckbox() {
+      _get(_getPrototypeOf(CheckboxEditor.prototype), "setOptInCheckbox", this).call(this);
+      if (this.optInAppended) {
+        this.container.insertBefore(this.optInContainer, this.container.firstChild);
+        this.optInContainer.style.verticalAlign = 'top';
+        this.control.style.marginTop = '0';
+      }
+    }
+  }, {
     key: "build",
     value: function build() {
       var _this = this;
@@ -3998,6 +4110,7 @@ var CheckboxEditor = /*#__PURE__*/function (_AbstractEditor) {
       this.input = this.theme.getCheckbox();
       this.input.id = this.formname;
       this.control = this.theme.getFormControl(this.label, this.input, this.description, this.infoButton);
+      this.control.style.display = 'inline-block';
       if (this.schema.readOnly || this.schema.readonly) {
         this.disable(true);
         this.input.disabled = true;
@@ -4041,7 +4154,7 @@ var CheckboxEditor = /*#__PURE__*/function (_AbstractEditor) {
       var showErrors = this.jsoneditor.options.show_errors;
       var changeOrInteraction = showErrors === 'change' || showErrors === 'interaction';
       var never = showErrors === 'never';
-      if (never) {
+      if (never && !this.is_dirty) {
         return;
       }
       if (changeOrInteraction && !this.is_dirty) {
@@ -4190,6 +4303,7 @@ var ChoicesEditor = /*#__PURE__*/function (_SelectEditor) {
   return _createClass(ChoicesEditor, [{
     key: "setValue",
     value: function setValue(value, initial) {
+      value = this.applyConstFilter(value);
       if (this.choices_instance) {
         /* Sanitize value before setting it */
         var sanitized = this.typecast(value || '');
@@ -4366,6 +4480,7 @@ var ColorEditor = /*#__PURE__*/function (_StringEditor) {
   }, {
     key: "setValue",
     value: function setValue(value, initial, fromTemplate) {
+      value = this.applyConstFilter(value);
       var res = _get(_getPrototypeOf(ColorEditor.prototype), "setValue", this).call(this, value, initial, fromTemplate);
       if (this.picker_instance && this.picker_instance.domElement && res && res.changed) {
         this.picker_instance.setColor(res.value, true);
@@ -4665,6 +4780,7 @@ var DatetimeEditor = /*#__PURE__*/function (_StringEditor) {
   }, {
     key: "setValue",
     value: function setValue(value, initial, fromTemplate) {
+      value = this.applyConstFilter(value);
       if (this.schema.type === 'string') {
         _get(_getPrototypeOf(DatetimeEditor.prototype), "setValue", this).call(this, value, initial, fromTemplate);
         if (this.flatpickr) this.flatpickr.setDate(value);
@@ -4959,6 +5075,7 @@ var DescribedByEditor = /*#__PURE__*/function (_AbstractEditor) {
   }, {
     key: "setValue",
     value: function setValue(val, initial) {
+      val = this.applyConstFilter(val);
       if (this.editors[this.currentEditor]) {
         this.editors[this.currentEditor].setValue(val, initial);
         this.refreshValue();
@@ -5137,7 +5254,7 @@ var EnumEditor = /*#__PURE__*/function (_AbstractEditor) {
       this.title = this.header = this.label = this.theme.getFormInputLabel(this.getTitle(), this.isRequired());
       this.container.appendChild(this.title);
       this.options.enum_titles = this.options.enum_titles || [];
-      if (this.enforceConst && this.schema["const"]) {
+      if (this.enforceConstEnabled && this.schema["const"]) {
         this["enum"] = [this.schema["const"]];
       } else {
         this["enum"] = this.schema["enum"];
@@ -5255,6 +5372,7 @@ var EnumEditor = /*#__PURE__*/function (_AbstractEditor) {
   }, {
     key: "setValue",
     value: function setValue(val) {
+      val = this.applyConstFilter(val);
       if (this.value !== val) {
         this.value = val;
         this.refreshValue();
@@ -5386,6 +5504,7 @@ var HiddenEditor = /*#__PURE__*/function (_AbstractEditor) {
   }, {
     key: "setValue",
     value: function setValue(value, initial, fromTemplate) {
+      value = this.applyConstFilter(value);
       if (this.template && !fromTemplate) {
         return;
       }
@@ -6064,6 +6183,7 @@ var JoditEditor = /*#__PURE__*/function (_StringEditor) {
   return _createClass(JoditEditor, [{
     key: "setValue",
     value: function setValue(value, initial, fromTemplate) {
+      value = this.applyConstFilter(value);
       var res = _get(_getPrototypeOf(JoditEditor.prototype), "setValue", this).call(this, value, initial, fromTemplate);
       if (res !== undefined && res.changed && this.jodit_instance) this.jodit_instance.setEditorValue(res.value);
     }
@@ -6563,6 +6683,8 @@ var MultipleEditor = /*#__PURE__*/function (_AbstractEditor) {
     key: "setValue",
     value: function setValue(val, initial) {
       var _this4 = this;
+      val = this.applyConstFilter(val);
+
       /* Determine type by getting the first one that validates */
 
       var prevType = this.type;
@@ -6947,6 +7069,7 @@ var MultiSelectEditor = /*#__PURE__*/function (_AbstractEditor) {
     key: "setValue",
     value: function setValue(value, initial) {
       var _this3 = this;
+      value = this.applyConstFilter(value);
       value = value || [];
       if (!Array.isArray(value)) value = [value];
 
@@ -7545,7 +7668,9 @@ var ObjectEditor = /*#__PURE__*/function (_AbstractEditor) {
             if (e.isActive() || e.isUiOnly) {
               e.enable();
             }
-            e.optInCheckbox.disabled = false;
+            if (e.optInCheckbox) {
+              e.optInCheckbox.disabled = false;
+            }
           });
         }
       }
@@ -8279,7 +8404,7 @@ var ObjectEditor = /*#__PURE__*/function (_AbstractEditor) {
         this.refreshAddProperties();
 
         /* non required properties start deactivated */
-        this.deactivateNonRequiredProperties();
+        this.deactivateNonRequiredProperties(false);
       }
 
       /* Fix table cell ordering */
@@ -8301,7 +8426,7 @@ var ObjectEditor = /*#__PURE__*/function (_AbstractEditor) {
     }
   }, {
     key: "deactivateNonRequiredProperties",
-    value: function deactivateNonRequiredProperties() {
+    value: function deactivateNonRequiredProperties(recursive) {
       var _this8 = this;
       /* the show_opt_in editor option is for backward compatibility */
       var globalOptIn = this.jsoneditor.options.show_opt_in;
@@ -8315,6 +8440,9 @@ var ObjectEditor = /*#__PURE__*/function (_AbstractEditor) {
             editor = _ref6[1];
           if (!_this8.isRequiredObject(editor)) {
             _this8.editors[key].deactivate();
+          }
+          if (recursive && typeof _this8.editors[key].deactivateNonRequiredProperties === 'function') {
+            _this8.editors[key].deactivateNonRequiredProperties(recursive);
           }
         });
       }
@@ -8766,6 +8894,7 @@ var ObjectEditor = /*#__PURE__*/function (_AbstractEditor) {
     key: "setValue",
     value: function setValue(value, initial) {
       var _this13 = this;
+      value = this.applyConstFilter(value);
       value = value || {};
       if (_typeof(value) !== 'object' || Array.isArray(value)) value = {};
 
@@ -9057,6 +9186,7 @@ var RadioEditor = /*#__PURE__*/function (_SelectEditor) {
   }, {
     key: "setValue",
     value: function setValue(val) {
+      val = this.applyConstFilter(val);
       if (typeof val !== 'string') {
         val = String(val);
       }
@@ -9168,6 +9298,7 @@ var ScEditor = /*#__PURE__*/function (_StringEditor) {
   return _createClass(ScEditor, [{
     key: "setValue",
     value: function setValue(value, initial, fromTemplate) {
+      value = this.applyConstFilter(value);
       var res = _get(_getPrototypeOf(ScEditor.prototype), "setValue", this).call(this, value, initial, fromTemplate);
       if (res !== undefined && res.changed && this.sceditor_instance) this.sceditor_instance.val(res.value);
     }
@@ -9373,6 +9504,7 @@ var SelectEditor = /*#__PURE__*/function (_AbstractEditor) {
   return _createClass(SelectEditor, [{
     key: "setValue",
     value: function setValue(value, initial) {
+      value = this.applyConstFilter(value);
       /* Sanitize value before setting it */
       var sanitized = this.typecast(value);
       var inEnum = this.enum_options.length > 0 && this.enum_values.includes(sanitized);
@@ -9381,10 +9513,13 @@ var SelectEditor = /*#__PURE__*/function (_AbstractEditor) {
         sanitized = this.enum_values[0];
       }
       if (this.value === sanitized) return;
-      if (inEnum && this.hasPlaceholderOption) {
-        this.input.value = this.enum_options[this.enum_values.indexOf(sanitized)];
-      } else {
+      var selectedIndex = this.enum_values.indexOf(sanitized);
+      if (inEnum && selectedIndex !== -1) {
+        this.input.value = this.enum_options[selectedIndex];
+      } else if (this.hasPlaceholderOption) {
         this.input.value = '_placeholder_';
+      } else {
+        this.input.value = sanitized;
       }
       this.value = sanitized;
       if (!initial) {
@@ -9729,7 +9864,7 @@ var SelectEditor = /*#__PURE__*/function (_AbstractEditor) {
       var showErrors = this.jsoneditor.options.show_errors;
       var changeOrInteraction = showErrors === 'change' || showErrors === 'interaction';
       var never = showErrors === 'never';
-      if (never) {
+      if (never && !this.is_dirty) {
         return;
       }
       if (changeOrInteraction && !this.is_dirty) {
@@ -9851,6 +9986,7 @@ var Select2Editor = /*#__PURE__*/function (_SelectEditor) {
   return _createClass(Select2Editor, [{
     key: "setValue",
     value: function setValue(value, initial) {
+      value = this.applyConstFilter(value);
       if (this.select2_instance) {
         if (initial) this.is_dirty = false;else if (this.jsoneditor.options.show_errors === 'change') this.is_dirty = true;
         var sanitized = this.updateValue(value); /* Sets this.value to sanitized value */
@@ -10062,6 +10198,7 @@ var SelectizeEditor = /*#__PURE__*/function (_SelectEditor) {
   return _createClass(SelectizeEditor, [{
     key: "setValue",
     value: function setValue(value, initial) {
+      value = this.applyConstFilter(value);
       if (this.selectize_instance) {
         if (initial) this.is_dirty = false;else if (this.jsoneditor.options.show_errors === 'change') this.is_dirty = true;
         var sanitized = this.updateValue(value); /* Sets this.value to sanitized value */
@@ -10357,6 +10494,7 @@ var SignatureEditor = /*#__PURE__*/function (_StringEditor) {
   }, {
     key: "setValue",
     value: function setValue(val) {
+      val = this.applyConstFilter(val);
       if (typeof SignaturePad === 'function') {
         var sanitized = this.sanitize(val);
         if (this.value === sanitized) {
@@ -10480,6 +10618,7 @@ var SimplemdeEditor = /*#__PURE__*/function (_StringEditor) {
   return _createClass(SimplemdeEditor, [{
     key: "setValue",
     value: function setValue(value, initial, fromTemplate) {
+      value = this.applyConstFilter(value);
       var res = _get(_getPrototypeOf(SimplemdeEditor.prototype), "setValue", this).call(this, value, initial, fromTemplate);
       if (res !== undefined && res.changed && this.simplemde_instance) this.simplemde_instance.value(res.value);
     }
@@ -10558,16 +10697,17 @@ var SimplemdeEditor = /*#__PURE__*/function (_StringEditor) {
   }, {
     key: "startListening",
     value: function startListening(cm, state) {
-      function check() {
+      var _this2 = this;
+      var check = function check() {
         if (cm.display.wrapper.offsetHeight) {
-          this.stopListening(cm, state);
+          _this2.stopListening(cm, state);
           if (cm.display.lastWrapHeight !== cm.display.wrapper.clientHeight) {
             cm.refresh();
           }
         } else {
           state.timeout = window.setTimeout(check, state.delay);
         }
-      }
+      };
       state.timeout = window.setTimeout(check, state.delay);
       state.hurry = function () {
         window.clearTimeout(state.timeout);
@@ -10827,6 +10967,7 @@ var StarratingEditor = /*#__PURE__*/function (_StringEditor) {
   }, {
     key: "setValue",
     value: function setValue(value) {
+      value = this.applyConstFilter(value);
       this.value = value;
       for (var i = 0; i < this.radioGroup.length; i++) {
         if (this.radioGroup[i].value === "".concat(value)) {
@@ -11111,6 +11252,7 @@ var StringEditor = /*#__PURE__*/function (_AbstractEditor) {
   }, {
     key: "setValue",
     value: function setValue(value, initial, fromTemplate) {
+      value = this.applyConstFilter(value);
       if (this.template && !fromTemplate) return;
       if (!this.shouldBeUnset() && (value === null || typeof value === 'undefined')) value = '';else if (_typeof(value) === 'object') value = JSON.stringify(value);else if (!this.shouldBeUnset() && typeof value !== 'string') value = "".concat(value);
       if (value === this.serialized) return;
@@ -11789,6 +11931,8 @@ var TableEditor = /*#__PURE__*/function (_ArrayEditor) {
       var _this = this;
       var value = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
       var initial = arguments.length > 1 ? arguments[1] : undefined;
+      value = this.applyConstFilter(value);
+
       /* Make sure value has between minItems and maxItems items in it */
       value = this.ensureArraySize(value);
       var serialized = JSON.stringify(value);
@@ -11817,7 +11961,6 @@ var TableEditor = /*#__PURE__*/function (_ArrayEditor) {
       this.refreshValue();
       if (numrowsChanged || initial) this.refreshRowButtons();
       this.onChange();
-
       /* TODO: sortable */
     }
   }, {
@@ -11910,6 +12053,7 @@ var TableEditor = /*#__PURE__*/function (_ArrayEditor) {
       if (!this.hide_move_buttons) {
         this.rows[i].movedown_button = this._createMoveDownButton(i, controlsHolder);
       }
+      this._supportDragDrop(this.rows[i].row);
       if (typeof value !== 'undefined') this.rows[i].setValue(value);
       return this.rows[i];
     }
@@ -12018,9 +12162,25 @@ var TableEditor = /*#__PURE__*/function (_ArrayEditor) {
       return button;
     }
   }, {
+    key: "_supportDragDrop",
+    value: function _supportDragDrop(tab) {
+      var _this8 = this;
+      (0,_array_js__WEBPACK_IMPORTED_MODULE_28__.supportDragDrop)(tab, function (i, j) {
+        var rows = _this8.getValue();
+        var tmp = rows[i];
+        rows.splice(i, 1);
+        rows.splice(j, 0, tmp);
+        _this8.setValue(rows);
+        _this8.onChange(true);
+        _this8.jsoneditor.trigger('moveRow', _this8.rows[j]);
+      }, {
+        useTrigger: true
+      });
+    }
+  }, {
     key: "addControls",
     value: function addControls() {
-      var _this8 = this;
+      var _this9 = this;
       this.collapsed = false;
       this.toggle_button = this._createToggleButton();
       if (this.title_controls) {
@@ -12028,13 +12188,13 @@ var TableEditor = /*#__PURE__*/function (_ArrayEditor) {
         this.toggle_button.addEventListener('click', function (e) {
           e.preventDefault();
           e.stopPropagation();
-          _this8.setButtonState(_this8.panel, _this8.collapsed);
-          if (_this8.collapsed) {
-            _this8.collapsed = false;
-            _this8.setButtonText(e.currentTarget, '', 'collapse', 'button_collapse');
+          _this9.setButtonState(_this9.panel, _this9.collapsed);
+          if (_this9.collapsed) {
+            _this9.collapsed = false;
+            _this9.setButtonText(e.currentTarget, '', 'collapse', 'button_collapse');
           } else {
-            _this8.collapsed = true;
-            _this8.setButtonText(e.currentTarget, '', 'expand', 'button_expand');
+            _this9.collapsed = true;
+            _this9.setButtonText(e.currentTarget, '', 'expand', 'button_expand');
           }
         });
 
@@ -12066,17 +12226,17 @@ var TableEditor = /*#__PURE__*/function (_ArrayEditor) {
   }, {
     key: "_createAddRowButton",
     value: function _createAddRowButton() {
-      var _this9 = this;
+      var _this10 = this;
       var button = this.getButton(this.getItemTitle(), 'add', 'button_add_row_title', [this.getItemTitle()]);
       button.classList.add('json-editor-btntype-add');
       button.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
-        var editor = _this9.addRow();
-        _this9.refreshValue();
-        _this9.refreshRowButtons();
-        _this9.onChange(true);
-        _this9.jsoneditor.trigger('addRow', editor);
+        var editor = _this10.addRow();
+        _this10.refreshValue();
+        _this10.refreshRowButtons();
+        _this10.onChange(true);
+        _this10.jsoneditor.trigger('addRow', editor);
       });
       this.controls.appendChild(button);
       return button;
@@ -12084,20 +12244,20 @@ var TableEditor = /*#__PURE__*/function (_ArrayEditor) {
   }, {
     key: "_createDeleteLastRowButton",
     value: function _createDeleteLastRowButton() {
-      var _this10 = this;
+      var _this11 = this;
       var button = this.getButton('button_delete_last', 'subtract', 'button_delete_last_title', [this.getItemTitle()]);
       button.classList.add('json-editor-btntype-deletelast');
       button.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
-        if (!_this10.askConfirmation()) {
+        if (!_this11.askConfirmation()) {
           return false;
         }
-        var rows = _this10.getValue();
+        var rows = _this11.getValue();
         var editorValue = rows.pop();
-        _this10.setValue(rows);
-        _this10.onChange(true);
-        _this10.jsoneditor.trigger('deleteRow', editorValue);
+        _this11.setValue(rows);
+        _this11.onChange(true);
+        _this11.jsoneditor.trigger('deleteRow', editorValue);
       });
       this.controls.appendChild(button);
       return button;
@@ -12105,19 +12265,19 @@ var TableEditor = /*#__PURE__*/function (_ArrayEditor) {
   }, {
     key: "_createRemoveAllRowsButton",
     value: function _createRemoveAllRowsButton() {
-      var _this11 = this;
+      var _this12 = this;
       var button = this.getButton('button_delete_all', 'delete', 'button_delete_all_title');
       button.classList.add('json-editor-btntype-deleteall');
       button.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
-        if (!_this11.askConfirmation()) {
+        if (!_this12.askConfirmation()) {
           return false;
         }
-        var values = _this11.getValue();
-        _this11.setValue([]);
-        _this11.onChange(true);
-        _this11.jsoneditor.trigger('deleteAllRows', values);
+        var values = _this12.getValue();
+        _this12.setValue([]);
+        _this12.onChange(true);
+        _this12.jsoneditor.trigger('deleteAllRows', values);
       });
       this.controls.appendChild(button);
       return button;
@@ -12524,6 +12684,7 @@ var UploadEditor = /*#__PURE__*/function (_AbstractEditor) {
   }, {
     key: "setValue",
     value: function setValue(val) {
+      val = this.applyConstFilter(val);
       if (this.value !== val) {
         this.value = val;
         this.input.value = this.value;
@@ -12701,6 +12862,7 @@ var UuidEditor = /*#__PURE__*/function (_StringEditor) {
   }, {
     key: "setValue",
     value: function setValue(value, initial, fromTemplate) {
+      value = this.applyConstFilter(value);
       if (!this.testUuid(value)) value = this.uuid;
       this.uuid = value;
       _get(_getPrototypeOf(UuidEditor.prototype), "setValue", this).call(this, value, initial, fromTemplate);
@@ -13831,7 +13993,8 @@ var arraysOfStrings = function arraysOfStrings(schema, je) {
 
 /* Use the multiple editor for schemas with `oneOf` or `anyOf` set */
 var oneOf = function oneOf(schema) {
-  return (schema.oneOf || schema.anyOf) && 'multiple';
+  var _schema$options$switc, _schema$options;
+  return (schema.oneOf || schema.anyOf) && ((_schema$options$switc = (_schema$options = schema.options) === null || _schema$options === void 0 ? void 0 : _schema$options.switcher) !== null && _schema$options$switc !== void 0 ? _schema$options$switc : true) === true && 'multiple';
 };
 
 /* Use the multiple editor for schemas with `if` set */
@@ -15296,6 +15459,31 @@ var AbstractTheme = /*#__PURE__*/function () {
       return document.createElement('div');
     }
   }, {
+    key: "getOptInCheckbox",
+    value: function getOptInCheckbox(formname) {
+      var container = document.createElement('span');
+      var label = this.getHiddenLabel(formname + ' opt-in');
+      label.setAttribute('for', formname + '-opt-in');
+      label.textContent = formname + '-opt-in';
+      var checkbox = document.createElement('input');
+      checkbox.setAttribute('type', 'checkbox');
+      checkbox.setAttribute('style', 'margin: 0 10px 0 0;');
+      checkbox.setAttribute('id', formname + '-opt-in');
+      checkbox.classList.add('json-editor-opt-in');
+      container.appendChild(checkbox);
+      container.appendChild(label);
+      return {
+        label: label,
+        checkbox: checkbox,
+        container: container
+      };
+    }
+  }, {
+    key: "getOptInSwitch",
+    value: function getOptInSwitch(formname) {
+      return this.getOptInCheckbox();
+    }
+  }, {
     key: "getFloatRightLinkHolder",
     value: function getFloatRightLinkHolder() {
       var el = document.createElement('div');
@@ -16206,7 +16394,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 /* eslint-disable */
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({});
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
+  ".switch": "position:relative;display:inline-block;width:28px;height:16px;margin-right:10px",
+  ".switch input": "opacity:0;width:0;height:0",
+  ".switch-slider": "position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:%23ccc;transition:.1s;border-radius:34px",
+  ".switch-slider:before": "position:absolute;content:%22%22;height:12px;width:12px;left:1px;top:2px;background-color:white;transition:.1s;border-radius:50%25",
+  "input:checked + .switch-slider": "background-color:%232196F3",
+  "input:focus + .switch-slider": "box-shadow:0%200%201px%20%232196F3",
+  "input:checked + .switch-slider:before": "transform:translateX(12px)",
+  "input:disabled + .switch-slider": "opacity:0.5"
+});
 /* eslint-enable */
 
 /***/ }),
@@ -16304,6 +16501,31 @@ var bootstrap3Theme = /*#__PURE__*/function (_AbstractTheme) {
   }
   _inherits(bootstrap3Theme, _AbstractTheme);
   return _createClass(bootstrap3Theme, [{
+    key: "getOptInSwitch",
+    value: function getOptInSwitch(formname) {
+      var label = this.getHiddenLabel(formname + ' opt-in');
+      label.setAttribute('for', formname + '-opt-in');
+      var container = document.createElement('label');
+      container.classList.add('switch');
+      var checkbox = document.createElement('input');
+      checkbox.setAttribute('type', 'checkbox');
+      checkbox.setAttribute('id', formname + '-opt-in');
+      checkbox.classList.add('json-editor-opt-in');
+      var slider = document.createElement('span');
+      slider.classList.add('switch-slider');
+      var switchLabelText = document.createElement('span');
+      switchLabelText.classList.add('sr-only');
+      switchLabelText.textContent = formname + '-opt-in';
+      container.appendChild(switchLabelText);
+      container.appendChild(checkbox);
+      container.appendChild(slider);
+      return {
+        label: label,
+        checkbox: checkbox,
+        container: container
+      };
+    }
+  }, {
     key: "getSelectInput",
     value: function getSelectInput(options, multiple) {
       var el = _get(_getPrototypeOf(bootstrap3Theme.prototype), "getSelectInput", this).call(this, options);
@@ -16448,6 +16670,11 @@ var bootstrap3Theme = /*#__PURE__*/function (_AbstractTheme) {
       el.classList.add('help-block');
       if (window.DOMPurify) el.innerHTML = window.DOMPurify.sanitize(text);else el.textContent = this.cleanText(text);
       return el;
+    }
+  }, {
+    key: "getHeaderContainer",
+    value: function getHeaderContainer() {
+      return document.createElement('div');
     }
   }, {
     key: "getHeader",
@@ -16844,6 +17071,32 @@ var bootstrap4Theme = /*#__PURE__*/function (_AbstractTheme) {
       var el = document.createElement('div');
       if (!this.options.object_indent) el.classList.add('je-noindent');
       return el;
+    }
+  }, {
+    key: "getOptInSwitch",
+    value: function getOptInSwitch(formname) {
+      var label = this.getHiddenLabel(formname + ' opt-in');
+      label.setAttribute('for', formname + '-opt-in');
+      var container = document.createElement('div');
+      container.classList.add('custom-control', 'custom-switch', 'd-inline-block', 'fs-6');
+      var checkbox = document.createElement('input');
+      checkbox.setAttribute('type', 'checkbox');
+      checkbox.setAttribute('id', formname + '-opt-in');
+      checkbox.classList.add('custom-control-input', 'json-editor-opt-in');
+      var switchLabel = document.createElement('label');
+      switchLabel.setAttribute('for', formname + '-opt-in');
+      switchLabel.classList.add('custom-control-label');
+      var switchLabelText = document.createElement('span');
+      switchLabelText.classList.add('sr-only');
+      switchLabelText.textContent = formname + '-opt-in';
+      switchLabel.appendChild(switchLabelText);
+      container.appendChild(checkbox);
+      container.appendChild(switchLabel);
+      return {
+        label: label,
+        checkbox: checkbox,
+        container: container
+      };
     }
   }, {
     key: "setGridColumnSize",
@@ -17670,6 +17923,33 @@ var bootstrap5Theme = /*#__PURE__*/function (_AbstractTheme) {
       var el = document.createElement('div');
       if (!this.options.object_indent) el.classList.add('je-noindent');
       return el;
+    }
+  }, {
+    key: "getOptInSwitch",
+    value: function getOptInSwitch(formname) {
+      var label = this.getHiddenLabel(formname + ' opt-in');
+      label.setAttribute('for', formname + '-opt-in');
+      var container = document.createElement('div');
+      container.classList.add('form-check', 'form-switch', 'd-inline-block', 'fs-6');
+      var checkbox = document.createElement('input');
+      checkbox.setAttribute('type', 'checkbox');
+      checkbox.setAttribute('role', 'switch');
+      checkbox.setAttribute('id', formname + '-opt-in');
+      checkbox.classList.add('form-check-input', 'json-editor-opt-in');
+      var switchLabel = document.createElement('label');
+      switchLabel.setAttribute('for', formname + '-opt-in');
+      switchLabel.classList.add('form-check-label');
+      var switchLabelText = document.createElement('span');
+      switchLabelText.classList.add('visually-hidden');
+      switchLabelText.textContent = formname + '-opt-in';
+      switchLabel.appendChild(switchLabelText);
+      container.appendChild(checkbox);
+      container.appendChild(switchLabel);
+      return {
+        label: label,
+        checkbox: checkbox,
+        container: container
+      };
     }
   }, {
     key: "setGridColumnSize",
@@ -18996,10 +19276,36 @@ var spectreTheme = /*#__PURE__*/function (_AbstractTheme) {
     _classCallCheck(this, spectreTheme);
     return _callSuper(this, spectreTheme, [jsoneditor, options]);
   }
-
-  /* Functions for setting up the grid container, row and columns */
   _inherits(spectreTheme, _AbstractTheme);
   return _createClass(spectreTheme, [{
+    key: "getOptInSwitch",
+    value: function getOptInSwitch(formname) {
+      var container = document.createElement('span');
+      container.classList.add('form-group');
+      var label = document.createElement('label');
+      label.classList.add('form-switch', 'd-inline-block');
+      var checkbox = document.createElement('input');
+      checkbox.setAttribute('type', 'checkbox');
+      checkbox.setAttribute('id', formname + '-opt-in');
+      checkbox.classList.add('json-editor-opt-in');
+      var icon = document.createElement('i');
+      icon.classList.add('form-icon');
+      var switchLabelText = document.createElement('span');
+      switchLabelText.classList.add('sr-only');
+      switchLabelText.textContent = formname + '-opt-in';
+      label.appendChild(switchLabelText);
+      label.appendChild(checkbox);
+      label.appendChild(icon);
+      container.appendChild(label);
+      return {
+        label: label,
+        checkbox: checkbox,
+        container: container
+      };
+    }
+
+    /* Functions for setting up the grid container, row and columns */
+  }, {
     key: "setGridColumnSize",
     value: function setGridColumnSize(el, size, offset) {
       el.classList.add("col-".concat(size));
@@ -19488,7 +19794,15 @@ __webpack_require__.r(__webpack_exports__);
   ".je-dropzone": "position:relative;margin:0.5rem%200;border:2px%20dashed%20black;width:100%25;height:60px;background:teal;transition:all%200.5s",
   ".je-dropzone:before": "position:absolute;content:attr(data-text);color:rgba(0%2C%200%2C%200%2C%200.6);left:50%25;top:50%25;transform:translate(-50%25%2C%20-50%25)",
   ".je-dropzone.valid-dropzone": "background:green",
-  ".je-dropzone.invalid-dropzone": "background:red"
+  ".je-dropzone.invalid-dropzone": "background:red",
+  ".switch": "position:relative;display:inline-block;width:28px;height:16px;margin-right:10px",
+  ".switch input": "opacity:0;width:0;height:0",
+  ".switch-slider": "position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:%23ccc;transition:.1s;border-radius:34px",
+  ".switch-slider:before": "position:absolute;content:%22%22;height:12px;width:12px;left:1px;top:2px;background-color:white;transition:.1s;border-radius:50%25",
+  "input:checked + .switch-slider": "background-color:%232196F3",
+  "input:focus + .switch-slider": "box-shadow:0%200%201px%20%232196F3",
+  "input:checked + .switch-slider:before": "transform:translateX(12px)",
+  "input:disabled + .switch-slider": "opacity:0.5"
 });
 /* eslint-enable */
 
@@ -19611,6 +19925,31 @@ var tailwindTheme = /*#__PURE__*/function (_AbstractTheme) {
   }
   _inherits(tailwindTheme, _AbstractTheme);
   return _createClass(tailwindTheme, [{
+    key: "getOptInSwitch",
+    value: function getOptInSwitch(formname) {
+      var label = this.getHiddenLabel(formname + ' opt-in');
+      label.setAttribute('for', formname + '-opt-in');
+      var container = document.createElement('label');
+      container.classList.add('switch');
+      var checkbox = document.createElement('input');
+      checkbox.setAttribute('type', 'checkbox');
+      checkbox.setAttribute('id', formname + '-opt-in');
+      checkbox.classList.add('json-editor-opt-in');
+      var slider = document.createElement('span');
+      slider.classList.add('switch-slider', 'round');
+      var switchLabelText = document.createElement('span');
+      switchLabelText.classList.add('sr-only');
+      switchLabelText.textContent = formname + '-opt-in';
+      container.appendChild(switchLabelText);
+      container.appendChild(checkbox);
+      container.appendChild(slider);
+      return {
+        label: label,
+        checkbox: checkbox,
+        container: container
+      };
+    }
+  }, {
     key: "getGridContainer",
     value: function getGridContainer() {
       var el = document.createElement('div');
@@ -30994,6 +31333,17 @@ var JSONEditor = /*#__PURE__*/function () {
       var styleSheet = new CSSStyleSheet();
       styleSheet.replaceSync(cssText);
       shadowRoot.adoptedStyleSheets = [].concat(_toConsumableArray(shadowRoot.adoptedStyleSheets), [styleSheet]);
+    }
+  }, {
+    key: "showValidationErrors",
+    value: function showValidationErrors(errorList) {
+      var errors = errorList !== null && errorList !== void 0 ? errorList : this.validate();
+      Object.values(this.editors).forEach(function (editor) {
+        if (editor) {
+          editor.is_dirty = true;
+          editor.showValidationErrors(errors);
+        }
+      });
     }
   }]);
 }();

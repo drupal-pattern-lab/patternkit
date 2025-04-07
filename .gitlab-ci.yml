@@ -72,6 +72,7 @@ cspell:
       "js/*.min.js",
       "js/handlebars.js",
       "js/jsoneditor.js",
+      "js/jsoneditor.js.LICENSE.txt",
       "js/nonmin/*",
       "npm-shrinkwrap.json",
       "tslint.json"
