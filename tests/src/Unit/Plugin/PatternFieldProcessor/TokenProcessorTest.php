@@ -77,14 +77,21 @@ class TokenProcessorTest extends UnitTestCase {
 
   /**
    * Tests applies method in various use cases.
+   *
+   * @param \Swaggest\JsonSchema\SchemaContract $propertySchema
+   *   The schema object to be tested against.
+   * @param mixed $value
+   *   An example value for testing.
+   * @param bool $expected
+   *   The expected result.
    */
   #[DataProvider('providerApplies')]
-  public function testApplies(SchemaContract $propertySchema, bool $expected) {
-    $this->assertEquals($expected, $this->plugin->applies($propertySchema));
+  public function testApplies(SchemaContract $propertySchema, mixed $value, bool $expected) {
+    $this->assertEquals($expected, $this->plugin->applies($propertySchema, $value));
   }
 
   /**
-   * Data provider for the applies test.
+   * Data provider for testApplies().
    */
   public static function providerApplies() {
     $schema_json = <<<JSON
@@ -152,26 +159,53 @@ class TokenProcessorTest extends UnitTestCase {
     $schema = Schema::import(json_decode($schema_json));
     $properties = $schema->getProperties();
 
-    $cases = [];
-
-    $cases['full_object'] = [$schema, FALSE];
-
-    $cases['html_wysiwyg_field'] = [$properties->formatted_text, TRUE];
-
-    $cases['plain_text_field'] = [$properties->text, TRUE];
-
-    $cases['object_property'] = [$properties->image, FALSE];
-
-    $cases['nested_string_field'] = [
-      $properties->image->getProperties()->image_url,
-      TRUE,
+    return [
+      'full_object' => [
+        $schema,
+        ['text' => 'My text value'],
+        FALSE,
+      ],
+      'html_wysiwyg_field' => [
+        $properties->formatted_text,
+        'My <strong>formatted</strong> text',
+        TRUE,
+      ],
+      'plain_text_field' => [
+        $properties->text,
+        'A plain text value',
+        TRUE,
+      ],
+      'object_property' => [
+        $properties->image,
+        ['image_url' => 'my/example/image.jpg'],
+        FALSE,
+      ],
+      'nested_string_field' => [
+        $properties->image->getProperties()->image_url,
+        'my/example/image.jpg',
+        TRUE,
+      ],
+      'number_property' => [
+        $properties->amount,
+        12345,
+        FALSE,
+      ],
+      'array_property' => [
+        $properties->breakpoints,
+        ['xxs', 'md', 'lg'],
+        FALSE,
+      ],
+      'string with mismatched value' => [
+        $properties->formatted_text,
+        ['nested value' => 'My nested string value'],
+        FALSE,
+      ],
+      'string with null value' => [
+        $properties->formatted_text,
+        NULL,
+        FALSE,
+      ],
     ];
-
-    $cases['number_property'] = [$properties->amount, FALSE];
-
-    $cases['array_property'] = [$properties->breakpoints, FALSE];
-
-    return $cases;
   }
 
   public function testApplyReplace() {

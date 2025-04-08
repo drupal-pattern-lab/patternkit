@@ -74,7 +74,8 @@ class TokenProcessor extends PatternFieldProcessorBase {
    */
   public function applies(SchemaContract $propertySchema, $propertyValue = NULL): bool {
     return property_exists($propertySchema, 'type')
-      && $propertySchema->type == 'string';
+      && $propertySchema->type == 'string'
+      && is_string($propertyValue);
   }
 
   /**

@@ -80,7 +80,8 @@ class WysiwygFieldProcessor extends PatternFieldProcessorBase {
    */
   public function applies(SchemaContract $propertySchema, $propertyValue = NULL): bool {
     $textProfile = $this->getTextProfile();
-    return is_string($textProfile) && $textProfile !== ''
+    return is_string($propertyValue)
+      && is_string($textProfile) && $textProfile !== ''
       && property_exists($propertySchema, 'type') && $propertySchema->type == 'string'
       && property_exists($propertySchema, 'format') && $propertySchema->format == 'html'
       && isset($propertySchema->options) && property_exists($propertySchema->options, 'wysiwyg')
