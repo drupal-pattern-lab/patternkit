@@ -51,6 +51,8 @@ class LayoutBuilderBlockUpdateTest extends PatternkitBrowserTestBase {
     $page->pressButton('Add block');
     $page->pressButton('Save layout');
 
+    $assert->waitForText("The layout override has been saved.");
+
     // Get the UUID of the component.
     $components = Node::load(1)
       ->get('layout_builder__layout')

@@ -26,7 +26,7 @@ class RenderFailureErrorDisplaySubscriber implements EventSubscriberInterface {
   /**
    * {@inheritdoc}
    */
-  public static function getSubscribedEvents() {
+  public static function getSubscribedEvents(): array {
     // Set a low priority to encourage this as the last executed subscriber to
     // handle failures that weren't otherwise addressed.
     $events[PatternkitEvents::RENDER_FAILURE] = ['onRenderFailure', static::EVENT_PRIORITY];

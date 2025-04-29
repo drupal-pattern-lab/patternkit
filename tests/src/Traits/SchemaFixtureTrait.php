@@ -24,8 +24,8 @@ trait SchemaFixtureTrait {
    *   Returns the contents of the fixture file or FALSE if it was unable to
    *   read.
    */
-  public function loadFixture(string $path, ?string $module_path = NULL): false|string {
-    $module_path ??= __DIR__ . '/../../..';
+  public static function loadFixture(string $path, ?string $module_path = NULL): false|string {
+    $module_path ??= realpath(__DIR__ . '/../../..');
     $fixture_path = $module_path . '/tests/fixtures/';
 
     return file_get_contents($fixture_path . $path);

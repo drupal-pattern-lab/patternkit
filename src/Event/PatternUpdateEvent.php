@@ -241,7 +241,7 @@ class PatternUpdateEvent extends Event {
   public function validateContent(array $content): bool {
     // This is overridden for convenience to automatically pass in the updated
     // pattern for reference.
-    return $this->traitValidateContent($this->newPattern, $content);
+    return $this->validatePattern($this->newPattern, $content);
   }
 
 }

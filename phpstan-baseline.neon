@@ -31,3 +31,11 @@ parameters:
     - message: "#^Call to method writeln\\(\\) on an unknown class Drush\\\\Style\\\\DrushStyle\\.$#"
       count: 1
       path: src/Commands/UpdateCommands.php
+
+    - message: "#^Call to method success\\(\\) on an unknown class Drush\\\\Style\\\\DrushStyle\\.$#"
+      count: 1
+      path: src/Commands/ValidationCommands.php
+
+    - message: "#^Call to method error\\(\\) on an unknown class Drush\\\\Style\\\\DrushStyle\\.$#"
+      count: 1
+      path: src/Commands/ValidationCommands.php

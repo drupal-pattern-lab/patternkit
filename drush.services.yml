@@ -23,3 +23,10 @@ services:
       - '%app.root%'
     tags:
       - { name: drush.command }
+
+  patternkit.commands.validation:
+    class: Drupal\patternkit\Commands\ValidationCommands
+    arguments:
+      - '@patternkit.pattern.repository'
+    tags:
+      - { name: drush.command }

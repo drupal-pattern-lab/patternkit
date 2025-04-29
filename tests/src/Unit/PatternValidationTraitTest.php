@@ -2,8 +2,6 @@
 
 namespace Drupal\Tests\patternkit\Unit;
 
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternValidationTrait;
 use Drupal\patternkit\Schema\ContextBuilder;
@@ -12,6 +10,8 @@ use Drupal\patternkit\Schema\SchemaFactory;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\patternkit\Traits\SchemaFixtureTrait;
 use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\UsesClass;
 use Prophecy\Argument;
@@ -25,11 +25,11 @@ use Swaggest\JsonSchema\SchemaContract;
  * Unit tests for PatternValidationTrait.
  */
 #[Group('patternkit')]
+#[CoversClass(PatternValidationTrait::class)]
 #[UsesClass('\Drupal\patternkit\Schema\ContextBuilderTrait')]
 #[UsesClass('\Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor')]
 #[UsesClass('\Drupal\patternkit\Schema\SchemaFactoryTrait')]
 #[UsesClass('\Swaggest\JsonSchema\Context')]
-#[CoversClass(PatternValidationTrait::class)]
 class PatternValidationTraitTest extends UnitTestCase {
 
   use JsonDecodeTrait;
@@ -98,7 +98,7 @@ class PatternValidationTraitTest extends UnitTestCase {
   }
 
   /**
-   * Test validateContent() for expected behavior with provided data.
+   * Test validatePattern() for expected behavior with provided data.
    *
    * @param array $content
    *   Content to be validated against the schema.
@@ -109,21 +109,21 @@ class PatternValidationTraitTest extends UnitTestCase {
    * @param bool $expectedResult
    *   A boolean argument declaring whether validation should succeed or fail.
    */
-  #[DataProvider('providerValidateContent')]
-  public function testValidateContent(array $content, string $schemaFixture, bool $expectedResult): void {
+  #[DataProvider('providerValidatePattern')]
+  public function testValidatePattern(array $content, string $schemaFixture, bool $expectedResult): void {
     // Prepare the schema string to load from the pattern.
     $schema_string = $this->loadFixture($schemaFixture);
     $this->assertNotFalse($schema_string);
     $this->pattern->getSchema()->willReturn($schema_string);
 
-    $result = $this->sut->validateContent($this->pattern->reveal(), $content);
+    $result = $this->sut->validatePattern($this->pattern->reveal(), $content);
     $this->assertEquals($expectedResult, $result);
   }
 
   /**
-   * Data provider for testValidateContent().
+   * Data provider for testValidatePattern().
    */
-  public static function providerValidateContent(): array {
+  public static function providerValidatePattern(): array {
     return [
       'valid content' => [
         // Valid schema data to test.
@@ -158,7 +158,7 @@ class PatternValidationTraitTest extends UnitTestCase {
 class PatternValidationTraitClass {
 
   use PatternValidationTrait {
-    validateContent as public;
+    validatePattern as public;
   }
 
   /**
