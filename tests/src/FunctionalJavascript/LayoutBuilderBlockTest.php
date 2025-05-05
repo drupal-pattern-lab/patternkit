@@ -43,7 +43,8 @@ class LayoutBuilderBlockTest extends PatternkitBrowserTestBase {
     $page->fillField('root[formatted_text]', 'Pattern block body');
 
     $page->pressButton('Add block');
-    $page->pressButton('Save layout');
+    $assert->assertWaitOnAjaxRequest();
+    $this->assertSaveLayout();
 
     // Confirm the pattern is rendered on the Node display.
     $this->drupalGet('node/1');
@@ -76,7 +77,8 @@ class LayoutBuilderBlockTest extends PatternkitBrowserTestBase {
     $page->fillField('root[formatted_text]', 'Pattern block body');
 
     $page->pressButton('Add block');
-    $page->pressButton('Save layout');
+    $assert->assertWaitOnAjaxRequest();
+    $this->assertSaveLayout();
 
     // Confirm the pattern is rendered on the Node display.
     $this->drupalGet('node/1');

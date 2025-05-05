@@ -82,7 +82,8 @@ class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
     $this->assertStringContainsString($wysiwyg_value, $config, 'Editor value was not populated into schema config values.');
 
     $page->pressButton('Add block');
-    $page->pressButton('Save layout');
+    $assert->assertWaitOnAjaxRequest();
+    $this->assertSaveLayout();
 
     // Confirm the pattern is rendered on the Node display.
     $this->drupalGet('node/1');
@@ -155,7 +156,8 @@ class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
     $this->assertStringContainsString($free_value, $config);
 
     $page->pressButton('Add block');
-    $page->pressButton('Save layout');
+    $assert->assertWaitOnAjaxRequest();
+    $this->assertSaveLayout();
 
     // Confirm the pattern is rendered on the Node display.
     $this->drupalGet('node/1');
@@ -239,7 +241,8 @@ class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
     $this->assertStringContainsString($source_edited_content, $changed_config);
 
     $page->pressButton('Add block');
-    $page->pressButton('Save layout');
+    $assert->assertWaitOnAjaxRequest();
+    $this->assertSaveLayout();
 
     // Confirm the pattern is rendered on the Node display.
     $this->drupalGet('node/1');
@@ -297,7 +300,8 @@ class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
 
     // Save the block without changing back out of source editing mode.
     $page->pressButton('Add block');
-    $page->pressButton('Save layout');
+    $assert->assertWaitOnAjaxRequest();
+    $this->assertSaveLayout();
 
     // Confirm the pattern is rendered on the Node display.
     $this->drupalGet('node/1');

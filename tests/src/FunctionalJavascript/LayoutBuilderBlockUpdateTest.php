@@ -49,9 +49,8 @@ class LayoutBuilderBlockUpdateTest extends PatternkitBrowserTestBase {
     $page->fillField('root[formatted_text]', 'Pattern block body');
 
     $page->pressButton('Add block');
-    $page->pressButton('Save layout');
-
-    $assert->waitForText("The layout override has been saved.");
+    $assert->assertWaitOnAjaxRequest();
+    $this->assertSaveLayout();
 
     // Get the UUID of the component.
     $components = Node::load(1)
@@ -83,7 +82,8 @@ class LayoutBuilderBlockUpdateTest extends PatternkitBrowserTestBase {
 
     // Save the updates.
     $page->pressButton('Update');
-    $page->pressButton('Save layout');
+    $assert->assertWaitOnAjaxRequest();
+    $this->assertSaveLayout();
 
     // Confirm the pattern is rendered on the Node display.
     $this->drupalGet('node/1');

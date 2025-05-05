@@ -45,7 +45,8 @@ class LanguageTranslationTest extends ContentTranslationTestBase {
     $page->fillField('root[hidden]', 'My hidden text');
     $page->fillField('root[formatted_text]', 'Pattern block body');
     $page->pressButton('Add block');
-    $page->pressButton('Save layout');
+    $assert->assertWaitOnAjaxRequest();
+    $this->assertSaveLayout();
 
     $this->drupalLogin($this->translatorUser);
     $this->drupalGet('fr/node/2/translations/add/en/fr');

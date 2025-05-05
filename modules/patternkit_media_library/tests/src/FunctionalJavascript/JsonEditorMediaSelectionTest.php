@@ -130,7 +130,8 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
 
     // Save the layout to confirm it displays as expected.
     $page->pressButton('Add block');
-    $page->pressButton('Save layout');
+    $assert->assertWaitOnAjaxRequest();
+    $this->assertSaveLayout();
 
     // Confirm the pattern is rendered on the Node display.
     $this->drupalGet('node/1');
@@ -189,7 +190,8 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
 
     // Save the layout to confirm it displays as expected.
     $page->pressButton('Add block');
-    $page->pressButton('Save layout');
+    $assert->assertWaitOnAjaxRequest();
+    $this->assertSaveLayout();
 
     // Confirm the pattern is rendered on the Node display.
     $this->drupalGet('node/1');
@@ -250,7 +252,8 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
 
     // Save the layout to confirm it displays as expected.
     $page->pressButton('Add block');
-    $page->pressButton('Save layout');
+    $assert->assertWaitOnAjaxRequest();
+    $this->assertSaveLayout();
 
     // Confirm the pattern is rendered on the Node display.
     $this->drupalGet('node/1');
@@ -330,7 +333,8 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
 
     // Save the layout to confirm it displays as expected.
     $page->pressButton('Add block');
-    $page->pressButton('Save layout');
+    $assert->assertWaitOnAjaxRequest();
+    $this->assertSaveLayout();
 
     // Confirm the pattern is rendered on the Node display.
     $this->drupalGet('node/1');
@@ -379,7 +383,8 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
 
     // Save the layout to confirm it displays as expected.
     $page->pressButton('Add block');
-    $page->pressButton('Save layout');
+    $assert->assertWaitOnAjaxRequest();
+    $this->assertSaveLayout();
 
     // Confirm the pattern is rendered on the Node display.
     $this->drupalGet('node/1');
@@ -411,7 +416,8 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
 
     // Save the layout to simulate a pre-existing block with a URL saved.
     $page->pressButton('Add block');
-    $page->pressButton('Save layout');
+    $assert->assertWaitOnAjaxRequest();
+    $this->assertSaveLayout();
 
     // Get the block ID to return to edit form.
     $block_uuid = $this->getLastLayoutBlockUuid(Node::load(1));
@@ -444,7 +450,7 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
 
     // Save the layout to confirm it displays as expected.
     $page->pressButton('Update');
-    $page->pressButton('Save layout');
+    $this->assertSaveLayout();
 
     // Confirm the pattern is rendered on the Node display.
     $this->drupalGet('node/1');
