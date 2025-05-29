@@ -5,16 +5,14 @@ namespace Drupal\Tests\patternkit_usage_tracking\Unit\Entity;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\patternkit_usage_tracking\Entity\PatternUsage;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests for the PatternUsage entity type.
+ *
+ * @group patternkit
+ * @group patternkit_usage_tracking
+ * @coversDefaultClass \Drupal\patternkit_usage_tracking\Entity\PatternUsage
  */
-#[Group('patternkit')]
-#[Group('patternkit_usage_tracking')]
-#[CoversClass(PatternUsage::class)]
 class PatternUsageTest extends UnitTestCase {
 
   /**
@@ -24,8 +22,9 @@ class PatternUsageTest extends UnitTestCase {
    *   The usage path to be parsed.
    * @param array{section: int, uuid: string, content_path: string, top_pattern: string, nested_pattern?: string} $expected
    *   The expected parsed output for the usage path.
+   *
+   * @dataProvider providerParseUsagePath
    */
-  #[DataProvider('providerParseUsagePath')]
   public function testParseUsagePath(string $path, array $expected): void {
     $stub = $this->getMockBuilder(PatternUsage::class)
       ->disableOriginalConstructor()
@@ -69,36 +68,16 @@ class PatternUsageTest extends UnitTestCase {
     return $cases;
   }
 
-  #[DataProvider('providerIsNested')]
-  public function testIsNested(string $path, bool $expected): void {
-    $stub = $this->getMockBuilder(PatternUsage::class)
-      ->disableOriginalConstructor()
-      ->onlyMethods(['get'])
-      ->getMock();
-    $stub->method('get')
-      ->with('path')
-      ->willReturn((object) ['value' => $path]);
-
-    $this->assertEquals($expected, $stub->isNested());
-  }
-
   /**
-   * Data provider for testParseUsagePath().
+   * Test the getLayoutPath() method.
+   *
+   * @param string $path
+   *   The usage path to be parsed.
+   * @param string $expected
+   *   The expected layout path.
+   *
+   * @dataProvider providerGetLayoutPath
    */
-  public static function providerIsNested(): array {
-    return [
-      [
-        '1.5137f6a8-018c-11ee-be56-0242ac120002:@patternkit/atoms/example_ref/src/example_ref',
-        FALSE,
-      ],
-      [
-        '2.5dcc2a9c-018c-11ee-be56-0242ac120002:@patternkit/atoms/example_ref/src/example_ref=>@patternkit/atoms/example/src/example',
-        TRUE,
-      ],
-    ];
-  }
-
-  #[DataProvider('providerGetLayoutPath')]
   public function testGetLayoutPath(string $path, string $expected): void {
     $stub = $this->getMockBuilder(PatternUsage::class)
       ->disableOriginalConstructor()
@@ -160,7 +139,54 @@ class PatternUsageTest extends UnitTestCase {
     $stub->setPath($invalid_path);
   }
 
-  #[DataProvider('providerGetContentPath')]
+  /**
+   * Test the isNested() method.
+   *
+   * @param string $path
+   *   The usage path to be parsed.
+   * @param bool $expected
+   *   The expected result of the isNested() method.
+   *
+   * @dataProvider providerIsNested
+   */
+  public function testIsNested(string $path, bool $expected): void {
+    $stub = $this->getMockBuilder(PatternUsage::class)
+      ->disableOriginalConstructor()
+      ->onlyMethods(['get'])
+      ->getMock();
+    $stub->method('get')
+      ->with('path')
+      ->willReturn((object) ['value' => $path]);
+
+    $this->assertEquals($expected, $stub->isNested());
+  }
+
+  /**
+   * Data provider for testIsNested().
+   */
+  public static function providerIsNested(): array {
+    return [
+      [
+        '1.5137f6a8-018c-11ee-be56-0242ac120002:@patternkit/atoms/example_ref/src/example_ref',
+        FALSE,
+      ],
+      [
+        '2.5dcc2a9c-018c-11ee-be56-0242ac120002:@patternkit/atoms/example_ref/src/example_ref=>@patternkit/atoms/example/src/example',
+        TRUE,
+      ],
+    ];
+  }
+
+  /**
+   * Test the getContentPath() method.
+   *
+   * @param string $path
+   *   The usage path to be parsed.
+   * @param string|null $expected
+   *   The expected content path.
+   *
+   * @dataProvider providerGetContentPath
+   */
   public function testGetContentPath(string $path, ?string $expected): void {
     $stub = $this->getMockBuilder(PatternUsage::class)
       ->disableOriginalConstructor()
@@ -191,7 +217,16 @@ class PatternUsageTest extends UnitTestCase {
     return $cases;
   }
 
-  #[DataProvider('providerGetComponentUuidDefaultValue')]
+  /**
+   * Test the getComponentUuidDefaultValue() method.
+   *
+   * @param string $path
+   *   The usage path to be parsed.
+   * @param string $expected
+   *   The expected component UUID.
+   *
+   * @dataProvider providerGetComponentUuidDefaultValue
+   */
   public function testGetComponentUuidDefaultValue(string $path, string $expected): void {
     $stub = $this->getMockBuilder(PatternUsage::class)
       ->disableOriginalConstructor()

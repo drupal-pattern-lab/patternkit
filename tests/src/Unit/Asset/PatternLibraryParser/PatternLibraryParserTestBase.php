@@ -23,7 +23,6 @@ use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\UnitTestCase;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
-use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\MockObject\MockBuilder;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -38,7 +37,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @todo Use a mocked serializer instead of injecting a real instance.
  * @template T of \Drupal\patternkit\Asset\PatternLibraryParserInterface
  */
-#[Group('patternkit')]
 abstract class PatternLibraryParserTestBase extends UnitTestCase {
 
   use JsonDecodeTrait;

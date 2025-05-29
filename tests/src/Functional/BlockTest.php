@@ -2,19 +2,16 @@
 
 namespace Drupal\Tests\patternkit\Functional;
 
-use Drupal\patternkit\Plugin\Block\PatternkitBlock;
-use Drupal\patternkit\Element\PatternError;
-use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\Core\Url;
 use Drupal\node\Entity\Node;
-use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Block placement and cache testing for patternkit blocks.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Plugin\Block\PatternkitBlock
+ * @covers \Drupal\patternkit\Element\PatternError
  */
-#[Group('patternkit')]
-#[CoversClass(PatternkitBlock::class)]
-#[CoversClass(PatternError::class)]
 class BlockTest extends PatternkitBrowserTestBase {
 
   /**

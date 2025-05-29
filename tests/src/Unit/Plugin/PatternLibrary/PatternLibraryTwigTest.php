@@ -2,21 +2,20 @@
 
 namespace Drupal\Tests\patternkit\Unit\Plugin\PatternLibrary;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
 use Drupal\Core\Template\TwigEnvironment;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Plugin\PatternLibrary\PatternLibraryTwig;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Group;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 
 /**
  * Unit tests for the PatternLibraryTwig library plugin.
+ *
+ * @group patternkit
+ * @covers \Drupal\patternkit\Plugin\PatternLibrary\PatternLibraryTwig
  */
-#[Group('patternkit')]
-#[CoversClass(PatternLibraryTwig::class)]
 class PatternLibraryTwigTest extends UnitTestCase {
 
   use ArraySubsetAsserts;

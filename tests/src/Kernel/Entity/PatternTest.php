@@ -2,17 +2,15 @@
 
 namespace Drupal\tests\patternkit\Kernel\Entity;
 
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\Tests\patternkit\Kernel\PatternkitKernelTestBase;
-use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests for the Pattern class.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Entity\Pattern
  */
-#[Group('patternkit')]
-#[CoversClass(Pattern::class)]
 class PatternTest extends PatternkitKernelTestBase {
 
   /**
@@ -39,8 +37,9 @@ class PatternTest extends PatternkitKernelTestBase {
    *   Should the pattern instance cache tag be returned?
    * @param bool $shouldReturnAssetTag
    *   Should the pattern asset cache tag be returned?
+   *
+   * @dataProvider providerGetCacheTags
    */
-  #[DataProvider('providerGetCacheTags')]
   public function testGetCacheTags(
     bool $isNew,
     bool $isDefault,
@@ -119,8 +118,9 @@ class PatternTest extends PatternkitKernelTestBase {
    *   Should the pattern instance cache tag be returned?
    * @param bool $shouldReturnAssetTag
    *   Should the pattern asset cache tag be returned?
+   *
+   * @dataProvider providerGetCacheTagsToInvalidate
    */
-  #[DataProvider('providerGetCacheTagsToInvalidate')]
   public function testGetCacheTagsToInvalidate(
     bool $isNew,
     bool $isDefault,

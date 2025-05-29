@@ -2,19 +2,18 @@
 
 namespace Drupal\Tests\patternkit\Kernel\Asset;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\patternkit\Asset\PatternDiscovery;
 use Drupal\patternkit\Asset\PatternDiscoveryInterface;
 use Drupal\Tests\patternkit\Kernel\PatternkitKernelTestBase;
-use PHPUnit\Framework\Attributes\Group;
 use Prophecy\PhpUnit\ProphecyTrait;
 
 /**
  * Tests for the PatternDiscovery service with debug options enabled.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Asset\PatternDiscovery
  */
-#[Group('patternkit')]
-#[CoversClass(PatternDiscovery::class)]
 class PatternDiscoveryDebugTest extends PatternkitKernelTestBase {
 
   use ProphecyTrait;

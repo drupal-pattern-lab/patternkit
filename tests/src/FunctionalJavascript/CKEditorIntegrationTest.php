@@ -4,12 +4,12 @@ namespace Drupal\Tests\patternkit\FunctionalJavascript;
 
 use Drupal\node\Entity\Node;
 use Drupal\Tests\patternkit\Traits\CKEditor5IntegrationTestTrait;
-use PHPUnit\Framework\Attributes\Group;
 
 /**
  * End-to-end testing for patternkit block CKEditor integration.
+ *
+ * @group patternkit
  */
-#[Group('patternkit')]
 class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
 
   use CKEditor5IntegrationTestTrait;

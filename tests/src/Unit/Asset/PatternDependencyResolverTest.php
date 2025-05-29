@@ -2,9 +2,6 @@
 
 namespace Drupal\Tests\patternkit\Unit\Asset;
 
-use Drupal\patternkit\Asset\PatternDependencyResolver;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\patternkit\Asset\PatternDiscoveryInterface;
@@ -12,21 +9,20 @@ use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Schema\ContextBuilder;
 use Drupal\patternkit\Schema\DataPreProcessorFactory;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\UsesClass;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Psr\Log\LoggerInterface;
 
 /**
  * Unit tests for the PatternDependencyResolver class.
+ *
+ * @group patternkit
+ * @uses \Drupal\patternkit\Schema\ContextBuilderTrait
+ * @uses \Drupal\patternkit\Schema\DataPreProcessor\SchemaRefObserver
+ * @uses \Drupal\patternkit\Schema\UnresolvedSchema
+ * @uses \MJS\TopSort\Implementations\FixedArraySort
+ * @coversDefaultClass \Drupal\patternkit\Asset\PatternDependencyResolver
  */
-#[Group('patternkit')]
-#[UsesClass('\Drupal\patternkit\Schema\ContextBuilderTrait')]
-#[UsesClass('\Drupal\patternkit\Schema\DataPreProcessor\SchemaRefObserver')]
-#[UsesClass('\Drupal\patternkit\Schema\UnresolvedSchema')]
-#[UsesClass('\MJS\TopSort\Implementations\FixedArraySort')]
-#[CoversClass(PatternDependencyResolver::class)]
 class PatternDependencyResolverTest extends UnitTestCase {
 
   use ProphecyTrait;
@@ -142,8 +138,9 @@ class PatternDependencyResolverTest extends UnitTestCase {
 
   /**
    * Test recursive pattern dependency resolution.
+   *
+   * @dataProvider providerResolvePatternDependencies
    */
-  #[DataProvider('providerResolvePatternDependencies')]
   public function testResolvePatternDependencies(array $dependencies, string $pattern_id, array $known_dependencies, array $expected) {
     $this->resolver->setDependencies($dependencies);
 

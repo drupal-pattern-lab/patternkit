@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\patternkit_usage_tracking\Unit;
 
-use Drupal\patternkit_usage_tracking\PatternLayoutUsageInsertTrait;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
@@ -19,8 +18,6 @@ use Drupal\patternkit_usage_tracking\PatternUsageManager;
 use Drupal\patternkit_usage_tracking\UsageRevisionHelper;
 use Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -28,12 +25,12 @@ use Prophecy\Prophecy\ObjectProphecy;
 
 /**
  * Test the LayoutUsageTracker service.
+ *
+ * @group patternkit
+ * @group patternkit_usage_tracking
+ * @coversDefaultClass \Drupal\patternkit_usage_tracking\LayoutUsageTracker
+ * @covers \Drupal\patternkit_usage_tracking\PatternLayoutUsageInsertTrait
  */
-#[Group('patternkit')]
-#[Group('patternkit_usage_tracking')]
-#[CoversClass(LayoutUsageTracker::class)]
-#[CoversClass(PatternLayoutUsageInsertTrait::class)]
-#[CoversClass('\Drupal\patternkit_usage_tracking\PatternLayoutDiscoveryTrait')]
 class LayoutUsageTrackerTest extends UnitTestCase {
 
   use ProphecyTrait;

@@ -2,10 +2,6 @@
 
 namespace Drupal\Tests\patternkit_usage_tracking\Unit;
 
-use Drupal\patternkit_usage_tracking\PatternLayoutDiscoveryTrait;
-use Drupal\patternkit_usage_tracking\PatternLayoutUsageInsertTrait;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
@@ -23,14 +19,13 @@ use Drupal\patternkit_usage_tracking\UsageRevisionHelper;
 use Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait;
 use Drupal\Tests\UnitTestCase;
 use Drupal\TestTools\Random;
-use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 
 /**
- * Test the UsageRevisionHelper service.
+ * Tests for the UsageRevisionHelper class.
  *
  * @phpstan-import-type LBComponentMockConfig from PatternkitMockHelperTrait
  * @phpstan-type MockComponentData array{
@@ -40,12 +35,13 @@ use Prophecy\Prophecy\ObjectProphecy;
  *    is_nested?: bool,
  *    content_path?: string,
  *  }
+ *
+ * @group patternkit
+ * @group patternkit_usage_tracking
+ * @coversDefaultClass \Drupal\patternkit_usage_tracking\UsageRevisionHelper
+ * @covers \Drupal\patternkit_usage_tracking\PatternLayoutDiscoveryTrait
+ * @covers \Drupal\patternkit_usage_tracking\PatternLayoutUsageInsertTrait
  */
-#[Group('patternkit')]
-#[Group('patternkit_usage_tracking')]
-#[CoversClass(UsageRevisionHelper::class)]
-#[CoversClass(PatternLayoutDiscoveryTrait::class)]
-#[CoversClass(PatternLayoutUsageInsertTrait::class)]
 class UsageRevisionHelperTest extends UnitTestCase {
 
   use PatternkitMockHelperTrait;
@@ -217,7 +213,11 @@ class UsageRevisionHelperTest extends UnitTestCase {
       'Expected TRUE when tracking an entity with full compatibility.');
   }
 
-  #[DataProvider('providerLoadPreviouslyTrackedPatterns')]
+  /**
+   * Test loading previously tracked patterns.
+   *
+   * @dataProvider providerLoadPreviouslyTrackedPatterns
+   */
   public function testLoadPreviouslyTrackedPatterns(array $loaded_records, array $expected): void {
     // Load record data into mocked record entities.
     [
@@ -382,7 +382,11 @@ class UsageRevisionHelperTest extends UnitTestCase {
     return $cases;
   }
 
-  #[DataProvider('providerTrackOnEntityUpdate')]
+  /**
+   * Test tracking entity updates.
+   *
+   * @dataProvider providerTrackOnEntityUpdate
+   */
   public function testTrackOnEntityUpdate(array $edited_data, array $loaded_records, array $expected_calls, array $nested_content_mapping = []): void {
     $new_revision_id = rand(0, 100);
     $this->entity->getRevisionId()->willReturn($new_revision_id);
@@ -921,7 +925,7 @@ class UsageRevisionHelperTest extends UnitTestCase {
           // Register a new nested pattern within the updated component.
           [
             $patterns['nested'],
-            "2.$uuids[1]:" . "$patterns[1]=>{$patterns['nested']}",
+            "2.{$uuids[1]}:{$patterns[1]}=>{$patterns['nested']}",
           ],
         ],
         'update' => [

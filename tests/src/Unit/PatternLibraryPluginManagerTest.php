@@ -2,8 +2,6 @@
 
 namespace Drupal\Tests\patternkit\Unit;
 
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\Component\Plugin\Exception\PluginNotFoundException;
 use Drupal\Component\Plugin\Factory\FactoryInterface;
 use Drupal\Core\Cache\CacheBackendInterface;
@@ -12,7 +10,6 @@ use Drupal\Core\Extension\ThemeHandlerInterface;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Group;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
@@ -20,9 +17,10 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Unit tests for the PatternLibraryPluginManager service.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\PatternLibraryPluginManager
  */
-#[Group('patternkit')]
-#[CoversClass(PatternLibraryPluginManager::class)]
 class PatternLibraryPluginManagerTest extends UnitTestCase {
 
   use ProphecyTrait;
@@ -99,8 +97,9 @@ class PatternLibraryPluginManagerTest extends UnitTestCase {
    *   The expected result.
    * @param string $pluginId
    *   The plugin ID to generate a fallback for.
+   *
+   * @dataProvider providerGetFallbackPluginId
    */
-  #[DataProvider('providerGetFallbackPluginId')]
   public function testGetFallbackPluginId(string $expected, string $pluginId): void {
     $pluginManager = $this->getPluginManager();
     $this->assertEquals($expected, $pluginManager->getFallbackPluginId($pluginId));

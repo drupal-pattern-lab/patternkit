@@ -10,9 +10,6 @@ use Drupal\Core\GeneratedUrl;
 use Drupal\Core\Routing\UrlGeneratorInterface;
 use Drupal\patternkit_media_library\JsonEditorFormElementAlterHandler;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -20,13 +17,14 @@ use Prophecy\Prophecy\ObjectProphecy;
 
 /**
  * Unit tests for the JsonEditorFormElementAlterHandler class.
+ *
+ * @group patternkit
+ * @group patternkit_media_library
+ * @coversDefaultClass \Drupal\patternkit_media_library\JsonEditorFormElementAlterHandler
+ * @uses \Drupal
+ * @uses \Drupal\Core\Render\BubbleableMetadata
+ * @uses \Drupal\Core\GeneratedUrl
  */
-#[Group('patternkit')]
-#[Group('patternkit_media_library')]
-#[CoversClass(JsonEditorFormElementAlterHandler::class)]
-#[UsesClass('\Drupal')]
-#[UsesClass('\Drupal\Core\Render\BubbleableMetadata')]
-#[UsesClass('\Drupal\Core\GeneratedUrl')]
 class JsonEditorFormElementAlterHandlerTest extends UnitTestCase {
 
   use ProphecyTrait;

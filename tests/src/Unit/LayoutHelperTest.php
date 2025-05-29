@@ -2,11 +2,6 @@
 
 namespace Drupal\Tests\patternkit\Unit;
 
-use Drupal\Core\Plugin\Context\Context;
-use Drupal\Core\Plugin\Context\ContextDefinition;
-use Drupal\Core\Plugin\Context\EntityContext;
-use Drupal\Core\Plugin\Context\EntityContextDefinition;
-use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\Core\Config\Entity\ConfigEntityType;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\EntityStorageInterface;
@@ -29,8 +24,6 @@ use Drupal\patternkit\PatternRepository;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock;
 use Drupal\patternkit\UpdateHelper;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\UsesClass;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
@@ -40,13 +33,14 @@ use Psr\Log\LoggerInterface;
  * Unit tests for the LayoutHelper service.
  *
  * @todo Add test coverage for filtering components.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\LayoutHelper
+ * @uses \Drupal\Core\Plugin\Context\Context
+ * @uses \Drupal\Core\Plugin\Context\ContextDefinition
+ * @uses \Drupal\Core\Plugin\Context\EntityContext
+ * @uses \Drupal\Core\Plugin\Context\EntityContextDefinition
  */
-#[Group('patternkit')]
-#[CoversClass(LayoutHelper::class)]
-#[UsesClass(Context::class)]
-#[UsesClass(ContextDefinition::class)]
-#[UsesClass(EntityContext::class)]
-#[UsesClass(EntityContextDefinition::class)]
 class LayoutHelperTest extends UnitTestCase {
 
   use ProphecyTrait;

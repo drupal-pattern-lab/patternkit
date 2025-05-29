@@ -2,17 +2,15 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\patternkit\Schema\SchemaRefHandler;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Test the SchemaRefHandler class.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Schema\SchemaRefHandler
  */
-#[Group('patternkit')]
-#[CoversClass(SchemaRefHandler::class)]
 class SchemaRefHandlerTest extends UnitTestCase {
 
   /**
@@ -33,8 +31,9 @@ class SchemaRefHandlerTest extends UnitTestCase {
 
   /**
    * Test parsing of normalized schema references.
+   *
+   * @dataProvider providerParseNormalizedSchemaReference
    */
-  #[DataProvider('providerParseNormalizedSchemaReference')]
   public function testParseNormalizedSchemaReference(string $ref, $expected) {
     $actual = $this->schemaRefHandler->parseNormalizedSchemaReference($ref);
 
@@ -109,8 +108,9 @@ class SchemaRefHandlerTest extends UnitTestCase {
 
   /**
    * Test parsing of namespaced schema references.
+   *
+   * @dataProvider providerParseNamespacedSchemaReference
    */
-  #[DataProvider('providerParseNamespacedSchemaReference')]
   public function testParseNamespacedSchemaReference(string $ref, $expected) {
     $actual = $this->schemaRefHandler->parseNamespacedSchemaReference($ref);
 
@@ -186,8 +186,9 @@ class SchemaRefHandlerTest extends UnitTestCase {
 
   /**
    * Test normalization of namespaced schema references.
+   *
+   * @dataProvider providerNormalizeNamespacedSchemaReference
    */
-  #[DataProvider('providerNormalizeNamespacedSchemaReference')]
   public function testNormalizeNamespacedSchemaReference(string $ref, $expected) {
     $actual = $this->schemaRefHandler->normalizeNamespacedSchemaReference($ref);
 

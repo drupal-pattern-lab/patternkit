@@ -2,11 +2,6 @@
 
 namespace Drupal\Tests\patternkit\Unit\Asset\PatternLibraryParser;
 
-use Drupal\patternkit\Asset\PatternLibraryParser\JSONPatternLibraryParser;
-use Drupal\patternkit\Asset\PatternLibraryParserBase;
-use Drupal\patternkit\PatternLibraryJSONParserTrait;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\patternkit\Asset\PatternLibraryParser\TwigPatternLibraryParser;
 use Drupal\patternkit\Asset\PatternLibraryParserInterface;
 use Drupal\patternkit\Entity\PatternInterface;
@@ -19,8 +14,6 @@ use Drupal\patternkit\Schema\DataPreProcessor\RefNormalizerDataPreProcessor;
 use Drupal\patternkit\Schema\UnresolvedSchema;
 use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
 use org\bovigo\vfs\vfsStream;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\UsesClass;
 use Prophecy\Argument;
 use Prophecy\Argument\Token\TokenInterface;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -32,17 +25,17 @@ use Swaggest\JsonSchema\InvalidValue;
  * Tests for the TwigPatternLibraryParser class.
  *
  * @extends \Drupal\Tests\patternkit\Unit\Asset\PatternLibraryParser\PatternLibraryParserTestBase<\Drupal\patternkit\Asset\PatternLibraryParser\TwigPatternLibraryParser>
+ *
+ * @group patternkit
+ * @uses \Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait
+ * @uses \Drupal\patternkit\PatternkitEnvironmentAwareTrait
+ * @uses \Drupal\patternkit\Schema\UnresolvedSchema
+ * @uses \Swaggest\JsonSchema\Context
+ * @covers \Drupal\patternkit\PatternLibraryJSONParserTrait
+ * @covers \Drupal\patternkit\Asset\PatternLibraryParserBase
+ * @covers \Drupal\patternkit\Asset\PatternLibraryParser\JSONPatternLibraryParser
+ * @coversDefaultClass \Drupal\patternkit\Asset\PatternLibraryParser\TwigPatternLibraryParser
  */
-#[Group('patternkit')]
-#[UsesClass('\Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait')]
-#[UsesClass('\Drupal\patternkit\PatternkitEnvironmentAwareTrait')]
-#[UsesClass('\Drupal\patternkit\Schema\UnresolvedSchema')]
-#[UsesClass('\Swaggest\JsonSchema\Context')]
-#[CoversClass(TwigPatternLibraryParser::class)]
-#[CoversClass(JSONPatternLibraryParser::class)]
-#[CoversClass(PatternLibraryParserBase::class)]
-#[CoversClass(TwigPatternLibraryParser::class)]
-#[CoversClass(PatternLibraryJSONParserTrait::class)]
 class TwigPatternLibraryParserTest extends PatternLibraryParserTestBase {
 
   use ProphecyTrait;
@@ -82,7 +75,11 @@ class TwigPatternLibraryParserTest extends PatternLibraryParserTestBase {
     return $parser;
   }
 
-  #[DataProvider('providerCreatePattern')]
+  /**
+   * Test creating a pattern.
+   *
+   * @dataProvider providerCreatePattern
+   */
   public function testCreatePattern(string $name, array $data, TokenInterface $argument_expectations) {
     // Mock the pattern to be created and returned.
     $pattern = $this->prophesize(PatternInterface::class);

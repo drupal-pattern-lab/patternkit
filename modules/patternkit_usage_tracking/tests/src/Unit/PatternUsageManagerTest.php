@@ -10,18 +10,17 @@ use Drupal\Core\Language\LanguageInterface;
 use Drupal\patternkit_usage_tracking\Entity\PatternUsage;
 use Drupal\patternkit_usage_tracking\PatternUsageManager;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\Group;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 
 /**
  * Test the PatternUsageManager service.
+ *
+ * @group patternkit
+ * @group patternkit_usage_tracking
+ * @coversDefaultClass \Drupal\patternkit_usage_tracking\PatternUsageManager
  */
-#[Group('patternkit')]
-#[Group('patternkit_usage_tracking')]
-#[CoversClass(PatternUsageManager::class)]
 class PatternUsageManagerTest extends UnitTestCase {
 
   use ProphecyTrait;

@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\patternkit\Unit\Asset;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
@@ -12,8 +11,6 @@ use Drupal\patternkit\Asset\PatternDiscoveryLoader;
 use Drupal\patternkit\Exception\UnknownPatternException;
 use Drupal\patternkit\PatternkitEnvironment;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\MockBuilder;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -22,11 +19,12 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Tests for the PatternDiscovery class.
+ *
+ * @group patternkit
+ * @uses \Drupal\Core\Cache\Cache
+ * @uses \Drupal\patternkit\PatternkitEnvironmentAwareTrait
+ * @coversDefaultClass \Drupal\patternkit\Asset\PatternDiscovery
  */
-#[Group('patternkit')]
-#[UsesClass('\Drupal\Core\Cache\Cache')]
-#[UsesClass('\Drupal\patternkit\PatternkitEnvironmentAwareTrait')]
-#[CoversClass(PatternDiscovery::class)]
 class PatternDiscoveryTest extends UnitTestCase {
 
   use ProphecyTrait;

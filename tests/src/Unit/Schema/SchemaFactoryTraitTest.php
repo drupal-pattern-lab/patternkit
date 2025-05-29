@@ -2,20 +2,19 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\patternkit\Schema\SchemaFactory;
 use Drupal\patternkit\Schema\SchemaFactoryTrait;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Group;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Unit tests for SchemaFactoryTrait.
+ *
+ * @group patternkit
+ * @covers \Drupal\patternkit\Schema\SchemaFactoryTrait
  */
-#[Group('patternkit')]
-#[CoversClass(SchemaFactoryTrait::class)]
 class SchemaFactoryTraitTest extends UnitTestCase {
 
   use ProphecyTrait;

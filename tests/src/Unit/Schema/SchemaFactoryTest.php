@@ -2,12 +2,9 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\patternkit\Schema\ContextBuilder;
 use Drupal\patternkit\Schema\SchemaFactory;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\UsesClass;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
@@ -15,11 +12,12 @@ use Swaggest\JsonSchema\Context;
 use Swaggest\JsonSchema\SchemaContract;
 
 /**
- * Test functionality for the Schema Factory service.
+ * Unit tests for the SchemaFactory service.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Schema\SchemaFactory
+ * @uses \Swaggest\JsonSchema\Schema
  */
-#[Group('patternkit')]
-#[UsesClass('\Swaggest\JsonSchema\Schema')]
-#[CoversClass(SchemaFactory::class)]
 class SchemaFactoryTest extends UnitTestCase {
 
   use ProphecyTrait;

@@ -2,19 +2,18 @@
 
 namespace Drupal\Tests\patternkit\EventSubscriber;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\patternkit\Event\PatternUpdateEvent;
 use Drupal\patternkit\EventSubscriber\PatternUpdateEventSubscriberBase;
 use Drupal\patternkit\PatternkitEvents;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Group;
 use Prophecy\PhpUnit\ProphecyTrait;
 
 /**
  * Tests for the PatternUpdateEventSubscriberBase class.
+ *
+ * @group patternkit
+ * @covers \Drupal\patternkit\EventSubscriber\PatternUpdateEventSubscriberBase
  */
-#[Group('patternkit')]
-#[CoversClass(PatternUpdateEventSubscriberBase::class)]
 class PatternUpdateEventSubscriberBaseTest extends UnitTestCase {
 
   use ProphecyTrait;

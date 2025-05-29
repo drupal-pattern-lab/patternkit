@@ -12,8 +12,6 @@ use Drupal\patternkit\Utility\PatternDetector;
 use Drupal\patternkit_usage_tracking\PatternLayoutDiscoveryTrait;
 use Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\Group;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
@@ -21,11 +19,12 @@ use Prophecy\Prophecy\ObjectProphecy;
 /**
  * Tests for the PatternLayoutDiscoveryTrait implementation.
  *
+ * @group patternkit
+ * @group patternkit_usage_tracking
+ * @coversDefaultClass \Drupal\patternkit_usage_tracking\PatternLayoutDiscoveryTrait
+ *
  * @phpstan-import-type LBComponentMockConfig from PatternkitMockHelperTrait
  */
-#[Group('patternkit')]
-#[Group('patternkit_usage_tracking')]
-#[CoversClass(PatternLayoutDiscoveryTrait::class)]
 class PatternLayoutDiscoveryTraitTest extends UnitTestCase {
 
   use PatternkitMockHelperTrait;

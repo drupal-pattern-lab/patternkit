@@ -2,10 +2,6 @@
 
 namespace Drupal\Tests\patternkit_usage_tracking\Functional;
 
-use Drupal\patternkit_usage_tracking\PatternUsageEntityOperations;
-use Drupal\patternkit_usage_tracking\LayoutUsageTracker;
-use Drupal\patternkit_usage_tracking\UsageRevisionHelper;
-use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Plugin\Context\EntityContext;
@@ -16,20 +12,18 @@ use Drupal\layout_builder\SectionStorageInterface;
 use Drupal\node\Entity\Node;
 use Drupal\Tests\patternkit\Functional\PatternkitBrowserTestBase;
 use Drupal\Tests\patternkit_usage_tracking\Traits\PatternUsageAssertionTrait;
-use PHPUnit\Framework\Attributes\CoversFunction;
-use PHPUnit\Framework\Attributes\Depends;
-use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests for validating usage tracking during entity operations.
+ *
+ * @group patternkit
+ * @group patternkit_usage_tracking
+ * @covers \Drupal\patternkit_usage_tracking\PatternUsageEntityOperations
+ * @covers \Drupal\patternkit_usage_tracking\LayoutUsageTracker
+ * @covers \Drupal\patternkit_usage_tracking\UsageRevisionHelper
+ * @coversFunction patternkit_usage_tracking_entity_predelete
+ * @coversFunction patternkit_usage_tracking_entity_update
  */
-#[Group('patternkit')]
-#[Group('patternkit_usage_tracking')]
-#[CoversClass(PatternUsageEntityOperations::class)]
-#[CoversClass(LayoutUsageTracker::class)]
-#[CoversClass(UsageRevisionHelper::class)]
-#[CoversFunction('patternkit_usage_tracking_entity_predelete')]
-#[CoversFunction('patternkit_usage_tracking_entity_update')]
 class EntityOperationsTest extends PatternkitBrowserTestBase {
 
   use LayoutBuilderContextTrait;
@@ -139,8 +133,9 @@ class EntityOperationsTest extends PatternkitBrowserTestBase {
 
   /**
    * Test detection of deleted pattern usages.
+   *
+   * @depends testLayoutUpdate
    */
-  #[Depends('testLayoutUpdate')]
   public function testUsageDeletion(): void {
     $pattern_name = '@patternkit/atoms/example/src/example';
     $pattern_with_reference = '@patternkit/atoms/example_ref/src/example_ref';

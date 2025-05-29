@@ -7,11 +7,8 @@ use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\DependencyInjection\ServiceModifierInterface;
 use Drupal\Core\Render\RendererInterface;
 use Drupal\patternkit\Asset\PatternDiscoveryInterface;
-use Drupal\patternkit\Element\Pattern as ElementPattern;
-use Drupal\patternkit\Element\PatternError;
 use Drupal\patternkit\Entity\Pattern as EntityPattern;
 use Drupal\patternkit\Entity\PatternInterface;
-use Drupal\patternkit\EventSubscriber\RenderFailureErrorDisplaySubscriber;
 use Drupal\patternkit\Exception\SchemaReferenceException;
 use Drupal\patternkit\Exception\UnknownPatternException;
 use Drupal\patternkit\PatternFieldProcessorPluginManager;
@@ -19,18 +16,17 @@ use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\Tests\patternkit\Kernel\PatternkitKernelTestBase;
 use Drupal\Tests\patternkit\Traits\MetadataTestTrait;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\Group;
 use Prophecy\Argument;
 use Prophecy\Prophecy\ObjectProphecy;
 
 /**
  * Tests for the Pattern Error element class.
+ *
+ * @group patternkit
+ * @covers \Drupal\patternkit\Element\Pattern
+ * @covers \Drupal\patternkit\Element\PatternError
+ * @covers \Drupal\patternkit\EventSubscriber\RenderFailureErrorDisplaySubscriber
  */
-#[Group('patternkit')]
-#[CoversClass(ElementPattern::class)]
-#[CoversClass(PatternError::class)]
-#[CoversClass(RenderFailureErrorDisplaySubscriber::class)]
 class PatternErrorTest extends PatternkitKernelTestBase implements ServiceModifierInterface {
 
   use MetadataTestTrait;

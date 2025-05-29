@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\patternkit\Unit;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\patternkit\Asset\PatternDependencyResolver;
@@ -16,8 +15,6 @@ use Drupal\patternkit\Schema\DataPreProcessorFactory;
 use Drupal\patternkit\Schema\SchemaRefHandler;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\UsesClass;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
@@ -26,13 +23,14 @@ use Swaggest\JsonSchema\RemoteRef\Preloaded;
 
 /**
  * Unit tests for the PatternRepository class.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\PatternRepository
+ * @uses \Drupal\patternkit\Schema\ContextBuilderTrait
+ * @uses \Drupal\patternkit\Schema\DataPreProcessor\BundleReferenceDataPreProcessor
+ * @uses \Drupal\patternkit\Schema\UnresolvedSchema
+ * @uses \Swaggest\JsonSchema\RemoteRef\Preloaded
  */
-#[Group('patternkit')]
-#[UsesClass('\Drupal\patternkit\Schema\ContextBuilderTrait')]
-#[UsesClass('\Drupal\patternkit\Schema\DataPreProcessor\BundleReferenceDataPreProcessor')]
-#[UsesClass('\Drupal\patternkit\Schema\UnresolvedSchema')]
-#[UsesClass('\Swaggest\JsonSchema\RemoteRef\Preloaded')]
-#[CoversClass(PatternRepository::class)]
 class PatternRepositoryTest extends UnitTestCase {
 
   use JsonDecodeTrait;

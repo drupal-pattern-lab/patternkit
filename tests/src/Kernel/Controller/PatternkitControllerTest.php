@@ -2,23 +2,21 @@
 
 namespace Drupal\Tests\patternkit\Kernel\Controller;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\patternkit\Controller\PatternkitController;
 use Drupal\patternkit\Plugin\Derivative\PatternkitBlock;
 use Drupal\Tests\patternkit\Kernel\PatternkitKernelTestBase;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\UsesClass;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Test integrated usage of the PatternkitController class.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Controller\PatternkitController
+ * @uses \Drupal\patternkit\Plugin\Derivative\PatternkitBlock
  */
-#[Group('patternkit')]
-#[UsesClass('\Drupal\patternkit\Plugin\Derivative\PatternkitBlock')]
-#[CoversClass(PatternkitController::class)]
 class PatternkitControllerTest extends PatternkitKernelTestBase {
 
   use PatternkitExampleLibraryAwareTrait;

@@ -2,8 +2,6 @@
 
 namespace Drupal\Tests\patternkit\Unit\Plugin\PatternFieldProcessor;
 
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Template\TwigEnvironment;
@@ -11,16 +9,16 @@ use Drupal\Core\Utility\Token;
 use Drupal\node\NodeInterface;
 use Drupal\patternkit\Plugin\PatternFieldProcessor\TokenProcessor;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\MockObject\MockObject;
 use Swaggest\JsonSchema\Schema;
 use Swaggest\JsonSchema\SchemaContract;
 
 /**
  * Tests for the TokenProcessor plugin.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Plugin\PatternFieldProcessor\TokenProcessor
  */
-#[Group('patternkit')]
-#[CoversClass(TokenProcessor::class)]
 class TokenProcessorTest extends UnitTestCase {
 
   /**
@@ -84,8 +82,9 @@ class TokenProcessorTest extends UnitTestCase {
    *   An example value for testing.
    * @param bool $expected
    *   The expected result.
+   *
+   * @dataProvider providerApplies
    */
-  #[DataProvider('providerApplies')]
   public function testApplies(SchemaContract $propertySchema, mixed $value, bool $expected) {
     $this->assertEquals($expected, $this->plugin->applies($propertySchema, $value));
   }

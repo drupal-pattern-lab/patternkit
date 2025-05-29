@@ -16,17 +16,15 @@ use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\patternkit\PatternRepository;
 use Drupal\Tests\Core\Render\RendererTestBase;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Group;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Test functionality for the Pattern render element.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Element\Pattern
  */
-#[Group('patternkit')]
-#[CoversClass(Pattern::class)]
 class PatternElementTest extends RendererTestBase {
 
   /**
@@ -167,7 +165,11 @@ class PatternElementTest extends RendererTestBase {
     ]);
   }
 
-  #[DataProvider('providerPreRenderPatternElement')]
+  /**
+   * Test pre-rendering a pattern element.
+   *
+   * @dataProvider providerPreRenderPatternElement
+   */
   public function testPreRenderPatternElement(array $element): void {
     $patternMock = $this->getPatternMock();
     $element['#pattern'] = $patternMock;

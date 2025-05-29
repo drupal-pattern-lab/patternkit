@@ -2,20 +2,17 @@
 
 namespace Drupal\Tests\patternkit\Functional\Commands;
 
-use Drupal\patternkit\Commands\ValidationCommands;
 use Drupal\Tests\patternkit\Functional\PatternkitBrowserTestBase;
 use Drupal\Tests\patternkit\Traits\PatternkitDrushTestTrait;
 use Drupal\Tests\patternkit\Traits\SchemaFixtureTrait;
 use Drush\Commands\DrushCommands;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Functional tests for the patternkit:validate Drush command.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Commands\ValidationCommands
  */
-#[CoversClass(ValidationCommands::class)]
-#[Group('patternkit')]
 class ValidationCommandsTest extends PatternkitBrowserTestBase {
 
   use PatternkitDrushTestTrait;
@@ -38,8 +35,9 @@ class ValidationCommandsTest extends PatternkitBrowserTestBase {
    *   An array of lines expected to be included in command output. All lines
    *   will be trimmed before comparison, so leading and trailing whitespace
    *   are irrelevant.
+   *
+   * @dataProvider providerTestInvalidOptionCombinations
    */
-  #[DataProvider('providerTestInvalidOptionCombinations')]
   public function testInvalidOptionCombinations(array $options, array $expectedOutput): void {
     $this->drush('patternkit:validate', options: $options, expected_return: 1);
     $this->assertErrorOutputContainsLines($expectedOutput);
@@ -153,8 +151,9 @@ class ValidationCommandsTest extends PatternkitBrowserTestBase {
    * @param array|null $expectedErrorOutput
    *   (Optional) If provided, specific lines of error output will be searched
    *   for from the command.
+   *
+   * @dataProvider providerTestValidateCommand
    */
-  #[DataProvider('providerTestValidateCommand')]
   public function testValidateCommand(
     array $options,
     int $expectedResult,

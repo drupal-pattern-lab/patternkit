@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\patternkit\Kernel\Asset;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Cache\MemoryBackend;
@@ -10,15 +9,16 @@ use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\DependencyInjection\ServiceModifierInterface;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\patternkit\Asset\LibraryNamespaceResolver;
-use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Test the LibraryNamespaceResolver service.
  *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Asset\LibraryNamespaceResolver
+ * @uses \Drupal\patternkit\EventSubscriber\RenderFailureErrorDisplaySubscriber
+ *
  * @todo Expand to test handling of externally sourced patterns.
  */
-#[Group('patternkit')]
-#[CoversClass(LibraryNamespaceResolver::class)]
 class LibraryNamespaceResolverTest extends KernelTestBase implements ServiceModifierInterface {
 
   /**

@@ -8,14 +8,13 @@ use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\Tests\patternkit\Kernel\PatternkitKernelTestBase;
 use Drupal\Tests\patternkit\Traits\MetadataTestTrait;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests for the Pattern element class.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Entity\Pattern
  */
-#[Group('patternkit')]
-#[CoversClass(Pattern::class)]
 class PatternTest extends PatternkitKernelTestBase {
 
   use MetadataTestTrait;

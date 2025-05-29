@@ -4,12 +4,12 @@ namespace Drupal\Tests\patternkit\Functional;
 
 use Drupal\node\Entity\Node;
 use Drupal\patternkit\PatternRepository;
-use PHPUnit\Framework\Attributes\Group;
 
 /**
  * E2E testing for the Patternkit pattern update process.
+ *
+ * @group patternkit
  */
-#[Group('patternkit')]
 class PatternUpdateTest extends PatternkitBrowserTestBase {
 
   /**

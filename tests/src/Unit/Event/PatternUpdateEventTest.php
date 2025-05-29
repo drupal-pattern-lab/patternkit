@@ -2,22 +2,21 @@
 
 namespace Drupal\Tests\patternkit\Event;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Event\PatternUpdateEvent;
 use Drupal\patternkit\Exception\SchemaValidationException;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock;
 use Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Group;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 
 /**
- * Tests for the PatternUpdateEvent class.
+ * Unit tests for the PatternUpdateEvent class.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Event\PatternUpdateEvent
  */
-#[Group('patternkit')]
-#[CoversClass(PatternUpdateEvent::class)]
 class PatternUpdateEventTest extends UnitTestCase {
 
   use ProphecyTrait;

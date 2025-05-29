@@ -2,18 +2,17 @@
 
 namespace Drupal\Tests\patternkit\Kernel\Asset\PatternLibraryParser;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\patternkit\Asset\PatternLibraryParser\TwigPatternLibraryParser;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternLibrary;
 use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
-use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Integration tests for the TwigPatternLibraryParser class.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Asset\PatternLibraryParser\TwigPatternLibraryParser
  */
-#[Group('patternkit')]
-#[CoversClass(TwigPatternLibraryParser::class)]
 class TwigPatternLibraryParserTest extends PatternLibraryParserTestBase {
 
   use PatternkitExampleLibraryAwareTrait;

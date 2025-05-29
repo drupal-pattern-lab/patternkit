@@ -3,48 +3,30 @@
 namespace Drupal\Tests\patternkit\Kernel\Asset;
 
 use Drupal\KernelTests\KernelTestBase;
-use Drupal\patternkit\Asset\LibraryNamespaceResolver;
 use Drupal\patternkit\Asset\PatternDependencyResolver;
-use Drupal\patternkit\Asset\PatternDiscovery;
-use Drupal\patternkit\Asset\PatternDiscoveryLoader;
-use Drupal\patternkit\PatternkitEnvironment;
-use Drupal\patternkit\PatternLibraryPluginManager;
-use Drupal\patternkit\Schema\ContextBuilder;
-use Drupal\patternkit\Schema\DataPreProcessor\BundleReferenceDataPreProcessor;
-use Drupal\patternkit\Schema\DataPreProcessor\DataPreProcessorCollection;
-use Drupal\patternkit\Schema\DataPreProcessor\RefNormalizerDataPreProcessor;
-use Drupal\patternkit\Schema\DataPreProcessor\SchemaRefObserver;
-use Drupal\patternkit\Schema\DataPreProcessor\TokenValidationDataPreProcessor;
-use Drupal\patternkit\Schema\DataPreProcessorFactory;
-use Drupal\patternkit\Schema\PatternkitRefProvider;
-use Drupal\patternkit\Schema\SchemaRefHandler;
-use Drupal\patternkit\Schema\UnresolvedSchema;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\UsesClass;
 
 /**
  * Test discovery of dependencies using the PatternDependencyResolver.
+ *
+ * @group patternkit
+ * @covers \Drupal\patternkit\Schema\ContextBuilder
+ * @covers \Drupal\patternkit\Schema\DataPreProcessorFactory
+ * @coversDefaultClass \Drupal\patternkit\Asset\PatternDependencyResolver
+ * @covers \Drupal\patternkit\Schema\DataPreProcessor\SchemaRefObserver
+ * @covers \Drupal\patternkit\Schema\UnresolvedSchema
+ * @uses \Drupal\patternkit\Schema\DataPreProcessor\BundleReferenceDataPreProcessor
+ * @uses \Drupal\patternkit\Schema\ContextBuilder
+ * @uses \Drupal\patternkit\Schema\DataPreProcessor\DataPreProcessorCollection
+ * @uses \Drupal\patternkit\Asset\LibraryNamespaceResolver
+ * @uses \Drupal\patternkit\Asset\PatternDiscovery
+ * @uses \Drupal\patternkit\Asset\PatternDiscoveryLoader
+ * @uses \Drupal\patternkit\PatternLibraryPluginManager
+ * @uses \Drupal\patternkit\PatternkitEnvironment
+ * @uses \Drupal\patternkit\Schema\PatternkitRefProvider
+ * @uses \Drupal\patternkit\Schema\DataPreProcessor\RefNormalizerDataPreProcessor
+ * @uses \Drupal\patternkit\Schema\SchemaRefHandler
+ * @uses \Drupal\patternkit\Schema\DataPreProcessor\TokenValidationDataPreProcessor
  */
-#[Group('patternkit')]
-#[CoversClass(ContextBuilder::class)]
-#[CoversClass(DataPreProcessorFactory::class)]
-#[CoversClass(PatternDependencyResolver::class)]
-#[CoversClass(SchemaRefObserver::class)]
-#[CoversClass(UnresolvedSchema::class)]
-#[UsesClass(BundleReferenceDataPreProcessor::class)]
-#[UsesClass(ContextBuilder::class)]
-#[UsesClass(DataPreProcessorCollection::class)]
-#[UsesClass(LibraryNamespaceResolver::class)]
-#[UsesClass(PatternDiscovery::class)]
-#[UsesClass(PatternDiscoveryLoader::class)]
-#[UsesClass(PatternLibraryPluginManager::class)]
-#[UsesClass(PatternkitEnvironment::class)]
-#[UsesClass(PatternkitRefProvider::class)]
-#[UsesClass(RefNormalizerDataPreProcessor::class)]
-#[UsesClass(SchemaRefHandler::class)]
-#[UsesClass(TokenValidationDataPreProcessor::class)]
 class PatternDependencyResolverTest extends KernelTestBase {
 
   /**
@@ -75,7 +57,7 @@ class PatternDependencyResolverTest extends KernelTestBase {
   /**
    * Test identification of pattern dependencies.
    */
-  public function testGetAllPatternDependencies() {
+  public function testGetAllPatternDependencies(): void {
     $dependencies = $this->patternDependencyResolver->getAllPatternDependencies();
 
     $this->assertIsArray($dependencies);
@@ -95,7 +77,7 @@ class PatternDependencyResolverTest extends KernelTestBase {
   /**
    * Confirm patterns with dependencies are listed later.
    */
-  public function testGetPatternLoadOrder() {
+  public function testGetPatternLoadOrder(): void {
     $order = $this->patternDependencyResolver->getPatternLoadOrder();
 
     $exampleIndex = array_search('@patternkit/atoms/example/src/example', $order);
@@ -104,7 +86,11 @@ class PatternDependencyResolverTest extends KernelTestBase {
     $this->assertGreaterThan($exampleIndex, $refIndex);
   }
 
-  #[DataProvider('providerGetSchemaDependencies')]
+  /**
+   * Test getting schema dependencies.
+   *
+   * @dataProvider providerGetSchemaDependencies
+   */
   public function testGetSchemaDependencies(string $schema, string $pattern_id, array $expected_dependencies) {
     $dependencies = $this->patternDependencyResolver->getSchemaDependencies($schema, $pattern_id);
     $this->assertEquals($expected_dependencies, $dependencies);
@@ -112,6 +98,9 @@ class PatternDependencyResolverTest extends KernelTestBase {
 
   /**
    * Data provider for testGetSchemaDependencies().
+   *
+   * @return array
+   *   An array of test cases.
    */
   public static function providerGetSchemaDependencies() {
     $cases = [];

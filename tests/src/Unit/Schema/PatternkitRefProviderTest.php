@@ -2,15 +2,12 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\PatternRepository;
 use Drupal\patternkit\Schema\PatternkitRefProvider;
 use Drupal\patternkit\Schema\SchemaRefHandler;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Group;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
@@ -18,9 +15,10 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Test the PatternkitRefProvider class.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Schema\PatternkitRefProvider
  */
-#[Group('patternkit')]
-#[CoversClass(PatternkitRefProvider::class)]
 class PatternkitRefProviderTest extends UnitTestCase {
 
   use JsonDecodeTrait;
@@ -207,13 +205,20 @@ class PatternkitRefProviderTest extends UnitTestCase {
     $this->provider->setPatternRepository($this->patternRepository->reveal());
   }
 
-  #[DataProvider('providerGetSchemaData')]
+  /**
+   * Test fetching schema data.
+   *
+   * @dataProvider providerGetSchemaData
+   */
   public function testGetSchemaData(string $url, $expected) {
     $this->assertEquals($expected, $this->provider->getSchemaData($url));
   }
 
   /**
    * Data provider for ::testGetSchemaData.
+   *
+   * @return array
+   *   An array of test cases.
    */
   public static function providerGetSchemaData(): array {
     $cases = [];
@@ -293,7 +298,7 @@ class PatternkitRefProviderTest extends UnitTestCase {
   /**
    * Test fetching schema data with invalid JSON content.
    */
-  public function testGetSchemaDataWithInvalidContent() {
+  public function testGetSchemaDataWithInvalidContent(): void {
     // Add test cases for returning invalid JSON.
     $this->schemaRefHandler->parseNamespacedSchemaReference('@patternkit/refs/invalid')
       ->willReturn(['asset_id' => '@patternkit/refs/invalid']);

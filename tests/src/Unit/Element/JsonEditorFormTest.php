@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\patternkit\Unit\Element;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\FormStateInterface;
@@ -14,7 +13,6 @@ use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\patternkit\PatternRepository;
 use Drupal\Tests\Core\Render\RendererTestBase;
-use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -22,10 +20,11 @@ use Prophecy\Prophecy\ObjectProphecy;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Test functionality for the JsonEditorForm render element.
+ * Unit tests for the JsonEditorForm render element.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Element\JsonEditorForm
  */
-#[Group('patternkit')]
-#[CoversClass(JsonEditorForm::class)]
 class JsonEditorFormTest extends RendererTestBase {
 
   use ArraySubsetAsserts;

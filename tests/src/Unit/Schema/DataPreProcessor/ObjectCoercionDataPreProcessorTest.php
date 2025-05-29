@@ -2,24 +2,21 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema\DataPreProcessor;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\UsesClass;
 use Swaggest\JsonSchema\Context;
 use Swaggest\JsonSchema\RemoteRef\Preloaded;
 use Swaggest\JsonSchema\Schema;
 
 /**
  * Unit tests for the ObjectCoercionDataPreProcessor.
+ *
+ * @group patternkit
+ * @uses \Swaggest\JsonSchema\Context
+ * @uses \Swaggest\JsonSchema\Schema
+ * @coversDefaultClass \Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor
  */
-#[Group('patternkit')]
-#[UsesClass('\Swaggest\JsonSchema\Context')]
-#[UsesClass('\Swaggest\JsonSchema\Schema')]
-#[CoversClass(ObjectCoercionDataPreProcessor::class)]
 class ObjectCoercionDataPreProcessorTest extends UnitTestCase {
 
   use JsonDecodeTrait;
@@ -199,7 +196,11 @@ class ObjectCoercionDataPreProcessorTest extends UnitTestCase {
     $this->context->setDataPreProcessor($this->dataPreProcessor);
   }
 
-  #[DataProvider('providerProcess')]
+  /**
+   * Test the process method.
+   *
+   * @dataProvider providerProcess
+   */
   public function testProcess($data, Schema $schema, $expected) {
     $result = $this->dataPreProcessor->process($data, $schema);
     $this->assertEquals($expected, $result);
@@ -278,7 +279,11 @@ class ObjectCoercionDataPreProcessorTest extends UnitTestCase {
     return $cases;
   }
 
-  #[DataProvider('providerSchemaValidation')]
+  /**
+   * Test schema validation.
+   *
+   * @dataProvider providerSchemaValidation
+   */
   public function testSchemaValidation(string $schema, $value) {
     $schema = Schema::import(static::decodeJson($schema), $this->context);
 
@@ -292,7 +297,7 @@ class ObjectCoercionDataPreProcessorTest extends UnitTestCase {
   }
 
   /**
-   * Data provider for testProcess().
+   * Data provider for testSchemaValidation().
    */
   public static function providerSchemaValidation(): array {
     $cases = [];

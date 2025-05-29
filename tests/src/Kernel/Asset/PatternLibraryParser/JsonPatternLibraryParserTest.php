@@ -2,18 +2,17 @@
 
 namespace Drupal\Tests\patternkit\Kernel\Asset\PatternLibraryParser;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\patternkit\Asset\PatternLibraryParser\JSONPatternLibraryParser;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\PatternLibrary;
 use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
-use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Test description.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Asset\PatternLibraryParser\JSONPatternLibraryParser
  */
-#[Group('patternkit')]
-#[CoversClass(JSONPatternLibraryParser::class)]
 class JsonPatternLibraryParserTest extends PatternLibraryParserTestBase {
 
   use PatternkitExampleLibraryAwareTrait;

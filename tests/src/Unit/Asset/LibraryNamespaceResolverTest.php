@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\patternkit\Unit\Asset;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\Core\Asset\LibraryDiscoveryInterface;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\Extension;
@@ -10,17 +9,17 @@ use Drupal\Core\Lock\LockBackendInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 use Drupal\patternkit\Asset\LibraryNamespaceResolver;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Group;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Tests for the LibraryNamespaceResolver class.
+ *
+ * @group patternkit
+ * @group legacy
+ * @coversDefaultClass \Drupal\patternkit\Asset\LibraryNamespaceResolver
  */
-#[Group('patternkit')]
-#[Group('legacy')]
-#[CoversClass(LibraryNamespaceResolver::class)]
 class LibraryNamespaceResolverTest extends UnitTestCase {
 
   use ProphecyTrait;

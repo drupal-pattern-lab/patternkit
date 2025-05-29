@@ -2,14 +2,12 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\patternkit\Schema\ContextBuilder;
 use Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor;
 use Drupal\patternkit\Schema\SchemaHelper;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Group;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Swaggest\JsonSchema\Context;
@@ -20,10 +18,11 @@ use Swaggest\JsonSchema\Schema;
  *
  * Tests the SchemaHelper utility class with expected behaviors from configured
  * context components.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Schema\SchemaHelper
+ * @covers \Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor
  */
-#[Group('patternkit')]
-#[CoversClass(SchemaHelper::class)]
-#[CoversClass(ObjectCoercionDataPreProcessor::class)]
 class SchemaHelperIntegrationTest extends UnitTestCase {
 
   use JsonDecodeTrait;

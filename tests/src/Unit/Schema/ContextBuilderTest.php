@@ -2,12 +2,8 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\patternkit\Schema\ContextBuilder;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\UsesClass;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Swaggest\JsonSchema\Context;
 use Swaggest\JsonSchema\DataPreProcessor;
@@ -16,10 +12,11 @@ use Webmozart\Assert\InvalidArgumentException;
 
 /**
  * Unit tests for the ContextBuilder class.
+ *
+ * @group patternkit
+ * @uses \Swaggest\JsonSchema\Context
+ * @covers \Drupal\patternkit\Schema\ContextBuilder
  */
-#[Group('patternkit')]
-#[UsesClass('\Swaggest\JsonSchema\Context')]
-#[CoversClass(ContextBuilder::class)]
 class ContextBuilderTest extends UnitTestCase {
 
   use ProphecyTrait;
@@ -210,8 +207,9 @@ class ContextBuilderTest extends UnitTestCase {
 
   /**
    * Test option validation with various option values.
+   *
+   * @dataProvider providerOptionValidation
    */
-  #[DataProvider('providerOptionValidation')]
   public function testOptionValidation(array $options, string $expected_exception_message) {
     $this->expectException(InvalidArgumentException::class);
     $this->expectExceptionMessage($expected_exception_message);

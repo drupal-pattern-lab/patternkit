@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\patternkit\Unit;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
 use Drupal\Component\Plugin\Exception\PluginException;
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -20,8 +19,6 @@ use Drupal\patternkit\Form\PatternLibraryJSONForm;
 use Drupal\patternkit\JsonEditorFormBuilder;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -32,12 +29,13 @@ use Webmozart\Assert\InvalidArgumentException;
 
 /**
  * Unit tests for the JsonEditorFormBuilder service.
+ *
+ * @group patternkit
+ * @uses \Drupal\Core\Render\BubbleableMetadata
+ * @uses \Swaggest\JsonSchema\Schema
+ * @uses \Webmozart\Assert\Assert
+ * @coversDefaultClass \Drupal\patternkit\JsonEditorFormBuilder
  */
-#[Group('patternkit')]
-#[UsesClass('\Drupal\Core\Render\BubbleableMetadata')]
-#[UsesClass('\Swaggest\JsonSchema\Schema')]
-#[UsesClass('\Webmozart\Assert\Assert')]
-#[CoversClass(JsonEditorFormBuilder::class)]
 class JsonEditorFormBuilderTest extends UnitTestCase {
 
   use ProphecyTrait;

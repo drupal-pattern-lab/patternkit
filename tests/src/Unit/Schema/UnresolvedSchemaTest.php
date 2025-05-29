@@ -2,15 +2,9 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
-use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\patternkit\Schema\UnresolvedSchema;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversNothing;
-use PHPUnit\Framework\Attributes\Depends;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\UsesClass;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Swaggest\JsonSchema\Context;
@@ -21,11 +15,12 @@ use Swaggest\JsonSchema\SchemaContract;
 
 /**
  * Unit tests for the UnresolvedSchema class.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Schema\UnresolvedSchema
+ * @uses \Swaggest\JsonSchema\Schema
+ * @uses \Swaggest\JsonSchema\Context
  */
-#[Group('patternkit')]
-#[CoversClass(UnresolvedSchema::class)]
-#[UsesClass('\Swaggest\JsonSchema\Schema')]
-#[UsesClass('\Swaggest\JsonSchema\Context')]
 class UnresolvedSchemaTest extends UnitTestCase {
 
   use JsonDecodeTrait;
@@ -110,8 +105,9 @@ class UnresolvedSchemaTest extends UnitTestCase {
 
   /**
    * Test various import scenarios to confirm behavior.
+   *
+   * @dataProvider providerImportScenarios
    */
-  #[DataProvider('providerImportScenarios')]
   public function testImportScenarios(string $json): void {
     $schema_data = static::decodeJson($json);
     $schema = UnresolvedSchema::import($schema_data);
@@ -162,8 +158,9 @@ class UnresolvedSchemaTest extends UnitTestCase {
 
   /**
    * Test schema resolution after the initial import.
+   *
+   * @depends testImport
    */
-  #[Depends('testImport')]
   public function testResolve(UnresolvedSchema $schema): SchemaContract {
     $this->refProvider->getSchemaData('@my/example/reference')
       ->willReturn(static::decodeJson(static::$referencedSchemaJson))
@@ -184,9 +181,10 @@ class UnresolvedSchemaTest extends UnitTestCase {
 
   /**
    * Test validation behavior after an unresolved schema is resolved.
+   *
+   * @depends testResolve
+   * @coversNothing
    */
-  #[Depends('testResolve')]
-  #[CoversNothing]
   public function testResolvedValidation(SchemaContract $schema): void {
     $valid_data = <<<JSON
       {

@@ -4,12 +4,12 @@ namespace Drupal\Tests\patternkit\FunctionalJavascript;
 
 use Drupal\node\Entity\Node;
 use Drupal\Tests\patternkit\Traits\PatternDatabaseAlterationTrait;
-use PHPUnit\Framework\Attributes\Group;
 
 /**
  * End-to-end testing for patternkit block placement in layout builder layouts.
+ *
+ * @group patternkit
  */
-#[Group('patternkit')]
 class LayoutBuilderBlockUpdateTest extends PatternkitBrowserTestBase {
 
   use PatternDatabaseAlterationTrait;

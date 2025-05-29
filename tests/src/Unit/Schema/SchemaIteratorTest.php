@@ -2,15 +2,12 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\patternkit\Schema\ContextBuilder;
 use Drupal\patternkit\Schema\SchemaIterator;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\patternkit\Traits\SchemaFixtureTrait;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\UsesClass;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Swaggest\JsonSchema\Context;
@@ -18,10 +15,11 @@ use Swaggest\JsonSchema\Schema;
 
 /**
  * Test the SchemaIterator class implementation.
+ *
+ * @group patternkit
+ * @uses \Drupal\patternkit\Schema\SchemaHelper
+ * @coversDefaultClass \Drupal\patternkit\Schema\SchemaIterator
  */
-#[Group('patternkit')]
-#[UsesClass('\Drupal\patternkit\Schema\SchemaHelper')]
-#[CoversClass(SchemaIterator::class)]
 class SchemaIteratorTest extends UnitTestCase {
 
   use JsonDecodeTrait;

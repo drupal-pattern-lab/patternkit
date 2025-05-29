@@ -2,20 +2,19 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\patternkit\Schema\ContextBuilder;
 use Drupal\patternkit\Schema\ContextBuilderTrait;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Group;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Unit tests for ContextBuilderTrait.
+ * Unit tests for the ContextBuilderTrait trait.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Schema\ContextBuilderTrait
  */
-#[Group('patternkit')]
-#[CoversClass(ContextBuilderTrait::class)]
 class ContextBuilderTraitTest extends UnitTestCase {
 
   use ProphecyTrait;

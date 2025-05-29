@@ -2,19 +2,18 @@
 
 namespace Drupal\Tests\patternkit\Kernel\Asset\PatternLibraryParser;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\patternkit\Asset\PatternDiscoveryInterface;
 use Drupal\patternkit\Asset\PatternLibraryParserBase;
 use Drupal\patternkit\Asset\PatternLibraryParserInterface;
 use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
-use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Test Pattern Library Parser plugins.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Asset\PatternLibraryParserBase
  */
-#[Group('patternkit')]
-#[CoversClass(PatternLibraryParserBase::class)]
 class PatternLibraryParserTestBase extends KernelTestBase {
 
   use PatternkitExampleLibraryAwareTrait;

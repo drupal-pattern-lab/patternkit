@@ -2,22 +2,20 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema\DataPreProcessor;
 
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\patternkit\Schema\DataPreProcessor\BundleReferenceDataPreProcessor;
 use Drupal\patternkit\Schema\SchemaRefHandler;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Group;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Swaggest\JsonSchema\Schema;
 
 /**
  * Unit tests for the BundleReferenceDataPreProcessor.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Schema\DataPreProcessor\BundleReferenceDataPreProcessor
  */
-#[Group('patternkit')]
-#[CoversClass(BundleReferenceDataPreProcessor::class)]
 class BundleReferenceDataPreProcessorTest extends UnitTestCase {
 
   use JsonDecodeTrait;
@@ -46,7 +44,11 @@ class BundleReferenceDataPreProcessorTest extends UnitTestCase {
     $this->schemaRefHandler = $this->prophesize(SchemaRefHandler::class);
   }
 
-  #[DataProvider('providerProcess')]
+  /**
+   * Test processing data with a schema.
+   *
+   * @dataProvider providerProcess
+   */
   public function testProcess($data, array $map, $expected) {
     $schema = $this->createMock(Schema::class);
 
@@ -69,6 +71,9 @@ class BundleReferenceDataPreProcessorTest extends UnitTestCase {
 
   /**
    * Data provider for testProcess().
+   *
+   * @return array
+   *   An array of test cases.
    */
   public static function providerProcess(): array {
     $cases = [];

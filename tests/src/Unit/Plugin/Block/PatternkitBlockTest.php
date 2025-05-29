@@ -22,10 +22,6 @@ use Drupal\patternkit\PatternRepository;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock;
 use Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -35,11 +31,12 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Tests for the PatternkitBlock block plugin.
+ *
+ * @group patternkit
+ * @uses \Drupal\Core\Render\BubbleableMetadata
+ * @uses \Drupal\patternkit\Event\PatternUpdateEvent
+ * @coversDefaultClass \Drupal\patternkit\Plugin\Block\PatternkitBlock
  */
-#[Group('patternkit')]
-#[UsesClass('\Drupal\Core\Render\BubbleableMetadata')]
-#[UsesClass('\Drupal\patternkit\Event\PatternUpdateEvent')]
-#[CoversClass(PatternkitBlock::class)]
 class PatternkitBlockTest extends UnitTestCase {
 
   use ProphecyTrait;
@@ -853,8 +850,9 @@ class PatternkitBlockTest extends UnitTestCase {
    * Test saving block content without serialized block content.
    *
    * @todo Test with serialized block content separately.
+   *
+   * @dataProvider providerSaveBlockContent
    */
-  #[DataProvider('providerSaveBlockContent')]
   public function testSaveBlockContent(bool $new_revision, bool $duplicate_block): void {
     $configuration = [
       'patternkit_block_rid' => 123,

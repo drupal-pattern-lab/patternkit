@@ -2,22 +2,20 @@
 
 namespace Drupal\Tests\patternkit\Unit\Plugin\PatternFieldProcessor;
 
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Render\RendererInterface;
 use Drupal\patternkit\Plugin\PatternFieldProcessor\WysiwygFieldProcessor;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Group;
 use Swaggest\JsonSchema\Schema;
 use Swaggest\JsonSchema\SchemaContract;
 
 /**
  * Tests for the WysiwygFieldProcessor plugin.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Plugin\PatternFieldProcessor\WysiwygFieldProcessor
  */
-#[Group('patternkit')]
-#[CoversClass(WysiwygFieldProcessor::class)]
 class WysiwygFieldProcessorTest extends UnitTestCase {
 
   /**
@@ -81,8 +79,9 @@ class WysiwygFieldProcessorTest extends UnitTestCase {
    *   An example value for testing.
    * @param bool $expected
    *   The expected result.
+   *
+   * @dataProvider providerApplies
    */
-  #[DataProvider('providerApplies')]
   public function testApplies(SchemaContract $propertySchema, mixed $value, bool $expected) {
     $this->assertEquals($expected, $this->plugin->applies($propertySchema, $value));
   }

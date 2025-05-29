@@ -2,18 +2,17 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\patternkit\Exception\MissingDataPreProcessorException;
 use Drupal\patternkit\Schema\DataPreProcessorFactory;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Group;
 use Swaggest\JsonSchema\DataPreProcessor;
 
 /**
  * Unit tests for the DataPreProcessorFactory class.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Schema\DataPreProcessorFactory
  */
-#[Group('patternkit')]
-#[CoversClass(DataPreProcessorFactory::class)]
 class DataPreProcessorFactoryTest extends UnitTestCase {
 
   /**

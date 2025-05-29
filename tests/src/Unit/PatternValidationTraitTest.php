@@ -10,10 +10,6 @@ use Drupal\patternkit\Schema\SchemaFactory;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\patternkit\Traits\SchemaFixtureTrait;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\UsesClass;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
@@ -23,13 +19,14 @@ use Swaggest\JsonSchema\SchemaContract;
 
 /**
  * Unit tests for PatternValidationTrait.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\PatternValidationTrait
+ * @uses \Drupal\patternkit\Schema\ContextBuilderTrait
+ * @uses \Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor
+ * @uses \Drupal\patternkit\Schema\SchemaFactoryTrait
+ * @uses \Swaggest\JsonSchema\Context
  */
-#[Group('patternkit')]
-#[CoversClass(PatternValidationTrait::class)]
-#[UsesClass('\Drupal\patternkit\Schema\ContextBuilderTrait')]
-#[UsesClass('\Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor')]
-#[UsesClass('\Drupal\patternkit\Schema\SchemaFactoryTrait')]
-#[UsesClass('\Swaggest\JsonSchema\Context')]
 class PatternValidationTraitTest extends UnitTestCase {
 
   use JsonDecodeTrait;
@@ -108,8 +105,9 @@ class PatternValidationTraitTest extends UnitTestCase {
    *   argument details.
    * @param bool $expectedResult
    *   A boolean argument declaring whether validation should succeed or fail.
+   *
+   * @dataProvider providerValidatePattern
    */
-  #[DataProvider('providerValidatePattern')]
   public function testValidatePattern(array $content, string $schemaFixture, bool $expectedResult): void {
     // Prepare the schema string to load from the pattern.
     $schema_string = $this->loadFixture($schemaFixture);

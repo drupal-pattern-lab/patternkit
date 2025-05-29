@@ -2,8 +2,6 @@
 
 namespace Drupal\Tests\patternkit\Unit\Asset;
 
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\Component\Plugin\Exception\PluginException;
 use Drupal\Core\Asset\Exception\InvalidLibraryFileException;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
@@ -15,8 +13,6 @@ use Drupal\patternkit\PatternLibrary;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\CoversNothing;
-use PHPUnit\Framework\Attributes\Group;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
@@ -25,9 +21,10 @@ use Symfony\Component\Serializer\Serializer;
 
 /**
  * Tests for the PatternDiscoveryLoader class.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Asset\PatternDiscoveryLoader
  */
-#[Group('patternkit')]
-#[CoversClass(PatternDiscoveryLoader::class)]
 class PatternDiscoveryLoaderTest extends UnitTestCase {
 
   use ProphecyTrait;
@@ -184,7 +181,11 @@ class PatternDiscoveryLoaderTest extends UnitTestCase {
       ->shouldBeCalledOnce();
   }
 
-  #[DataProvider('providerGetPatternsByNamespace')]
+  /**
+   * Test getting patterns by namespace.
+   *
+   * @dataProvider providerGetPatternsByNamespace
+   */
   public function testGetPatternsByNamespace(
     array $library_definition,
     array $plugin_data,
@@ -307,8 +308,9 @@ class PatternDiscoveryLoaderTest extends UnitTestCase {
 
   /**
    * Test behavior if no library version is defined.
+   *
+   * @coversNothing
    */
-  #[CoversNothing]
   public function testWithoutLibraryVersion(): void {
     // Unset the library version.
     $library_definition = static::$libraryDefinition;

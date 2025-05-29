@@ -2,19 +2,17 @@
 
 namespace Drupal\Tests\patternkit\Kernel\Schema;
 
-use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\patternkit\Schema\ContextBuilder;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
-use PHPUnit\Framework\Attributes\CoversNothing;
-use PHPUnit\Framework\Attributes\Group;
 use Swaggest\JsonSchema\Schema;
 
 /**
  * Integration tests to confirm default context behaviors.
+ *
+ * @group patternkit
+ * @coversNothing
  */
-#[Group('patternkit')]
-#[CoversNothing]
 class ContextBuilderIntegrationTest extends KernelTestBase {
 
   use JsonDecodeTrait;
@@ -44,8 +42,9 @@ class ContextBuilderIntegrationTest extends KernelTestBase {
 
   /**
    * Test schema validation against use cases needing the default preprocessors.
+   *
+   * @dataProvider providerDefaultContextSchemaValidation
    */
-  #[DataProvider('providerDefaultContextSchemaValidation')]
   public function testDefaultContextSchemaValidation(string $schema_json, $config): void {
     $default_context = $this->contextBuilder->getDefaultContext();
     $schema = Schema::import(static::decodeJson($schema_json), $default_context);

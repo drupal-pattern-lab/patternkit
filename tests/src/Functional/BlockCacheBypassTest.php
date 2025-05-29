@@ -2,16 +2,15 @@
 
 namespace Drupal\Tests\patternkit\Functional;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\node\Entity\Node;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock;
-use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Testing to confirm bypass of the entity cache for blocks if enabled.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Plugin\Block\PatternkitBlock
  */
-#[Group('patternkit')]
-#[CoversClass(PatternkitBlock::class)]
 class BlockCacheBypassTest extends PatternkitBrowserTestBase {
 
   /**

@@ -2,8 +2,6 @@
 
 namespace Drupal\Tests\patternkit\Unit;
 
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\Core\Block\BlockPluginInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
@@ -17,16 +15,16 @@ use Drupal\layout_builder\SectionStorageInterface;
 use Drupal\patternkit\PatternkitBlockEntityOperations;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Group;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 
 /**
  * Unit tests for the PatternkitBlockEntityOperations service.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\PatternkitBlockEntityOperations
  */
-#[Group('patternkit')]
-#[CoversClass(PatternkitBlockEntityOperations::class)]
 class PatternkitBlockEntityOperationsTest extends UnitTestCase {
 
   use ProphecyTrait;
@@ -179,8 +177,9 @@ class PatternkitBlockEntityOperationsTest extends UnitTestCase {
    *   uses the default entity section storage.
    * @param bool $isRevisionable
    *   Whether the mocked entity should be indicated as revisionable.
+   *
+   * @dataProvider providerHandlePresaveOperationFlags
    */
-  #[DataProvider('providerHandlePresaveOperationFlags')]
   public function testHandlePresaveOperationFlags(bool $usesDefaultStorage, bool $isRevisionable): void {
     $entity = $this->prophesize(EntityInterface::class);
 

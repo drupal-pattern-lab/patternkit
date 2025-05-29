@@ -2,8 +2,6 @@
 
 namespace Drupal\Tests\patternkit\Unit;
 
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
@@ -23,8 +21,6 @@ use Drupal\patternkit\Schema\SchemaFactory;
 use Drupal\patternkit\Schema\SchemaWalkerFactory;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\Constraint\Constraint;
 use PHPUnit\Framework\Constraint\IsType;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -36,15 +32,15 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Test functionality for the Pattern Field Processor Plugin Manager.
+ *
+ * @group patternkit
+ * @uses \Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor
+ * @uses \Drupal\patternkit\Schema\SchemaFactory
+ * @uses \Drupal\patternkit\Schema\SchemaHelper
+ * @uses \Drupal\patternkit\Schema\SchemaIterator
+ * @uses \Drupal\patternkit\Schema\SchemaWalker
+ * @coversDefaultClass \Drupal\patternkit\PatternFieldProcessorPluginManager
  */
-#[Group('patternkit')]
-#[UsesClass('\Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor')]
-#[UsesClass('\Drupal\patternkit\Schema\SchemaFactory')]
-#[UsesClass('\Drupal\patternkit\Schema\SchemaHelper')]
-#[UsesClass('\Drupal\patternkit\Schema\SchemaIterator')]
-#[UsesClass('\Drupal\patternkit\Schema\SchemaWalker')]
-#[UsesClass('\Drupal\patternkit\Schema\SchemaWalkerFactory')]
-#[CoversClass(PatternFieldProcessorPluginManager::class)]
 class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
 
   use JsonDecodeTrait;
@@ -298,8 +294,9 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
 
   /**
    * Test schema traversal to ensure the callback receives expected arguments.
+   *
+   * @dataProvider providerTraverseSchema
    */
-  #[DataProvider('providerTraverseSchema')]
   public function testTraverseSchema(string $schema_json, $values, callable $expectationsCallback) {
     // Mock the callback for confirming it's called with expected properties.
     $processorMock = $this->createMock(PatternFieldProcessorInterface::class);

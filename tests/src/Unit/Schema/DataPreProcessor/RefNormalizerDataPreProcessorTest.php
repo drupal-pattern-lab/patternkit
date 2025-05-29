@@ -2,24 +2,22 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema\DataPreProcessor;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\patternkit\Schema\DataPreProcessor\RefNormalizerDataPreProcessor;
 use Drupal\patternkit\Schema\SchemaRefHandler;
 use Drupal\patternkit\Schema\UnresolvedSchema;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\UsesClass;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Swaggest\JsonSchema\Context;
 
 /**
  * Unit tests for the RefNormalizerDataPreProcessor.
+ *
+ * @group patternkit
+ * @uses \Drupal\patternkit\Schema\UnresolvedSchema
+ * @uses \Swaggest\JsonSchema\Context
+ * @coversDefaultClass \Drupal\patternkit\Schema\DataPreProcessor\RefNormalizerDataPreProcessor
  */
-#[Group('patternkit')]
-#[UsesClass('\Drupal\patternkit\Schema\UnresolvedSchema')]
-#[UsesClass('\Swaggest\JsonSchema\Context')]
-#[CoversClass(RefNormalizerDataPreProcessor::class)]
 class RefNormalizerDataPreProcessorTest extends UnitTestCase {
 
   use JsonDecodeTrait;

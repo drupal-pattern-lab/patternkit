@@ -2,79 +2,46 @@
 
 namespace Drupal\Tests\patternkit\Kernel\Utility;
 
-use Drupal\patternkit\Asset\LibraryNamespaceResolver;
-use Drupal\patternkit\Asset\PatternDependencyResolver;
-use Drupal\patternkit\Asset\PatternDiscovery;
-use Drupal\patternkit\Asset\PatternDiscoveryLoader;
-use Drupal\patternkit\Asset\PatternLibraryParser\JSONPatternLibraryParser;
-use Drupal\patternkit\Asset\PatternLibraryParser\TwigPatternLibraryParser;
-use Drupal\patternkit\Asset\PatternLibraryParserBase;
-use Drupal\patternkit\Attribute\PatternLibrary as AttributePatternLibrary;
-use Drupal\patternkit\Entity\Pattern as EntityPattern;
-use Drupal\patternkit\JsonEditorFormBuilder;
-use Drupal\patternkit\PatternkitEnvironment;
-use Drupal\patternkit\PatternLibrary;
-use Drupal\patternkit\PatternLibraryPluginDefault;
-use Drupal\patternkit\PatternLibraryPluginManager;
-use Drupal\patternkit\PatternRepository;
-use Drupal\patternkit\Plugin\PatternLibrary\PatternLibraryJSON;
-use Drupal\patternkit\Plugin\PatternLibrary\PatternLibraryTwig;
-use Drupal\patternkit\Schema\ContextBuilder;
-use Drupal\patternkit\Schema\DataPreProcessor\BundleReferenceDataPreProcessor;
-use Drupal\patternkit\Schema\DataPreProcessor\DataPreProcessorCollection;
-use Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor;
-use Drupal\patternkit\Schema\DataPreProcessor\RefNormalizerDataPreProcessor;
-use Drupal\patternkit\Schema\DataPreProcessor\SchemaRefObserver;
-use Drupal\patternkit\Schema\DataPreProcessor\TokenValidationDataPreProcessor;
-use Drupal\patternkit\Schema\DataPreProcessorFactory;
-use Drupal\patternkit\Schema\PatternkitRefProvider;
-use Drupal\patternkit\Schema\SchemaFactory;
-use Drupal\patternkit\Schema\SchemaHelper;
-use Drupal\patternkit\Schema\SchemaRefHandler;
-use Drupal\patternkit\Schema\UnresolvedSchema;
 use Drupal\patternkit\Utility\PatternDetector;
 use Drupal\Tests\patternkit\Kernel\PatternkitKernelTestBase;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\UsesClass;
 
 /**
  * Test pattern usage discovery using the pattern detector service.
+ *
+ * @group patternkit
+ * @covers \Drupal\patternkit\Schema\ContextBuilder
+ * @covers \Drupal\patternkit\Schema\DataPreProcessorCollection
+ * @covers \Drupal\patternkit\Schema\DataPreProcessorFactory
+ * @coversDefaultClass \Drupal\patternkit\Utility\PatternDetector
+ * @covers \Drupal\patternkit\PatternRepository
+ * @covers \Drupal\patternkit\Schema\SchemaFactory
+ * @covers \Drupal\patternkit\Schema\SchemaHelper
+ * @covers \Drupal\patternkit\Schema\SchemaRefHandler
+ * @covers \Drupal\patternkit\Schema\DataPreProcessor\SchemaRefObserver
+ * @uses \Drupal\patternkit\Attribute\PatternLibrary
+ * @uses \Drupal\patternkit\Schema\DataPreProcessor\BundleReferenceDataPreProcessor
+ * @uses \Drupal\patternkit\Entity\Pattern
+ * @uses \Drupal\patternkit\Asset\PatternLibraryParser\JSONPatternLibraryParser
+ * @uses \Drupal\patternkit\JsonEditorFormBuilder
+ * @uses \Drupal\patternkit\Asset\LibraryNamespaceResolver
+ * @uses \Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor
+ * @uses \Drupal\patternkit\Asset\PatternDependencyResolver
+ * @uses \Drupal\patternkit\Asset\PatternDiscovery
+ * @uses \Drupal\patternkit\Asset\PatternDiscoveryLoader
+ * @uses \Drupal\patternkit\PatternLibrary
+ * @uses \Drupal\patternkit\Plugin\PatternLibrary\PatternLibraryJSON
+ * @uses \Drupal\patternkit\Asset\PatternLibraryParserBase
+ * @uses \Drupal\patternkit\PatternLibraryPluginDefault
+ * @uses \Drupal\patternkit\PatternLibraryPluginManager
+ * @uses \Drupal\patternkit\Plugin\PatternLibrary\PatternLibraryTwig
+ * @uses \Drupal\patternkit\PatternkitEnvironment
+ * @uses \Drupal\patternkit\Schema\PatternkitRefProvider
+ * @uses \Drupal\patternkit\Schema\DataPreProcessor\RefNormalizerDataPreProcessor
+ * @uses \Drupal\patternkit\Schema\DataPreProcessor\TokenValidationDataPreProcessor
+ * @uses \Drupal\patternkit\Asset\PatternLibraryParser\TwigPatternLibraryParser
+ * @uses \Drupal\patternkit\Schema\UnresolvedSchema
  */
-#[Group('patternkit')]
-#[CoversClass(ContextBuilder::class)]
-#[CoversClass(DataPreProcessorCollection::class)]
-#[CoversClass(DataPreProcessorFactory::class)]
-#[CoversClass(PatternDetector::class)]
-#[CoversClass(PatternRepository::class)]
-#[CoversClass(SchemaFactory::class)]
-#[CoversClass(SchemaHelper::class)]
-#[CoversClass(SchemaRefHandler::class)]
-#[CoversClass(SchemaRefObserver::class)]
-#[UsesClass(AttributePatternLibrary::class)]
-#[UsesClass(BundleReferenceDataPreProcessor::class)]
-#[UsesClass(EntityPattern::class)]
-#[UsesClass(JSONPatternLibraryParser::class)]
-#[UsesClass(JsonEditorFormBuilder::class)]
-#[UsesClass(LibraryNamespaceResolver::class)]
-#[UsesClass(ObjectCoercionDataPreProcessor::class)]
-#[UsesClass(PatternDependencyResolver::class)]
-#[UsesClass(PatternDiscovery::class)]
-#[UsesClass(PatternDiscoveryLoader::class)]
-#[UsesClass(PatternLibrary::class)]
-#[UsesClass(PatternLibraryJSON::class)]
-#[UsesClass(PatternLibraryParserBase::class)]
-#[UsesClass(PatternLibraryPluginDefault::class)]
-#[UsesClass(PatternLibraryPluginManager::class)]
-#[UsesClass(PatternLibraryTwig::class)]
-#[UsesClass(PatternkitEnvironment::class)]
-#[UsesClass(PatternkitRefProvider::class)]
-#[UsesClass(RefNormalizerDataPreProcessor::class)]
-#[UsesClass(TokenValidationDataPreProcessor::class)]
-#[UsesClass(TwigPatternLibraryParser::class)]
-#[UsesClass(UnresolvedSchema::class)]
 class PatternDetectorIntegrationTest extends PatternkitKernelTestBase {
 
   use JsonDecodeTrait;
@@ -112,8 +79,9 @@ class PatternDetectorIntegrationTest extends PatternkitKernelTestBase {
    *   A JSON string of the content to be tested against the pattern.
    * @param string[][] $expected
    *   Expected results from the pattern detection.
+   *
+   * @dataProvider providerPatternDetection
    */
-  #[DataProvider('providerPatternDetection')]
   public function testPatternDetection(string $pattern_id, string $content, array $expected): void {
     $detected = $this->detector->detectInPattern($pattern_id, $content);
     $this->assertEquals($expected, array_keys($detected));

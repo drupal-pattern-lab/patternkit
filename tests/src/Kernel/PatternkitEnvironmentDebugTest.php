@@ -2,16 +2,14 @@
 
 namespace Drupal\Tests\patternkit\Kernel;
 
-use Drupal\patternkit\PatternkitEnvironment;
-use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\KernelTests\KernelTestBase;
-use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Test PatternkitEnvironment behavior with debugging parameters enabled.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\PatternkitEnvironment
  */
-#[Group('patternkit')]
-#[CoversClass(PatternkitEnvironment::class)]
 class PatternkitEnvironmentDebugTest extends KernelTestBase {
 
   /**

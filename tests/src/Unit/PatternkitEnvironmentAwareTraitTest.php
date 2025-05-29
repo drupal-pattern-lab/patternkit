@@ -2,21 +2,20 @@
 
 namespace Drupal\Tests\patternkit\Unit;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\patternkit\PatternkitEnvironment;
 use Drupal\patternkit\PatternkitEnvironmentAwareInterface;
 use Drupal\patternkit\PatternkitEnvironmentAwareTrait;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Group;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Unit tests for PatternkitEnvironmentTrait.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\PatternkitEnvironmentAwareTrait
  */
-#[Group('patternkit')]
-#[CoversClass(PatternkitEnvironmentAwareTrait::class)]
 class PatternkitEnvironmentAwareTraitTest extends UnitTestCase {
 
   use ProphecyTrait;

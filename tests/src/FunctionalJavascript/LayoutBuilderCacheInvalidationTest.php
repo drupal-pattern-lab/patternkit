@@ -2,22 +2,18 @@
 
 namespace Drupal\Tests\patternkit\FunctionalJavascript;
 
-use Drupal\patternkit\Entity\Pattern;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\node\NodeInterface;
 use Drupal\node\NodeStorageInterface;
 use Drupal\patternkit\Form\PatternkitSettingsForm;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock;
 use Drupal\Tests\patternkit\Traits\CacheTestTrait;
-use PHPUnit\Framework\Attributes\Depends;
-use PHPUnit\Framework\Attributes\Group;
 
 /**
  * End-to-end testing for patternkit cache invalidation in layout builder.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Entity\Pattern
  */
-#[Group('patternkit')]
-#[CoversClass(Pattern::class)]
 class LayoutBuilderCacheInvalidationTest extends PatternkitBrowserTestBase {
 
   use CacheTestTrait;
@@ -159,8 +155,9 @@ class LayoutBuilderCacheInvalidationTest extends PatternkitBrowserTestBase {
 
   /**
    * Test cache invalidation during block edit workflows.
+   *
+   * @depends testCacheTagPresence
    */
-  #[Depends('testCacheTagPresence')]
   public function testCacheInvalidation(): void {
     $assert = $this->assertSession();
     $page = $this->getSession()->getPage();
@@ -222,9 +219,10 @@ class LayoutBuilderCacheInvalidationTest extends PatternkitBrowserTestBase {
    *
    * @param bool $withEntityTagInvalidation
    *   The setting assigned to entity_cache_tag_invalidation.
+   *
+   * @depends testCacheTagPresence
+   * @dataProvider providerPatternUpdateInvalidation
    */
-  #[Depends('testCacheTagPresence')]
-  #[DataProvider('providerPatternUpdateInvalidation')]
   public function testPatternUpdateInvalidation(bool $withEntityTagInvalidation): void {
     $page = $this->getSession()->getPage();
     $assert = $this->assertSession();

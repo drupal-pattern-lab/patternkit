@@ -2,16 +2,14 @@
 
 namespace Drupal\Tests\patternkit\Kernel\Loader;
 
-use Drupal\patternkit\Loader\PatternLibraryLoader;
-use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\KernelTests\KernelTestBase;
-use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Test the PatternLibraryLoader Twig loader service.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Loader\PatternLibraryLoader
  */
-#[Group('Patternkit')]
-#[CoversClass(PatternLibraryLoader::class)]
 class PatternLibraryLoaderTest extends KernelTestBase {
 
   /**

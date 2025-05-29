@@ -2,23 +2,22 @@
 
 namespace Drupal\Tests\patternkit\Kernel\Asset;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\patternkit\Asset\PatternDiscovery;
 use Drupal\patternkit\Asset\PatternDiscoveryInterface;
 use Drupal\Tests\patternkit\Kernel\PatternkitKernelTestBase;
 use Drupal\Tests\patternkit_example\Traits\PatternkitExampleLibraryAwareTrait;
-use PHPUnit\Framework\Attributes\Group;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 
 /**
- * Test cache usage within the PatternDiscovery class.
+ * Tests for the PatternDiscovery service with cache options enabled.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Asset\PatternDiscovery
  */
-#[Group('patternkit')]
-#[CoversClass(PatternDiscovery::class)]
 class PatternDiscoveryCacheTest extends PatternkitKernelTestBase {
 
   use ProphecyTrait;

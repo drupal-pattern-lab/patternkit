@@ -2,16 +2,12 @@
 
 namespace Drupal\Tests\patternkit\Unit\Schema;
 
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\patternkit\Exception\SchemaValidationException;
 use Drupal\patternkit\Schema\ContextBuilder;
 use Drupal\patternkit\Schema\SchemaHelper;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\UsesClass;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
@@ -22,10 +18,11 @@ use Swaggest\JsonSchema\SchemaContract;
 
 /**
  * Tests the SchemaHelper utility class.
+ *
+ * @group patternkit
+ * @coversDefaultClass \Drupal\patternkit\Schema\SchemaHelper
+ * @uses \Drupal\patternkit\Exception\SchemaException
  */
-#[Group('patternkit')]
-#[UsesClass('\Drupal\patternkit\Exception\SchemaException')]
-#[CoversClass(SchemaHelper::class)]
 class SchemaHelperTest extends UnitTestCase {
 
   use JsonDecodeTrait;
@@ -158,7 +155,11 @@ class SchemaHelperTest extends UnitTestCase {
     $this->context = new Context();
   }
 
-  #[DataProvider('providerIsCompositionSchema')]
+  /**
+   * Test if a schema is a composition schema.
+   *
+   * @dataProvider providerIsCompositionSchema
+   */
   public function testIsCompositionSchema(SchemaContract $schema, bool $expected) {
     $this->assertEquals($expected, SchemaHelper::isCompositionSchema($schema));
   }
@@ -185,6 +186,9 @@ class SchemaHelperTest extends UnitTestCase {
     return $cases;
   }
 
+  /**
+   * Test getting a composition schema.
+   */
   public function testGetCompositionSchema() {
     $schema = Schema::import(static::decodeJson(static::$flatSchema));
     $itemsSchema = $schema->getProperties()->breakpoints->items;
@@ -264,6 +268,9 @@ class SchemaHelperTest extends UnitTestCase {
     SchemaHelper::getCompositionSchema($schema->reveal(), 'my_value');
   }
 
+  /**
+   * Test if a value is valid according to a schema.
+   */
   public function testIsValid(): void {
     $valid_data = 'valid';
     $invalid_data = 'invalid';
@@ -280,7 +287,7 @@ class SchemaHelperTest extends UnitTestCase {
   }
 
   /**
-   * Verify the default schema is loaded if none is provided.
+   * Test that the default context is loaded if none is provided.
    */
   public function testIsValidLoadsDefaultContext(): void {
     $valid_data = 'valid';
@@ -295,7 +302,7 @@ class SchemaHelperTest extends UnitTestCase {
   }
 
   /**
-   * Verify the default schema is not loaded if one is provided.
+   * Test that the default context is not loaded if one is provided.
    */
   public function testIsValidDoesNotLoadDefaultContext(): void {
     $valid_data = 'valid';
