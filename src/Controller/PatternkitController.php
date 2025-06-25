@@ -16,6 +16,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * The response controller for Patternkit API endpoints.
@@ -148,7 +149,7 @@ class PatternkitController extends ControllerBase {
    * Presents the Patternkit block creation form.
    *
    * @param string $pattern_id
-   *   The pattern to add.
+   *   The pattern to add as a derivative ID..
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The current request object.
    *
@@ -157,9 +158,11 @@ class PatternkitController extends ControllerBase {
    *   \Drupal\Core\Render\RendererInterface::render().
    */
   public function addForm(string $pattern_id, Request $request): array {
+    $patternAssetId = PatternkitBlock::derivativeToAssetId($pattern_id);
+
     /** @var \Drupal\patternkit\Entity\PatternkitBlock $block */
     $block = $this->blockStorage->create([]);
-    $block->setPattern($pattern_id);
+    $block->setPattern($patternAssetId);
     if (($theme = $request->query->get('theme'))
       && array_key_exists($theme, $this->themeHandler->listInfo())) {
       // We have navigated to this page from the block library and will keep
@@ -167,7 +170,7 @@ class PatternkitController extends ControllerBase {
       // for the newly created block in the given theme.
       $block->setTheme($theme);
     }
-    return $this->entityFormBuilder()->getForm($block, 'default', ['pattern' => $pattern_id]);
+    return $this->entityFormBuilder()->getForm($block, 'default', ['pattern' => $patternAssetId]);
   }
 
   /**
@@ -253,9 +256,14 @@ class PatternkitController extends ControllerBase {
    * @throws \Drupal\patternkit\Exception\UnknownPatternException
    */
   public function getAddFormTitle(string $pattern_id): TranslatableMarkup {
-    $asset_id = PatternkitBlock::derivativeToAssetId(urldecode($pattern_id));
-    $pattern = $this->patternRepository->getPattern($asset_id);
-    return $this->t('Add %type Patternkit block', ['%type' => $pattern->label()]);
+    try {
+      $asset_id = PatternkitBlock::derivativeToAssetId(urldecode($pattern_id));
+      $pattern = $this->patternRepository->getPattern($asset_id);
+      return $this->t('Add %type Patternkit block', ['%type' => $pattern->label()]);
+    }
+    catch (\AssertionError | UnknownPatternException $exception) {
+      throw new NotFoundHttpException($exception->getMessage(), $exception);
+    }
   }
 
   /**

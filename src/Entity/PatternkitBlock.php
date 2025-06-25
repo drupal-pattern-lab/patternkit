@@ -40,13 +40,6 @@ use Drupal\Core\Field\BaseFieldDefinition;
  *   data_table = "patternkit_field_data",
  *   revision_data_table = "patternkit_field_revision",
  *   show_revision_ui = TRUE,
- *   links = {
- *     "canonical" = "/block/{patternkit_block}",
- *     "delete-form" = "/block/{patternkit_block}/delete",
- *     "edit-form" = "/block/{patternkit_block}",
- *     "collection" = "/admin/structure/block/patternkit",
- *     "create" = "/block",
- *   },
  *   translatable = TRUE,
  *   entity_keys = {
  *     "id" = "id",
@@ -70,6 +63,12 @@ use Drupal\Core\Field\BaseFieldDefinition;
  * are always rendered as blocks, and blocks already have their own render
  * caching.
  * See https://www.drupal.org/node/2284917#comment-9132521 for more information.
+ *
+ * @see \Drupal\patternkit\Hook\ReusableBlockHooks
+ *   Alterations to the entity type definition and related links are handled in
+ *   these hook implementations.
+ * @see \Drupal\patternkit\EventSubscriber\PatternkitReusableBlocksRouteSubscriber
+ *   Alterations to the available routes are handled here.
  *
  * @todo 2.0 Rename to PatternkitInstance, since this entity could have other
  * potential uses other than blocks, such as panes or views stubs.

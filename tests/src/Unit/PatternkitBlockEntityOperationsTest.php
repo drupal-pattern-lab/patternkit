@@ -217,7 +217,6 @@ class PatternkitBlockEntityOperationsTest extends UnitTestCase {
 
     $mock->expects($this->once())->method('saveBlockComponent')
       ->with(
-        $entity->reveal(),
         $patternBlockComponent->reveal(),
         $isRevisionable,
         $usesDefaultStorage,

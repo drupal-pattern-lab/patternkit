@@ -15,10 +15,14 @@ use Drupal\Core\Entity\Sql\SqlContentEntityStorage;
 use Drupal\Core\Entity\Sql\SqlContentEntityStorageSchema;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
+use Drupal\Core\Utility\UpdateException;
 use Drupal\patternkit\BulkOperations\LayoutUpdateBatchManager;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternRouteProvider;
 use Drupal\patternkit\Form\PatternLibraryJSONForm;
+use Drupal\patternkit\Hook\ReusableBlockHooks;
+use Drupal\patternkit\Plugin\Block\PatternkitBlock as BlockPatternkitBlock;
+use Drupal\patternkit\Plugin\Derivative\PatternkitBlock as DerivativePatternkitBlock;
 use Drupal\user\Entity\Role;
 use Drupal\user\RoleInterface;
 use Drupal\views\EntityViewsData;
@@ -30,6 +34,20 @@ function patternkit_uninstall(bool $is_syncing): void {
   // Cleanup the update results collection value if it exists.
   \Drupal::keyValue(LayoutUpdateBatchManager::RESULTS_COLLECTION)
     ->deleteAll();
+}
+
+/**
+ * Implements hook_requirements().
+ */
+function patternkit_requirements($phase): array {
+  $requirements = [];
+  if ($phase === 'runtime') {
+    /** @var \Drupal\patternkit\Hook\ReusableBlockHooks $hooks */
+    $hooks = \Drupal::classResolver(ReusableBlockHooks::class);
+    $requirements = $hooks->requirements($phase);
+  }
+
+  return $requirements;
 }
 
 /**
@@ -523,4 +541,92 @@ function patternkit_update_10306(): string {
   }
 
   return $message;
+}
+
+/**
+ * Update patternkit block records to correctly reference pattern ids.
+ */
+function patternkit_update_10307(): string {
+  $storage = \Drupal::entityTypeManager()->getStorage('patternkit_block');
+  $query = $storage->getQuery();
+  $matches = $query->condition('pattern_id', '@%', 'NOT LIKE')
+    ->accessCheck()
+    ->execute();
+  /** @var \Drupal\patternkit\Entity\PatternkitBlock[] $entities */
+  $entities = $storage->loadMultiple($matches);
+
+  $updated = 0;
+  foreach ($entities as $block) {
+    $derivative_id = $block->get('pattern_id')->value;
+    $asset_id = DerivativePatternkitBlock::derivativeToAssetId($derivative_id);
+    $block->set('pattern_id', $asset_id, FALSE);
+    $block->save();
+    $updated++;
+
+    \Drupal::logger('patternkit')->notice('Updated Patternkit block ID @id to correct pattern asset ID from "@old" to "@new".',
+      [
+        '@id' => $block->id(),
+        '@old' => $derivative_id,
+        '@new' => $asset_id,
+      ]);
+  }
+
+  if ($updated > 0) {
+    return \Drupal::translation()
+      ->formatPlural($updated, 'Fixed asset IDs for 1 block.', 'Fixed asset IDs for @count blocks.');
+  }
+  else {
+    return t('No invalid asset IDs were found.');
+  }
+}
+
+/**
+ * Capture unsaved changes in Patternkit blocks.
+ */
+function patternkit_update_10308(): string {
+  // Identify all patternkit blocks with serialized changes.
+  $block_storage = \Drupal::entityTypeManager()->getStorage('block');
+  $query = $block_storage->getQuery();
+  $matches = $query->condition('settings.provider', 'patternkit')
+    ->condition('settings.block_serialized', operator: 'IS NOT NULL')
+    ->execute();
+  $entities = $block_storage->loadMultiple($matches);
+
+  $message = \Drupal::translation()
+    ->formatPlural(count($entities),
+      'Identified 1 Patternkit Block with unsaved changes.',
+      'Identified @count Patternkit blocks with unsaved changes.'
+    );
+  \Drupal::logger('patternkit')->notice($message);
+
+  // Save serialized content changes.
+  $updated = 0;
+  foreach ($entities as $block) {
+    $plugin = $block->getPlugin();
+
+    if (!($plugin instanceof BlockPatternkitBlock)) {
+      $message = 'Unable to successfully load Patternkit Block plugin for config block "@id". Looking for Patternkit Block ID "@block_id".';
+      $context = [
+        '@id' => $block->id(),
+        '@block_id' => $block->getPluginId(),
+      ];
+      \Drupal::logger('patternkit')->error($message, $context);
+      throw new UpdateException('Failed to load a block plugin for updating.');
+    }
+
+    $plugin->cachePatternEntity();
+    $plugin->saveBlockContent(TRUE);
+    $post_save_configuration = $plugin->getConfiguration();
+    $block->set('settings', $post_save_configuration);
+    $block->save();
+    $updated++;
+  }
+
+  if ($updated > 0) {
+    return \Drupal::translation()
+      ->formatPlural($updated, 'Saved updated configuration for 1 block.', 'Saved updated configuration for @count blocks.');
+  }
+  else {
+    return t('No invalid blocks were found.');
+  }
 }

@@ -1,3 +1,4 @@
+# @todo Remove once reusable blocks are no longer supported. https://www.drupal.org/i/3516918
 entity.patternkit_block.collection:
   path: '/admin/structure/block/patternkit'
   defaults:
@@ -6,6 +7,7 @@ entity.patternkit_block.collection:
   requirements:
     _permission: 'administer blocks'
 
+# @todo Remove once reusable blocks are no longer supported. https://www.drupal.org/i/3516918
 entity.patternkit_block.canonical:
   path: '/patternkit_block/{patternkit_block}'
   defaults:
@@ -16,6 +18,7 @@ entity.patternkit_block.canonical:
     _permission: 'administer blocks'
     patternkit_block: \d+
 
+# @todo Remove once reusable blocks are no longer supported. https://www.drupal.org/i/3516918
 entity.patternkit_block.edit_form:
   path: '/patternkit_block/{patternkit_block}'
   defaults:
@@ -26,6 +29,7 @@ entity.patternkit_block.edit_form:
     _permission: 'administer blocks'
     patternkit_block: \d+
 
+# @todo Remove once reusable blocks are no longer supported. https://www.drupal.org/i/3516918
 entity.patternkit_block.delete_form:
   path: '/patternkit_block/{patternkit_block}/delete'
   defaults:
@@ -37,6 +41,7 @@ entity.patternkit_block.delete_form:
     _permission: 'administer blocks'
     patternkit_block: \d+
 
+# @todo Remove once reusable blocks are no longer supported. https://www.drupal.org/i/3516918
 patternkit.add_form:
   path: '/patternkit_block/add/{pattern_id}'
   defaults:
@@ -46,7 +51,9 @@ patternkit.add_form:
     _admin_route: TRUE
   requirements:
     _permission: 'administer blocks'
+    pattern_id: ^[a-zA-Z][a-zA-Z0-9_-]*$
 
+# @todo Remove once reusable blocks are no longer supported. https://www.drupal.org/i/3516918
 patternkit.add_page:
   path: '/patternkit_block/add'
   defaults:

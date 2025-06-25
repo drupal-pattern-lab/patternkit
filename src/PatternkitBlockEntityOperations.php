@@ -2,6 +2,7 @@
 
 namespace Drupal\patternkit;
 
+use Drupal\block\BlockInterface;
 use Drupal\Component\Plugin\DerivativeInspectionInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\EntityInterface;
@@ -11,6 +12,7 @@ use Drupal\Core\Entity\RevisionableInterface;
 use Drupal\layout_builder\LayoutEntityHelperTrait;
 use Drupal\layout_builder\SectionComponent;
 use Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface;
+use Drupal\patternkit\Plugin\Block\PatternkitBlock;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -73,7 +75,13 @@ class PatternkitBlockEntityOperations implements ContainerInjectionInterface {
   }
 
   /**
-   * Handles saving a parent entity.
+   * Handles saving a parent entity and ensures serialized settings are saved.
+   *
+   * During the Patternkit block editing process, updates to a block's
+   * configuration may not be fully saved, and instead may be recorded into a
+   * "block_serialized" value for storage until the parent entity is ready for
+   * these updates. These operations will ensure these serialized settings are
+   * properly saved into the block configuration and related components.
    *
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The parent entity.
@@ -89,9 +97,46 @@ class PatternkitBlockEntityOperations implements ContainerInjectionInterface {
    * @todo Add usage tracking for block components and patterns.
    */
   public function handlePreSave(EntityInterface $entity): void {
-    if (!$this->isLayoutCompatibleEntity($entity)) {
+    if ($entity instanceof BlockInterface) {
+      $this->handlePreSaveForBlocks($entity);
+    }
+    elseif ($this->isLayoutCompatibleEntity($entity)) {
+      $this->handlePreSaveForLayouts($entity);
+    }
+  }
+
+  /**
+   * Handle pre-save operations for config block entities.
+   *
+   * @param \Drupal\block\BlockInterface $block
+   *   The block entity being saved.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   * @throws \Drupal\Core\Entity\EntityStorageException
+   */
+  protected function handlePreSaveForBlocks(BlockInterface $block): void {
+    $plugin = $block->getPlugin();
+
+    // Stop here if the block being saved isn't a Patternkit block.
+    if (!($plugin instanceof PatternkitBlock)) {
       return;
     }
+
+    $this->saveBlockComponent($block, TRUE, FALSE);
+  }
+
+  /**
+   * Handle pre-save operations for a layout-compatible entity.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The layout-compatible entity being saved.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   * @throws \Drupal\Core\Entity\EntityStorageException
+   */
+  protected function handlePreSaveForLayouts(EntityInterface $entity): void {
     $duplicate_blocks = FALSE;
 
     $storage = $this->getSectionStorageForEntity($entity);
@@ -106,7 +151,7 @@ class PatternkitBlockEntityOperations implements ContainerInjectionInterface {
       // creation of a new block revision.
       $new_revision = $entity instanceof RevisionableInterface;
       foreach ($this->getPatternBlockComponents($sections) as $component) {
-        $this->saveBlockComponent($entity, $component, $new_revision, $duplicate_blocks);
+        $this->saveBlockComponent($component, $new_revision, $duplicate_blocks);
       }
     }
 
@@ -152,7 +197,7 @@ class PatternkitBlockEntityOperations implements ContainerInjectionInterface {
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    * @throws \Drupal\Core\Entity\EntityStorageException
    */
-  protected function saveBlockComponent(EntityInterface $entity, SectionComponent $component, $new_revision, $duplicate_blocks): void {
+  protected function saveBlockLayoutComponent(EntityInterface $entity, SectionComponent $component, $new_revision, $duplicate_blocks): void {
     /** @var \Drupal\patternkit\Plugin\Block\PatternkitBlock $plugin */
     $plugin = $component->getPlugin();
     $plugin->cachePatternEntity();
@@ -160,6 +205,35 @@ class PatternkitBlockEntityOperations implements ContainerInjectionInterface {
     $post_save_configuration = $plugin->getConfiguration();
     // @todo Record in usage tracking.
     $component->setConfiguration($post_save_configuration);
+  }
+
+  /**
+   * Save updates for a block instance or inline block.
+   *
+   * @param \Drupal\block\BlockInterface|\Drupal\layout_builder\SectionComponent $component
+   *   The block config entity or layout section component being saved.
+   * @param bool $new_revision
+   *   Whether a new revision of the block should be created when modified.
+   * @param bool $duplicate_blocks
+   *   Whether the blocks should be duplicated.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   * @throws \Drupal\Core\Entity\EntityStorageException
+   */
+  protected function saveBlockComponent(BlockInterface|SectionComponent $component, $new_revision, $duplicate_blocks): void {
+    /** @var \Drupal\patternkit\Plugin\Block\PatternkitBlock $plugin */
+    $plugin = $component->getPlugin();
+    $plugin->cachePatternEntity();
+    $plugin->saveBlockContent($new_revision, $duplicate_blocks);
+    $post_save_configuration = $plugin->getConfiguration();
+    // @todo Record in usage tracking.
+    if ($component instanceof BlockInterface) {
+      $component->set('settings', $post_save_configuration);
+    }
+    else {
+      $component->setConfiguration($post_save_configuration);
+    }
   }
 
 }

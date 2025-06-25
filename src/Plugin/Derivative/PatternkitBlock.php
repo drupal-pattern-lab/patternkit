@@ -8,79 +8,41 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Plugin\Discovery\ContainerDeriverInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\patternkit\Form\PatternkitSettingsForm;
+use Drupal\patternkit\PatternkitEnvironment;
+use Drupal\patternkit\PatternkitEnvironmentAwareInterface;
+use Drupal\patternkit\PatternkitEnvironmentAwareTrait;
 use Drupal\patternkit\PatternRepository;
-use Psr\Log\LoggerInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * A deriver to create block derivatives for all discovered patterns.
  */
-class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
+class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface, LoggerAwareInterface, PatternkitEnvironmentAwareInterface {
 
+  use LoggerAwareTrait;
+  use PatternkitEnvironmentAwareTrait;
   use StringTranslationTrait;
-
-  /**
-   * Configuration for the patternkit module.
-   *
-   * @var \Drupal\Core\Config\ImmutableConfig
-   */
-  protected ImmutableConfig $config;
-
-  /**
-   * A logger for output of messages during processing.
-   *
-   * @var \Psr\Log\LoggerInterface
-   */
-  protected LoggerInterface $logger;
-
-  /**
-   * The storage handler for patternkit patterns.
-   *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
-   */
-  protected EntityStorageInterface $patternStorage;
-
-  /**
-   * The storage handler for patternkit blocks.
-   *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
-   */
-  protected EntityStorageInterface $blockStorage;
-
-  /**
-   * The patternkit repository service.
-   *
-   * @var \Drupal\patternkit\PatternRepository
-   */
-  protected PatternRepository $patternRepository;
 
   /**
    * Used to populate all the types of Patternkit blocks based on libraries.
    *
    * @param \Drupal\Core\Config\ImmutableConfig $config
    *   Provides patternkit configurable settings.
-   * @param \Psr\Log\LoggerInterface $logger
-   *   Generates and provides log channels.
-   * @param \Drupal\patternkit\PatternRepository $pattern_repository
+   * @param \Drupal\patternkit\PatternRepository $patternRepository
    *   Provides a list of discovered pattern metadata and instantiates patterns.
-   * @param \Drupal\Core\Entity\EntityStorageInterface $pattern_storage
+   * @param \Drupal\Core\Entity\EntityStorageInterface $patternStorage
    *   Loads and saves patternkit pattern entities to storage.
-   * @param \Drupal\Core\Entity\EntityStorageInterface $block_storage
+   * @param \Drupal\Core\Entity\EntityStorageInterface $blockStorage
    *   Loads and saves patternkit block entities to storage.
    */
   public function __construct(
-    ImmutableConfig $config,
-    LoggerInterface $logger,
-    PatternRepository $pattern_repository,
-    EntityStorageInterface $pattern_storage,
-    EntityStorageInterface $block_storage,
-  ) {
-    $this->config = $config;
-    $this->logger = $logger;
-    $this->patternRepository = $pattern_repository;
-    $this->patternStorage = $pattern_storage;
-    $this->blockStorage = $block_storage;
-  }
+    protected readonly ImmutableConfig $config,
+    protected readonly PatternRepository $patternRepository,
+    protected readonly EntityStorageInterface $patternStorage,
+    protected readonly EntityStorageInterface $blockStorage,
+  ) {}
 
   /**
    * {@inheritdoc}
@@ -90,17 +52,21 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    *   Thrown if the storage handler couldn't be loaded.
    */
-  public static function create(ContainerInterface $container, $base_plugin_id): self {
+  public static function create(ContainerInterface $container, $base_plugin_id): static {
     $config_factory = $container->get('config.factory');
     $entity_manager = $container->get('entity_type.manager');
 
-    return new static(
+    $instance = new static(
       $config_factory->get(PatternkitSettingsForm::SETTINGS),
-      $container->get('logger.channel.patternkit'),
       $container->get('patternkit.pattern.repository'),
       $entity_manager->getStorage('patternkit_pattern'),
       $entity_manager->getStorage('patternkit_block'),
     );
+
+    $instance->setLogger($container->get('logger.channel.patternkit'));
+    $instance->setPatternkitEnvironment($container->get('patternkit.environment'));
+
+    return $instance;
   }
 
   /**
@@ -191,7 +157,42 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
       $this->derivatives[$pattern_id] += $base_plugin_definition;
     }
 
-    // @todo Load from pattern repository and handle missing patterns.
+    if ($this->getEnvironmentFeature(PatternkitEnvironment::FEATURE_ENABLE_REUSABLE_BLOCKS, FALSE)) {
+      $this->derivatives += $this->getReusableBlockDerivatives($base_plugin_definition);
+    }
+
+    return parent::getDerivativeDefinitions($base_plugin_definition);
+  }
+
+  /**
+   * Load derivative definitions for reusable blocks.
+   *
+   * @param array $base_plugin_definition
+   *   The definition array of the base plugin.
+   *
+   * @return array
+   *   An array of full derivative definitions keyed on derivative id, but only
+   *   for Patternkit's defined reusable blocks.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   *
+   * @deprecated in patternkit:9.1.2 and is removed from patternkit:9.2.0.
+   *    Reusable blocks should be removed or replaced before updating.
+   * @see https://www.drupal.org/node/3517440
+   *
+   * @internal
+   */
+  #[\Deprecated(
+    message: 'Patternkit reusable block support will be removed in Patternkit 9.2.0.',
+    since: '9.1.2',
+  )]
+  private function getReusableBlockDerivatives(array $base_plugin_definition): array {
+    if (\PHP_VERSION_ID < 80400) {
+      @trigger_deprecation('drupal/patternkit', '9.1.2', 'Reusable block support will be removed from Patternkit in version 9.2.0.');
+    }
+    $derivatives = [];
+
     $patternkit_blocks = [];
     $pk_block_ids = $this->blockStorage
       ->getQuery()
@@ -204,15 +205,34 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface {
     }
     foreach ($patternkit_blocks as $patternkit_block) {
       $pkb_uuid = $patternkit_block->uuid();
-      $this->derivatives[$pkb_uuid] = $base_plugin_definition;
-      $block_pattern_id = $patternkit_block->getPattern() ?? '';
-      $this->derivatives[$pkb_uuid]['pattern'] = $this->derivatives[$block_pattern_id]['pattern'] ?? $this->patternStorage->create([]);
-      $this->derivatives[$pkb_uuid]['admin_label'] = $patternkit_block->label();
-      $this->derivatives[$pkb_uuid]['config_dependencies']['content'] = [
+      $block_pattern_id = $patternkit_block->getPattern() ?? FALSE;
+
+      // Log a failure to load if the pattern could not be identified as
+      // expected.
+      if (!$block_pattern_id || !str_starts_with($block_pattern_id, '@')) {
+        $this->logger->error('Failed to load reusable Patternkit block "@uuid". Related pattern identified as "@pattern".', [
+          '@uuid' => $pkb_uuid,
+          '@pattern' => $block_pattern_id,
+        ]);
+
+        continue;
+      }
+
+      // Load the Pattern entity associated with this derivative.
+      $block_derivative_id = static::assetToDerivativeId($block_pattern_id);
+
+      $derivative_pattern_entity = $this->derivatives[$block_derivative_id]['pattern'] ?? $this->patternRepository->getPattern($block_pattern_id);
+
+      // Assemble the derivative definition.
+      $derivatives[$pkb_uuid] = $base_plugin_definition;
+      $derivatives[$pkb_uuid]['pattern'] = $derivative_pattern_entity;
+      $derivatives[$pkb_uuid]['admin_label'] = $patternkit_block->label();
+      $derivatives[$pkb_uuid]['config_dependencies']['content'] = [
         $patternkit_block->getConfigDependencyName(),
       ];
     }
-    return parent::getDerivativeDefinitions($base_plugin_definition);
+
+    return $derivatives;
   }
 
 }

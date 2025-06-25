@@ -260,9 +260,9 @@ class PatternkitBlockTest extends UnitTestCase {
       $this->token->reveal(),
       $this->languageManager->reveal(),
       $this->eventDispatcher->reveal(),
-      $this->logger->reveal(),
     );
 
+    $plugin->setLogger($this->logger->reveal());
     $plugin->setPatternkitEnvironment($this->patternkitEnvironment->reveal());
 
     return $this->plugin = $plugin;
@@ -305,7 +305,6 @@ class PatternkitBlockTest extends UnitTestCase {
         $this->token->reveal(),
         $this->languageManager->reveal(),
         $this->eventDispatcher->reveal(),
-        $this->logger->reveal(),
       ])
       ->onlyMethods($methods)
       ->getMock();

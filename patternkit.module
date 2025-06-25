@@ -6,8 +6,10 @@
  */
 
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Hook\Attribute\LegacyHook;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Url;
+use Drupal\patternkit\Hook\ReusableBlockHooks;
 use Drupal\patternkit\PatternkitBlockEntityOperations;
 
 /**
@@ -58,7 +60,7 @@ function patternkit_theme($existing, $type, $theme, $path): array {
 /**
  * Implements hook_entity_presave().
  */
-function patternkit_entity_presave(EntityInterface $entity) {
+function patternkit_entity_presave(EntityInterface $entity): void {
   if (\Drupal::moduleHandler()->moduleExists('layout_builder')) {
     /** @var \Drupal\patternkit\PatternkitBlockEntityOperations $entity_operations */
     $entity_operations = \Drupal::classResolver(PatternkitBlockEntityOperations::class);
@@ -67,9 +69,49 @@ function patternkit_entity_presave(EntityInterface $entity) {
 }
 
 /**
+ * Implements hook_entity_type_alter().
+ */
+#[LegacyHook]
+function patternkit_entity_type_alter(array &$entity_types): void {
+  /** @var \Drupal\patternkit\Hook\ReusableBlockHooks $reusable_block_hooks */
+  $reusable_block_hooks = \Drupal::classResolver(ReusableBlockHooks::class);
+  $reusable_block_hooks->entityTypeAlter($entity_types);
+}
+
+/**
+ * Implements hook_contextual_links_alter().
+ */
+#[LegacyHook]
+function patternkit_contextual_links_alter(array &$links, $group, array $route_parameters): void {
+  /** @var \Drupal\patternkit\Hook\ReusableBlockHooks $reusable_block_hooks */
+  $reusable_block_hooks = \Drupal::classResolver(ReusableBlockHooks::class);
+  $reusable_block_hooks->contextualLinksAlter($links, $group, $route_parameters);
+}
+
+/**
+ * Implements hook_local_tasks_alter().
+ */
+#[LegacyHook]
+function patternkit_local_tasks_alter(&$local_tasks): void {
+  /** @var \Drupal\patternkit\Hook\ReusableBlockHooks $reusable_block_hooks */
+  $reusable_block_hooks = \Drupal::classResolver(ReusableBlockHooks::class);
+  $reusable_block_hooks->localTasksAlter($local_tasks);
+}
+
+/**
+ * Implements hook_menu_local_actions_alter().
+ */
+#[LegacyHook]
+function patternkit_menu_local_actions_alter(&$local_actions): void {
+  /** @var \Drupal\patternkit\Hook\ReusableBlockHooks $reusable_block_hooks */
+  $reusable_block_hooks = \Drupal::classResolver(ReusableBlockHooks::class);
+  $reusable_block_hooks->menuLocalActionsAlter($local_actions);
+}
+
+/**
  * Implements hook_rebuild().
  */
-function patternkit_rebuild() {
+function patternkit_rebuild(): void {
   // Rebuild the library definitions cache.
   \Drupal::service('patternkit.library.namespace_resolver')
     ->rebuild();

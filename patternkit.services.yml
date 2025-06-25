@@ -16,6 +16,14 @@ parameters:
       # the pattern directly from the available parser definition instead.
       bypass_database_cache: false
 
+      # Support for reusable blocks has been deprecated and will be removed in
+      # the Patternkit 9.1.3 release. Patternkit versions 9.1.1 and earlier
+      # included support for reusable blocks by default. To continue using them
+      # on a site, enable this setting in your sites "services.yml" file.
+      # Before upgrading to the 9.1.3 or later release, existing reusable
+      # blocks will need to be removed.
+      enable_reusable_blocks: false
+
 services:
   _defaults:
     autoconfigure: true
@@ -144,6 +152,12 @@ services:
       - { name: event_subscriber }
   patternkit.subscriber.render_error:
     class: Drupal\patternkit\EventSubscriber\RenderFailureErrorDisplaySubscriber
+    tags:
+      - { name: event_subscriber }
+  # @todo Remove once reusable blocks are no longer supported. https://www.drupal.org/i/3516918
+  patternkit.subscriber.route.reusable_blocks:
+    class: Drupal\patternkit\EventSubscriber\PatternkitReusableBlocksRouteSubscriber
+    arguments: ['@config.factory']
     tags:
       - { name: event_subscriber }
   patternkit.environment:

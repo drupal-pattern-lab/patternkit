@@ -32,7 +32,8 @@ use Drupal\patternkit\PatternkitEnvironmentAwareTrait;
 use Drupal\patternkit\PatternkitEvents;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\patternkit\PatternRepository;
-use Psr\Log\LoggerInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -48,8 +49,9 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
   category: new TranslatableMarkup('Patternkit Reusable'),
   deriver: 'Drupal\patternkit\Plugin\Derivative\PatternkitBlock'
 )]
-class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterface, PatternkitEnvironmentAwareInterface {
+class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterface, LoggerAwareInterface, PatternkitEnvironmentAwareInterface {
 
+  use LoggerAwareTrait;
   use PatternkitEnvironmentAwareTrait;
 
   /**
@@ -109,8 +111,6 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    *   The language manager service.
    * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $eventDispatcher
    *   The event dispatcher service.
-   * @param \Psr\Log\LoggerInterface $logger
-   *   The logger channel for logging messages.
    *
    * @throws \Drupal\Component\Plugin\Exception\ContextException
    */
@@ -129,7 +129,6 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     protected Token $token,
     protected LanguageManagerInterface $languageManager,
     protected EventDispatcherInterface $eventDispatcher,
-    protected LoggerInterface $logger,
   ) {
     // Assign token contexts into the plugin definition.
     // @todo Move this into a lazy-load method to happen when needed instead.
@@ -164,9 +163,9 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       $container->get('token'),
       $container->get('language_manager'),
       $container->get('event_dispatcher'),
-      $container->get('logger.channel.patternkit'),
     );
 
+    $plugin->setLogger($container->get('logger.channel.patternkit'));
     $plugin->setPatternkitEnvironment($container->get('patternkit.environment'));
 
     return $plugin;
@@ -217,11 +216,19 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $form = parent::buildConfigurationForm($form, $form_state);
     // Remove the title override fields.
     unset($form['label_display']);
-    $form['label']['#states'] = [
-      'visible' => [
-        ':input[name="settings[reusable]"]' => ['checked' => TRUE],
-      ],
-    ];
+
+    // Hide the title field if reusable blocks are not supported.
+    if (isset($form['reusable'])) {
+      $form['label']['#states'] = [
+        'visible' => [
+          ':input[name="settings[reusable]"]' => ['checked' => TRUE],
+        ],
+      ];
+    }
+    else {
+      $form['label']['#access'] = FALSE;
+    }
+
     return $form;
   }
 
@@ -261,11 +268,6 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $form_id = $form_state->getBuildInfo()['form_id'];
     $is_block_form = ($form_id === 'block_form');
 
-    // If no block entity has been created yet, default to reusable for blocks
-    // being created in the block library, but disable it by default for blocks
-    // in layout builder and elsewhere.
-    $configuration['reusable'] = $patternkit_block->isNew() ? $is_block_form : $patternkit_block->isReusable();
-
     // Include a messages list wrapper to display AJAX warnings or messages.
     // NB. The class must be added on a theme wrapper since the '#attributes'
     // key is lost when the status_messages element renders as a placeholder.
@@ -281,20 +283,33 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
       ],
     ];
 
-    // Warn about accidental changes to reusable blocks.
-    if (isset($configuration['reusable']) && $configuration['reusable']) {
-      $form['messages']['#message_list']['warning'][] =
-        $this->t('This block is reusable! Any changes made will be applied globally.');
-    }
+    // Only show the reusable checkbox if support for reusable blocks is
+    // explicitly enabled.
+    if ($this->getEnvironmentFeature(PatternkitEnvironment::FEATURE_ENABLE_REUSABLE_BLOCKS, FALSE)) {
+      // If no block entity has been created yet, default to reusable for blocks
+      // being created in the block library, but disable it by default for
+      // blocks in layout builder and elsewhere.
+      $configuration['reusable'] = $patternkit_block->isNew() ? $is_block_form : $patternkit_block->isReusable();
 
-    $form['reusable'] = [
-      '#type' => 'checkbox',
-      '#title' => $this->t('Reusable'),
-      '#default_value' => $configuration['reusable'] ?? FALSE,
-      '#description' => $this->t('Set to make the pattern selectable in the block library and usable on other layouts. This option is irreversible.'),
-      // Disable changing the value if it's already reusable.
-      '#disabled' => $configuration['reusable'] ?? FALSE,
-    ];
+      // Warn about accidental changes to reusable blocks.
+      if (isset($configuration['reusable']) && $configuration['reusable']) {
+        $form['messages']['#message_list']['warning'][] =
+          $this->t('This block is reusable! Any changes made will be applied globally.');
+      }
+
+      $form['reusable'] = [
+        '#type' => 'checkbox',
+        '#title' => $this->t('Reusable'),
+        '#default_value' => $configuration['reusable'] ?? FALSE,
+        '#description' => $this->t('Set to make the pattern selectable in the block library and usable on other layouts. This option is irreversible.'),
+        // Disable changing the value if it's already reusable.
+        '#disabled' => $configuration['reusable'] ?? FALSE,
+      ];
+    }
+    else {
+      // Mark all new blocks as not reusable until the feature is removed.
+      $configuration['reusable'] = FALSE;
+    }
 
     // Adds in missing descriptions for the Drupal Core context fields.
     if (isset($form['context_mapping'])) {
@@ -1118,7 +1133,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    */
   protected function isPatternUpdateAvailable(): bool {
     // Don't prompt for pattern updates if we're not loading from the database.
-    $shouldBypassDatabase = $this->getEnvironmentFeature('bypass_database_cache', FALSE);
+    $shouldBypassDatabase = $this->getEnvironmentFeature(PatternkitEnvironment::FEATURE_BYPASS_DATABASE_CACHE, FALSE);
     if ($shouldBypassDatabase) {
       return FALSE;
     }
