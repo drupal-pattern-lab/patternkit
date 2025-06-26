@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\patternkit;
+namespace Drupal\patternkit\Hook;
 
 use Drupal\block\BlockInterface;
 use Drupal\Component\Plugin\DerivativeInspectionInterface;
@@ -9,10 +9,13 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\RevisionableInterface;
+use Drupal\Core\Extension\ModuleHandlerInterface;
+use Drupal\Core\Hook\Attribute\Hook;
 use Drupal\layout_builder\LayoutEntityHelperTrait;
 use Drupal\layout_builder\SectionComponent;
 use Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -24,16 +27,9 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @todo Implement usage tracking as seen in \Drupal\layout_builder\InlineBlockEntityOperations.
  * @todo Remove unused block entities on save.
  */
-class PatternkitBlockEntityOperations implements ContainerInjectionInterface {
+class PatternkitBlockEntityHooks implements ContainerInjectionInterface {
 
   use LayoutEntityHelperTrait;
-
-  /**
-   * The entity type manager.
-   *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
-   */
-  protected EntityTypeManagerInterface $entityTypeManager;
 
   /**
    * Entity storage for patternkit_pattern entities.
@@ -50,18 +46,31 @@ class PatternkitBlockEntityOperations implements ContainerInjectionInterface {
   protected EntityStorageInterface $blockStorage;
 
   /**
-   * Constructs a new PatternkitBlockEntityOperations object.
+   * Local tracking for whether the layout_builder module is enabled.
+   *
+   * @var bool
+   */
+  protected bool $layoutBuilderEnabled;
+
+  /**
+   * Constructs a new PatternkitBlockEntityHooks object.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The entity type manager service.
-   * @param \Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface $section_storage_manager
+   * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
+   *   The module handler service.
+   * @param \Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface|null $sectionStorageManager
    *   The section storage manager.
    */
-  public function __construct(EntityTypeManagerInterface $entityTypeManager, SectionStorageManagerInterface $section_storage_manager) {
-    $this->entityTypeManager = $entityTypeManager;
+  public function __construct(
+    protected EntityTypeManagerInterface $entityTypeManager,
+    protected ModuleHandlerInterface $moduleHandler,
+    #[Autowire(service: 'plugin.manager.layout_builder.section_storage')]
+    ?SectionStorageManagerInterface $sectionStorageManager = NULL,
+  ) {
     $this->patternStorage = $entityTypeManager->getStorage('patternkit_pattern');
     $this->blockStorage = $entityTypeManager->getStorage('patternkit_block');
-    $this->sectionStorageManager = $section_storage_manager;
+    $this->sectionStorageManager = $sectionStorageManager;
   }
 
   /**
@@ -70,7 +79,8 @@ class PatternkitBlockEntityOperations implements ContainerInjectionInterface {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('entity_type.manager'),
-      $container->get('plugin.manager.layout_builder.section_storage')
+      $container->get('module_handler'),
+      $container->get('plugin.manager.layout_builder.section_storage', ContainerInterface::NULL_ON_INVALID_REFERENCE)
     );
   }
 
@@ -96,11 +106,12 @@ class PatternkitBlockEntityOperations implements ContainerInjectionInterface {
    * @todo Add removal handling for deleted blocks.
    * @todo Add usage tracking for block components and patterns.
    */
+  #[Hook('entity_presave')]
   public function handlePreSave(EntityInterface $entity): void {
     if ($entity instanceof BlockInterface) {
       $this->handlePreSaveForBlocks($entity);
     }
-    elseif ($this->isLayoutCompatibleEntity($entity)) {
+    elseif ($this->isLayoutBuilderEnabled() && $this->isLayoutCompatibleEntity($entity)) {
       $this->handlePreSaveForLayouts($entity);
     }
   }
@@ -234,6 +245,33 @@ class PatternkitBlockEntityOperations implements ContainerInjectionInterface {
     else {
       $component->setConfiguration($post_save_configuration);
     }
+  }
+
+  /**
+   * Set the section storage manager service to be used.
+   *
+   * @param \Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface $sectionStorageManager
+   *   The section storage manager service to be used.
+   *
+   * @internal
+   * @codeCoverageIgnore
+   */
+  public function setSectionStorageManager(SectionStorageManagerInterface $sectionStorageManager): void {
+    $this->sectionStorageManager = $sectionStorageManager;
+  }
+
+  /**
+   * Test whether the layout_builder module is enabled.
+   *
+   * @return bool
+   *   True if the layout_builder module is enabled, false otherwise.
+   */
+  protected function isLayoutBuilderEnabled(): bool {
+    if (!isset($this->layoutBuilderEnabled)) {
+      $this->layoutBuilderEnabled = $this->moduleHandler->moduleExists('layout_builder');
+    }
+
+    return $this->layoutBuilderEnabled;
   }
 
 }

@@ -861,7 +861,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    * @return \Drupal\patternkit\Entity\PatternkitBlock
    *   The updated or created patternkit block entity.
    *
-   * @see \Drupal\patternkit\PatternkitBlockEntityOperations::handlePreSave()
+   * @see \Drupal\patternkit\Hook\PatternkitBlockEntityHooks::handlePreSave()
    */
   protected function updateBlockEntity(array $values, ?EntityPatternkitBlock $block_entity = NULL): EntityPatternkitBlock {
     $block_entity ??= $this->getBlockEntity();
@@ -908,7 +908,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    * @see \Drupal\patternkit\Plugin\Block\PatternkitBlock::updateBlockEntity()
    *   Unsaved edits to block entity values may be saved in a serialized value
    *   until the parent entity is saved.
-   * @see \Drupal\patternkit\PatternkitBlockEntityOperations::handlePreSave()
+   * @see \Drupal\patternkit\Hook\PatternkitBlockEntityHooks::handlePreSave()
    */
   public function saveBlockContent(bool $new_revision = FALSE, bool $duplicate_block = FALSE): void {
     /** @var \Drupal\patternkit\Entity\PatternkitBlock|null $block */

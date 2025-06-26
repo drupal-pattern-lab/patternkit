@@ -8,63 +8,45 @@
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Hook\Attribute\LegacyHook;
 use Drupal\Core\Routing\RouteMatchInterface;
-use Drupal\Core\Url;
+use Drupal\patternkit\Hook\PatternkitBlockEntityHooks;
+use Drupal\patternkit\Hook\PatternkitHooks;
 use Drupal\patternkit\Hook\ReusableBlockHooks;
-use Drupal\patternkit\PatternkitBlockEntityOperations;
 
 /**
  * Implements hook_help().
+ *
+ * @see \Drupal\patternkit\Hook\PatternkitHooks::help()
  */
+#[LegacyHook]
 function patternkit_help($route_name, RouteMatchInterface $route_match) {
-  switch ($route_name) {
-    case 'help.page.patternkit':
-      $patternkit_example = \Drupal::moduleHandler()->moduleExists('patternkit_example') ? Url::fromRoute('help.page', ['name' => 'patternkit_example'])->toString() : '#';
-      $patternkit_media_library = \Drupal::moduleHandler()->moduleExists('patternkit_media_library') ? Url::fromRoute('help.page', ['name' => 'patternkit_media_library'])->toString() : '#';
-
-      $output = <<<HTML
-<h3>About</h3>
-<p>The Patternkit module loads your templates, patterns, and components into Drupal as blocks where you can then add them to your pages and layouts. You can configure them with a JSON file with an identical filename in the same directory as the Twig template.</p>\
-<p>This allows Layout Builder, Page Manager, Drupal blocks layout, or anything that uses blocks, to function as a custom page-builder app.</p>
-<p>Site builders can add Drupal tokens to Pattern blocks instead of trying to pick through Drupal variables in a template. These are displayed from assigned Context such as node, user, and language.</p>
-
-<h3>Uses</h3>
-<dl>
-  <dt>Loading a library of patterns to use with Layout Builder</dt>
-  <dd>Users with the <em>Administer blocks</em> permission can add Patternkit blocks to entity layouts.</dd>
-  <dt>Loading a directory of patterns to use with the Block Layout</dt>
-  <dd>Users with the <em>Administer blocks</em> permission can add Patternkit blocks to the site block layout.</dd>
-</dl>
-HTML;
-      // phpcs:ignore Drupal.Semantics.FunctionT.NotLiteralString
-      return t($output, [
-        ':patternkit_example' => $patternkit_example,
-        ':patternkit_media_library' => $patternkit_media_library,
-      ]);
-
-    default:
-      return NULL;
-  }
+  /** @var \Drupal\patternkit\Hook\PatternkitHooks $patternkit_hooks */
+  $patternkit_hooks = \Drupal::classResolver(PatternkitHooks::class);
+  return $patternkit_hooks->help($route_name, $route_match);
 }
 
 /**
  * Implements hook_theme().
+ *
+ * @see \Drupal\patternkit\Hook\PatternkitHooks::theme()
  */
+#[LegacyHook]
 function patternkit_theme($existing, $type, $theme, $path): array {
-  return [
-    'patternkit_add_list' => [
-      'variables' => ['content' => NULL],
-    ],
-  ];
+  /** @var \Drupal\patternkit\Hook\PatternkitHooks $patternkit_hooks */
+  $patternkit_hooks = \Drupal::classResolver(PatternkitHooks::class);
+  return $patternkit_hooks->theme($existing, $type, $theme, $path);
 }
 
 /**
  * Implements hook_entity_presave().
+ *
+ * @see \Drupal\patternkit\Hook\PatternkitBlockEntityHooks::handlePreSave()
  */
+#[LegacyHook]
 function patternkit_entity_presave(EntityInterface $entity): void {
   if (\Drupal::moduleHandler()->moduleExists('layout_builder')) {
-    /** @var \Drupal\patternkit\PatternkitBlockEntityOperations $entity_operations */
-    $entity_operations = \Drupal::classResolver(PatternkitBlockEntityOperations::class);
-    $entity_operations->handlePreSave($entity);
+    /** @var \Drupal\patternkit\Hook\PatternkitBlockEntityHooks $entity_hooks */
+    $entity_hooks = \Drupal::classResolver(PatternkitBlockEntityHooks::class);
+    $entity_hooks->handlePreSave($entity);
   }
 }
 

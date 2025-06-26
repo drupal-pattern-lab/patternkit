@@ -16,6 +16,7 @@ services:
       - '@patternkit.pattern.detector'
       - '@plugin.manager.layout_builder.section_storage'
       - '@pattern_usage.revision_helper'
+  Drupal\patternkit_usage_tracking\LayoutUsageTracker: '@pattern_usage.layout_tracker'
 
   pattern_usage.revision_helper:
     class: Drupal\patternkit_usage_tracking\UsageRevisionHelper

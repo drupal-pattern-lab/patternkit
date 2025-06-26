@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\patternkit\Unit;
+namespace Drupal\Tests\patternkit\Unit\Hook;
 
 use Drupal\Core\Block\BlockPluginInterface;
 use Drupal\Core\Entity\EntityInterface;
@@ -12,7 +12,7 @@ use Drupal\layout_builder\Section;
 use Drupal\layout_builder\SectionComponent;
 use Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface;
 use Drupal\layout_builder\SectionStorageInterface;
-use Drupal\patternkit\PatternkitBlockEntityOperations;
+use Drupal\patternkit\Hook\PatternkitBlockEntityHooks;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
@@ -20,33 +20,33 @@ use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 
 /**
- * Unit tests for the PatternkitBlockEntityOperations service.
+ * Unit tests for the PatternkitBlockEntityHooks service.
  *
  * @group patternkit
- * @coversDefaultClass \Drupal\patternkit\PatternkitBlockEntityOperations
+ * @coversDefaultClass \Drupal\patternkit\Hook\PatternkitBlockEntityHooks
  */
-class PatternkitBlockEntityOperationsTest extends UnitTestCase {
+class PatternkitBlockEntityHooksTest extends UnitTestCase {
 
   use ProphecyTrait;
 
   /**
    * Block storage manager.
    *
-   * @var \Drupal\Core\Entity\EntityStorageInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Entity\EntityStorageInterface>
    */
   protected ObjectProphecy $blockStorage;
 
   /**
    * Pattern storage manager.
    *
-   * @var \Drupal\Core\Entity\EntityStorageInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Entity\EntityStorageInterface>
    */
   protected ObjectProphecy $patternStorage;
 
   /**
    * Section storage manager.
    *
-   * @var \Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface>
    */
   protected ObjectProphecy $sectionStorageManager;
 
@@ -68,18 +68,18 @@ class PatternkitBlockEntityOperationsTest extends UnitTestCase {
    * constructor to enable more customization of the dependencies per test
    * without as much boilerplate in each test case.
    *
-   * @return \Drupal\patternkit\PatternkitBlockEntityOperations
+   * @return \Drupal\patternkit\Hook\PatternkitBlockEntityHooks
    *   An instantiated instance of the test subject with all configured
    *   dependency mocks injected appropriately.
    */
-  protected function getTestSubject(): PatternkitBlockEntityOperations {
+  protected function getTestSubject(): PatternkitBlockEntityHooks {
     $entityTypeManager = $this->prophesize(EntityTypeManagerInterface::class);
     $entityTypeManager->getStorage('patternkit_block')
       ->willReturn($this->blockStorage->reveal());
     $entityTypeManager->getStorage('patternkit_pattern')
       ->willReturn($this->patternStorage->reveal());
 
-    return new PatternkitBlockEntityOperations(
+    return new PatternkitBlockEntityHooks(
       $entityTypeManager->reveal(),
       $this->sectionStorageManager->reveal(),
     );
@@ -90,11 +90,14 @@ class PatternkitBlockEntityOperationsTest extends UnitTestCase {
     $entity_type = $this->prophesize(EntityTypeInterface::class);
     $entity->getEntityType()->willReturn($entity_type->reveal());
 
-    $mock = $this->createPartialMock(PatternkitBlockEntityOperations::class, [
+    $mock = $this->createPartialMock(PatternkitBlockEntityHooks::class, [
+      'isLayoutBuilderEnabled',
       'isLayoutCompatibleEntity',
       'originalEntityUsesDefaultStorage',
       'getSectionStorageForEntity',
     ]);
+    $mock->setSectionStorageManager($this->sectionStorageManager->reveal());
+    $mock->method('isLayoutBuilderEnabled')->willReturn(TRUE);
     $mock->method('originalEntityUsesDefaultStorage')->willReturn(TRUE);
     $mock->method('isLayoutCompatibleEntity')->with($entity->reveal())
       ->willReturn(TRUE);
@@ -157,12 +160,16 @@ class PatternkitBlockEntityOperationsTest extends UnitTestCase {
   public function testHandlePresaveForNonLayoutEntity() {
     $entity = $this->prophesize(EntityInterface::class);
 
-    $mock = $this->createPartialMock(PatternkitBlockEntityOperations::class, [
+    $mock = $this->createPartialMock(PatternkitBlockEntityHooks::class, [
+      'isLayoutBuilderEnabled',
       'isLayoutCompatibleEntity',
       'getSectionStorageForEntity',
       'saveBlockComponent',
     ]);
-    $mock->method('isLayoutCompatibleEntity')->willReturn(FALSE);
+    $mock->expects($this->once())
+      ->method('isLayoutBuilderEnabled')->willReturn(TRUE);
+    $mock->expects($this->once())
+      ->method('isLayoutCompatibleEntity')->willReturn(FALSE);
     $mock->expects($this->never())->method('getSectionStorageForEntity');
     $mock->expects($this->never())->method('saveBlockComponent');
 
@@ -187,13 +194,18 @@ class PatternkitBlockEntityOperationsTest extends UnitTestCase {
       $entity->willImplement(RevisionableInterface::class);
     }
 
-    $mock = $this->createPartialMock(PatternkitBlockEntityOperations::class, [
+    $mock = $this->createPartialMock(PatternkitBlockEntityHooks::class, [
+      'isLayoutBuilderEnabled',
       'isLayoutCompatibleEntity',
       'getSectionStorageForEntity',
       'originalEntityUsesDefaultStorage',
       'saveBlockComponent',
     ]);
-    $mock->method('isLayoutCompatibleEntity')->willReturn(TRUE);
+    $mock->setSectionStorageManager($this->sectionStorageManager->reveal());
+    $mock->expects($this->once())
+      ->method('isLayoutBuilderEnabled')->willReturn(TRUE);
+    $mock->expects($this->once())
+      ->method('isLayoutCompatibleEntity')->willReturn(TRUE);
     $mock->method('originalEntityUsesDefaultStorage')->willReturn($usesDefaultStorage);
 
     // Mock a placed patternkit block component.

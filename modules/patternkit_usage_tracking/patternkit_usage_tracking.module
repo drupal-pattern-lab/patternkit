@@ -6,49 +6,65 @@
  */
 
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\patternkit_usage_tracking\PatternUsageEntityOperations;
+use Drupal\Core\Hook\Attribute\LegacyHook;
+use Drupal\patternkit_usage_tracking\Hook\PatternkitUsageTrackingEntityHooks;
 
 /**
  * Implements hook_entity_insert().
+ *
+ * @see \Drupal\patternkit_usage_tracking\Hook\PatternkitUsageTrackingEntityHooks::entityInsert()
  */
+#[LegacyHook]
 function patternkit_usage_tracking_entity_insert(EntityInterface $entity) {
-  /** @var \Drupal\patternkit_usage_tracking\PatternUsageEntityOperations $entity_operations */
-  $entity_operations = \Drupal::classResolver(PatternUsageEntityOperations::class);
-  $entity_operations->handleInsert($entity);
+  /** @var \Drupal\patternkit_usage_tracking\Hook\PatternkitUsageTrackingEntityHooks $entity_hooks */
+  $entity_hooks = \Drupal::classResolver(PatternkitUsageTrackingEntityHooks::class);
+  $entity_hooks->entityInsert($entity);
 }
 
 /**
  * Implements hook_entity_update().
+ *
+ * @see \Drupal\patternkit_usage_tracking\Hook\PatternkitUsageTrackingEntityHooks::entityUpdate()
  */
+#[LegacyHook]
 function patternkit_usage_tracking_entity_update(EntityInterface $entity) {
-  /** @var \Drupal\patternkit_usage_tracking\PatternUsageEntityOperations $entity_operations */
-  $entity_operations = \Drupal::classResolver(PatternUsageEntityOperations::class);
-  $entity_operations->handleUpdate($entity);
+  /** @var \Drupal\patternkit_usage_tracking\Hook\PatternkitUsageTrackingEntityHooks $entity_hooks */
+  $entity_hooks = \Drupal::classResolver(PatternkitUsageTrackingEntityHooks::class);
+  $entity_hooks->entityUpdate($entity);
 }
 
 /**
  * Implements hook_entity_predelete().
+ *
+ * @see \Drupal\patternkit_usage_tracking\Hook\PatternkitUsageTrackingEntityHooks::entityPreDelete()
  */
+#[LegacyHook]
 function patternkit_usage_tracking_entity_predelete(EntityInterface $entity) {
-  /** @var \Drupal\patternkit_usage_tracking\PatternUsageEntityOperations $entity_operations */
-  $entity_operations = \Drupal::classResolver(PatternUsageEntityOperations::class);
-  $entity_operations->handlePreDelete($entity);
+  /** @var \Drupal\patternkit_usage_tracking\Hook\PatternkitUsageTrackingEntityHooks $entity_hooks */
+  $entity_hooks = \Drupal::classResolver(PatternkitUsageTrackingEntityHooks::class);
+  $entity_hooks->entityPreDelete($entity);
 }
 
 /**
  * Implements hook_entity_translation_delete().
+ *
+ * @see \Drupal\patternkit_usage_tracking\Hook\PatternkitUsageTrackingEntityHooks::entityTranslationDelete()
  */
+#[LegacyHook]
 function patternkit_usage_tracking_entity_translation_delete(EntityInterface $translation) {
-  /** @var \Drupal\patternkit_usage_tracking\PatternUsageEntityOperations $entity_operations */
-  $entity_operations = \Drupal::classResolver(PatternUsageEntityOperations::class);
-  $entity_operations->handleTranslationDelete($translation);
+  /** @var \Drupal\patternkit_usage_tracking\Hook\PatternkitUsageTrackingEntityHooks $entity_hooks */
+  $entity_hooks = \Drupal::classResolver(PatternkitUsageTrackingEntityHooks::class);
+  $entity_hooks->entityTranslationDelete($translation);
 }
 
 /**
  * Implements hook_entity_revision_delete().
+ *
+ * @see \Drupal\patternkit_usage_tracking\Hook\PatternkitUsageTrackingEntityHooks::entityRevisionDelete()
  */
+#[LegacyHook]
 function patternkit_usage_tracking_entity_revision_delete(EntityInterface $entity) {
-  /** @var \Drupal\patternkit_usage_tracking\PatternUsageEntityOperations $entity_operations */
-  $entity_operations = \Drupal::classResolver(PatternUsageEntityOperations::class);
-  $entity_operations->handleRevisionDelete($entity);
+  /** @var \Drupal\patternkit_usage_tracking\Hook\PatternkitUsageTrackingEntityHooks $entity_hooks */
+  $entity_hooks = \Drupal::classResolver(PatternkitUsageTrackingEntityHooks::class);
+  $entity_hooks->entityRevisionDelete($entity);
 }
