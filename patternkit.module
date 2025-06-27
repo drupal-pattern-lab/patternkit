@@ -8,9 +8,11 @@
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Hook\Attribute\LegacyHook;
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\patternkit\Hook\PatternkitBlockEntityHooks;
 use Drupal\patternkit\Hook\PatternkitHooks;
 use Drupal\patternkit\Hook\ReusableBlockHooks;
+use Drupal\patternkit\Hook\ThemeHooks;
 
 /**
  * Implements hook_help().
@@ -18,7 +20,7 @@ use Drupal\patternkit\Hook\ReusableBlockHooks;
  * @see \Drupal\patternkit\Hook\PatternkitHooks::help()
  */
 #[LegacyHook]
-function patternkit_help($route_name, RouteMatchInterface $route_match) {
+function patternkit_help($route_name, RouteMatchInterface $route_match): ?TranslatableMarkup {
   /** @var \Drupal\patternkit\Hook\PatternkitHooks $patternkit_hooks */
   $patternkit_hooks = \Drupal::classResolver(PatternkitHooks::class);
   return $patternkit_hooks->help($route_name, $route_match);
@@ -68,6 +70,10 @@ function patternkit_contextual_links_alter(array &$links, $group, array $route_p
   /** @var \Drupal\patternkit\Hook\ReusableBlockHooks $reusable_block_hooks */
   $reusable_block_hooks = \Drupal::classResolver(ReusableBlockHooks::class);
   $reusable_block_hooks->contextualLinksAlter($links, $group, $route_parameters);
+
+  /** @var \Drupal\patternkit\Hook\ThemeHooks $theme_hooks */
+  $theme_hooks = \Drupal::classResolver(ThemeHooks::class);
+  $theme_hooks->contextualLinksAlter($links, $group, $route_parameters);
 }
 
 /**
@@ -88,6 +94,16 @@ function patternkit_menu_local_actions_alter(&$local_actions): void {
   /** @var \Drupal\patternkit\Hook\ReusableBlockHooks $reusable_block_hooks */
   $reusable_block_hooks = \Drupal::classResolver(ReusableBlockHooks::class);
   $reusable_block_hooks->menuLocalActionsAlter($local_actions);
+}
+
+/**
+ * Implements hook_link_alter().
+ */
+#[LegacyHook]
+function patternkit_link_alter(&$variables): void {
+  /** @var \Drupal\patternkit\Hook\ThemeHooks $theme_hooks */
+  $theme_hooks = \Drupal::classResolver(ThemeHooks::class);
+  $theme_hooks->linkAlter($variables);
 }
 
 /**

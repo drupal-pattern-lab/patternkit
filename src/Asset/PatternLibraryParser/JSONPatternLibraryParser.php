@@ -174,7 +174,7 @@ class JSONPatternLibraryParser extends PatternLibraryParserBase {
     if ($file_contents = file_get_contents($files['json'])) {
       $schema_content = (array) $this->serializer::decode($file_contents);
 
-      // Whitelist which schema values we pay attention to at this stage.
+      // Filter which schema values we pay attention to at this stage.
       $schema_values = array_intersect_key($schema_content, array_flip([
         'category',
         'name',

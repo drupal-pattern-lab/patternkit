@@ -83,7 +83,7 @@ class BlockCacheLoadTest extends PatternkitBrowserTestBase {
 
     // Force a clear of the render cache to prevent cached results.
     // @todo Remove this once cache tag clearing is working properly.
-    \Drupal::service('cache.render')->invalidateAll();
+    \Drupal::service('cache.render')->deleteAll();
 
     // Confirm the page is loading the cached template.
     $this->drupalGet('node/1');

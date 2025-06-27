@@ -73,3 +73,6 @@ parameters:
     - message: '#^\\Drupal calls should be avoided in classes, use dependency injection instead$#'
       count: 1
       path: src/UpdateHelper.php
+    - message: '#^\\Drupal calls should be avoided in classes, use dependency injection instead$#'
+      count: 1
+      path: src/Hook/ThemeHooks.php
