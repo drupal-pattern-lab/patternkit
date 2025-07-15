@@ -2,10 +2,10 @@
 
 namespace Drupal\Tests\patternkit\Unit\Plugin\PatternLibrary;
 
-use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
 use Drupal\Core\Template\TwigEnvironment;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Plugin\PatternLibrary\PatternLibraryTwig;
+use Drupal\Tests\patternkit\Traits\AssertArraySubsetTrait;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
@@ -18,7 +18,7 @@ use Prophecy\Prophecy\ObjectProphecy;
  */
 class PatternLibraryTwigTest extends UnitTestCase {
 
-  use ArraySubsetAsserts;
+  use AssertArraySubsetTrait;
   use ProphecyTrait;
 
   /**

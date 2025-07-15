@@ -22,8 +22,8 @@ use Drupal\patternkit\Schema\SchemaWalkerFactory;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\UnitTestCase;
 use PHPUnit\Framework\Constraint\Constraint;
-use PHPUnit\Framework\Constraint\IsType;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Rule\InvokedCount as InvokedCountMatcher;
 use Psr\Log\LoggerInterface;
 use Swaggest\JsonSchema\Context;
 use Swaggest\JsonSchema\DataPreProcessor;
@@ -407,7 +407,7 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
     $expectationsCallback = function (MockObject $processor, $context, $metadata) {
       // Set expectations for how and with what arguments the applies method
       // will be called.
-      $processor->expects(static::exactly(6))
+      $processor->expects(new InvokedCountMatcher(6))
         ->method('applies')
         ->willReturn(TRUE);
 
@@ -451,7 +451,7 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
       ];
 
       // Set expectations for how and with what the apply method will be called.
-      $processor->expects(static::exactly(6))
+      $processor->expects(new InvokedCountMatcher(6))
         ->method('apply')
         ->willReturnCallback(function () use (&$expected_args) {
           $expected = array_shift($expected_args);
@@ -959,7 +959,8 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
       ->with(
         $this->isInstanceOf(SchemaContract::class),
         // Only string values should make it past the applies() method.
-        $this->isType(IsType::TYPE_STRING),
+        // @phpstan-ignore method.deprecated
+        method_exists($this, 'isString') ? $this->isString() : $this->isType('string'),
       )
       ->willReturnCallback(function ($schema, $value) {
         return $value . ' PROCESSED';
