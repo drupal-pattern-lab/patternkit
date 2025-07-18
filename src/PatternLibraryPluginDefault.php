@@ -11,6 +11,7 @@ use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\Core\Extension\Extension;
 use Drupal\Core\Messenger\MessengerTrait;
+use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\patternkit\Asset\PatternLibraryParserInterface;
 use Drupal\patternkit\Entity\PatternInterface;
@@ -47,6 +48,8 @@ abstract class PatternLibraryPluginDefault extends PluginBase implements Configu
    *   Pattern library parser service.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   Extension config retrieval.
+   * @param \Drupal\Core\Render\RendererInterface $renderer
+   *   The renderer service.
    * @param array $configuration
    *   Plugin config.
    * @param string $plugin_id
@@ -58,6 +61,7 @@ abstract class PatternLibraryPluginDefault extends PluginBase implements Configu
     protected readonly string $root,
     protected PatternLibraryParserInterface $parser,
     ConfigFactoryInterface $config_factory,
+    protected RendererInterface $renderer,
     array $configuration,
     string $plugin_id,
     mixed $plugin_definition,

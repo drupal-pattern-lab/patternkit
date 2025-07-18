@@ -31,7 +31,17 @@ class PatternLibraryTwig extends PatternLibraryJSON {
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): self {
-    $instance = parent::create($container, $configuration, $plugin_id, $plugin_definition);
+    $instance = new static(
+      $container->getParameter('app.root'),
+      $container->get('patternkit.asset.library.parser.json'),
+      $container->get('config.factory'),
+      $container->get('renderer'),
+      $container->get('serialization.json'),
+      $container->get('patternkit.jsoneditor.form_builder'),
+      $configuration,
+      $plugin_id,
+      $plugin_definition
+    );
 
     // Replace the parser with the Twig parser instead.
     $instance->parser = $container->get('patternkit.asset.library.parser.twig');
@@ -66,8 +76,8 @@ class PatternLibraryTwig extends PatternLibraryJSON {
         $hash = $pattern->getHash();
         $asset_id = $pattern->getAssetId();
         $path = $pattern->getAssets()['twig'] ?: $this->t('Could not resolve file path.');
-        if (str_starts_with($path, DRUPAL_ROOT)) {
-          $path = substr($path, strlen(DRUPAL_ROOT));
+        if (str_starts_with($path, $this->root)) {
+          $path = substr($path, strlen($this->root));
         }
         try {
           $version = $pattern->version->value;
@@ -83,7 +93,10 @@ class PatternLibraryTwig extends PatternLibraryJSON {
           . $output['#template']
           .= "\n<!-- END OUTPUT FROM '" . Html::escape($path) . "' -->\n\n";
       }
-      $elements[] = $output;
+
+      $elements[] = [
+        '#markup' => $this->renderer->render($output),
+      ];
     }
     return $elements;
   }
