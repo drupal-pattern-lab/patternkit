@@ -36,6 +36,7 @@ class PatternLibraryFile extends PatternLibraryPluginDefault implements Containe
       $container->getParameter('app.root'),
       $container->get('patternkit.asset.library.parser.file'),
       $container->get('config.factory'),
+      $container->get('renderer'),
       $configuration,
       $plugin_id,
       $plugin_definition
