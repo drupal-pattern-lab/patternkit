@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\patternkit\Unit\Element;
 
-use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\StringTranslation\TranslationInterface;
@@ -13,6 +12,7 @@ use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\patternkit\PatternRepository;
 use Drupal\Tests\Core\Render\RendererTestBase;
+use Drupal\Tests\patternkit\Traits\AssertArraySubsetTrait;
 use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -27,7 +27,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class JsonEditorFormTest extends RendererTestBase {
 
-  use ArraySubsetAsserts;
+  use AssertArraySubsetTrait;
   use ProphecyTrait;
 
   /**

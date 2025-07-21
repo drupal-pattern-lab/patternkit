@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\patternkit\Unit;
 
-use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
 use Drupal\Component\Plugin\Exception\PluginException;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
@@ -18,6 +17,7 @@ use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Form\PatternLibraryJSONForm;
 use Drupal\patternkit\JsonEditorFormBuilder;
 use Drupal\patternkit\PatternLibraryPluginManager;
+use Drupal\Tests\patternkit\Traits\AssertArraySubsetTrait;
 use Drupal\Tests\UnitTestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
@@ -38,8 +38,8 @@ use Webmozart\Assert\InvalidArgumentException;
  */
 class JsonEditorFormBuilderTest extends UnitTestCase {
 
+  use AssertArraySubsetTrait;
   use ProphecyTrait;
-  use ArraySubsetAsserts;
 
   /**
    * The mocked pattern library plugin manager service.
