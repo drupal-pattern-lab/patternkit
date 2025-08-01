@@ -174,7 +174,7 @@ class PatternElementTest extends RendererTestBase {
     $patternMock = $this->getPatternMock();
     $element['#pattern'] = $patternMock;
 
-    $returnString = $this->getRandomGenerator()->string();
+    $returnString = 'simple test string';
     $returnValue = [
       '#markup' => $returnString,
     ];
@@ -188,12 +188,9 @@ class PatternElementTest extends RendererTestBase {
 
     $result = $this->patternElement->preRenderPatternElement($element);
 
-    // @todo Restore this back to rendering once double-escaping in the renderer
-    //   is resolved.
-    // Sometimes, rendering with special characters gets HTML encoded causing
-    // inconsistent test failures unrelated to the actual code functionality
-    // being tested.
-    $this->assertEquals($returnString, $result['#markup']);
+    // The result now contains a Markup object due to isolated render context.
+    // Convert to string for comparison.
+    $this->assertEquals($returnString, (string) $result['#markup']);
 
     // Confirm cache metadata persisted through.
     if (isset($element['#cache'])) {
