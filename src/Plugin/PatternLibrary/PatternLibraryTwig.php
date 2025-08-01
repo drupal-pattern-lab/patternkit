@@ -94,9 +94,7 @@ class PatternLibraryTwig extends PatternLibraryJSON {
           .= "\n<!-- END OUTPUT FROM '" . Html::escape($path) . "' -->\n\n";
       }
 
-      $elements[] = [
-        '#markup' => $this->renderer->render($output),
-      ];
+      $elements[] = $output;
     }
     return $elements;
   }

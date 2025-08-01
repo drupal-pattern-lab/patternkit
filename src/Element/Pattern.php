@@ -7,6 +7,7 @@ use Drupal\Core\Render\Attribute\RenderElement;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Render\Element\RenderElementBase;
+use Drupal\Core\Render\RenderContext;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Event\PatternRenderFailureEvent;
 use Drupal\patternkit\Exception\UnknownPatternException;
@@ -82,6 +83,8 @@ class Pattern extends RenderElementBase implements ContainerFactoryPluginInterfa
    *   The pattern repository service.
    * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $eventDispatcher
    *   The event dispatcher service.
+   * @param \Drupal\Core\Render\RendererInterface $renderer
+   *   The renderer service.
    */
   public function __construct(
     array $configuration,
@@ -91,6 +94,7 @@ class Pattern extends RenderElementBase implements ContainerFactoryPluginInterfa
     protected PatternLibraryPluginManager $libraryPluginManager,
     protected PatternRepository $patternRepository,
     protected EventDispatcherInterface $eventDispatcher,
+    protected \Drupal\Core\Render\RendererInterface $renderer,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
   }
@@ -107,6 +111,7 @@ class Pattern extends RenderElementBase implements ContainerFactoryPluginInterfa
       $container->get('plugin.manager.library.pattern'),
       $container->get('patternkit.pattern.repository'),
       $container->get('event_dispatcher'),
+      $container->get('renderer'),
     );
   }
 
@@ -179,7 +184,23 @@ class Pattern extends RenderElementBase implements ContainerFactoryPluginInterfa
 
       // Use the pattern's library plugin to produce rendered output.
       $library_plugin = $this->getPatternLibraryPlugin($pattern);
-      $elements = $library_plugin->render([$pattern]);
+      $pattern_elements = $library_plugin->render([$pattern]);
+
+      // Render within an isolated render context to prevent context pollution.
+      $render_context = new RenderContext();
+      $elements = $this->renderer->executeInRenderContext($render_context, function () use ($pattern_elements) {
+        return $this->renderer->render($pattern_elements);
+      });
+
+      // Bubble up metadata from the isolated render context.
+      $context_metadata = $render_context->pop();
+      $metadata->merge($context_metadata);
+
+      // Convert the rendered output back to a render array for proper
+      // metadata handling.
+      $elements = [
+        '#markup' => $elements,
+      ];
     }
     catch (\Throwable $exception) {
       // Dispatch an event for the render failure to allow subscribers to react
