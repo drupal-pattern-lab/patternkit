@@ -35,7 +35,6 @@ class PatternLibraryTwig extends PatternLibraryJSON {
       $container->getParameter('app.root'),
       $container->get('patternkit.asset.library.parser.json'),
       $container->get('config.factory'),
-      $container->get('renderer'),
       $container->get('serialization.json'),
       $container->get('patternkit.jsoneditor.form_builder'),
       $configuration,

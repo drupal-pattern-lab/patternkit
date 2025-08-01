@@ -2,6 +2,7 @@
 
 namespace Drupal\patternkit\Element;
 
+use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Render\Attribute\RenderElement;
 use Drupal\Core\Render\BubbleableMetadata;
@@ -94,7 +95,7 @@ class Pattern extends RenderElementBase implements ContainerFactoryPluginInterfa
     protected PatternLibraryPluginManager $libraryPluginManager,
     protected PatternRepository $patternRepository,
     protected EventDispatcherInterface $eventDispatcher,
-    protected \Drupal\Core\Render\RendererInterface $renderer,
+    protected RendererInterface $renderer,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
   }

@@ -5,7 +5,6 @@ namespace Drupal\Tests\patternkit\Unit\Plugin\PatternLibrary;
 use Drupal\Component\Serialization\SerializationInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Config\ImmutableConfig;
-use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\Template\TwigEnvironment;
 use Drupal\patternkit\Asset\PatternLibraryParserInterface;
 use Drupal\patternkit\Entity\PatternInterface;
@@ -13,7 +12,6 @@ use Drupal\patternkit\PatternFormBuilderInterface;
 use Drupal\patternkit\Plugin\PatternLibrary\PatternLibraryTwig;
 use Drupal\Tests\patternkit\Traits\AssertArraySubsetTrait;
 use Drupal\Tests\UnitTestCase;
-use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 
@@ -43,13 +41,6 @@ class PatternLibraryTwigTest extends UnitTestCase {
   protected ObjectProphecy $twigEnvironment;
 
   /**
-   * The stubbed renderer service.
-   *
-   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Render\RendererInterface>
-   */
-  protected ObjectProphecy $renderer;
-
-  /**
    * {@inheritdoc}
    */
   protected function setUp(): void {
@@ -57,8 +48,6 @@ class PatternLibraryTwigTest extends UnitTestCase {
 
     $this->twigEnvironment = $this->prophesize(TwigEnvironment::class);
     $this->twigEnvironment->isDebug()->willReturn(FALSE);
-
-    $this->renderer = $this->prophesize(RendererInterface::class);
 
     // Create a mock config factory that returns a valid config.
     $configFactory = $this->prophesize(ConfigFactoryInterface::class);
@@ -71,14 +60,12 @@ class PatternLibraryTwigTest extends UnitTestCase {
       '/test/root',
       $this->prophesize(PatternLibraryParserInterface::class)->reveal(),
       $configFactory->reveal(),
-      $this->renderer->reveal(),
       $this->prophesize(SerializationInterface::class)->reveal(),
       $this->prophesize(PatternFormBuilderInterface::class)->reveal(),
       [],
       'test',
       []
     );
-    $this->plugin->setTestRenderer($this->renderer->reveal());
     $this->plugin->setTestTwigEnvironment($this->twigEnvironment->reveal());
   }
 
@@ -93,28 +80,26 @@ class PatternLibraryTwigTest extends UnitTestCase {
     ];
     $patternProphecy = $this->getPatternMock($template, $config);
 
-    // Mock the renderer to return a simple string.
-    $this->renderer
-      ->render(Argument::type('array'))
-      ->willReturn('<div>Rendered output</div>');
-
     $result = $this->plugin->render([$patternProphecy->reveal()]);
 
     $element = $result[0];
 
-    // Confirm the markup is returned as expected.
-    $this->assertArrayHasKey('#markup', $element);
-    $this->assertEquals('<div>Rendered output</div>', $element['#markup']);
+    // Confirm the render array structure is returned as expected.
+    $this->assertArrayHasKey('#type', $element);
+    $this->assertEquals('inline_template', $element['#type']);
+    $this->assertArrayHasKey('#template', $element);
+    $this->assertEquals($template, $element['#template']);
+    $this->assertArrayHasKey('#context', $element);
 
-    // Verify the renderer was called with the expected render array.
-    $this->renderer
-      ->render(Argument::that(function ($renderArray) use ($template) {
-        return $renderArray['#type'] === 'inline_template' &&
-          $renderArray['#template'] === $template &&
-          isset($renderArray['#context']['example']) &&
-          $renderArray['#context']['example'] === 'config';
-      }))
-      ->shouldHaveBeenCalledOnce();
+    // Check that the context contains the config values.
+    $this->assertArrayHasKey('example', $element['#context']);
+    $this->assertEquals('config', $element['#context']['example']);
+    $this->assertArrayHasKey('nested', $element['#context']);
+    $this->assertEquals(['values'], $element['#context']['nested']);
+
+    // Check that the pattern object is also in the context.
+    $this->assertArrayHasKey('pattern', $element['#context']);
+    $this->assertSame($patternProphecy->reveal(), $element['#context']['pattern']);
   }
 
   /**
@@ -148,28 +133,11 @@ class TestablePatternLibraryTwig extends PatternLibraryTwig {
   protected $testRoot = '/test/root';
 
   /**
-   * Test renderer service.
-   *
-   * @var \Drupal\Core\Render\RendererInterface
-   */
-  protected $testRenderer;
-
-  /**
    * Test twig environment service.
    *
    * @var \Drupal\Core\Template\TwigEnvironment
    */
   protected $testTwigEnvironment;
-
-  /**
-   * Set the test renderer service.
-   *
-   * @param \Drupal\Core\Render\RendererInterface $renderer
-   *   The renderer service.
-   */
-  public function setTestRenderer($renderer) {
-    $this->testRenderer = $renderer;
-  }
 
   /**
    * Set the test twig environment service.
@@ -189,16 +157,6 @@ class TestablePatternLibraryTwig extends PatternLibraryTwig {
    */
   protected function getRoot(): string {
     return $this->testRoot;
-  }
-
-  /**
-   * Get the test renderer service.
-   *
-   * @return \Drupal\Core\Render\RendererInterface
-   *   The renderer service.
-   */
-  protected function renderer(): RendererInterface {
-    return $this->testRenderer;
   }
 
   /**
