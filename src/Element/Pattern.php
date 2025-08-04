@@ -214,7 +214,7 @@ class Pattern extends RenderElementBase implements ContainerFactoryPluginInterfa
       }
       else {
         $elements = [
-          '#markup' => $this->t('This content is unavailable.'),
+          '#markup' => '<p>' . $this->t('This content is unavailable.') . '</p>',
         ];
       }
     }
