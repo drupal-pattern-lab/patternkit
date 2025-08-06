@@ -337,8 +337,7 @@ class PatternElementTest extends RendererTestBase {
 
     // Expect error output.
     $this->assertArrayHasKey('#markup', $output);
-    $this->assertInstanceOf(TranslatableMarkup::class, $output['#markup']);
-    $this->assertEquals('This content is unavailable.', $output['#markup']->getUntranslatedString());
+    $this->assertEquals('<p>This content is unavailable.</p>', (string) $output['#markup']);
   }
 
   /**
@@ -373,8 +372,7 @@ class PatternElementTest extends RendererTestBase {
     // tested with kernel testing since that is now replaced using event
     // dispatching.
     $this->assertArrayHasKey('#markup', $output);
-    $this->assertInstanceOf(TranslatableMarkup::class, $output['#markup']);
-    $this->assertEquals('This content is unavailable.', $output['#markup']->getUntranslatedString());
+    $this->assertEquals('<p>This content is unavailable.</p>', (string) $output['#markup'] );
   }
 
   /**

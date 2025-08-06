@@ -124,7 +124,7 @@ class PatternErrorTest extends PatternkitKernelTestBase implements ServiceModifi
     $output = $this->renderer->renderRoot($element);
 
     // Expect the rendered output to produce an error message.
-    $error_message = 'Failed to load pattern <em class="placeholder">@patternkit/unknown/pattern</em>.';
+    $error_message = '<p>Failed to load pattern <em class="placeholder">@patternkit/unknown/pattern</em>.</p>';
     $this->assertEquals($error_message, (string) $output);
 
     // Expect the pattern error element to be encapsulated in an 'error' key.
@@ -162,7 +162,7 @@ class PatternErrorTest extends PatternkitKernelTestBase implements ServiceModifi
     $output = $this->renderer->renderRoot($element);
 
     // Expect the rendered output to produce an error message.
-    $error_message = 'Failed to render pattern <em class="placeholder">Example</em> (<em class="placeholder">@patternkit/atoms/example/src/example</em>).';
+    $error_message = '<p>Failed to render pattern <em class="placeholder">Example</em> (<em class="placeholder">@patternkit/atoms/example/src/example</em>).</p>';
     $this->assertEquals($error_message, (string) $output);
 
     // Expect the pattern error element to be encapsulated in an 'error' key.
@@ -203,7 +203,7 @@ class PatternErrorTest extends PatternkitKernelTestBase implements ServiceModifi
     $output = $this->renderer->renderRoot($element);
 
     // Expect the rendered output to produce an error message.
-    $error_message = 'Failed to render pattern <em class="placeholder">Example</em> (<em class="placeholder">@patternkit/atoms/example/src/example</em>).';
+    $error_message = '<p>Failed to render pattern <em class="placeholder">Example</em> (<em class="placeholder">@patternkit/atoms/example/src/example</em>).</p>';
     $this->assertEquals($error_message, (string) $output);
 
     // Expect the pattern error element to be encapsulated in an 'error' key.
