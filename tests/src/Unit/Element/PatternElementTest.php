@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\patternkit\Unit\Element;
 
-use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\patternkit\Element\Pattern;
 use Drupal\patternkit\Entity\Pattern as EntityPattern;
@@ -372,7 +371,7 @@ class PatternElementTest extends RendererTestBase {
     // tested with kernel testing since that is now replaced using event
     // dispatching.
     $this->assertArrayHasKey('#markup', $output);
-    $this->assertEquals('<p>This content is unavailable.</p>', (string) $output['#markup'] );
+    $this->assertEquals('<p>This content is unavailable.</p>', (string) $output['#markup']);
   }
 
   /**
