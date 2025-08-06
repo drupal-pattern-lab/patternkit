@@ -203,6 +203,13 @@ class PatternElementTest extends RendererTestBase {
       ], $result['#cache']);
     }
 
+    // Confirm attachment metadata persisted through.
+    if (isset($element['#attached'])) {
+      // Ensure keys for basic metadata exist for comparison since they'll be
+      // stubbed out as empty arrays if not present.
+      $this->assertEquals($element['#attached'], $result['#attached']);
+    }
+
     // Confirm any child elements persisted through.
     // Child elements would be any array keys not beginning with a '#'.
     $child_elements = array_filter($element, fn($key) => !str_starts_with($key, '#'), ARRAY_FILTER_USE_KEY);
@@ -269,6 +276,19 @@ class PatternElementTest extends RendererTestBase {
           // Add a child element to be persisted as well.
           'some_child' => [
             '#type' => 'pattern_child',
+          ],
+        ],
+      ],
+      'attachments' => [
+        [
+          '#type' => 'pattern',
+          '#config' => [],
+          '#context' => [],
+          // Add attached assets to be persisted.
+          '#attached' => [
+            'library' => [
+              'patternkit/cygnet',
+            ],
           ],
         ],
       ],
@@ -355,6 +375,48 @@ class PatternElementTest extends RendererTestBase {
     $this->assertArrayHasKey('#markup', $output);
     $this->assertInstanceOf(TranslatableMarkup::class, $output['#markup']);
     $this->assertEquals('This content is unavailable.', $output['#markup']->getUntranslatedString());
+  }
+
+  /**
+   * Test pre-rendering a pattern element with attachments added during render.
+   */
+  public function testPreRenderPatternElementWithLateAttachment(): void {
+
+    $element = [
+      '#type' => 'pattern',
+      '#config' => [],
+      '#context' => [],
+    ];
+
+    $patternMock = $this->getPatternMock();
+    $element['#pattern'] = $patternMock;
+
+    $returnString = 'simple test string';
+    $pluginRenderResult = [
+      '#markup' => $returnString,
+      '#attached' => [
+        'library' => [
+          'patternkit/cygnet',
+        ],
+      ],
+    ];
+
+    $this->libraryPlugin->expects($this->once())
+      ->method('render')
+      ->with($this->callback(function ($arg) use ($patternMock): bool {
+        // Confirm the mock pattern was the first array element passed in.
+        return $arg[0] == $patternMock;
+      }))
+      ->willReturn($pluginRenderResult);
+
+    $result = $this->patternElement->preRenderPatternElement($element);
+
+    // The result now contains a Markup object due to isolated render context.
+    // Convert to string for comparison.
+    $this->assertEquals($returnString, (string) $result['#markup']);
+
+    // Confirm the expected attachment data was returned.
+    $this->assertEquals($pluginRenderResult['#attached'], $result['#attached']);
   }
 
   /**
