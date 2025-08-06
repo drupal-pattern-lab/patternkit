@@ -195,7 +195,7 @@ class Pattern extends RenderElementBase implements ContainerFactoryPluginInterfa
 
       // Bubble up metadata from the isolated render context.
       $context_metadata = $render_context->pop();
-      $metadata->merge($context_metadata);
+      $metadata = $metadata->merge($context_metadata);
 
       // Convert the rendered output back to a render array for proper
       // metadata handling.
