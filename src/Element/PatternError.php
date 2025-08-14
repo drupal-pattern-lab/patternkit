@@ -92,7 +92,7 @@ class PatternError extends RenderElementBase {
 
     // Return an error message to display in place of the rendered pattern.
     $element['message'] = [
-      '#markup' => $message,
+      '#markup' => "<p>$message</p>",
     ];
 
     return $element;
@@ -129,7 +129,14 @@ class PatternError extends RenderElementBase {
       // Expose the exception message in a formatted block for easier
       // parsing by developers.
       $element['debug']['message'] = [
-        '#markup' => '<pre>' . $exception->getMessage() . '</pre>',
+        '#theme_wrappers' => [
+          'container' => [
+            '#attributes' => [
+              'class' => ['patternkit-debug', 'patternkit-error'],
+            ],
+          ],
+        ],
+        '#markup' => '<p>' . $exception->getMessage() . '</p>',
       ];
     }
 

@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\patternkit\Unit\Element;
 
-use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\patternkit\Element\Pattern;
 use Drupal\patternkit\Entity\Pattern as EntityPattern;
@@ -174,7 +173,7 @@ class PatternElementTest extends RendererTestBase {
     $patternMock = $this->getPatternMock();
     $element['#pattern'] = $patternMock;
 
-    $returnString = $this->getRandomGenerator()->string();
+    $returnString = 'simple test string';
     $returnValue = [
       '#markup' => $returnString,
     ];
@@ -188,12 +187,9 @@ class PatternElementTest extends RendererTestBase {
 
     $result = $this->patternElement->preRenderPatternElement($element);
 
-    // @todo Restore this back to rendering once double-escaping in the renderer
-    //   is resolved.
-    // Sometimes, rendering with special characters gets HTML encoded causing
-    // inconsistent test failures unrelated to the actual code functionality
-    // being tested.
-    $this->assertEquals($returnString, $result['#markup']);
+    // The result now contains a Markup object due to isolated render context.
+    // Convert to string for comparison.
+    $this->assertEquals($returnString, (string) $result['#markup']);
 
     // Confirm cache metadata persisted through.
     if (isset($element['#cache'])) {
@@ -204,6 +200,13 @@ class PatternElementTest extends RendererTestBase {
         'tags' => [],
         'max-age' => [],
       ], $result['#cache']);
+    }
+
+    // Confirm attachment metadata persisted through.
+    if (isset($element['#attached'])) {
+      // Ensure keys for basic metadata exist for comparison since they'll be
+      // stubbed out as empty arrays if not present.
+      $this->assertEquals($element['#attached'], $result['#attached']);
     }
 
     // Confirm any child elements persisted through.
@@ -275,6 +278,19 @@ class PatternElementTest extends RendererTestBase {
           ],
         ],
       ],
+      'attachments' => [
+        [
+          '#type' => 'pattern',
+          '#config' => [],
+          '#context' => [],
+          // Add attached assets to be persisted.
+          '#attached' => [
+            'library' => [
+              'patternkit/cygnet',
+            ],
+          ],
+        ],
+      ],
     ];
   }
 
@@ -320,8 +336,7 @@ class PatternElementTest extends RendererTestBase {
 
     // Expect error output.
     $this->assertArrayHasKey('#markup', $output);
-    $this->assertInstanceOf(TranslatableMarkup::class, $output['#markup']);
-    $this->assertEquals('This content is unavailable.', $output['#markup']->getUntranslatedString());
+    $this->assertEquals('<p>This content is unavailable.</p>', (string) $output['#markup']);
   }
 
   /**
@@ -356,8 +371,49 @@ class PatternElementTest extends RendererTestBase {
     // tested with kernel testing since that is now replaced using event
     // dispatching.
     $this->assertArrayHasKey('#markup', $output);
-    $this->assertInstanceOf(TranslatableMarkup::class, $output['#markup']);
-    $this->assertEquals('This content is unavailable.', $output['#markup']->getUntranslatedString());
+    $this->assertEquals('<p>This content is unavailable.</p>', (string) $output['#markup']);
+  }
+
+  /**
+   * Test pre-rendering a pattern element with attachments added during render.
+   */
+  public function testPreRenderPatternElementWithLateAttachment(): void {
+
+    $element = [
+      '#type' => 'pattern',
+      '#config' => [],
+      '#context' => [],
+    ];
+
+    $patternMock = $this->getPatternMock();
+    $element['#pattern'] = $patternMock;
+
+    $returnString = 'simple test string';
+    $pluginRenderResult = [
+      '#markup' => $returnString,
+      '#attached' => [
+        'library' => [
+          'patternkit/cygnet',
+        ],
+      ],
+    ];
+
+    $this->libraryPlugin->expects($this->once())
+      ->method('render')
+      ->with($this->callback(function ($arg) use ($patternMock): bool {
+        // Confirm the mock pattern was the first array element passed in.
+        return $arg[0] == $patternMock;
+      }))
+      ->willReturn($pluginRenderResult);
+
+    $result = $this->patternElement->preRenderPatternElement($element);
+
+    // The result now contains a Markup object due to isolated render context.
+    // Convert to string for comparison.
+    $this->assertEquals($returnString, (string) $result['#markup']);
+
+    // Confirm the expected attachment data was returned.
+    $this->assertEquals($pluginRenderResult['#attached'], $result['#attached']);
   }
 
   /**

@@ -5,7 +5,6 @@ namespace Drupal\patternkit\Plugin\PatternLibrary;
 use Drupal\Component\Serialization\SerializationInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\patternkit\Asset\PatternLibraryParserInterface;
 use Drupal\patternkit\Attribute\PatternLibrary;
@@ -33,8 +32,6 @@ class PatternLibraryJSON extends PatternLibraryPluginDefault implements Containe
    *   Pattern library parser service.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
    *   Extension config retrieval.
-   * @param \Drupal\Core\Render\RendererInterface $renderer
-   *   The renderer service.
    * @param \Drupal\Component\Serialization\SerializationInterface $serializer
    *   Serialization service.
    * @param \Drupal\patternkit\PatternFormBuilderInterface $formBuilder
@@ -50,7 +47,6 @@ class PatternLibraryJSON extends PatternLibraryPluginDefault implements Containe
     $root,
     PatternLibraryParserInterface $parser,
     ConfigFactoryInterface $configFactory,
-    RendererInterface $renderer,
     protected SerializationInterface $serializer,
     protected PatternFormBuilderInterface $formBuilder,
     array $configuration,
@@ -61,7 +57,6 @@ class PatternLibraryJSON extends PatternLibraryPluginDefault implements Containe
       $root,
       $parser,
       $configFactory,
-      $renderer,
       $configuration,
       $plugin_id,
       $plugin_definition
@@ -76,7 +71,6 @@ class PatternLibraryJSON extends PatternLibraryPluginDefault implements Containe
       $container->getParameter('app.root'),
       $container->get('patternkit.asset.library.parser.json'),
       $container->get('config.factory'),
-      $container->get('renderer'),
       $container->get('serialization.json'),
       $container->get('patternkit.jsoneditor.form_builder'),
       $configuration,
