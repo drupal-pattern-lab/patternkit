@@ -959,7 +959,6 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
       ->with(
         $this->isInstanceOf(SchemaContract::class),
         // Only string values should make it past the applies() method.
-        // @phpstan-ignore method.deprecated
         method_exists($this, 'isString') ? $this->isString() : $this->isType('string'),
       )
       ->willReturnCallback(function ($schema, $value) {

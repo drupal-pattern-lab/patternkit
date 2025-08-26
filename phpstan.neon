@@ -76,3 +76,15 @@ parameters:
     - message: '#^\\Drupal calls should be avoided in classes, use dependency injection instead$#'
       count: 1
       path: src/Hook/ThemeHooks.php
+
+    # Ignore deprecation warnings inconsistent between Drupal versions.
+    - identifier: method.deprecated
+      count: 1
+      path: tests/src/Unit/PatternFieldProcessorPluginManagerTest.php
+      reportUnmatched: false
+
+    # Ignore missing attribute class warnings from Drupal <11.
+    - message: '#Attribute class PHPUnit\\Framework\\Attributes\\.* does not exist.#'
+      reportUnmatched: false
+    - message: '#Attribute class Drupal\\Core\\Hook\\Attribute\\(Legacy)?Hook does not exist.#'
+      reportUnmatched: false
