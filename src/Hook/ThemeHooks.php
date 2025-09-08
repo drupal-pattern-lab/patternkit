@@ -60,8 +60,15 @@ class ThemeHooks implements LoggerAwareInterface, ContainerInjectionInterface {
   #[TrustedCallback]
   public function linkAlter(&$variables): void {
     try {
-      if ($variables['url']->getRouteName() == 'layout_builder.add_block'
-        && str_starts_with($variables['url']->getRouteParameters()['plugin_id'], 'patternkit_block')) {
+      /** @var \Drupal\Core\Url $url */
+      $url = $variables['url'];
+
+      if (
+        $url->isRouted()
+        && $url->getRouteName() == 'layout_builder.add_block'
+        && ($routeParameters = $url->getRouteParameters())
+        && isset($routeParameters['plugin_id'])
+        && str_starts_with($routeParameters['plugin_id'], 'patternkit_block')) {
         $variables['options']['attributes']['class'][] = 'patternkit-add-block';
         $variables['options']['attributes']['data-dialog-options'] = '{"width": 900}';
       }
