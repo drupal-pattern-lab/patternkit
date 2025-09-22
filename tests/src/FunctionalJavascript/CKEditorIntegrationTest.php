@@ -234,6 +234,7 @@ class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
 
     // Change back from source mode to trigger updates.
     $this->pressSourceButton();
+    $this->waitForEditor();
     $this->assertEquals($source_edited_content, $this->getEditorDataAsHtmlString());
 
     // Confirm the source-edited content made it into the serialized config.
