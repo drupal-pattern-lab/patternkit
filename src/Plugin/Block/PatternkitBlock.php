@@ -1177,7 +1177,6 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
         $plugin_definition['context_definitions'][$id] = $context
           ->getContextDefinition()
           ->setRequired(FALSE);
-        $this->setContext($id, $context);
       }
     }
   }

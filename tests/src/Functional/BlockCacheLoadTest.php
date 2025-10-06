@@ -3,6 +3,7 @@
 namespace Drupal\Tests\patternkit\Functional;
 
 use Drupal\node\Entity\Node;
+use Drupal\patternkit\Form\PatternkitSettingsForm;
 
 /**
  * Testing to confirm loading of patterns from entity cache.
@@ -18,6 +19,18 @@ class BlockCacheLoadTest extends PatternkitBrowserTestBase {
   protected static $modules = [
     'patternkit_example',
   ];
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setUp(): void {
+    parent::setUp();
+
+    // Enable pattern cache tag invalidation for testing.
+    $this->config(PatternkitSettingsForm::SETTINGS)
+      ->set('entity_cache_tag_invalidation', TRUE)
+      ->save();
+  }
 
   /**
    * Update a pattern entity revision to have a new template value.
