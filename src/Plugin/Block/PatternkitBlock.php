@@ -377,10 +377,18 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
 
     $pattern = $this->updatePattern($pattern, $base_pattern);
 
+    // Capture updated pattern data in form state for reference.
     $form_state->set('pattern', $pattern);
     $form_state->set('schema_updated', TRUE);
     $form_state->set('configuration', $this->getConfiguration());
-    $form_state->setRebuild(TRUE);
+
+    // Update the form state values to be properly reflected.
+    $block_entity = $this->getBlockEntity();
+    // Access data field value directly to get the serialized version.
+    $form_state->setValue('configuration', $block_entity->data->value);
+
+    // Set the form to be rebuilt to reflect the changes.
+    $form_state->setRebuild();
   }
 
   /**
@@ -412,8 +420,8 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $pattern ??= $this->getPatternEntity();
     $base_pattern ??= $this->getBasePattern();
 
-    // If a base pattern is provided we assume it is always for the same pattern
-    // asset.
+    // If a base pattern is provided, we assume it is always for the same
+    // pattern asset.
     assert($pattern->getAssetId() === $base_pattern->getAssetId());
 
     // Stop here if no update is available.
@@ -759,7 +767,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $form['configuration'] = [
       '#type' => 'jsoneditor_form',
       '#pattern_entity' => $pattern,
-      '#data' => $data ?? '{}',
+      '#default_value' => $data ?? '{}',
     ];
   }
 

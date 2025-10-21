@@ -9,6 +9,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Render\Element\FormElementBase;
 use Drupal\patternkit\Entity\PatternInterface;
+use Drupal\patternkit\Exception\SchemaValidationException;
 use Drupal\patternkit\Exception\UnknownPatternException;
 use Drupal\patternkit\Form\PatternLibraryJSONForm;
 use Drupal\patternkit\PatternLibraryPluginManager;
@@ -21,7 +22,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * Properties:
  * - #pattern_name: The name of the pattern to be loaded and used for the form.
  * - #pattern_entity: (optional) The loaded Pattern entity for the form.
- * - #data: (optional) A serialized string of JSON values for the form.
+ * - #default_value: (optional) A serialized string of JSON values for the form.
  * - #config: (optional) An associative array of configuration options for
  *     JSONEditor behaviors.
  *
@@ -33,6 +34,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   '#config' => [
  *     'disablePropertiesButtons' => FALSE,
  *   ],
+ *   '#default_value' => '{"text": "My text value"}',
  * ];
  * @endcode
  *
@@ -71,18 +73,24 @@ class JsonEditorForm extends FormElementBase implements ContainerFactoryPluginIn
       '#pre_render' => [
         [$this, 'loadPattern'],
         [$this, 'buildEditorForm'],
+        [static::class, 'preRenderGroup'],
       ],
       '#process' => [
+        [static::class, 'processAjaxForm'],
+        [static::class, 'processGroup'],
         [static::class, 'processEditorForm'],
       ],
       '#theme_wrappers' => ['form_element'],
+      '#input' => TRUE,
       '#pattern_name' => NULL,
       '#pattern_entity' => NULL,
       '#schema' => '',
-      // Pattern instance configuration values.
-      '#data' => '{}',
       // Editor configuration options to be overridden.
       '#config' => [],
+      // Validate upon submissions.
+      '#element_validate' => [
+        [static::class, 'validatePatternConfig'],
+      ],
     ];
   }
 
@@ -204,7 +212,8 @@ class JsonEditorForm extends FormElementBase implements ContainerFactoryPluginIn
     $editor_overrides = $element['#config'] ?? [];
 
     // Assemble the full instance settings for the editor.
-    $settings = $this->editorSettings($element['#schema'], $element['#data'] ?? '{}', $editor_overrides);
+    $value = $element['#value'] ?? $element['#default_value'] ?? '{}';
+    $settings = $this->editorSettings($element['#schema'], $value, $editor_overrides);
 
     // Load the editor from the pattern's library plugin.
     $pattern = $element['#pattern_entity'];
@@ -240,17 +249,73 @@ class JsonEditorForm extends FormElementBase implements ContainerFactoryPluginIn
    *   The updated render element.
    */
   public static function processEditorForm(&$element, FormStateInterface $form_state, array $form) {
+    // Retrieve the form-submitted value if available, otherwise, default to the
+    // original element data.
+    $data = $form_state->getValue($element['#parents']);
+
+    // Update the element data value to persist it to the next form build.
+    // This ensures even if it was loaded from a previous form submission, the
+    // element initialization data is synchronized with the submitted value.
+    $element['#value'] = $data;
+
     // Add a hidden field to capture configuration from the JSONEditor form.
     $element['instance_config'] = [
       '#type' => 'hidden',
       '#attributes' => [
         'id' => 'schema_instance_config',
       ],
-      '#default_value' => $element['#data'] ?? '{}',
+      '#value' => $data,
       '#parents' => $element['#parents'],
     ];
 
     return $element;
+  }
+
+  /**
+   * Validates the pattern configuration.
+   *
+   * @param array $element
+   *   The render element being processed.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current form state.
+   * @param array $form
+   *   The full form.
+   *
+   * @see \Drupal\patternkit\Element\JsonEditorForm::getInfo()
+   */
+  public static function validatePatternConfig(&$element, FormStateInterface $form_state, array $form): void {
+    $value = $form_state->getValue($element['#parents']);
+    $pattern = $element['#pattern_entity'];
+    $schema = $pattern->getSchema();
+    $validationHelper = \Drupal::service('patternkit.helper.validation');
+    $validationHelper->validateContent($schema, $value);
+    if ($validationHelper->hasExceptions()) {
+
+      $message = 'Content has failed to validate. See errors below.';
+
+      // Log additional information if debug mode is enabled.
+      /** @var \Drupal\patternkit\PatternkitEnvironment $environment */
+      $environment = \Drupal::service('patternkit.environment');
+      if ($environment->isDebug()) {
+        $exceptions = $validationHelper->getExceptions();
+        $exception = array_shift($exceptions);
+        if ($exception instanceof SchemaValidationException && $previous = $exception->getPrevious()) {
+          $message .= "\n" . $previous->getMessage();
+        }
+        else {
+          $message .= "\n" . $exception->getMessage();
+        }
+      }
+
+      $form_state->setError($element, $message);
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function valueCallback(&$element, $input, FormStateInterface $form_state) {
+    return is_string($input) ? $input : NULL;
   }
 
   /**
@@ -285,22 +350,8 @@ class JsonEditorForm extends FormElementBase implements ContainerFactoryPluginIn
         $config_object = $this->configFactory->get(PatternLibraryJSONForm::SETTINGS);
         $config_array = isset($config_object) ? $config_object->get() : [];
 
-        // Map config names to JS-friendly identifiers.
         // @todo Remove this once internal config names are renamed.
-        $mapped_config = [];
-        $map = PatternLibraryJSONForm::JSON_EDITOR_SETTINGS_MAP;
-        array_walk($config_array, function ($value, $key) use (&$mapped_config, $map) {
-          if (array_key_exists($key, $map)) {
-            // Relabel the value if a mapped key is found.
-            $mapped_config[$map[$key]] = $value;
-          }
-          else {
-            // Maintain the existing key if no mapped key is found.
-            $mapped_config[$key] = $value;
-          }
-        });
-
-        $this->config = $mapped_config;
+        $this->config = $this->mapConfigNames($config_array);
       }
 
       $this->defaults = $this->config + [
@@ -314,6 +365,35 @@ class JsonEditorForm extends FormElementBase implements ContainerFactoryPluginIn
     }
 
     return $this->defaults;
+  }
+
+  /**
+   * Map server-side configuration values to JS names.
+   *
+   * @param mixed $config_array
+   *   The server-side configuration values to be mapped to JS names.
+   *
+   * @return array
+   *   An array of config mapped to JS-friendly names.
+   *
+   * @todo Remove this once internal config names are renamed.
+   */
+  private function mapConfigNames(mixed $config_array): array {
+    // Map config names to JS-friendly identifiers.
+    $mapped_config = [];
+    $map = PatternLibraryJSONForm::JSON_EDITOR_SETTINGS_MAP;
+    array_walk($config_array, function ($value, $key) use (&$mapped_config, $map) {
+      if (array_key_exists($key, $map)) {
+        // Relabel the value if a mapped key is found.
+        $mapped_config[$map[$key]] = $value;
+      }
+      else {
+        // Maintain the existing key if no mapped key is found.
+        $mapped_config[$key] = $value;
+      }
+    });
+
+    return $mapped_config;
   }
 
 }

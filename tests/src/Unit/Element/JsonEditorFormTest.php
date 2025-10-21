@@ -289,7 +289,7 @@ class JsonEditorFormTest extends RendererTestBase {
       '#type' => 'jsoneditor_form',
       '#pattern_name' => 'my_pattern',
       '#schema' => $random->string(50),
-      '#data' => $random->string(50),
+      '#default_value' => $random->string(50),
       '#config' => (array) $random->object(),
       '#parents' => [$random->string(), $random->string()],
     ];
@@ -298,11 +298,15 @@ class JsonEditorFormTest extends RendererTestBase {
     $element_copy = $render_element;
 
     // Mock additional arguments for the method.
-    $form_state = $this->prophesize(FormStateInterface::class);
+    $form_state = $this->getMockBuilder(FormStateInterface::class)
+      ->getMock();
+    $form_state->method('getValue')
+      ->with($render_element['#parents'])
+      ->willReturn($render_element['#default_value']);
     $form = [];
 
     // Run the process method for testing.
-    $result = $this->element->processEditorForm($element_copy, $form_state->reveal(), $form);
+    $result = $this->element->processEditorForm($element_copy, $form_state, $form);
 
     // Expect all pre-existing values to be persisted.
     $this->assertArraySubset($render_element, $result);
@@ -313,7 +317,7 @@ class JsonEditorFormTest extends RendererTestBase {
       '#attributes' => [
         'id' => 'schema_instance_config',
       ],
-      '#default_value' => $render_element['#data'],
+      '#value' => $render_element['#default_value'],
       '#parents' => $render_element['#parents'],
     ];
     $this->assertArrayHasKey('instance_config', $result);

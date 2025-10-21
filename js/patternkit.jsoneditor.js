@@ -17,7 +17,7 @@
  *
  * @todo .patternkit-editor-target .card all: initial
  *
- * cspell:ignore iconlib
+ * cspell:ignore iconlib startval
  */
 
 import {patternkitEditorCKEditor5} from './patternkit.jsoneditor.ckeditor5.js';
@@ -49,8 +49,14 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
 
      this.data = {
        schema: JSON.parse(settings.schemaJson),
-       starting: JSON.parse(settings.startingJson)
      };
+
+     // Only assign a starting value if a non-empty value was provided,
+     // otherwise don't provide a value so a default may be assumed.
+     const startVal = settings.startingJson;
+     if (startVal !== '{}' && Boolean(startVal) === true) {
+       this.data.starting = JSON.parse(startVal)
+     }
    }
 
    /**
@@ -143,8 +149,17 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
      // Initialize the editor with a JSON schema.
      let config = {
        schema: this.data.schema,
-       refs: {}
+       refs: {},
      };
+
+     // Conditionally specify the start value only if data already exists.
+     // Starting with an empty string or object results in all form fields
+     // starting hidden by default.
+     if (this.data.starting) {
+       config.startval = this.data.starting;
+     }
+
+
      window.patternkitEditor = new JSONEditor(this.editor_root.getElementById('editor_holder'), config);
      window.patternkitEditor.patternkit = this;
 

@@ -135,6 +135,11 @@ services:
       - '@entity_type.manager'
       - '@keyvalue.expirable'
       - '@module_handler'
+  patternkit.helper.validation:
+    class: Drupal\patternkit\Utility\PatternValidationHelper
+    arguments:
+      - '@patternkit.schema.context_builder'
+      - '@patternkit.schema.schema_factory'
   patternkit.helper.layout:
     class: Drupal\patternkit\LayoutHelper
     arguments:
