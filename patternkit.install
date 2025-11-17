@@ -20,7 +20,6 @@ use Drupal\patternkit\BulkOperations\LayoutUpdateBatchManager;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternRouteProvider;
 use Drupal\patternkit\Form\PatternLibraryJSONForm;
-use Drupal\patternkit\Hook\ReusableBlockHooks;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock as BlockPatternkitBlock;
 use Drupal\patternkit\Plugin\Derivative\PatternkitBlock as DerivativePatternkitBlock;
 use Drupal\user\Entity\Role;
@@ -34,20 +33,6 @@ function patternkit_uninstall(bool $is_syncing): void {
   // Cleanup the update results collection value if it exists.
   \Drupal::keyValue(LayoutUpdateBatchManager::RESULTS_COLLECTION)
     ->deleteAll();
-}
-
-/**
- * Implements hook_requirements().
- */
-function patternkit_requirements($phase): array {
-  $requirements = [];
-  if ($phase === 'runtime') {
-    /** @var \Drupal\patternkit\Hook\ReusableBlockHooks $hooks */
-    $hooks = \Drupal::classResolver(ReusableBlockHooks::class);
-    $requirements = $hooks->requirements($phase);
-  }
-
-  return $requirements;
 }
 
 /**
@@ -153,7 +138,7 @@ function patternkit_update_8002(&$sandbox) {
 }
 
 /**
- * Adds reverse lookup pattern id field for Patternkit reusable blocks.
+ * Adds reverse lookup pattern id field for Patternkit blocks.
  */
 function patternkit_update_8003(&$sandbox) {
   $entity_definition_update_manager = \Drupal::entityDefinitionUpdateManager();
@@ -628,5 +613,19 @@ function patternkit_update_10308(): string {
   }
   else {
     return t('No invalid blocks were found.');
+  }
+}
+
+/**
+ * Remove the reusable field from patternkit_block entities.
+ */
+function patternkit_update_10309(&$sandbox) {
+  $entity_definition_update_manager = \Drupal::entityDefinitionUpdateManager();
+
+  // Check if the reusable field exists before trying to remove it.
+  if ($entity_definition_update_manager->getFieldStorageDefinition('reusable', 'patternkit_block')) {
+    $entity_definition_update_manager->uninstallFieldStorageDefinition(
+      $entity_definition_update_manager->getFieldStorageDefinition('reusable', 'patternkit_block')
+    );
   }
 }

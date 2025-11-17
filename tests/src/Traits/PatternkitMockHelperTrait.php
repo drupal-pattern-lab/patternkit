@@ -201,7 +201,6 @@ trait PatternkitMockHelperTrait {
       'changed',
       'pattern_id',
       'data',
-      'reusable',
     ]));
 
     return $block;

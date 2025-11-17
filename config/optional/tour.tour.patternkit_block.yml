@@ -25,14 +25,6 @@ tips:
     weight: 2
     attributes:
       data-class: form-item-settings-context-mapping-user
-  patternkit-reusable:
-    id: patternkit-reusable
-    plugin: text
-    label: 'Make the block reusable'
-    body: 'This allows you to make the block reusable, where it will show up in block listings and can be used on other layouts and block placements on the site.'
-    weight: 3
-    attributes:
-      data-class: form-item-settings-reusable
   patternkit-presentation:
     id: patternkit-presentation
     plugin: text

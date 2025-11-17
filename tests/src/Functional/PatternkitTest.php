@@ -69,7 +69,6 @@ class PatternkitTest extends PatternkitBrowserTestBase {
     $patternkit_block = $this->patternBlockStorage->create([
       'data' => ['value' => '{}'],
       'info' => $this->randomMachineName(),
-      'reusable' => FALSE,
       'published' => TRUE,
       'pattern_id' => '@patternkit/atoms/example/src/example',
     ]);

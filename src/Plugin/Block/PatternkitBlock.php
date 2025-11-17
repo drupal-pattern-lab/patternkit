@@ -46,7 +46,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 #[Block(
   id: 'patternkit_block',
   admin_label: new TranslatableMarkup('Patternkit block'),
-  category: new TranslatableMarkup('Patternkit Reusable'),
+  category: new TranslatableMarkup('Patternkit'),
   deriver: 'Drupal\patternkit\Plugin\Derivative\PatternkitBlock'
 )]
 class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterface, LoggerAwareInterface, PatternkitEnvironmentAwareInterface {
@@ -194,7 +194,6 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    *   - int patternkit_block_id => non-zero id,
    *   - int patternkit_block_rid => non-zero rid,
    *   - string instance_uuid => universally unique id string,
-   *   - boolean reusable => TRUE if the patternkit block is reusable,
    *   - int pattern => The revision ID of the pattern entity being used,
    *   - string presentation_style => PatternLibrary plugin-based config string,
    *   - string version => library version used when caching the pattern,
@@ -217,17 +216,8 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     // Remove the title override fields.
     unset($form['label_display']);
 
-    // Hide the title field if reusable blocks are not supported.
-    if (isset($form['reusable'])) {
-      $form['label']['#states'] = [
-        'visible' => [
-          ':input[name="settings[reusable]"]' => ['checked' => TRUE],
-        ],
-      ];
-    }
-    else {
-      $form['label']['#access'] = FALSE;
-    }
+    // Hide the title field by default.
+    $form['label']['#access'] = FALSE;
 
     return $form;
   }
@@ -265,9 +255,6 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
     $form_state->set('block_entity', $patternkit_block);
     $configuration['patternkit_block_rid'] = $patternkit_block->getLoadedRevisionId();
 
-    $form_id = $form_state->getBuildInfo()['form_id'];
-    $is_block_form = ($form_id === 'block_form');
-
     // Include a messages list wrapper to display AJAX warnings or messages.
     // NB. The class must be added on a theme wrapper since the '#attributes'
     // key is lost when the status_messages element renders as a placeholder.
@@ -282,34 +269,6 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
         ],
       ],
     ];
-
-    // Only show the reusable checkbox if support for reusable blocks is
-    // explicitly enabled.
-    if ($this->getEnvironmentFeature(PatternkitEnvironment::FEATURE_ENABLE_REUSABLE_BLOCKS, FALSE)) {
-      // If no block entity has been created yet, default to reusable for blocks
-      // being created in the block library, but disable it by default for
-      // blocks in layout builder and elsewhere.
-      $configuration['reusable'] = $patternkit_block->isNew() ? $is_block_form : $patternkit_block->isReusable();
-
-      // Warn about accidental changes to reusable blocks.
-      if (isset($configuration['reusable']) && $configuration['reusable']) {
-        $form['messages']['#message_list']['warning'][] =
-          $this->t('This block is reusable! Any changes made will be applied globally.');
-      }
-
-      $form['reusable'] = [
-        '#type' => 'checkbox',
-        '#title' => $this->t('Reusable'),
-        '#default_value' => $configuration['reusable'] ?? FALSE,
-        '#description' => $this->t('Set to make the pattern selectable in the block library and usable on other layouts. This option is irreversible.'),
-        // Disable changing the value if it's already reusable.
-        '#disabled' => $configuration['reusable'] ?? FALSE,
-      ];
-    }
-    else {
-      // Mark all new blocks as not reusable until the feature is removed.
-      $configuration['reusable'] = FALSE;
-    }
 
     // Adds in missing descriptions for the Drupal Core context fields.
     if (isset($form['context_mapping'])) {

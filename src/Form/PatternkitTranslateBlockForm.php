@@ -98,7 +98,6 @@ class PatternkitTranslateBlockForm extends TranslateBlockForm {
           'data' => $settings['configuration'],
           'pattern_id' => $decode_value['name'],
           'published' => TRUE,
-          'reusable' => $settings['reusable'],
         ];
 
         if (!$patternkit_block->hasTranslation($settings['langcode'])) {

@@ -61,12 +61,6 @@ use Drupal\patternkit\PatternLibraryPluginInterface;
  * )
  *
  * @package Drupal\patternkit\Entity
- *
- * @see \Drupal\patternkit\Hook\ReusableBlockHooks
- *   Alterations to the entity type definition and related links are handled in
- *   these hook implementations.
- * @see \Drupal\patternkit\EventSubscriber\PatternkitReusableBlocksRouteSubscriber
- *   Alterations to the available routes are handled here.
  */
 class Pattern extends ContentEntityBase implements PatternInterface {
 

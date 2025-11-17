@@ -1,8 +1,0 @@
-# @todo Remove once reusable blocks are no longer supported. https://www.drupal.org/i/3516918
-patternkit_add_action:
-  route_name: patternkit.add_page
-  title: 'Add Patternkit block'
-  appears_on:
-    - block.admin_library
-    - entity.patternkit_block.collection
-  class: \Drupal\patternkit\Plugin\Menu\LocalAction\PatternkitAddLocalAction
