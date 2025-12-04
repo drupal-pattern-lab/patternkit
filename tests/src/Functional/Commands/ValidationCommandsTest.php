@@ -167,9 +167,24 @@ class ValidationCommandsTest extends PatternkitBrowserTestBase {
 
     // Expect successful validation.
     if ($expectedResult === DrushCommands::EXIT_SUCCESS) {
-      $this->assertOutputEquals('[OK] Content validated successfully.');
-      // Expect no error messages to be output on success.
-      $this->assertErrorOutputEquals('');
+      // In Drush 12, io()->success() outputs to stdout.
+      // In Drush 13, io()->success() outputs to stderr.
+      // Check both streams to maintain compatibility with both versions.
+      $stdout = $this->getSimplifiedOutput();
+      $stderr = $this->getSimplifiedErrorOutput();
+      $successMessage = '[OK] Content validated successfully.';
+
+      // The success message should appear in either stdout (Drush 12) or
+      // stderr (Drush 13).
+      $foundInStdout = strpos($stdout, $successMessage) !== FALSE;
+      $foundInStderr = strpos($stderr, $successMessage) !== FALSE;
+      $this->assertTrue(
+        $foundInStdout || $foundInStderr,
+        "Success message not found in stdout or stderr. stdout: '$stdout', stderr: '$stderr'"
+      );
+
+      // The message should only appear in one stream, not both.
+      $this->assertNotEquals($foundInStdout, $foundInStderr, 'Success message found in both stdout and stderr.');
     }
     // Expect command completed without error, but validation failed.
     elseif ($expectedResult === DrushCommands::EXIT_FAILURE_WITH_CLARITY) {
