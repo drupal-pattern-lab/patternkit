@@ -16,6 +16,7 @@ use Drupal\layout_builder\LayoutEntityHelperTrait;
 use Drupal\layout_builder\LayoutTempstoreRepositoryInterface;
 use Drupal\layout_builder\SectionComponent;
 use Drupal\layout_builder\SectionListInterface;
+use Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface;
 use Drupal\layout_builder\SectionStorageInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
@@ -68,12 +69,15 @@ class LayoutHelper implements LoggerAwareInterface {
     protected KeyValueExpirableFactoryInterface $keyValueExpirable,
     protected PatternRepository $patternRepository,
     protected ?LayoutTempstoreRepositoryInterface $layoutTempstoreRepository = NULL,
-    protected $sectionStorageManager = NULL,
+    ?SectionStorageManagerInterface $sectionStorageManager = NULL,
   ) {
     if ($layoutTempstoreRepository === NULL || $sectionStorageManager === NULL) {
       throw new MissingDependencyException("Layout Builder is required to use the 'patternkit.helper.layout' service.");
     }
 
+    // Assign sectionStorageManager to the property defined by
+    // LayoutEntityHelperTrait.
+    $this->sectionStorageManager = $sectionStorageManager;
     $this->patternStorage = $entityTypeManager->getStorage('patternkit_pattern');
   }
 

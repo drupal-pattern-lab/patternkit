@@ -7,6 +7,7 @@ use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface;
 use Drupal\patternkit\LayoutHelper;
 use Drupal\patternkit\Utility\PatternDetector;
 
@@ -45,9 +46,13 @@ class LayoutUsageTracker {
     protected PatternUsageManager $trackingStorage,
     protected LayoutHelper $layoutHelper,
     protected PatternDetector $patternDetector,
-    protected $sectionStorageManager,
+    SectionStorageManagerInterface $sectionStorageManager,
     protected UsageRevisionHelper $revisionHelper,
-  ) {}
+  ) {
+    // Assign sectionStorageManager to the property defined by
+    // LayoutEntityHelperTrait (via PatternLayoutDiscoveryTrait).
+    $this->sectionStorageManager = $sectionStorageManager;
+  }
 
   /**
    * Test whether an entity should be tracked by this plugin.
