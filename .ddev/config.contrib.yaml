@@ -1,8 +1,15 @@
 #ddev-generated
 ## Command provided by https://github.com/ddev/ddev-drupal-contrib
+## To customize this configuration, see:
+## https://ddev.readthedocs.io/en/stable/users/extend/customization-extendibility/
 web_environment:
-  # If desired, override to a different version of Drupal core in via the project's DDEV config
-  - DRUPAL_CORE=^10
+  # To change the Drupal core version, see the README:
+  # https://github.com/ddev/ddev-drupal-contrib/blob/main/README.md#changing-the-drupal-core-version
+  # https://git.drupalcode.org/project/gitlab_templates/-/blob/1.9.6/scripts/expand_composer_json.php?ref_type=tags#L15
+  - IGNORE_PROJECT_DRUPAL_CORE_VERSION=1
+  # To change the location of your project code, see the README:
+  # https://github.com/ddev/ddev-drupal-contrib/blob/main/README.md#changing-the-symlink-location
+  - DRUPAL_PROJECTS_PATH=modules/custom
   - SIMPLETEST_DB=mysql://db:db@db/db
   - SIMPLETEST_BASE_URL=http://web
   - BROWSERTEST_OUTPUT_DIRECTORY=/tmp

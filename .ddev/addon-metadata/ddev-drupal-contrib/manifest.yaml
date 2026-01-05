@@ -1,13 +1,15 @@
 name: ddev-drupal-contrib
 repository: ddev/ddev-drupal-contrib
-version: 1.0.0-rc18
-install_date: "2024-07-02T14:52:31-05:00"
+version: 1.1.5
+install_date: "2026-01-05T09:38:36-06:00"
 project_files:
+    - commands/host/core-version
     - commands/web/eslint
     - commands/web/expand-composer-json
     - commands/web/nightwatch
     - commands/web/phpcbf
     - commands/web/phpcs
+    - commands/web/phpstan
     - commands/web/phpunit
     - commands/web/poser
     - commands/web/stylelint

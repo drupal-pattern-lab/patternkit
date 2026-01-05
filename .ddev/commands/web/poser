@@ -1,15 +1,18 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #ddev-generated
 ## Command provided by https://github.com/ddev/ddev-drupal-contrib
 ## Description: Expand composer.json and run composer install.
 ## Usage: poser [flags] [args]
-## Example: "ddev poser"
+## Example: "ddev poser" or "ddev poser --prefer-source"
 ## ExecRaw: true
+## MutagenSync: true
+
+set -eu -o pipefail
 
 export COMPOSER=composer.contrib.json
-.ddev/commands/web/expand-composer-json "$DDEV_PROJECT_NAME"
-composer install
-rm composer.contrib.json composer.contrib.lock
-yarn --cwd $DDEV_DOCROOT/core install
+.ddev/commands/web/expand-composer-json
+composer install "$@"
+# The -f flag suppresses errors if lock file does not exist.
+rm -f composer.contrib.json composer.contrib.lock
 touch $DDEV_DOCROOT/core/.env

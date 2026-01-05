@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #ddev-generated
 ## Command provided by https://github.com/ddev/ddev-drupal-contrib
@@ -7,4 +7,6 @@
 ## Example: "ddev nightwatch"
 ## ExecRaw: true
 
-yarn --cwd "$DDEV_DOCROOT/core" test:nightwatch  "$DDEV_COMPOSER_ROOT/$DDEV_DOCROOT/modules/custom/" "$@"
+set -eu -o pipefail
+
+yarn --cwd "$DDEV_DOCROOT/core" test:nightwatch  "$DDEV_APPROOT/$DDEV_DOCROOT/$DRUPAL_PROJECTS_PATH/" "$@"

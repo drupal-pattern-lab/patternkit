@@ -1,11 +1,15 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #ddev-generated
 ## Command provided by https://github.com/ddev/ddev-drupal-contrib
 ## Description: Run phpunit inside the web container
 ## Usage: phpunit [flags] [args]
 ## Example: "ddev phpunit" or "ddev phpunit --stop-on-failure"
+## Example: "ddev phpunit web/modules/custom/mymodule/tests/src/Unit/MyTest.php"
+## Example: "ddev phpunit --filter testMyFunction"
 ## ExecRaw: true
+
+set -eu -o pipefail
 
 if ! command -v phpunit >/dev/null; then
   echo "phpunit is not available. You may need to 'ddev composer install'"
@@ -14,9 +18,16 @@ fi
 
 # CHECK for local config.
 if [ -f "phpunit.xml" ]; then
-    # Defer to local config
-    phpunit "$@"
+  # Defer to local config
+  phpunit "$@"
 else
-    # Bootstrap Drupal tests and run all custom module tests.
-    phpunit --printer="\Drupal\Tests\Listeners\HtmlOutputPrinter" --bootstrap $PWD/$DDEV_DOCROOT/core/tests/bootstrap.php $DDEV_DOCROOT/modules/custom "$@"
+  # Check if we are running a specific test or test folder.
+  if [ $# -gt 0 ] && [ -e "$1" ]; then
+    TEST_PATH="$1"
+    shift
+    phpunit --bootstrap $PWD/$DDEV_DOCROOT/core/tests/bootstrap.php "$TEST_PATH" "$@"
+  else
+    # Run all custom module tests.
+    phpunit --bootstrap $PWD/$DDEV_DOCROOT/core/tests/bootstrap.php $DDEV_DOCROOT/$DRUPAL_PROJECTS_PATH "$@"
+  fi
 fi
