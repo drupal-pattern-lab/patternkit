@@ -70,7 +70,12 @@ class PatternkitBlockEntityHooks implements ContainerInjectionInterface {
   ) {
     $this->patternStorage = $entityTypeManager->getStorage('patternkit_pattern');
     $this->blockStorage = $entityTypeManager->getStorage('patternkit_block');
-    $this->sectionStorageManager = $sectionStorageManager;
+    // Only assign sectionStorageManager if provided (Layout Builder is
+    // installed). The property is defined by LayoutEntityHelperTrait and is
+    // non-nullable, so we must only assign when the service is available.
+    if ($sectionStorageManager !== NULL) {
+      $this->sectionStorageManager = $sectionStorageManager;
+    }
   }
 
   /**

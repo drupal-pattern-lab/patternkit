@@ -8,6 +8,7 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\RevisionableInterface;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\layout_builder\Section;
 use Drupal\layout_builder\SectionComponent;
 use Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface;
@@ -44,6 +45,13 @@ class PatternkitBlockEntityHooksTest extends UnitTestCase {
   protected ObjectProphecy $patternStorage;
 
   /**
+   * Module handler service.
+   *
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Extension\ModuleHandlerInterface>
+   */
+  protected ObjectProphecy $moduleHandler;
+
+  /**
    * Section storage manager.
    *
    * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface>
@@ -58,6 +66,7 @@ class PatternkitBlockEntityHooksTest extends UnitTestCase {
 
     $this->blockStorage = $this->prophesize(EntityStorageInterface::class);
     $this->patternStorage = $this->prophesize(EntityStorageInterface::class);
+    $this->moduleHandler = $this->prophesize(ModuleHandlerInterface::class);
     $this->sectionStorageManager = $this->prophesize(SectionStorageManagerInterface::class);
   }
 
@@ -81,6 +90,7 @@ class PatternkitBlockEntityHooksTest extends UnitTestCase {
 
     return new PatternkitBlockEntityHooks(
       $entityTypeManager->reveal(),
+      $this->moduleHandler->reveal(),
       $this->sectionStorageManager->reveal(),
     );
   }
@@ -249,6 +259,33 @@ class PatternkitBlockEntityHooksTest extends UnitTestCase {
     $cases[] = [FALSE, FALSE];
 
     return $cases;
+  }
+
+  /**
+   * Test instantiation when Layout Builder is not installed.
+   *
+   * This verifies the fix for the sectionStorageManager null assignment
+   * issue where the trait property is non-nullable but the service may not
+   * be available.
+   */
+  public function testConstructionWithoutLayoutBuilder(): void {
+    $entityTypeManager = $this->prophesize(EntityTypeManagerInterface::class);
+    $entityTypeManager->getStorage('patternkit_block')
+      ->willReturn($this->blockStorage->reveal());
+    $entityTypeManager->getStorage('patternkit_pattern')
+      ->willReturn($this->patternStorage->reveal());
+
+    // Create instance with NULL sectionStorageManager (Layout Builder not
+    // installed). This should not throw a TypeError about assigning null to
+    // non-nullable property.
+    $subject = new PatternkitBlockEntityHooks(
+      $entityTypeManager->reveal(),
+      $this->moduleHandler->reveal(),
+      NULL,
+    );
+
+    // Verify the instance was created successfully.
+    $this->assertInstanceOf(PatternkitBlockEntityHooks::class, $subject);
   }
 
 }
