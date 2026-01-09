@@ -482,6 +482,9 @@ class UsageRevisionHelperTest extends UnitTestCase {
   /**
    * Data provider for testTrackOnEntityUpdate().
    *
+   * @return array
+   *   Test case data.
+   *
    * @phpstan-return array<array-key, array{
    *   array<int, array<string, LBComponentMockConfig>>,
    *   List<MockComponentData>,

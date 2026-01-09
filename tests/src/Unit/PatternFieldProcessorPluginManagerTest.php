@@ -955,10 +955,10 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
       });
 
     // Append text to the given value for all string values.
+    // Only string values should make it past the applies() method.
     $processor->method('apply')
       ->with(
         $this->isInstanceOf(SchemaContract::class),
-        // Only string values should make it past the applies() method.
         method_exists($this, 'isString') ? $this->isString() : $this->isType('string'),
       )
       ->willReturnCallback(function ($schema, $value) {

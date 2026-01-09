@@ -18,7 +18,6 @@ use Drupal\Tests\patternkit_usage_tracking\Traits\PatternUsageAssertionTrait;
  *
  * @group patternkit
  * @group patternkit_usage_tracking
- * @covers \Drupal\patternkit_usage_tracking\PatternUsageEntityOperations
  * @covers \Drupal\patternkit_usage_tracking\LayoutUsageTracker
  * @covers \Drupal\patternkit_usage_tracking\UsageRevisionHelper
  * @coversFunction patternkit_usage_tracking_entity_predelete

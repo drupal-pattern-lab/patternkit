@@ -11,7 +11,7 @@ use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
  *
  * @group patternkit
  * @covers \Drupal\patternkit\Schema\ContextBuilder
- * @covers \Drupal\patternkit\Schema\DataPreProcessorCollection
+ * @covers \Drupal\patternkit\Schema\DataPreProcessor\DataPreProcessorCollection
  * @covers \Drupal\patternkit\Schema\DataPreProcessorFactory
  * @coversDefaultClass \Drupal\patternkit\Utility\PatternDetector
  * @covers \Drupal\patternkit\PatternRepository

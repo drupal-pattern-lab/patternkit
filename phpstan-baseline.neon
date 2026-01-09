@@ -43,3 +43,18 @@ parameters:
       count: 1
       path: src/Commands/ValidationCommands.php
       reportUnmatched: false
+
+    #########################
+    # Drupal 11 compatibility annotations.
+    # These annotations are needed in Drupal 11 but may not match errors in Drupal 10.
+    # The reportUnmatched: false flag prevents warnings when errors don't exist.
+    #########################
+    # Array type mismatch in test data provider - Drupal 11 has stricter type checking.
+    - message: '#^.*providerTrackOnEntityUpdate\(\) should return.*$#'
+      path: modules/patternkit_usage_tracking/tests/src/Unit/UsageRevisionHelperTest.php
+      reportUnmatched: false
+
+    # Deprecated PHPUnit method isType() - Drupal 11 uses PHPUnit 11 which deprecates this.
+    - identifier: staticMethod.deprecated
+      path: tests/src/Unit/PatternFieldProcessorPluginManagerTest.php
+      reportUnmatched: false

@@ -141,9 +141,11 @@ class LayoutDiscoveryBatchManager {
    * @param array{revisions: string, run_queue: bool, filter: array{entity_type?: string, bundle?: string, display_mode?: string, library?: string, pattern?: string}} $options
    *   An array of options to influence batching behavior and filter processed
    *   blocks.
-   * @param array{sandbox: array{progress?: int, total?: int, current_item?: int}, results: string[], finished: int, message: string} $context
+   * @param array{sandbox: array{progress?: int, total?: int, current_item?: int, overridable_displays?: array<\Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay>}, results: array<string, mixed>, finished: int|float, message: string} $context
    *   Batch context. It may be an array, or implementing \ArrayObject in the
    *   case of Drush.
+   *
+   * @param-out array{sandbox: array{progress?: int|0, total?: int, current_item?: int|mixed, overridable_displays?: array<\Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay>}, results: array<string|mixed>, finished: int|float, message: string} $context
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException

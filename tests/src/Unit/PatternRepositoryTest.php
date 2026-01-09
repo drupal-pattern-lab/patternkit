@@ -39,35 +39,35 @@ class PatternRepositoryTest extends UnitTestCase {
   /**
    * The pattern discovery service.
    *
-   * @var \Drupal\patternkit\Asset\PatternDiscoveryInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Asset\PatternDiscoveryInterface>
    */
   protected ObjectProphecy $discovery;
 
   /**
    * The pattern dependency resolver service.
    *
-   * @var \Drupal\patternkit\Asset\PatternDependencyResolver|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Asset\PatternDependencyResolver>
    */
   protected ObjectProphecy $dependencyResolver;
 
   /**
    * The schema data preprocessor factory service.
    *
-   * @var \Drupal\patternkit\Schema\DataPreProcessorFactory|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Schema\DataPreProcessorFactory>
    */
   protected ObjectProphecy $dataPreProcessorFactory;
 
   /**
    * The entity storage handler for the patternkit_pattern entity.
    *
-   * @var \Drupal\Core\Entity\EntityStorageInterface|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Entity\EntityStorageInterface>
    */
   protected ObjectProphecy $patternStorage;
 
   /**
    * The schema context builder service.
    *
-   * @var \Drupal\patternkit\Schema\ContextBuilder|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Schema\ContextBuilder>
    */
   protected ObjectProphecy $contextBuilder;
 

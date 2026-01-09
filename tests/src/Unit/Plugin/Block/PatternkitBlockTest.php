@@ -1064,16 +1064,15 @@ class PatternkitBlockTest extends UnitTestCase {
     // Mock expected calls for the pattern update process.
     $cachedPattern->updateFromPattern($basePattern->reveal())
       ->shouldBeCalledOnce()
-      ->will(function (array $args): PatternInterface {
+      ->will(function (array $args) use ($cachedPattern): PatternInterface {
         /** @var \Drupal\patternkit\Entity\PatternInterface $basePattern */
         $basePattern = $args[0];
 
         // Inherit relevant values from the base pattern.
-        /** @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Entity\Pattern $this */
-        $this->getHash()->willReturn($basePattern->getHash());
-        $this->getVersion()->willReturn($basePattern->getVersion());
+        $cachedPattern->getHash()->willReturn($basePattern->getHash());
+        $cachedPattern->getVersion()->willReturn($basePattern->getVersion());
 
-        return $this->reveal();
+        return $cachedPattern->reveal();
       });
     $cachedPattern->setNewRevision()->shouldBeCalled();
     $cachedPattern->isDefaultRevision(FALSE)->shouldBeCalled();

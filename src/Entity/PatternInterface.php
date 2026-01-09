@@ -9,6 +9,13 @@ use Drupal\Core\Entity\ContentEntityInterface;
  *
  * @package Drupal\patternkit\Entity
  * @phpstan-require-extends \Drupal\patternkit\Entity\Pattern
+ *
+ * @property array $config
+ *   An array of the current Pattern instance's configuration values.
+ *   This is a runtime property, not a field.
+ * @property array $context
+ *   An array of the current Pattern instance's contexts.
+ *   This is a runtime property, not a field.
  */
 interface PatternInterface extends ContentEntityInterface {
 

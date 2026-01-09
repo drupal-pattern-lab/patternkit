@@ -86,6 +86,12 @@ abstract class LayoutOperationsBatchWorkerBase implements ContainerInjectionInte
   /**
    * {@inheritdoc}
    *
+   * @param array{sandbox: array{progress?: int, total?: int, current_item?: int}, results: array<string, mixed>, finished: int|float, message: string} $context
+   *   Batch context. It may be an array, or implementing \ArrayObject in the
+   *   case of Drush.
+   *
+   * @param-out array{sandbox: array{progress?: int|0, total?: int, current_item?: int|mixed}, results: array<string|mixed>, finished: int|float, message: string} $context
+   *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    * @throws \Drupal\Component\Plugin\Exception\PluginException

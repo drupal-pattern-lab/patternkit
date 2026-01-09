@@ -1,95 +1,95 @@
 {
-    "name": "drupal/patternkit",
-    "description": "Patternkit is a Drupal module that lets you drag and drop your theme templates, patterns, and components into layouts, whether using Layout Builder, Panels, or the default Block Layout editor.",
-    "type": "drupal-module",
-    "authors": [
-        {
-            "name": "Stephen Lucero",
-            "email": "slucero@redhat.com"
-        },
-        {
-            "name": "Red Hat Inc.",
-            "email": "drupal@redhat.com"
-        }
-    ],
-    "license": "MIT",
-    "repositories": [
-        {
-            "type": "composer",
-            "url": "https://asset-packagist.org"
-        }
-    ],
-    "require": {
-        "php": ">=8.1",
-        "ext-json": "*",
-        "marcj/topsort": "^2.0.0",
-        "npm-asset/json-editor--json-editor": "^2.15.2",
-        "swaggest/json-schema": "^0.12",
-        "symfony/filesystem": "^5.4 || ^6 || ^7",
-        "symfony/finder": "^5.4 || ^6 || ^7",
-        "symfony/serializer": "^6 || ^7",
-        "symfony/property-access": "^5.4 || ^6 || ^7",
-        "symfony/yaml": "^5.4 || ^6 || ^7",
-        "webmozart/assert": "^1.0",
-        "symfony/polyfill-php84": "^1.31"
+  "name": "drupal/patternkit",
+  "description": "Patternkit is a Drupal module that lets you drag and drop your theme templates, patterns, and components into layouts, whether using Layout Builder, Panels, or the default Block Layout editor.",
+  "type": "drupal-module",
+  "authors": [
+    {
+      "name": "Stephen Lucero",
+      "email": "slucero@redhat.com"
     },
-    "require-dev": {
-        "drupal/core-recommended": "^10.3 || ^11",
-        "drupal/core-dev": "^10.3 || ^11",
-        "drupal/devel": "^4.2 || ^5.0",
-        "jangregor/phpstan-prophecy": "@stable",
-        "mglaman/phpstan-drupal": "@stable",
-        "phpstan/phpstan": "@stable",
-        "phpstan/phpstan-deprecation-rules": "@stable",
-        "phpstan/phpstan-phpunit": "@stable",
-        "slowprog/composer-copy-file": "^0.3.3",
-        "drush/drush": "^12.4.3 | ^13",
-        "palantirnet/drupal-rector": "^0.20.3",
-        "symfony/phpunit-bridge": "@stable"
-    },
-    "conflict": {
-        "drush/drush": "<12.4.3"
-    },
-    "extra": {
-        "copy-file": {
-            "vendor/npm-asset/json-editor--json-editor/dist/": "js/"
-        },
-        "drush": {
-            "services": {
-                "drush.services.yml": "^9"
-            }
-        },
-        "phpstan": {
-            "includes": [
-                "phpstan.entity_mapping.neon"
-            ]
-        }
-    },
-    "scripts": {
-        "js:build": [
-            ". ~/.profile && nvm install && nvm use",
-            "npm install && npx gulp"
-        ],
-        "post-install-cmd": [
-            "SlowProg\\CopyFile\\ScriptHandler::copy"
-        ],
-        "post-update-cmd": [
-            "SlowProg\\CopyFile\\ScriptHandler::copy"
-        ]
-    },
-    "suggest": {
-        "drupal/entity_browser": "Improves display for the patternkit_media_library module.",
-        "drupal/media_entity_browser": "Improves display for the patternkit_media_library module."
-    },
-    "config": {
-        "allow-plugins": {
-            "composer/installers": true,
-            "php-http/discovery": true,
-            "dealerdirect/phpcodesniffer-composer-installer": true,
-            "phpstan/extension-installer": true,
-            "cweagans/composer-patches": true,
-            "drupal/core-composer-scaffold": true,
-            "tbachert/spi": true
-        }
+    {
+      "name": "Red Hat Inc.",
+      "email": "drupal@redhat.com"
     }
+  ],
+  "license": "MIT",
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://asset-packagist.org"
+    }
+  ],
+  "require": {
+    "php": ">=8.1",
+    "ext-json": "*",
+    "marcj/topsort": "^2.0.0",
+    "npm-asset/json-editor--json-editor": "^2.15.2",
+    "swaggest/json-schema": "^0.12",
+    "symfony/filesystem": "^5.4 || ^6 || ^7",
+    "symfony/finder": "^5.4 || ^6 || ^7",
+    "symfony/serializer": "^6 || ^7",
+    "symfony/property-access": "^5.4 || ^6 || ^7",
+    "symfony/yaml": "^5.4 || ^6 || ^7",
+    "webmozart/assert": "^1.0 || ^2.0",
+    "symfony/polyfill-php84": "^1.31"
+  },
+  "require-dev": {
+    "drupal/core-recommended": "^10.3 || ^11",
+    "drupal/core-dev": "^10.3 || ^11",
+    "drupal/devel": "^4.2 || ^5.0",
+    "jangregor/phpstan-prophecy": "@stable",
+    "mglaman/phpstan-drupal": "@stable",
+    "phpstan/phpstan": "@stable",
+    "phpstan/phpstan-deprecation-rules": "@stable",
+    "phpstan/phpstan-phpunit": "@stable",
+    "slowprog/composer-copy-file": "^0.3.3",
+    "drush/drush": "^12.4.3 | ^13",
+    "palantirnet/drupal-rector": "@stable",
+    "symfony/phpunit-bridge": "@stable"
+  },
+  "conflict": {
+    "drush/drush": "<12.4.3"
+  },
+  "extra": {
+    "copy-file": {
+      "vendor/npm-asset/json-editor--json-editor/dist/": "js/"
+    },
+    "drush": {
+      "services": {
+        "drush.services.yml": "^9"
+      }
+    },
+    "phpstan": {
+      "includes": [
+        "phpstan.entity_mapping.neon"
+      ]
+    }
+  },
+  "scripts": {
+    "js:build": [
+      ". ~/.profile && nvm install && nvm use",
+      "npm install && npx gulp"
+    ],
+    "post-install-cmd": [
+      "SlowProg\\CopyFile\\ScriptHandler::copy"
+    ],
+    "post-update-cmd": [
+      "SlowProg\\CopyFile\\ScriptHandler::copy"
+    ]
+  },
+  "suggest": {
+    "drupal/entity_browser": "Improves display for the patternkit_media_library module.",
+    "drupal/media_entity_browser": "Improves display for the patternkit_media_library module."
+  },
+  "config": {
+    "allow-plugins": {
+      "composer/installers": true,
+      "php-http/discovery": true,
+      "dealerdirect/phpcodesniffer-composer-installer": true,
+      "phpstan/extension-installer": true,
+      "cweagans/composer-patches": true,
+      "drupal/core-composer-scaffold": true,
+      "tbachert/spi": true
+    }
+  }
 }

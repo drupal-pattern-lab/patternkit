@@ -294,10 +294,9 @@ class UpdateHelperTest extends UnitTestCase {
     // Expect the plugin's update function to be called.
     $plugin->updatePattern($pattern->reveal(), $base_pattern->reveal())
       ->shouldBeCalledOnce()
-      ->will(function () use ($updated_pattern, $new_pattern_revision, $configuration) {
+      ->will(function () use ($plugin, $updated_pattern, $new_pattern_revision, $configuration) {
         // Update the returned configuration.
-        /** @var \Prophecy\Prophecy\ObjectProphecy|\Drupal\patternkit\Plugin\Block\PatternkitBlock $this */
-        $this->getConfiguration()->willReturn([
+        $plugin->getConfiguration()->willReturn([
           'pattern' => $new_pattern_revision,
         ] + $configuration);
 

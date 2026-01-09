@@ -136,9 +136,8 @@ trait PatternkitMockHelperTrait {
 
     // Mock assignments for realistic behavior.
     $plugin->setConfiguration(Argument::type('array'))
-      ->will(function (array $args) {
-        /** @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Plugin\Block\PatternkitBlock> $this */
-        $this->getConfiguration()->willReturn($args[0]);
+      ->will(function (array $args) use ($plugin) {
+        $plugin->getConfiguration()->willReturn($args[0]);
       });
 
     return $plugin;
@@ -184,9 +183,8 @@ trait PatternkitMockHelperTrait {
 
     // Configure assignment behaviors for realistic interactions.
     $block->setPattern(Argument::type('string'))
-      ->will(function (array $args) {
-        /** @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Entity\PatternkitBlock> $this */
-        $this->getPattern()->willReturn($args[0]);
+      ->will(function (array $args) use ($block) {
+        $block->getPattern()->willReturn($args[0]);
       });
 
     // Mock a list of fields to be returned.
@@ -250,9 +248,8 @@ trait PatternkitMockHelperTrait {
 
     // Configure assignment behaviors for realistic interactions.
     // @todo Configure more setter methods as needed for tests.
-    $pattern->setBundled()->will(function (array $args) {
-      /** @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Entity\PatternInterface> $this */
-      $this->isBundled()->willReturn($args[0] ?? TRUE);
+    $pattern->setBundled()->will(function (array $args) use ($pattern) {
+      $pattern->isBundled()->willReturn($args[0] ?? TRUE);
     });
 
     return $pattern;
@@ -348,14 +345,12 @@ trait PatternkitMockHelperTrait {
 
     // Configure assignment behaviors for realistic interactions.
     $component->set('configuration', Argument::type('array'))
-      ->will(function (array $args) {
-        /** @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\block\BlockInterface> $this */
-        $this->get('configuration')->willReturn($args[1]);
+      ->will(function (array $args) use ($component) {
+        $component->get('configuration')->willReturn($args[1]);
       });
     $component->set(Argument::type('string'), Argument::any())
-      ->will(function (array $args) {
-        /** @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\block\BlockInterface> $this */
-        $this->get($args[0])->willReturn($args[1]);
+      ->will(function (array $args) use ($component) {
+        $component->get($args[0])->willReturn($args[1]);
       });
 
     return $component;
@@ -408,21 +403,18 @@ trait PatternkitMockHelperTrait {
 
     // Configure assignment behaviors for realistic interactions.
     $component->set('configuration', Argument::type('array'))
-      ->will(function (array $args) {
-        /** @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\layout_builder\SectionComponent> $this */
-        $this->get('configuration')->willReturn($args[1]);
-        $this->getConfiguration()->willReturn($args[1]);
+      ->will(function (array $args) use ($component) {
+        $component->get('configuration')->willReturn($args[1]);
+        $component->getConfiguration()->willReturn($args[1]);
       });
     $component->setConfiguration(Argument::type('array'))
-      ->will(function (array $args) {
-        /** @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\layout_builder\SectionComponent> $this */
-        $this->get('configuration')->willReturn($args[1]);
-        $this->getConfiguration()->willReturn($args[1]);
+      ->will(function (array $args) use ($component) {
+        $component->get('configuration')->willReturn($args[1]);
+        $component->getConfiguration()->willReturn($args[1]);
       });
     $component->set(Argument::type('string'), Argument::any())
-      ->will(function (array $args) {
-        /** @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\layout_builder\SectionComponent> $this */
-        $this->get($args[0])->willReturn($args[1]);
+      ->will(function (array $args) use ($component) {
+        $component->get($args[0])->willReturn($args[1]);
       });
 
     return $component;
