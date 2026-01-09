@@ -80,7 +80,12 @@ class PatternDiscoveryCacheTest extends PatternkitKernelTestBase {
     $this->assertIsArray($definitions);
 
     // With these enabled modules, there should only be these namespaces.
-    $this->assertEquals(['@patternkit', '@patternkit_twig', '@patternkit_json'], array_keys($definitions));
+    $this->assertEquals([
+      '@patternkit',
+      '@patternkit_twig',
+      '@patternkit_json',
+      '@patternkit_test',
+    ], array_keys($definitions));
 
     // Within the @patternkit namespace we should know the definitions found.
     $this->assertEqualsCanonicalizing($this->expectedDefinitions['@patternkit'], array_keys($definitions['@patternkit']));

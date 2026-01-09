@@ -15,3 +15,12 @@ patternkit_json:
     lib/patternkit/dist/patternkit.min.js: {}
   patterns:
     lib/patternkit/src: { plugin: json }
+
+patternkit_test:
+  css:
+    theme:
+      lib/patternkit/dist/patternkit.css: {}
+  js:
+    lib/patternkit/dist/patternkit.min.js: {}
+  patterns:
+    lib/patternkit_test/components: { plugin: twig }

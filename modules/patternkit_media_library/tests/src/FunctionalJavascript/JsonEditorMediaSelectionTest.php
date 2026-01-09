@@ -573,6 +573,86 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
   }
 
   /**
+   * Test that blur event triggers AJAX request and populates image attributes.
+   *
+   * This test verifies that when a URL is pasted into an image.src field and
+   * the field loses focus, an AJAX request is made to fetch media attributes
+   * (alt, width, height, title) and they are automatically populated in the
+   * corresponding sibling fields.
+   */
+  public function testImageAttributesFetchOnBlur(): void {
+    $assert = $this->assertSession();
+    $page = $this->getSession()->getPage();
+
+    $pattern_name = '[Patternkit] Image attributes test';
+    $image_src_field = 'root[image][src]';
+    $image_alt_field = 'root[image][alt]';
+    $image_width_field = 'root[image][width]';
+    $image_height_field = 'root[image][height]';
+    $image_title_field = 'root[image][title]';
+
+    // Override the Node layout and place a patternkit block.
+    $this->drupalGet('node/1/layout');
+    $this->addPatternBlock($pattern_name);
+
+    // Wait for the JSON Editor form to load.
+    $this->waitForJsonEditorForm();
+
+    // Get the file URL from the media entity.
+    /** @var \Drupal\file\FileInterface $file */
+    $file = $this->image->get('field_media_image')->entity;
+    $file_url = $file->createFileUrl();
+
+    // Verify the alt and title fields are initially empty.
+    $assert->fieldValueEquals($image_alt_field, '');
+    $assert->fieldValueEquals($image_title_field, '');
+
+    // Fill the image src field with the file URL.
+    $image_src_input = $page->findField($image_src_field);
+    $this->assertNotEmpty($image_src_input, 'Image src field not found');
+
+    // Set the value programmatically (simulating paste/input).
+    $image_src_input->setValue($file_url);
+
+    // Verify the value is set before blur.
+    $assert->fieldValueEquals($image_src_field, $file_url);
+
+    // Trigger the blur event directly using JavaScript since the headless
+    // browser sometimes does not trigger the blur event automatically.
+    // This should trigger an AJAX request to fetch media attributes.
+    $driver = $this->getSession()->getDriver();
+    $driver->executeScript("
+      var input = document.querySelector('input[name=\"" . $image_src_field . "\"]');
+      if (input) {
+        input.dispatchEvent(new Event('blur', { bubbles: true, cancelable: true }));
+      }
+    ");
+
+    // Wait for the AJAX request to complete.
+    $assert->assertWaitOnAjaxRequest();
+
+    // Verify the URL is still in the src field after blur.
+    $assert->fieldValueEquals($image_src_field, $file_url);
+
+    // Verify that alt text was populated from the media entity.
+    // The media entity has alt='default alt' set in setUp().
+    $assert->fieldValueEquals($image_alt_field, 'default alt');
+
+    // Verify that title was populated from the media entity.
+    // The media entity has title='default title' set in setUp().
+    $assert->fieldValueEquals($image_title_field, 'default title');
+
+    // Verify that width and height were populated from the image file.
+    // These should be numeric values from the actual image dimensions.
+    $width_value = $page->findField($image_width_field)->getValue();
+    $height_value = $page->findField($image_height_field)->getValue();
+    $this->assertNotEmpty($width_value, 'Width should be populated');
+    $this->assertNotEmpty($height_value, 'Height should be populated');
+    $this->assertIsNumeric($width_value, 'Width should be numeric');
+    $this->assertIsNumeric($height_value, 'Height should be numeric');
+  }
+
+  /**
    * Set configuration for selectable media types in Patternkit patterns.
    *
    * @param string[] $image_types

@@ -13,3 +13,7 @@ services:
       - '@file_url_generator'
     tags:
       - { name: media_library.opener }
+
+  patternkit_media_library.media_attributes:
+    class: Drupal\patternkit_media_library\MediaAttributeService
+    arguments: ['@entity_type.manager', '@file_url_generator', '@entity_type.bundle.info', '@request_stack']

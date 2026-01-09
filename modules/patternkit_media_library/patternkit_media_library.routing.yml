@@ -12,6 +12,13 @@ patternkit.media_library.preview:
   requirements:
     _permission: 'access media overview,view media'
 
+patternkit.media_library.attributes_by_url:
+  path: '/patternkit_media_library/attributes_by_url'
+  defaults:
+    _controller: '\Drupal\patternkit_media_library\Controller\PatternkitMediaLibraryController::mediaAttributesByUrl'
+  requirements:
+    _permission: 'access media overview,view media'
+
 patternkit.settings.media_library:
   path: '/admin/config/user-interface/patternkit/media-library'
   defaults:

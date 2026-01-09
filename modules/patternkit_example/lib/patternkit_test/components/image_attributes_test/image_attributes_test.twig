@@ -1,0 +1,5 @@
+{% if image.src %}
+  <figure>
+    <img src="{{ image.src }}" alt="{{ image.alt|default('') }}" width="{{ image.width|default('') }}" height="{{ image.height|default('') }}" title="{{ image.title|default('') }}" />
+  </figure>
+{% endif %}

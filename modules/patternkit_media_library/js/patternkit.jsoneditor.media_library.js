@@ -278,6 +278,15 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
         e.stopPropagation();
         this.setValue(e.target.value);
       });
+
+      // Detect URL paste/input for auto-populating attributes when field loses focus.
+      this.input.addEventListener('blur', (e) => {
+        const url = e.target.value;
+        if (url && this.isImageSrcField()) {
+          this.fetchAttributesByUrl(url);
+        }
+      });
+
       this.button.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -285,6 +294,118 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
         this.openModal();
       });
     }
+  }
+
+  /**
+   * Check if this field is an image src field (ends with .src).
+   *
+   * @returns {boolean}
+   *   True if this is an image src field.
+   */
+  isImageSrcField() {
+    return this.path && this.path.endsWith('.src');
+  }
+
+  /**
+   * Get the base path for sibling image fields (removes .src suffix).
+   *
+   * @returns {string}
+   *   The base path for sibling fields.
+   */
+  getBaseImagePath() {
+    if (!this.isImageSrcField()) {
+      return null;
+    }
+    return this.path.slice(0, -4); // Remove '.src'
+  }
+
+  /**
+   * Fetch media attributes for a given URL.
+   *
+   * @param {string} url
+   *   The file URL to fetch attributes for.
+   */
+  fetchAttributesByUrl(url) {
+    if (!url || !this.isImageSrcField()) {
+      return;
+    }
+
+    const endpoint = Drupal.url('patternkit_media_library/attributes_by_url');
+    const query = new URLSearchParams({
+      url: url,
+      container_id: this.container_id,
+    });
+
+    // Use Drupal AJAX for compatibility with test framework.
+    // Create a hidden element to serve as the AJAX base.
+    const ajaxId = this.container_id + '--attributes-ajax';
+    let ajaxElement = document.getElementById(ajaxId);
+    if (!ajaxElement) {
+      ajaxElement = document.createElement('div');
+      ajaxElement.id = ajaxId;
+      ajaxElement.style.display = 'none';
+      ajaxElement.setAttribute('data-drupal-ajax', 'true');
+      this.container.appendChild(ajaxElement);
+    }
+
+    const ajaxOptions = {
+      url: endpoint + '?' + query.toString(),
+      base: ajaxId,
+      wrapper: ajaxId,
+      method: 'html',
+      error: (response, status) => {
+        // Silently fail - log to console for debugging only.
+        if (window.console && console.debug) {
+          console.debug('Failed to fetch media attributes:', status);
+        }
+      },
+    };
+
+    Drupal.ajax(ajaxOptions).execute();
+  }
+
+  /**
+   * Populate sibling image fields with fetched attributes.
+   *
+   * @param {object} attributes
+   *   An object containing alt, width, height, and/or title attributes.
+   */
+  populateImageAttributes(attributes) {
+    const basePath = this.getBaseImagePath();
+    if (!basePath) {
+      return;
+    }
+
+    const attributeFields = ['alt', 'width', 'height', 'title'];
+    attributeFields.forEach((attr) => {
+      if (attributes[attr] !== undefined && attributes[attr] !== null && attributes[attr] !== '') {
+        const fieldPath = basePath + '.' + attr;
+
+        // Try to get the editor for this field path.
+        // If a field is not found in the schema client-side, fail silently.
+        try {
+          const editor = this.jsoneditor.getEditor(fieldPath);
+          if (editor) {
+            // For alt text and title fields, only populate if the field is currently empty.
+            if (attr === 'alt' || attr === 'title') {
+              const currentValue = editor.getValue();
+              if (currentValue === undefined || currentValue === null || currentValue === '') {
+                editor.setValue(attributes[attr]);
+              }
+            }
+            else {
+              editor.setValue(attributes[attr]);
+            }
+          }
+        }
+        catch (error) {
+          // Field doesn't exist in schema - silently skip.
+          if (window.console && console.debug) {
+            console.debug('Field not found in schema:', fieldPath);
+          }
+        }
+      }
+    });
   }
 
   /**
@@ -316,12 +437,21 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
   addPreview() {
     this.container_id = 'je--' + this.path.replace(/\./g, '_');
 
+    // Ensure the container has the correct ID for AJAX command lookup.
+    if (!this.container.id) {
+      this.container.id = this.container_id;
+    }
+
     const description = this.schema.description || '';
     this.description = this.theme.getFormInputDescription(description);
 
     // Build and attach the form control.
     this.control = this.theme.getFormControl(this.label, this.input, this.description, null, this.formname);
     this.container.appendChild(this.control);
+
+    // Store a reference to this editor instance on the container for AJAX commands.
+    this.container.setAttribute('data-patternkit-editor', 'true');
+    this.container.patternkitEditor = this;
 
     // Assemble and attach the preview container.
     this.preview = this.theme.getContainer();
@@ -428,6 +558,20 @@ class DrupalImageUrlEditor extends DrupalMediaEditor {
   'use strict';
   Drupal.behaviors.patternkitEditorMediaLibrary = {
     attach: function (context, settings) {
+      // Register custom AJAX command for media attributes.
+      Drupal.AjaxCommands.prototype.patternkitMediaAttributes = function (ajax, response, status) {
+        if (response.attributes && Object.keys(response.attributes).length > 0) {
+          // Find the editor instance by container ID.
+          const containerElement = document.getElementById(response.containerId);
+          if (containerElement && containerElement.patternkitEditor) {
+            const editor = containerElement.patternkitEditor;
+            if (editor.populateImageAttributes) {
+              editor.populateImageAttributes(response.attributes);
+            }
+          }
+        }
+      };
+
       // Abort if a URL is not available for the media library opener.
       if (!window.JSONEditor || !settings.patternkitEditor.imageUrl || !settings.patternkitEditor.videoUrl) {
         return;

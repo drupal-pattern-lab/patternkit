@@ -2,13 +2,17 @@
 
 namespace Drupal\patternkit_media_library\Controller;
 
+use Drupal\Core\Ajax\AjaxResponse;
+use Drupal\patternkit_media_library\AJAX\MediaAttributesCommand;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Entity\EntityRepositoryInterface;
 use Drupal\Core\Entity\EntityViewBuilderInterface;
 use Drupal\media_library\MediaLibraryState;
 use Drupal\media_library\MediaLibraryUiBuilder;
+use Drupal\patternkit_media_library\MediaAttributeService;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -18,45 +22,23 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class PatternkitMediaLibraryController extends ControllerBase {
 
   /**
-   * The media library UI builder service.
-   *
-   * @var \Drupal\media_library\MediaLibraryUiBuilder
-   */
-  protected MediaLibraryUiBuilder $mediaLibraryUiBuilder;
-
-  /**
-   * The entity repository service.
-   *
-   * @var \Drupal\Core\Entity\EntityRepositoryInterface
-   */
-  protected EntityRepositoryInterface $entityRepository;
-
-  /**
-   * The media view builder.
-   *
-   * @var \Drupal\Core\Entity\EntityViewBuilderInterface
-   */
-  protected EntityViewBuilderInterface $mediaViewBuilder;
-
-  /**
    * Constructs a new PatternkitMediaLibraryController instance.
    *
-   * @param \Drupal\media_library\MediaLibraryUiBuilder $media_library_builder
+   * @param \Drupal\media_library\MediaLibraryUiBuilder $mediaLibraryUiBuilder
    *   The media library UI builder service.
-   * @param \Drupal\Core\Entity\EntityRepositoryInterface $entity_repository
+   * @param \Drupal\Core\Entity\EntityRepositoryInterface $entityRepository
    *   The entity repository service.
-   * @param \Drupal\Core\Entity\EntityViewBuilderInterface $media_view_builder
+   * @param \Drupal\Core\Entity\EntityViewBuilderInterface $mediaViewBuilder
    *   The media view builder.
+   * @param \Drupal\patternkit_media_library\MediaAttributeService $mediaAttributeService
+   *   The media attribute service.
    */
   public function __construct(
-    MediaLibraryUiBuilder $media_library_builder,
-    EntityRepositoryInterface $entity_repository,
-    EntityViewBuilderInterface $media_view_builder,
-  ) {
-    $this->mediaLibraryUiBuilder = $media_library_builder;
-    $this->entityRepository = $entity_repository;
-    $this->mediaViewBuilder = $media_view_builder;
-  }
+    protected MediaLibraryUiBuilder $mediaLibraryUiBuilder,
+    protected EntityRepositoryInterface $entityRepository,
+    protected EntityViewBuilderInterface $mediaViewBuilder,
+    protected MediaAttributeService $mediaAttributeService,
+  ) {}
 
   /**
    * {@inheritdoc}
@@ -67,7 +49,8 @@ class PatternkitMediaLibraryController extends ControllerBase {
     return new static(
       $container->get('media_library.ui_builder'),
       $container->get('entity.repository'),
-      $entity_type_manager->getViewBuilder('media')
+      $entity_type_manager->getViewBuilder('media'),
+      $container->get('patternkit_media_library.media_attributes')
     );
   }
 
@@ -121,6 +104,48 @@ class PatternkitMediaLibraryController extends ControllerBase {
     else {
       throw new NotFoundHttpException(sprintf('Unable to find media entity with UUID "%s".', $uuid));
     }
+  }
+
+  /**
+   * Returns media attributes for a file URL.
+   *
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The request containing the URL query parameter.
+   *
+   * @return \Drupal\Core\Ajax\AjaxResponse|\Symfony\Component\HttpFoundation\JsonResponse
+   *   AjaxResponse for AJAX requests, JsonResponse otherwise.
+   *   Contains media attributes (alt, width, height, title)
+   *   or empty array if no matching media found.
+   */
+  public function mediaAttributesByUrl(Request $request) {
+    $query = $request->query;
+
+    // @todo Remove this when Symfony 4 is no longer supported.
+    if (!($query instanceof InputBag)) {
+      $query = new InputBag($query->all());
+    }
+
+    $url = $query->get('url');
+
+    if (empty($url)) {
+      $attributes = [];
+    }
+    else {
+      $attributes = $this->mediaAttributeService->getAttributesByUrl($url);
+    }
+
+    // Return AjaxResponse for AJAX requests to work with Drupal AJAX system.
+    if ($request->isXmlHttpRequest()) {
+      $response = new AjaxResponse();
+      // Get the container ID from the request if provided.
+      $container_id = $query->get('container_id') ?? '';
+      // Use custom AJAX command to pass attributes directly to JavaScript.
+      $response->addCommand(new MediaAttributesCommand($attributes, $container_id));
+      return $response;
+    }
+
+    // Return JsonResponse for non-AJAX requests.
+    return new JsonResponse($attributes);
   }
 
 }

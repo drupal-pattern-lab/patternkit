@@ -1,0 +1,46 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Image attributes test",
+    "description": "A test component for nested image attributes",
+    "category": "component",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+            "enum": ["@patternkit_test/components/image_attributes_test/image_attributes_test"],
+            "readonly": true,
+            "options": {
+                "hidden": true
+            }
+        },
+        "image": {
+            "type": "object",
+            "title": "Image",
+            "properties": {
+                "src": {
+                    "type": "string",
+                    "title": "Image Source",
+                    "format": "image"
+                },
+                "alt": {
+                    "type": "string",
+                    "title": "Alt Text"
+                },
+                "width": {
+                    "type": "number",
+                    "title": "Width"
+                },
+                "height": {
+                    "type": "number",
+                    "title": "Height"
+                },
+                "title": {
+                    "type": "string",
+                    "title": "Title"
+                }
+            }
+        }
+    },
+    "required": ["name"],
+    "additionalProperties": false
+}
