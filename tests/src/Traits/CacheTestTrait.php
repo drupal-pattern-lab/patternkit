@@ -68,14 +68,32 @@ trait CacheTestTrait {
    *   entry.
    */
   protected function getPageCacheTags(NodeInterface $node): array {
-    $url = 'node/' . $node->id();
+    // Construct the URL string directly, matching the pattern used in
+    // BlockTest.php.
+    $url_string = Url::fromUri('entity:node/' . $node->id(), ['absolute' => TRUE])->toString();
+    // Ensure we have a string, not an array.
+    if (!is_string($url_string)) {
+      throw new \RuntimeException('URL::toString() returned a non-string value: ' . gettype($url_string));
+    }
     $cid_parts = [
-      Url::fromUri('entity:' . $url, ['absolute' => TRUE])
-        ->toString(),
+      $url_string,
       '',
     ];
     $cid = implode(':', $cid_parts);
     $cache_entry = $this->pageCache()->get($cid);
+
+    if ($cache_entry === FALSE) {
+      throw new \RuntimeException("Cache entry not found for CID: $cid. Ensure the page has been cached by visiting it first.");
+    }
+
+    if (!isset($cache_entry->tags)) {
+      return [];
+    }
+
+    // Ensure tags is an array.
+    if (!is_array($cache_entry->tags)) {
+      throw new \RuntimeException('Cache entry tags is not an array: ' . gettype($cache_entry->tags));
+    }
 
     return $cache_entry->tags;
   }

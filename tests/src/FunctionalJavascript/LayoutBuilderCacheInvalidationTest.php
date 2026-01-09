@@ -120,10 +120,16 @@ class LayoutBuilderCacheInvalidationTest extends PatternkitBrowserTestBase {
   public function testCacheTagPresence(): void {
     $assert = $this->assertSession();
 
-    // Confirm the pattern is rendered on the Node display.
+    // Prime the page cache by visiting the page twice.
+    // First visit creates the cache entry (MISS), second confirms it's cached.
     $this->drupalGet('node/1');
     $assert->pageTextContains('Node 1 block');
     $assert->pageTextContains('Node 1 body');
+    // Second visit to ensure the page is cached.
+    // Note: We cannot check X-Drupal-Cache response header in JavaScript tests
+    // (WebDriver doesn't support it), but we verify caching by successfully
+    // retrieving cache tags below, which confirms the cache entry exists.
+    $this->drupalGet('node/1');
 
     $expected_cache_tags = [
       'node:1',
@@ -136,10 +142,15 @@ class LayoutBuilderCacheInvalidationTest extends PatternkitBrowserTestBase {
       $this->assertContains($tag, $cache_tags, 'Block 1 did not include the expected cache tags.');
     }
 
-    // Confirm the pattern is rendered on the Node display.
+    // Prime the page cache for node 2.
     $this->drupalGet('node/2');
     $assert->pageTextContains('Node 2 block');
     $assert->pageTextContains('Node 2 body');
+    // Second visit to ensure the page is cached.
+    // Note: We cannot check X-Drupal-Cache response header in JavaScript tests
+    // (WebDriver doesn't support it), but we verify caching by successfully
+    // retrieving cache tags below, which confirms the cache entry exists.
+    $this->drupalGet('node/2');
 
     $expected_cache_tags = [
       'node:2',

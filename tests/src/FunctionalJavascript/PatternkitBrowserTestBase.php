@@ -69,6 +69,46 @@ abstract class PatternkitBrowserTestBase extends WebDriverTestBase {
   /**
    * {@inheritdoc}
    */
+  public function tearDown(): void {
+    // Work around Drupal core bug (Drupal 11+) where JavaScript warnings may be
+    // stored as arrays instead of strings. Process warnings safely before
+    // parent tearDown to prevent TypeError in WebDriverTestBase::tearDown().
+    // This is safe for Drupal 10 as well - if the code doesn't exist, the
+    // try-catch will handle it gracefully.
+    try {
+      if (!$this->mink) {
+        // Session not available, skip warning processing.
+        parent::tearDown();
+        return;
+      }
+
+      $warnings = $this->getSession()->evaluateScript("JSON.parse(sessionStorage.getItem('js_testing_log_test.warnings') || JSON.stringify([]))");
+      if (is_array($warnings)) {
+        foreach ($warnings as $warning) {
+          // Only process warnings that are strings to avoid TypeError.
+          // This handles the case where warnings may be stored as arrays
+          // instead of strings (Drupal core bug).
+          if (is_string($warning) && str_starts_with($warning, '[Deprecation]')) {
+            // phpcs:ignore Drupal.Semantics.FunctionTriggerError
+            @trigger_error('Javascript Deprecation:' . substr($warning, 13), E_USER_DEPRECATED);
+          }
+        }
+        // Clear the warnings to prevent parent tearDown from processing them
+        // and potentially hitting the same TypeError.
+        $this->getSession()->evaluateScript("sessionStorage.removeItem('js_testing_log_test.warnings')");
+      }
+    }
+    catch (\Exception $e) {
+      // Ignore errors during warning processing to avoid masking real test
+      // failures. This ensures compatibility with both Drupal 10 and 11.
+    }
+
+    parent::tearDown();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function setUp(): void {
     parent::setUp();
 
