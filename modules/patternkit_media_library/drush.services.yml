@@ -1,0 +1,11 @@
+services:
+  patternkit_media_library.commands:
+    class: Drupal\patternkit_media_library\Commands\MediaLibraryCommands
+    arguments:
+      - '@entity_type.manager'
+      - '@patternkit_media_library.block_alt_text_updater'
+    lazy: true
+    tags:
+      - { name: drush.command }
+
+

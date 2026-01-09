@@ -44,6 +44,41 @@ parameters:
       path: src/Commands/ValidationCommands.php
       reportUnmatched: false
 
+    - message: "#^Call to method success\\(\\) on an unknown class Drush\\\\Style\\\\DrushStyle\\.$#"
+      count: 3
+      path: modules/patternkit_media_library/src/Commands/MediaLibraryCommands.php
+      reportUnmatched: false
+
+    - message: "#^Call to method text\\(\\) on an unknown class Drush\\\\Style\\\\DrushStyle\\.$#"
+      count: 2
+      path: modules/patternkit_media_library/src/Commands/MediaLibraryCommands.php
+      reportUnmatched: false
+
+    - message: "#^Call to method warning\\(\\) on an unknown class Drush\\\\Style\\\\DrushStyle\\.$#"
+      count: 2
+      path: modules/patternkit_media_library/src/Commands/MediaLibraryCommands.php
+      reportUnmatched: false
+
+    - message: "#^Call to method newLine\\(\\) on an unknown class Drush\\\\Style\\\\DrushStyle\\.$#"
+      count: 1
+      path: modules/patternkit_media_library/src/Commands/MediaLibraryCommands.php
+      reportUnmatched: false
+
+    - message: "#^Call to method section\\(\\) on an unknown class Drush\\\\Style\\\\DrushStyle\\.$#"
+      count: 1
+      path: modules/patternkit_media_library/src/Commands/MediaLibraryCommands.php
+      reportUnmatched: false
+
+    - message: "#^Call to method table\\(\\) on an unknown class Drush\\\\Style\\\\DrushStyle\\.$#"
+      count: 1
+      path: modules/patternkit_media_library/src/Commands/MediaLibraryCommands.php
+      reportUnmatched: false
+
+    - message: "#^Call to method note\\(\\) on an unknown class Drush\\\\Style\\\\DrushStyle\\.$#"
+      count: 1
+      path: modules/patternkit_media_library/src/Commands/MediaLibraryCommands.php
+      reportUnmatched: false
+
     #########################
     # Drupal 11 compatibility annotations.
     # These annotations are needed in Drupal 11 but may not match errors in Drupal 10.

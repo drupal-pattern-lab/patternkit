@@ -17,3 +17,11 @@ services:
   patternkit_media_library.media_attributes:
     class: Drupal\patternkit_media_library\MediaAttributeService
     arguments: ['@entity_type.manager', '@file_url_generator', '@entity_type.bundle.info', '@request_stack']
+
+  patternkit_media_library.content_image_field_locator:
+    class: Drupal\patternkit_media_library\ContentImageFieldLocator
+    arguments: ['@patternkit.schema.schema_walker_factory']
+
+  patternkit_media_library.block_alt_text_updater:
+    class: Drupal\patternkit_media_library\BlockAltTextUpdater
+    arguments: ['@entity_type.manager', '@patternkit_media_library.content_image_field_locator', '@patternkit_media_library.media_attributes', '@patternkit.pattern.repository']
