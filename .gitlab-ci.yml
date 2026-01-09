@@ -44,7 +44,10 @@ include:
 variables:
   # Opt into testing for both the current and previous major version of Drupal core.
   OPT_IN_TEST_PREVIOUS_MAJOR: '1'
-  OPT_IN_TEST_PREVIOUS_MINOR: '1'
+
+  # Disabled until #3516348 is resolved.
+  # See https://www.drupal.org/project/drupal/issues/3516348
+  # OPT_IN_TEST_PREVIOUS_MINOR: '1'
 
   # Expose environment variables for convenience since we have no secrets specified here.
   _SHOW_ENVIRONMENT_VARIABLES:
