@@ -1,3 +1,14 @@
+/*globals Drupal:false */
+/*globals jQuery:false */
+/*globals JSONEditor:false */
+/**
+ * @file Cygnet theme for JSONEditor.
+ *
+ * @external Drupal
+ * @external jQuery
+ * @external JSONEditor
+ */
+
 class cygnetTheme extends JSONEditor.AbstractTheme {
   getFormInputLabel (text, req) {
     const el = super.getFormInputLabel(text, req)
@@ -88,8 +99,8 @@ class cygnetTheme extends JSONEditor.AbstractTheme {
   }
 
   getTabHolder (propertyName) {
-    var pName = typeof propertyName === 'undefined' ? '' : propertyName;
-    var el = document.createElement('div');
+    const pName = typeof propertyName === 'undefined' ? '' : propertyName;
+    const el = document.createElement('div');
     el.classList.add('je-cygnet-tabs');
     el.innerHTML = "<div class='je-tabholder tabs je-cygnet-tabs__holder'></div><div class='content je-cygnet-tabs__content' id='".concat(pName, "'></div><div class='je-tabholder--clear'></div>");
     return el;

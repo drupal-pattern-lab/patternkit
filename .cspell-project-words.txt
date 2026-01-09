@@ -7,6 +7,7 @@ patternlib
 swaggest
 twigphp
 webrh
+webmozart
 xcache
 
 # Service names
