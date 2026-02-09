@@ -154,6 +154,23 @@ export class DrupalCKEditor5 extends JSONEditor.defaults.editors.string {
     return 6;
   }
 
+  /**
+   * Bypass JSON Editor's default HTML purification for CKEditor fields.
+   *
+   * JSON Editor >= 2.16 calls purify() in setValue(), which strips all HTML
+   * tags when DOMPurify is not available. CKEditor fields intentionally contain
+   * HTML markup, and CKEditor's own data pipeline handles sanitization. Drupal's
+   * processed_text filter provides additional sanitization during rendering.
+   *
+   * @param {string} value - The value to purify.
+   * @returns {string} The value, unchanged.
+   *
+   * @see https://github.com/json-editor/json-editor/blob/master/src/editors/string.js
+   */
+  purify(value) {
+    return value;
+  }
+
   setValue(val, initial, from_template) {
     const input = super.setValue(val, initial, from_template);
     let ckeditor_instance = this.getCkeditorInstance();

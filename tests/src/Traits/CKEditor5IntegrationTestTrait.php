@@ -23,11 +23,22 @@ trait CKEditor5IntegrationTestTrait {
    */
   protected function configureCkeditorFormat(): void {
     // Create a text format and associate CKEditor.
-    FilterFormat::create([
+    // Define a deterministic filter format for tests.
+    $filter_format = FilterFormat::create([
       'format' => 'filtered_html',
       'name' => 'Filtered HTML',
       'weight' => 0,
-    ])->save();
+      'filters' => [
+        'filter_html' => [
+          'status' => 1,
+          'settings' => [
+            // Explicitly allow the inline tags asserted in tests.
+            'allowed_html' => '<p> <strong> <em>',
+          ],
+        ],
+      ],
+    ]);
+    $filter_format->save();
 
     $editor = Editor::create([
       'format' => 'filtered_html',
@@ -35,8 +46,17 @@ trait CKEditor5IntegrationTestTrait {
     ]);
 
     // Add the source editing button to the toolbar.
+    // Use core defaults derived from the format to keep toolbar config valid.
+    $smart_default_settings = \Drupal::service('ckeditor5.smart_default_settings');
+    [$editor] = $smart_default_settings->computeSmartDefaultSettings($editor, $filter_format);
     $settings = $editor->getSettings();
-    $settings['toolbar']['items'][] = 'sourceEditing';
+    $toolbar_items = $settings['toolbar']['items'] ?? [];
+    $toolbar_items = array_values(array_unique(array_merge($toolbar_items, [
+      'bold',
+      'italic',
+      'sourceEditing',
+    ])));
+    $settings['toolbar']['items'] = $toolbar_items;
     $editor->setSettings($settings);
 
     $editor->save();

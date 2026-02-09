@@ -68,18 +68,30 @@ class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
     $this->setEditorValue('root.formatted_text', $wysiwyg_value);
 
     // Confirm the value is propagated into the form and schema config fields.
-    $this->assertEquals($wysiwyg_value, $this->getEditorValue('root.formatted_text'), 'CKEditor value was not updated.');
+    $this->assertEquals(
+      $wysiwyg_value,
+      $this->getEditorValue('root.formatted_text'),
+      'CKEditor value was not updated.'
+    );
     $this->triggerCkeditorChange('root.formatted_text');
 
     // Wait for the CKEditor value to be propagated to the JSON Editor field.
     $field = $this->waitForFieldValueChange('root[formatted_text]');
 
     // Confirm the value was assigned into the JSON Editor field.
-    $this->assertEquals($wysiwyg_value, $field->getValue(), 'CKEditor value was not populated into JSON Editor field.');
+    $this->assertEquals(
+      $wysiwyg_value,
+      $field->getValue(),
+      'CKEditor value was not populated into JSON Editor field.'
+    );
 
     // Confirm the editor value was saved into the form's schema configuration.
     $config = $page->find('css', '#schema_instance_config')->getValue();
-    $this->assertStringContainsString($wysiwyg_value, $config, 'Editor value was not populated into schema config values.');
+    $this->assertStringContainsString(
+      $wysiwyg_value,
+      $config,
+      'Editor value was not populated into schema config values.'
+    );
 
     $page->pressButton('Add block');
     $assert->assertWaitOnAjaxRequest();
