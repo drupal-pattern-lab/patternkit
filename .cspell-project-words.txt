@@ -4,6 +4,7 @@ fontawesome
 jsoneditor
 patternfly
 patternlib
+slowprog
 swaggest
 twigphp
 webrh

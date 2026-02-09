@@ -248,6 +248,34 @@ parameters:
 A complete list of available features to toggle may be always be found in the
 module's [`patternkit.services.yml`](patternkit.services.yml) file.
 
+### JSON Editor version management
+
+Patternkit ships pre-built JSON Editor files in the `js/` directory. These
+committed files are what production sites receive when installing Patternkit
+via Composer (`composer require drupal/patternkit`). The
+`npm-asset/json-editor--json-editor` dependency in `composer.json` is declared
+in `require-dev` and pinned to the **exact version** matching these committed
+files.
+
+**Why `require-dev` with exact pinning?** Production sites use the committed
+`js/` files — they never resolve or install the npm-asset package. Composer
+`repositories` blocks from sub-packages are not inherited by the root project,
+`post-install-cmd`/`post-update-cmd` scripts only fire for the root project,
+and the `slowprog/composer-copy-file` handler is also a dev dependency. Placing
+the npm-asset package in `require-dev` accurately reflects this: it is a
+development tool for building the committed JS files, not a runtime dependency
+for consuming sites. Exact version pinning (no caret) ensures that the dev/CI
+environment tests against the same JSON Editor version that production sites
+receive, preventing silent version drift and non-deterministic test results.
+
+**Updating JSON Editor:** To update to a new JSON Editor version:
+
+1. Change the version in `composer.json` (e.g. `"2.15.2"` to `"2.16.0"`)
+2. Run `composer update npm-asset/json-editor--json-editor`
+3. The `post-update-cmd` copy script fires automatically, updating `js/`
+4. Run the test suite to validate the new version
+5. Commit both `composer.json` and `js/` together as a single reviewable change
+
 ## Contributing
 
 See [CONTRIBUTING.MD](CONTRIBUTING.md).
