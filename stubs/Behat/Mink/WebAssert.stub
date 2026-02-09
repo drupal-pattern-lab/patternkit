@@ -2,4 +2,9 @@
 
 namespace Behat\Mink;
 
-class WebAssert { }
+/**
+ * Minimal stub for PHPStan.
+ */
+class WebAssert {
+
+}

@@ -7,10 +7,10 @@ use Drupal\Tests\BrowserTestBase;
 abstract class WebDriverTestBase extends BrowserTestBase {
 
   /**
-   * @param ?string $name
+   * @param string|null $name
    *
-   * @returns \Drupal\FunctionalJavascriptTests\JSWebAssert
+   * @return \Drupal\FunctionalJavascriptTests\JSWebAssert
    */
-  public function assertSession($name = NULL): JSWebAssert {}
+  public function assertSession($name = NULL): \Drupal\FunctionalJavascriptTests\JSWebAssert {}
 
 }

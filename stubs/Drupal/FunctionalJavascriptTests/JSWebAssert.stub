@@ -4,4 +4,17 @@ namespace Drupal\FunctionalJavascriptTests;
 
 use Drupal\Tests\WebAssert;
 
-class JSWebAssert extends WebAssert { }
+/**
+ * Minimal stub for PHPStan.
+ *
+ * @method object|null waitForElement(string $selector, mixed $locator, int $timeout = 10000)
+ * @method object|null waitForElementVisible(string $selector, mixed $locator, int $timeout = 10000)
+ * @method void waitForElementRemoved(string $selector, mixed $locator, int $timeout = 10000)
+ * @method object|null waitForButton(string $locator)
+ * @method object|null waitForLink(string $locator)
+ * @method void assertWaitOnAjaxRequest(int $timeout = 10000, string $message = 'Unable to complete AJAX request.')
+ * @method void assertNoElementAfterWait(string $selector, mixed $locator, int $timeout = 10000)
+ */
+class JSWebAssert extends WebAssert {
+
+}
