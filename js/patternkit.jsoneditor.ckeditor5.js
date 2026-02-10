@@ -69,6 +69,7 @@ export class DrupalCKEditor5 extends JSONEditor.defaults.editors.string {
     // it provides for bubbling form change events.
     // @see Drupal.editors.ckeditor5.attach
     const updateCallback = this.saveEditorContent.bind(this);
+    const debouncedUpdateCallback = Drupal.debounce(updateCallback, 400);
     const onChange = () => {
       if (editor.plugins.has('SourceEditing')) {
         // If the change:data is being called while in source editing
@@ -83,7 +84,7 @@ export class DrupalCKEditor5 extends JSONEditor.defaults.editors.string {
         }
       }
 
-      Drupal.debounce(updateCallback, 400)();
+      debouncedUpdateCallback();
     }
 
     // Attach the listener for change events in the CKEditor content.
@@ -192,7 +193,21 @@ export class DrupalCKEditor5 extends JSONEditor.defaults.editors.string {
       return;
     }
 
-    editor.updateSourceElement();
+    if (this.isInSourceMode()) {
+      // When in source editing mode, the editor model has not been updated
+      // with the content from the source editing textarea. Calling
+      // updateSourceElement() would write stale model data and lose the
+      // source-edited changes. Instead, read the source textarea content
+      // directly into the underlying input field.
+      const wrapper = this.input.closest('[data-schemapath]');
+      const sourceTextarea = wrapper?.querySelector('.ck-source-editing-area textarea');
+      if (sourceTextarea) {
+        this.input.value = sourceTextarea.value;
+      }
+    }
+    else {
+      editor.updateSourceElement();
+    }
 
     this.refreshValue();
     // Dirty means display cache is invalidated for string editors.
