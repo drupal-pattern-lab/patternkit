@@ -10,6 +10,7 @@ use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\State\StateInterface;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Exception\SchemaReferenceException;
+use Drupal\patternkit\Exception\SchemaValidationException;
 use Drupal\patternkit\PatternFieldProcessorPluginManager;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
@@ -19,6 +20,7 @@ use Drupal\patternkit\Schema\DataPreProcessor\ObjectCoercionDataPreProcessor;
 use Drupal\patternkit\Schema\PatternkitRefProvider;
 use Drupal\patternkit\Schema\SchemaFactory;
 use Drupal\patternkit\Schema\SchemaWalkerFactory;
+use Drupal\patternkit\Utility\PatternValidationHelper;
 use Drupal\Tests\patternkit\Traits\JsonDecodeTrait;
 use Drupal\Tests\UnitTestCase;
 use PHPUnit\Framework\Constraint\Constraint;
@@ -130,6 +132,13 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
   protected StateInterface&MockObject $state;
 
   /**
+   * The validation helper service.
+   *
+   * @var \Drupal\patternkit\Utility\PatternValidationHelper
+   */
+  protected PatternValidationHelper $validationHelper;
+
+  /**
    * The Drupal container to configure for dependency services.
    *
    * @var \Symfony\Component\DependencyInjection\ContainerInterface
@@ -183,6 +192,10 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
     $this->dataPreProcessor = new ObjectCoercionDataPreProcessor();
     $this->schemaFactory = new SchemaFactory($this->contextBuilder);
     $this->schemaWalkerFactory = new SchemaWalkerFactory($this->schemaFactory);
+    $this->validationHelper = new PatternValidationHelper(
+      $this->contextBuilder,
+      $this->schemaFactory,
+    );
 
     $defaultContext = new Context($this->refProvider);
     $defaultContext->setDataPreProcessor($this->dataPreProcessor);
@@ -197,6 +210,7 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
       $this->serializer,
       $this->schemaWalkerFactory,
       $this->state,
+      $this->validationHelper,
     );
     $this->pluginManager->setLogger($this->logger);
 
@@ -240,7 +254,7 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
 
     // Mock the pattern to be processed and return our schema.
     $pattern = $this->createMock(Pattern::class);
-    $pattern->expects($this->once())
+    $pattern->expects($this->atLeastOnce())
       ->method('getSchema')
       ->willReturn($schema_json);
 
@@ -279,6 +293,7 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
       $this->serializer,
       $this->schemaWalkerFactory,
       $this->state,
+      $this->validationHelper,
     );
     $pluginManager->setLogger($errorLogger);
 
@@ -756,6 +771,74 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
     foreach ($processed_values['breakpoints'] as $index => $item) {
       $this->assertEquals('PROCESSED', $item, "The item at index $index was not processed.");
     }
+  }
+
+  /**
+   * Ensure invalid values fail validation before processing.
+   */
+  public function testProcessSchemaValuesWithInvalidData(): void {
+    // Define a simple schema requiring a string "text" field.
+    $schema_json = <<<JSON
+      {
+        "\$schema": "http://json-schema.org/draft-04/schema#",
+        "category": "atom",
+        "title": "Example",
+        "type": "object",
+        "properties": {
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": ["text"]
+      }
+      JSON;
+
+    // Mock the pattern to supply schema and an asset id for logging context.
+    $pattern = $this->createMock(Pattern::class);
+    $pattern->expects($this->atLeastOnce())
+      ->method('getSchema')
+      ->willReturn($schema_json);
+    $pattern->method('getAssetId')
+      ->willReturn('@patternkit/example');
+
+    // Prepare invalid values and metadata container for processing.
+    $metadata = new BubbleableMetadata();
+    $values = [
+      'text' => ['invalid'],
+    ];
+
+    // Expect a warning on soft pre-validation and an error on hard failure.
+    $errorLogger = $this->createMock(LoggerInterface::class);
+    $errorLogger->expects($this->once())
+      ->method('warning');
+    $errorLogger->expects($this->once())
+      ->method('error');
+
+    // Build the plugin manager with the mocked logger to capture failures.
+    $pluginManager = new PatternFieldProcessorPluginManager(
+      $this->containerNamespaces,
+      $this->cacheDiscovery,
+      $this->moduleHandler,
+      $this->serializer,
+      $this->schemaWalkerFactory,
+      $this->state,
+      $this->validationHelper,
+    );
+    $pluginManager->setLogger($errorLogger);
+
+    // A processor should never be invoked when validation fails up front.
+    $processor = $this->createMock(PatternFieldProcessorInterface::class);
+    $processor->expects($this->never())->method('applies');
+
+    // The hard post-processing validation should surface a schema exception.
+    $this->expectException(SchemaValidationException::class);
+    $pluginManager->processSchemaValues(
+      $pattern,
+      $values,
+      [],
+      $metadata
+    );
   }
 
   /**

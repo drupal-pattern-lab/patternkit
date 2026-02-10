@@ -163,6 +163,7 @@ services:
       - '@serialization.json'
       - '@patternkit.schema.schema_walker_factory'
       - '@state'
+      - '@patternkit.helper.validation'
   patternkit.schema.schema_factory:
     class: Drupal\patternkit\Schema\SchemaFactory
     arguments:

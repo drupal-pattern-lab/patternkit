@@ -12,7 +12,9 @@ use Drupal\patternkit\Annotation\PatternFieldProcessor as PatternFieldProcessorA
 use Drupal\patternkit\Attribute\PatternFieldProcessor as PatternFieldProcessorAttribute;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Exception\SchemaException;
+use Drupal\patternkit\Exception\SchemaValidationException;
 use Drupal\patternkit\Schema\SchemaWalkerFactory;
+use Drupal\patternkit\Utility\PatternValidationHelper;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Swaggest\JsonSchema\Path\PointerUtil;
@@ -41,6 +43,8 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager implements
    *   The SchemaWalkerFactory service.
    * @param \Drupal\Core\State\StateInterface $state
    *   The state manager service.
+   * @param \Drupal\patternkit\Utility\PatternValidationHelper $validationHelper
+   *   The validation helper service.
    */
   public function __construct(
     \Traversable $namespaces,
@@ -49,6 +53,7 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager implements
     protected readonly SerializationInterface $serializer,
     protected readonly SchemaWalkerFactory $schemaWalkerFactory,
     protected readonly StateInterface $state,
+    protected readonly PatternValidationHelper $validationHelper,
   ) {
     parent::__construct(
       'Plugin/PatternFieldProcessor',
@@ -89,6 +94,10 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager implements
     $schema = $pattern->getSchema();
 
     try {
+      // Soft-validate before processing to log potential issues while allowing
+      // processors to normalize values (e.g., token substitution).
+      $this->assertValidPatternContent($pattern, $values, FALSE);
+
       $values = $this->traverseSchema(
         $schema,
         $values,
@@ -97,6 +106,10 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager implements
         $context,
         $bubbleableMetadata
       );
+
+      // Ensure processed values still align with the schema after all
+      // processors have executed.
+      $this->assertValidPatternContent($pattern, $values);
     }
     catch (SchemaException $schemaException) {
       // Log the error before throwing it further.
@@ -224,6 +237,44 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager implements
     // changed there. Iterators cannot pass their values by reference, so this
     // workaround was needed.
     return $schemaWalker->getArrayCopy();
+  }
+
+  /**
+   * Validate content against the provided pattern schema.
+   *
+   * @param \Drupal\patternkit\Entity\PatternInterface $pattern
+   *   The pattern being validated.
+   * @param array $values
+   *   The values to validate.
+   * @param bool $throwOnFailure
+   *   Whether to throw an exception when validation fails. When FALSE, the
+   *   failure is logged and processing continues.
+   *
+   * @throws \Drupal\patternkit\Exception\SchemaValidationException
+   */
+  protected function assertValidPatternContent(PatternInterface $pattern, array $values, bool $throwOnFailure = TRUE): bool {
+    // Reset previous validation state before checking new values.
+    $this->validationHelper->clearExceptions();
+
+    if ($this->validationHelper->validatePattern($pattern, $values)) {
+      return TRUE;
+    }
+
+    // Capture the first encountered validation exception (if any).
+    $exceptions = $this->validationHelper->getExceptions();
+    $exception = array_shift($exceptions) ?? new SchemaValidationException('Assigned content does not validate successfully.');
+
+    if ($throwOnFailure) {
+      throw $exception;
+    }
+
+    // In soft mode, log the issue and allow processors to normalize values.
+    $this->logger?->warning("Pre-processing validation failed for pattern @pattern. Proceeding to allow processors to normalize values. Exception: @msg", [
+      '@pattern' => $pattern->getAssetId(),
+      '@msg' => $exception->getMessage(),
+    ]);
+
+    return FALSE;
   }
 
 }

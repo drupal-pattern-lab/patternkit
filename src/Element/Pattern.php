@@ -181,6 +181,7 @@ class Pattern extends RenderElementBase implements ContainerFactoryPluginInterfa
       // throughout schema values.
       $pattern->config = $element['#config'];
       $pattern->context = $element['#context'];
+
       $this->fieldProcessorPluginManager->processSchemaValues($pattern, $pattern->config, $pattern->context, $metadata);
 
       // Use the pattern's library plugin to produce rendered output.

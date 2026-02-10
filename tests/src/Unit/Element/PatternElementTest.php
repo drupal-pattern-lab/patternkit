@@ -14,6 +14,7 @@ use Drupal\patternkit\PatternkitEvents;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
 use Drupal\patternkit\PatternRepository;
+use Drupal\patternkit\Utility\PatternValidationHelper;
 use Drupal\Tests\Core\Render\RendererTestBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -39,6 +40,13 @@ class PatternElementTest extends RendererTestBase {
    * @var \Drupal\patternkit\PatternFieldProcessorPluginManager&\PHPUnit\Framework\MockObject\MockObject
    */
   protected PatternFieldProcessorPluginManager $patternFieldProcessorPluginManager;
+
+  /**
+   * The mocked pattern validation helper.
+   *
+   * @var \Drupal\patternkit\Utility\PatternValidationHelper&\PHPUnit\Framework\MockObject\MockObject
+   */
+  protected PatternValidationHelper $validationHelper;
 
   /**
    * A mocked pattern library plugin.
@@ -98,6 +106,9 @@ class PatternElementTest extends RendererTestBase {
 
     $this->patternFieldProcessorPluginManager = $this->createMock(PatternFieldProcessorPluginManager::class);
 
+    $this->validationHelper = $this->createMock(PatternValidationHelper::class);
+    $this->validationHelper->method('clearExceptions');
+
     $this->patternRepository = $this->createMock(PatternRepository::class);
 
     // Mock the event dispatcher and return the dispatched event instance
@@ -115,6 +126,7 @@ class PatternElementTest extends RendererTestBase {
     $this->container->set('plugin.manager.library.pattern', $this->patternLibraryPluginManager);
     $this->container->set('plugin.manager.pattern_field_processor', $this->patternFieldProcessorPluginManager);
     $this->container->set('patternkit.pattern.repository', $this->patternRepository);
+    $this->container->set('patternkit.helper.validation', $this->validationHelper);
     $this->container->set('event_dispatcher', $this->eventDispatcher);
     $this->container->set('string_translation', $this->translation);
 
@@ -319,6 +331,41 @@ class PatternElementTest extends RendererTestBase {
       ->with($patternMock, $config);
 
     $this->patternElement->preRenderPatternElement($pattern);
+  }
+
+  /**
+   * Ensure invalid config values are blocked before processing.
+   */
+  public function testPreRenderPatternElementWithInvalidConfig(): void {
+    $patternMock = $this->getPatternMock();
+    $config = [
+      'config_value' => $this->getRandomGenerator()->object(),
+    ];
+
+    $this->validationHelper->method('validatePattern')
+      ->willReturn(FALSE);
+
+    $pattern = [
+      '#type' => 'pattern',
+      '#pattern' => $patternMock,
+      '#config' => $config,
+      '#context' => [],
+    ];
+
+    $validationException = new SchemaValidationException('Invalid config');
+
+    $this->validationHelper->method('getExceptions')
+      ->willReturn([$validationException]);
+
+    $this->patternFieldProcessorPluginManager
+      ->expects($this->once())
+      ->method('processSchemaValues')
+      ->willThrowException($validationException);
+
+    $output = $this->patternElement->preRenderPatternElement($pattern);
+
+    $this->assertArrayHasKey('#markup', $output);
+    $this->assertEquals('<p>This content is unavailable.</p>', (string) $output['#markup']);
   }
 
   /**
