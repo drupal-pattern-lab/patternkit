@@ -17,8 +17,27 @@ use Swaggest\JsonSchema\SchemaContract;
  * This factory service allows the creation of Schema instances with
  * properly loaded context to support the resolution of normalized Patternkit
  * schemas.
+ *
+ * Request-scoped caching is used so that identical schema strings reuse the
+ * same compiled Schema instance. A future enhancement could use a persistent
+ * cache backend (e.g. Drupal cache API), cache invalidation on pattern save,
+ * or TTL-based expiration for high-traffic sites.
  */
 class SchemaFactory {
+
+  /**
+   * Request-scoped cache of compiled schemas (key = decoded schema object).
+   *
+   * @var \SplObjectStorage|null
+   */
+  protected static ?\SplObjectStorage $schemasCache = NULL;
+
+  /**
+   * Request-scoped cache of decoded schema JSON by hash (for object identity).
+   *
+   * @var array<string, object>
+   */
+  protected static array $decodedSchemaCache = [];
 
   /**
    * The context builder service for preparing schema contexts.
@@ -35,6 +54,16 @@ class SchemaFactory {
    */
   public function __construct(ContextBuilder $contextBuilder) {
     $this->contextBuilder = $contextBuilder;
+  }
+
+  /**
+   * Clears the request-scoped schema cache.
+   *
+   * Used by tests and for explicit invalidation.
+   */
+  public static function clearCache(): void {
+    self::$schemasCache = NULL;
+    self::$decodedSchemaCache = [];
   }
 
   /**
@@ -66,8 +95,18 @@ class SchemaFactory {
       $context = $this->contextBuilder->getDefaultContext();
     }
 
+    if (self::$schemasCache === NULL) {
+      self::$schemasCache = new \SplObjectStorage();
+    }
+    $context->schemasCache = self::$schemasCache;
+
+    $schemaHash = md5($schema);
+    if (!isset(self::$decodedSchemaCache[$schemaHash])) {
+      self::$decodedSchemaCache[$schemaHash] = $this->decodeJson($schema);
+    }
+
     try {
-      return Schema::import($this->decodeJson($schema), $context);
+      return Schema::import(self::$decodedSchemaCache[$schemaHash], $context);
     }
     catch (InvalidValue $invalidValueException) {
       // Wrap the exception in our own class for abstraction.

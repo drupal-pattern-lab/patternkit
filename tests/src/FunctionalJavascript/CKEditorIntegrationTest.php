@@ -249,8 +249,14 @@ class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
     $this->waitForEditor();
     $this->assertEquals($source_edited_content, $this->getEditorDataAsHtmlString());
 
+    // Sync editor content into the form. When exiting source mode the driver
+    // may not trigger change events; without this sync the config can remain
+    // stale in CI and the following assertion fails.
+    $this->triggerCkeditorChange($schema_path);
+
     // Confirm the source-edited content made it into the serialized config.
     $changed_config = $this->waitForConfigChange($changed_config);
+    $this->assertNotFalse($changed_config, 'Source-edited content did not sync to config.');
     $this->assertStringContainsString($source_edited_content, $changed_config);
 
     $page->pressButton('Add block');

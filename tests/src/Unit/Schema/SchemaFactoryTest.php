@@ -42,6 +42,7 @@ class SchemaFactoryTest extends UnitTestCase {
   protected function setUp(): void {
     parent::setUp();
 
+    SchemaFactory::clearCache();
     $this->contextBuilder = $this->prophesize(ContextBuilder::class);
   }
 
@@ -88,6 +89,56 @@ class SchemaFactoryTest extends UnitTestCase {
       ->createInstance('{ "test": "value" }', $context);
 
     $this->assertInstanceOf(SchemaContract::class, $schema);
+  }
+
+  /**
+   * Same schema string returns the same compiled schema instance.
+   */
+  public function testSameSchemaReturnsSameInstance(): void {
+    $schemaJson = '{"type": "object", "properties": {"foo": {"type": "string"}}}';
+    $this->contextBuilder->getDefaultContext()
+      ->willReturn(new Context());
+    $this->contextBuilder->configureContextDefaults()->shouldNotBeCalled();
+
+    $factory = $this->getSchemaFactory();
+    $first = $factory->createInstance($schemaJson);
+    $second = $factory->createInstance($schemaJson);
+
+    $this->assertSame($first, $second, 'Identical schema strings must return the same Schema instance.');
+  }
+
+  /**
+   * Different schema strings return different compiled schema instances.
+   */
+  public function testDifferentSchemaStringsReturnDifferentInstances(): void {
+    $schema1 = '{"type": "object", "properties": {"a": {"type": "string"}}}';
+    $schema2 = '{"type": "object", "properties": {"b": {"type": "number"}}}';
+    $this->contextBuilder->getDefaultContext()
+      ->willReturn(new Context());
+    $this->contextBuilder->configureContextDefaults()->shouldNotBeCalled();
+
+    $factory = $this->getSchemaFactory();
+    $first = $factory->createInstance($schema1);
+    $second = $factory->createInstance($schema2);
+
+    $this->assertNotSame($first, $second, 'Different schema strings must return different Schema instances.');
+  }
+
+  /**
+   * Clears the cache so the next createInstance compiles a new schema.
+   */
+  public function testClearCacheClearsCache(): void {
+    $schemaJson = '{"type": "object"}';
+    $this->contextBuilder->getDefaultContext()
+      ->willReturn(new Context());
+    $this->contextBuilder->configureContextDefaults()->shouldNotBeCalled();
+
+    $factory = $this->getSchemaFactory();
+    $cached = $factory->createInstance($schemaJson);
+    SchemaFactory::clearCache();
+    $afterClear = $factory->createInstance($schemaJson);
+
+    $this->assertNotSame($cached, $afterClear, 'After clearCache(), createInstance must return a new Schema instance.');
   }
 
 }
