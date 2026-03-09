@@ -295,11 +295,22 @@ abstract class PatternkitBrowserTestBase extends WebDriverTestBase {
   protected function assertSaveLayout(): void {
     $assert_session = $this->assertSession();
     $page = $this->getSession()->getPage();
-
-    // Reload the page to prevent random failures.
-    $this->drupalGet($this->getUrl());
-    $page->pressButton('Save layout');
-    $this->assertNotEmpty($assert_session->waitForElement('css', '.messages--status'));
+    $max_attempts = 3;
+    for ($attempt = 1; $attempt <= $max_attempts; $attempt++) {
+      try {
+        // Reload the page to prevent random failures.
+        $this->drupalGet($this->getUrl());
+        $page->pressButton('Save layout');
+        $this->assertNotEmpty($assert_session->waitForElement('css', '.messages--status'));
+        break;
+      }
+      catch (\Exception $exception) {
+        $is_stale = str_contains(strtolower($exception->getMessage()), 'stale element reference');
+        if (!$is_stale || $attempt === $max_attempts) {
+          throw $exception;
+        }
+      }
+    }
 
     if (stristr($this->getUrl(), 'admin/structure') === FALSE) {
       $assert_session->pageTextContains('The layout override has been saved.');

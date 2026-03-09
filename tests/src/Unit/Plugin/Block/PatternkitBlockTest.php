@@ -7,7 +7,9 @@ use Drupal\Core\Block\BlockManager;
 use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\Entity\Query\QueryInterface;
 use Drupal\Core\Entity\RevisionableStorageInterface;
+use Drupal\Core\Form\FormState;
 use Drupal\Core\Language\LanguageManagerInterface;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Plugin\Context\ContextHandlerInterface;
 use Drupal\Core\Plugin\Context\ContextRepositoryInterface;
 use Drupal\Core\Utility\Token;
@@ -24,7 +26,6 @@ use Drupal\Tests\patternkit\Traits\PatternkitMockHelperTrait;
 use Drupal\Tests\UnitTestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
-use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -39,7 +40,6 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
  */
 class PatternkitBlockTest extends UnitTestCase {
 
-  use ProphecyTrait;
   use PatternkitMockHelperTrait;
 
   /**
@@ -308,6 +308,55 @@ class PatternkitBlockTest extends UnitTestCase {
       ])
       ->onlyMethods($methods)
       ->getMock();
+  }
+
+  /**
+   * Confirm blockValidate routes update actions to handleBlockFormUpdate.
+   */
+  public function testBlockValidateRoutesUpdatePatternAction(): void {
+    $plugin = $this->getPartialMock(['handleBlockFormUpdate']);
+
+    $plugin->expects($this->once())
+      ->method('handleBlockFormUpdate');
+
+    $form_state = new FormState();
+    $form_state->setTriggeringElement([
+      '#value' => new TranslatableMarkup('Update pattern'),
+    ]);
+
+    $plugin->blockValidate([], $form_state);
+  }
+
+  /**
+   * Confirm blockValidate does not route non-update triggers.
+   */
+  public function testBlockValidateIgnoresNonUpdateTrigger(): void {
+    $plugin = $this->getPartialMock(['handleBlockFormUpdate']);
+
+    $plugin->expects($this->never())
+      ->method('handleBlockFormUpdate');
+
+    $form_state = new FormState();
+    $form_state->setTriggeringElement([
+      '#value' => new TranslatableMarkup('Add block'),
+    ]);
+
+    $plugin->blockValidate([], $form_state);
+  }
+
+  /**
+   * Confirm blockValidate handles missing triggering element safely.
+   */
+  public function testBlockValidateHandlesMissingTriggeringElement(): void {
+    $plugin = $this->getPartialMock(['handleBlockFormUpdate']);
+
+    $plugin->expects($this->never())
+      ->method('handleBlockFormUpdate');
+
+    $form_state = new FormState();
+
+    $plugin->blockValidate([], $form_state);
+    $this->addToAssertionCount(1);
   }
 
   /**

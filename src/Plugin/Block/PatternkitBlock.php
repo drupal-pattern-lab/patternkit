@@ -310,16 +310,52 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    * {@inheritdoc}
    */
   public function blockValidate($form, FormStateInterface $form_state): void {
-    if ($submit = $form_state->getTriggeringElement() ?? FALSE) {
-      if (!empty($submit['#value']) && $submit['#value']->getUntranslatedString() === 'Update pattern') {
-        $this->handleBlockFormUpdate($form_state);
-      }
+    // If the "Update pattern" button triggered form submission, immediately
+    // perform the update logic and skip further validation. This allows the
+    // user to update the pattern's schema and metadata even if other form
+    // validation would normally prevent submission.
+    if ($this->isUpdatePatternTrigger($form_state)) {
+      $this->handleBlockFormUpdate($form_state);
+      return;
     }
     parent::blockValidate($form, $form_state);
   }
 
   /**
-   * Handle operations for a triggered pattern update operation from the form.
+   * Determine if the triggering element is the draft "Update pattern" action.
+   *
+   * Matches the $form['schema_update'] button registered in
+   * self::promptForPatternUpdates().
+   *
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The active form state.
+   *
+   * @return bool
+   *   TRUE when the triggering element corresponds to the update action.
+   *
+   * @see self::blockValidate()
+   * @see self::blockSubmit()
+   */
+  protected function isUpdatePatternTrigger(FormStateInterface $form_state): bool {
+    $trigger = $form_state->getTriggeringElement();
+    if (!is_array($trigger) || !array_key_exists('#value', $trigger) || $trigger['#value'] === NULL) {
+      return FALSE;
+    }
+
+    $value = $trigger['#value'];
+    if ($value instanceof TranslatableMarkup) {
+      return $value->getUntranslatedString() === 'Update pattern';
+    }
+
+    return (string) $value === 'Update pattern';
+  }
+
+  /**
+   * Perform a draft pattern update without persisting to the database.
+   *
+   * Called from self::blockValidate() when self::isUpdatePatternTrigger()
+   * returns TRUE. Updates schema and form state for the rebuild; the user
+   * must click the main "Update" button separately to persist changes.
    *
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The submitted form state.
@@ -327,6 +363,10 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    * @throws \Drupal\Core\Entity\EntityStorageException
+   * @throws \JsonException
+   *
+   * @see self::blockValidate()
+   * @see self::isUpdatePatternTrigger()
    */
   protected function handleBlockFormUpdate(FormStateInterface $form_state): void {
     /** @var \Drupal\patternkit\Entity\PatternInterface $base_pattern */
@@ -336,15 +376,23 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
 
     $pattern = $this->updatePattern($pattern, $base_pattern);
 
+    if ($pattern === NULL) {
+      return;
+    }
+
     // Capture updated pattern data in form state for reference.
     $form_state->set('pattern', $pattern);
     $form_state->set('schema_updated', TRUE);
     $form_state->set('configuration', $this->getConfiguration());
 
-    // Update the form state values to be properly reflected.
+    // Update user input at the path matching the jsoneditor_form element's
+    // #parents (`settings[configuration]` for block plugin forms) so
+    // processEditorForm() picks up the altered content instead of the stale
+    // browser-submitted value during the form rebuild.
     $block_entity = $this->getBlockEntity();
-    // Access data field value directly to get the serialized version.
-    $form_state->setValue('configuration', $block_entity->data->value);
+    $updated_input = $form_state->getUserInput();
+    $updated_input['settings']['configuration'] = $block_entity->data->value;
+    $form_state->setUserInput($updated_input);
 
     // Set the form to be rebuilt to reflect the changes.
     $form_state->setRebuild();
@@ -470,6 +518,11 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    * {@inheritdoc}
    */
   public function blockSubmit($form, FormStateInterface $form_state): void {
+    // The draft update action rebuilds the form only; do not run save logic.
+    if ($this->isUpdatePatternTrigger($form_state)) {
+      return;
+    }
+
     // Create or update the block entity.
     $this->updateBlockEntity($form_state->getValues(), $form_state->get('block_entity'));
 
@@ -530,12 +583,17 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
   /**
    * Add prompting and support for updating patterns to new versions.
    *
+   * Registers $form['schema_update'] with an #ajax callback pointing to
+   * self::ajaxUpdatePattern(). The button's submission is routed through
+   * self::blockValidate() via self::isUpdatePatternTrigger().
+   *
    * @param array $form
    *   The form array to be modified. This array is modified directly.
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state for the form being prepared and modified.
    *
-   * @see self::blockValidate()
+   * @see self::ajaxUpdatePattern()
+   * @see self::isUpdatePatternTrigger()
    */
   protected function promptForPatternUpdates(array &$form, FormStateInterface $form_state): void {
     $pattern = $this->getPatternEntity();
@@ -554,6 +612,7 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
         );
       }
       $form['messages']['#message_list']['status'][] = $success_message;
+      $form['messages']['#message_list']['status'][] = $this->t('Pattern schema updated. Review content values below, then click Update to save changes.');
     }
 
     try {
@@ -574,6 +633,12 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
         $form['schema_desc'] = ['#markup' => $update_prompt];
         $form['schema_update'] = [
           '#ajax' => ['callback' => [$this, 'ajaxUpdatePattern']],
+          // Limit validation to only the 'schema_update' button, so other
+          // form fields (including schema contents) are not validated when
+          // triggering an update. This avoids blocking submission when the
+          // pattern data fails validation against the previous schema.
+          '#limit_validation_errors' => [['schema_update']],
+          '#submit' => [],
           '#type' => 'submit',
           '#value' => $this->t('Update pattern'),
         ];
@@ -731,7 +796,10 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
   }
 
   /**
-   * AJAX response to replace a pattern in a PatternkitBlock form.
+   * AJAX callback for the "Update pattern" button.
+   *
+   * Registered as the #ajax callback on $form['schema_update'] in
+   * self::promptForPatternUpdates().
    *
    * @param array $form
    *   PatternkitBlock form Drupal render array.
@@ -740,10 +808,15 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    *
    * @return \Drupal\Core\Ajax\AjaxResponse
    *   An AJAX response to update the current pattern based on the form.
+   *
+   * @see self::promptForPatternUpdates()
    */
   public function ajaxUpdatePattern(array &$form, FormStateInterface $form_state): AjaxResponse {
     $response = new AjaxResponse();
-    $response->addCommand(new ReplaceCommand('[data-drupal-selector="' . $form['#attributes']['data-drupal-selector'] . '"]', $form));
+    $response->addCommand(new ReplaceCommand(
+      '[data-drupal-selector="' . $form['#attributes']['data-drupal-selector'] . '"]',
+      $form,
+    ));
     return $response;
   }
 

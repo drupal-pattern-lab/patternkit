@@ -211,6 +211,11 @@ class JsonEditorForm extends FormElementBase implements ContainerFactoryPluginIn
     // Load the in-place configuration options for the editor to be passed in.
     $editor_overrides = $element['#config'] ?? [];
 
+    // Always derive schema from the current pattern entity so rebuilt forms
+    // use the latest schema value even when stale element properties persist
+    // across AJAX rebuilds.
+    $element['#schema'] = $element['#pattern_entity']->getSchema() ?? '';
+
     // Assemble the full instance settings for the editor.
     $value = $element['#value'] ?? $element['#default_value'] ?? '{}';
     $settings = $this->editorSettings($element['#schema'], $value, $editor_overrides);
@@ -319,13 +324,26 @@ class JsonEditorForm extends FormElementBase implements ContainerFactoryPluginIn
   }
 
   /**
-   * Statically load the configured settings for default JSON Editor behaviors.
+   * Builds settings for the JSON Editor (schema, starting data, defaults).
+   *
+   * Combines schema, starting data, overrides, and defaults into the settings
+   * payload consumed by the pattern editor.
+   *
+   * Settings are cached in $this->settings for reuse within the element
+   * instance to avoid rebuilding the same payload on repeated calls.
+   *
+   * @param string $schema
+   *   The JSON schema string for the pattern editor.
+   * @param string $data
+   *   The starting JSON data for the editor form.
+   * @param array $overrides
+   *   Optional settings overrides from element configuration.
    *
    * @return array
    *   The prepared default settings for JSON Editor.
    */
   protected function editorSettings(string $schema, string $data, array $overrides = []): array {
-    if (empty($this->settings)) {
+    if (empty($this->settings) || ($this->settings['schemaJson'] ?? '') !== $schema) {
       $defaults = $this->defaultEditorSettings();
 
       $this->settings = [

@@ -322,6 +322,10 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
      }
      // Ajax command response to allow updating Editor field values.
      Drupal.AjaxCommands.prototype.patternkitEditorUpdate = function (ajax, response, status) {
+       if (!window.patternkitEditor) {
+         window.console?.debug('patternkitEditorUpdate skipped: JSON editor no longer attached.');
+         return;
+       }
        let editor = window.patternkitEditor.getEditor(response.selector);
 
        if (editor) {
@@ -344,10 +348,27 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
        let $submitButton = $('[data-drupal-selector="edit-actions-submit"]');
        let $form = $submitButton.parent('form');
 
-       // Get the ajax handler instance.
-       let id = $submitButton.attr('id');
-       let ajax = Drupal.ajax.instances.find(element => element &&
-         element.selector && element.selector === '#' + id);
+       // Get the ajax handler instance attached to the current submit element.
+       // Avoid matching stale instances from a prior form render that reused
+       // the same selector/id after an AJAX replacement.
+       const submitElement = $submitButton.get(0);
+       let ajax = Drupal.ajax.instances.find((instance) => {
+         // Check that both instance and submitElement exist before proceeding.
+         if (!instance || !submitElement) {
+           return false;
+         }
+         // Check if instance.element matches the actual submit button node.
+         if (instance.element && instance.element === submitElement) {
+           return true;
+         }
+         // Check if instance.$element is a jQuery object and its first element
+         // matches submitElement.
+         if (instance.$element && instance.$element[0] === submitElement) {
+           return true;
+         }
+         // If none of the above, not a match for this submit element.
+         return false;
+       });
 
        // If there is no AJAX handler for the submit button, we're most likely
        // viewing the form directly without an AJAX interface. In this scenario,
@@ -369,7 +390,7 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
        if (!ajax.hasOwnProperty('beforeSerialize')) {
          let beforeSerialize = ajax.beforeSerialize;
          ajax.beforeSerialize = function (element, options) {
-           if (window.patternkitEditor) {
+           if (window.patternkitEditor && !window.patternkitEditor.detaching) {
              editor.beforeSerialize();
              editor.saveSchema();
            }
@@ -385,7 +406,7 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
        if (!ajax.hasOwnProperty('beforeSubmit')) {
          let beforeSubmit = ajax.beforeSubmit;
          ajax.beforeSubmit = function (formValues, elementSettings, options) {
-           if (window.patternkitEditor) {
+           if (window.patternkitEditor && !window.patternkitEditor.detaching) {
              // Run any registered beforeSubmit handlers before destroying the
              // JSONEditor form.
              editor.beforeSubmit();

@@ -249,12 +249,14 @@ class JsonEditorFormTest extends RendererTestBase {
     $pattern = $this->prophesize(PatternInterface::class);
 
     // Prepare the element to be pre-rendered.
+    $schema = $random->string(50);
     $render_element = [
       '#type' => 'jsoneditor_form',
       '#pattern_entity' => $pattern->reveal(),
-      '#schema' => $random->string(50),
+      '#schema' => $schema,
       '#config' => (array) $random->object(),
     ];
+    $pattern->getSchema()->willReturn($schema);
 
     // Prepare the editor array to be returned.
     $editor = (array) $random->object();
@@ -263,9 +265,8 @@ class JsonEditorFormTest extends RendererTestBase {
     $library_plugin = $this->prophesize(PatternLibraryPluginInterface::class);
     $library_plugin->getPatternEditor($pattern->reveal(), Argument::allOf(
         Argument::type('array'),
-        Argument::withEntry('schemaJson', $render_element['#schema']),
-        Argument::withEntry('startingJson', '{}'),
-        Argument::withEntry('schemaJson', $render_element['#schema'])
+        Argument::withEntry('schemaJson', $schema),
+        Argument::withEntry('startingJson', '{}')
     ))
       ->shouldBeCalledOnce()
       ->willReturn($editor);
@@ -322,6 +323,75 @@ class JsonEditorFormTest extends RendererTestBase {
     ];
     $this->assertArrayHasKey('instance_config', $result);
     $this->assertEquals($instance_config, $result['instance_config']);
+  }
+
+  /**
+   * Editor settings must reflect schema changes on rebuild.
+   *
+   * When the same form element instance is used for two builds with different
+   * schemas (e.g. after "Update pattern" in Layout Builder triggers a rebuild),
+   * the second build must pass the new schema to the editor. Otherwise the
+   * JSON Editor keeps displaying the old schema.
+   *
+   * This test uses the same element instance twice with different #schema
+   * values and asserts that getPatternEditor() is called with the correct
+   * schemaJson for each build.
+   *
+   * @covers \Drupal\patternkit\Element\JsonEditorForm::buildEditorForm
+   * @covers \Drupal\patternkit\Element\JsonEditorForm::editorSettings
+   */
+  public function testEditorSettingsReflectSchemaChangeOnSecondBuild(): void {
+    $schema_first = '{"type":"object","properties":{"old_field":{"type":"string"}}}';
+    $schema_second = '{"type":"object","properties":{"old_field":{"type":"string"},"new_field":{"type":"string"}}}';
+
+    $pattern_first = $this->prophesize(PatternInterface::class);
+    $pattern_second = $this->prophesize(PatternInterface::class);
+    $pattern_first->getSchema()->willReturn($schema_first);
+    $pattern_second->getSchema()->willReturn($schema_second);
+
+    $editor = ['#markup' => 'editor'];
+
+    // Capture the settings passed to getPatternEditor on each call.
+    $settings_captured = [];
+    $library_plugin = $this->prophesize(PatternLibraryPluginInterface::class);
+    $library_plugin->getPatternEditor(Argument::any(), Argument::that(function (array $settings) use (&$settings_captured): bool {
+      $settings_captured[] = $settings;
+      return TRUE;
+    }))
+      ->shouldBeCalledTimes(2)
+      ->willReturn($editor);
+
+    $this->patternLibraryPluginManager->getPluginForPattern(Argument::type(PatternInterface::class))
+      ->shouldBeCalledTimes(2)
+      ->willReturn($library_plugin->reveal());
+
+    // First build: schema_first.
+    $element_first = [
+      '#type' => 'jsoneditor_form',
+      '#pattern_entity' => $pattern_first->reveal(),
+      '#schema' => $schema_first,
+      '#default_value' => '{}',
+    ];
+    $this->element->buildEditorForm($element_first);
+
+    $this->assertCount(1, $settings_captured, 'First build should call getPatternEditor once.');
+    $this->assertSame($schema_first, $settings_captured[0]['schemaJson'], 'First build should pass the first schema.');
+    $this->assertSame('{}', $settings_captured[0]['startingJson'], 'First build should normalize an empty starting payload to an empty JSON object.');
+
+    // Second build on the same element instance with a different schema
+    // (simulates "Update pattern" rebuild).
+    // The editor must receive the new schema.
+    $element_second = [
+      '#type' => 'jsoneditor_form',
+      '#pattern_entity' => $pattern_second->reveal(),
+      '#schema' => $schema_second,
+      '#default_value' => '{}',
+    ];
+    $this->element->buildEditorForm($element_second);
+
+    $this->assertCount(2, $settings_captured, 'Second build should call getPatternEditor again.');
+    $this->assertSame($schema_second, $settings_captured[1]['schemaJson'], 'Second build must pass the new schema so the JSON Editor reflects the updated schema.');
+    $this->assertSame('{}', $settings_captured[1]['startingJson'], 'Second build should preserve the same starting JSON payload while refreshing schema settings.');
   }
 
 }
