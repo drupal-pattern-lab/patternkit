@@ -20,6 +20,7 @@ use Drupal\Core\Utility\Error;
 use Drupal\layout_builder\Entity\LayoutEntityDisplayInterface;
 use Drupal\layout_builder\LayoutEntityHelperTrait;
 use Drupal\layout_builder\LayoutTempstoreRepositoryInterface;
+use Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface;
 use Drupal\layout_builder\SectionStorageInterface;
 use Drupal\patternkit\LayoutHelper;
 use Psr\Log\LoggerInterface;
@@ -81,13 +82,17 @@ abstract class LayoutQueueWorkerBase extends QueueWorkerBase implements Containe
     mixed $plugin_definition,
     protected readonly EntityTypeManagerInterface $entityTypeManager,
     protected readonly LayoutHelper $layoutHelper,
-    protected $sectionStorageManager,
+    SectionStorageManagerInterface $sectionStorageManager,
     protected readonly LayoutTempstoreRepositoryInterface $layoutTempstoreRepository,
     protected readonly LoggerInterface $logger,
     protected $stringTranslation,
     protected $messenger,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
+
+    // Assign sectionStorageManager to the property defined by
+    // LayoutEntityHelperTrait (via PatternLayoutDiscoveryTrait).
+    $this->sectionStorageManager = $sectionStorageManager;
 
     // @phpstan-ignore assign.propertyType
     $this->context = [];
