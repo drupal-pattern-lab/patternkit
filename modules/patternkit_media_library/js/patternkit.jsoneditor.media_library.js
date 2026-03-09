@@ -21,6 +21,36 @@
  */
 class DrupalMediaEditor extends JSONEditor.AbstractEditor {
 
+  /**
+   * Display validation errors on the media editor field.
+   *
+   * The parent AbstractEditor has a no-op implementation, so this override
+   * is necessary to display inline validation errors on media fields.
+   *
+   * @param {Array} errors
+   *   An array of validation error objects from JSON Editor's validate().
+   */
+  showValidationErrors(errors) {
+    // Abort if the input element is not available.
+    if (!this.input) {
+      return;
+    }
+
+    const messages = errors.reduce((msgs, error) => {
+      if (error.path === this.path) {
+        msgs.push(error.message);
+      }
+      return msgs;
+    }, []);
+
+    if (messages.length) {
+      this.theme.addInputError(this.input, `${messages.join('. ')}.`);
+    }
+    else {
+      this.theme.removeInputError(this.input);
+    }
+  }
+
   register () {
     super.register()
     if (!this.input) return

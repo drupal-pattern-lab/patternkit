@@ -63,6 +63,47 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
     * Prepare default option values for JSONEditor behaviors.
     */
    setDefaults() {
+     // Add a custom validator that enforces non-empty values for required
+     // string fields. JSON Schema's "required" keyword only checks that a
+     // property exists in the object; it does not enforce non-empty values.
+     // This validator ensures that required string fields with empty values
+     // produce a "Value required" error, which matches user expectations for
+     // form validation behavior.
+     // Note: Parity with server-side validation (swaggest/php-json-schema) is
+     // not in place: the server only checks required-property presence, so
+     // empty or whitespace-only required strings may pass server-side.
+     if (!JSONEditor.defaults.options.patternkitRequiredStringValidator) {
+       JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
+         const errors = [];
+         const translate = (typeof this.translate === 'function')
+           ? this.translate.bind(this)
+           : JSONEditor.defaults.translate;
+         if (
+           schema.required &&
+           Array.isArray(schema.required) &&
+           typeof value === 'object' &&
+           value !== null
+         ) {
+           schema.required.forEach((requiredField) => {
+             const fieldSchema = schema.properties && schema.properties[requiredField];
+             if (fieldSchema && fieldSchema.type === 'string') {
+               const fieldValue = value[requiredField];
+               if (typeof fieldValue === 'string' && fieldValue.trim() === '') {
+                 errors.push({
+                   path: `${path}.${requiredField}`,
+                   property: 'required',
+                   message: translate('error_notempty', null, fieldSchema),
+                 });
+               }
+             }
+           });
+         }
+         return errors;
+       });
+
+       JSONEditor.defaults.options.patternkitRequiredStringValidator = true;
+     }
+
      JSONEditor.defaults.options.theme = this.settings.theme;
      JSONEditor.defaults.options.iconlib = this.settings.icons;
      // cspell:disable-next-line
@@ -280,6 +321,18 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
     *   The submit event.
     */
    onSubmit(e) {
+     // Validate before allowing non-AJAX form submission.
+     if (window.patternkitEditor) {
+       const validationErrors = window.patternkitEditor.validate(
+         window.patternkitEditor.getValue()
+       );
+       if (validationErrors.length > 0) {
+         e.preventDefault();
+         window.patternkitEditor.root.showValidationErrors(validationErrors);
+         return;
+       }
+     }
+
      // Call all serialize and submission handlers since this function is only
      // triggered outside an AJAX content and those handlers would not be
      // called otherwise.
@@ -291,6 +344,53 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
      delete window.patternkitEditor;
      $(once.remove('patternkit-editor', $('#patternkit-editor-target')));
      $(this).off('submit');
+   }
+
+   /**
+    * Validate editor content and block AJAX submission if errors are found.
+    *
+    * When validation fails, this method displays inline errors on form fields
+    * and resets the Drupal AJAX system state so that subsequent submit
+    * attempts are not silently ignored.
+    *
+    * @param {object} ajax
+    *   The Drupal AJAX handler instance for the submit button.
+    * @param {jQuery} $submitButton
+    *   The jQuery-wrapped submit button element.
+    *
+    * @return {boolean}
+    *   TRUE if validation passed and submission may proceed,
+    *   FALSE if validation failed and submission was blocked.
+    */
+   validateBeforeAjaxSubmit(ajax, $submitButton) {
+     const jsonEditor = window.patternkitEditor;
+     if (!jsonEditor) {
+       return true;
+     }
+
+     // Pass the current value to validate() to force fresh validation.
+     // Calling validate() with no arguments returns cached results from
+     // the last requestAnimationFrame cycle, which may be stale if the
+     // user just edited a field and immediately clicked submit.
+     const errors = jsonEditor.validate(jsonEditor.getValue());
+     if (errors.length === 0) {
+       return true;
+     }
+
+     // Display inline validation errors on the form fields.
+     jsonEditor.root.showValidationErrors(errors);
+
+     // Reset the AJAX system's "in progress" flag. Drupal sets
+     // ajax.ajaxing = true before calling beforeSubmit; when we abort
+     // by returning false the success/error callbacks never fire and
+     // the flag is never cleared.
+     ajax.ajaxing = false;
+
+     // Re-enable the submit button and remove any progress indicator.
+     $submitButton.prop('disabled', false).removeClass('is-disabled');
+     $('.ajax-progress', $submitButton.closest('.form-actions')).remove();
+
+     return false;
    }
 
    /**
@@ -383,50 +483,69 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
          return;
        }
 
-       // Drupal triggers Ajax submit via input events before the form events
-       // bubble up for listeners, so we need to add a pre-hook within this
-       // event cycle to trigger the editor update with latest field values
-       // before the values are finalized and submitted.
-       if (!ajax.hasOwnProperty('beforeSerialize')) {
-         let beforeSerialize = ajax.beforeSerialize;
+       // Drupal triggers Ajax submit via input events before the form
+       // events bubble up for listeners, so we need to add a pre-hook
+       // within this event cycle to trigger the editor update with
+       // latest field values before they are finalized and submitted.
+       //
+       // Only wrap once per ajax instance to avoid chaining wrappers
+       // if attach runs again (e.g. after DOM replacement).
+       if (!ajax._patternkitBeforeSerializeWrapped) {
+         ajax._patternkitBeforeSerializeWrapped = true;
+         const previousBeforeSerialize = ajax.beforeSerialize;
          ajax.beforeSerialize = function (element, options) {
            if (window.patternkitEditor && !window.patternkitEditor.detaching) {
              editor.beforeSerialize();
              editor.saveSchema();
            }
-
-           beforeSerialize.apply(this, [element, options]);
-         }
+           if (typeof previousBeforeSerialize === 'function') {
+             previousBeforeSerialize.apply(this, [element, options]);
+           }
+         };
        }
 
-       // Drupal triggers Ajax submit via input events.
-       // This is before allowing other events, so we need to add a pre-hook
-       // to trigger the editor update with latest field values.
+       // Drupal triggers Ajax submit via input events before other
+       // form events bubble up. We wrap beforeSubmit to intercept this
+       // early in the cycle, adding validation and ensuring submitted
+       // values reflect the latest editor state.
+       //
+       // Only wrap once per ajax instance to avoid chaining wrappers.
        // @todo Add handling for AJAX errors and re-attach.
-       if (!ajax.hasOwnProperty('beforeSubmit')) {
-         let beforeSubmit = ajax.beforeSubmit;
+       if (!ajax._patternkitBeforeSubmitWrapped) {
+         ajax._patternkitBeforeSubmitWrapped = true;
+         const previousBeforeSubmit = ajax.beforeSubmit;
          ajax.beforeSubmit = function (formValues, elementSettings, options) {
-           if (window.patternkitEditor && !window.patternkitEditor.detaching) {
-             // Run any registered beforeSubmit handlers before destroying the
-             // JSONEditor form.
-             editor.beforeSubmit();
+           const activeEditor = window.patternkitEditor;
+           const activePatternkit = activeEditor && activeEditor.patternkit;
 
-             // Ensure the submitted form values are updated with all changes.
-             // If the submit button was clicked without clicking out of a text
-             // field, for example, the change event from that field will not
-             // have fired, and the serialized form values will not have been
-             // updated. In this case, we need to make sure the submitted config
-             // value is updated.
+           if (activeEditor && !activeEditor.detaching && activePatternkit) {
+             // Block submission when validation fails.
+             if (!activePatternkit.validateBeforeAjaxSubmit(ajax, $submitButton)) {
+               return false;
+             }
+
+             // Run any registered beforeSubmit callbacks.
+             activePatternkit.beforeSubmit();
+
+             // Ensure submitted form values reflect the latest editor
+             // state, in case the user clicked submit without blurring
+             // a text field first.
              let index = formValues.findIndex(function (o) {
                return o.name === "settings[instance_config]";
              });
              if (index !== -1) {
-               window.patternkitEditor.disable();
-               formValues[index].value = JSON.stringify(window.patternkitEditor.getValue());
+               activeEditor.disable();
+               formValues[index].value = JSON.stringify(
+                 activeEditor.getValue()
+               );
              }
            }
 
-           beforeSubmit.apply(this, [formValues, elementSettings, options]);
+           if (typeof previousBeforeSubmit === 'function') {
+             return previousBeforeSubmit.apply(
+               this, [formValues, elementSettings, options]
+             );
+           }
          };
        }
      });

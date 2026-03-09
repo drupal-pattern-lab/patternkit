@@ -16,6 +16,7 @@ patternkit.opener.jsonlibrary
 twig.loader.patternlibrary
 
 # Terms
+notempty
 rulesets
 styleguides
 subpattern
