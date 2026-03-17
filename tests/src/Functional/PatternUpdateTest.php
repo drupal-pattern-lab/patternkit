@@ -129,6 +129,8 @@ class PatternUpdateTest extends PatternkitBrowserTestBase {
     $uuid = key($components);
 
     // Confirm the form doesn't contain an update notification.
+    // The full-page block config URL is used intentionally here: this test
+    // validates PHP-only behavior (schema update detection) without JavaScript.
     $block_form_url = 'layout_builder/update/block/overrides/node.1/0/content/' . $uuid;
     $this->drupalGet($block_form_url);
     $assert->statusCodeEquals(200);
@@ -253,6 +255,8 @@ class PatternUpdateTest extends PatternkitBrowserTestBase {
     $assert->pageTextContains('MY REPLACED TEMPLATE');
 
     // Update the pattern revision to load from disk on the first node.
+    // The full-page block config URL is used intentionally here: this test
+    // validates PHP-only behavior (pattern revisioning) without JavaScript.
     $this->drupalGet('layout_builder/update/block/overrides/node.1/0/content/' . $component_1_uuid);
     $assert->statusCodeEquals(200);
     $assert->pageTextContains('Update pattern schema and template');

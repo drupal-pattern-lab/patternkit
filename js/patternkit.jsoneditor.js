@@ -531,7 +531,7 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
              // state, in case the user clicked submit without blurring
              // a text field first.
              let index = formValues.findIndex(function (o) {
-               return o.name === "settings[instance_config]";
+               return o.name === "settings[configuration]";
              });
              if (index !== -1) {
                activeEditor.disable();
