@@ -317,6 +317,12 @@ class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
     $page->find('css', '.ck-source-editing-area textarea')
       ->setValue($source_edited_content);
 
+    // WebDriver does not reliably mirror browser change events on the source
+    // textarea the way a human edit would. Call saveEditorContent() via the
+    // same path as other tests so schema_instance_config is synced before AJAX
+    // submit, without leaving source editing mode.
+    $this->triggerCkeditorChange($schema_path);
+
     // Save the block without changing back out of source editing mode.
     $page->pressButton('Add block');
     $assert->assertWaitOnAjaxRequest();
