@@ -15,15 +15,19 @@ patternkit.settings:
       type: string
       label: 'String selecting the theme to be used for the JSON Editor.'
     patternkit_libraries:
-      type: mapping
-      label: 'A list of settings for each Patternkit library.'
-      mapping:
-        enabled:
-          type: boolean
-          label: 'Library Enabled'
-        visible:
-          type: boolean
-          label: 'Library visible in lists'
+      type: sequence
+      label: 'Patternkit library settings keyed by library ID.'
+      orderby: key
+      sequence:
+        type: mapping
+        label: 'Library setting'
+        mapping:
+          enabled:
+            type: boolean
+            label: 'Library Enabled'
+          visible:
+            type: boolean
+            label: 'Library visible in lists'
     entity_cache_tag_invalidation:
       type: boolean
       label: 'Boolean determining whether Pattern entity cache tags are invalidated during Pattern updates.'
