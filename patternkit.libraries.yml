@@ -3,15 +3,12 @@ jsoneditor:
   version: VERSION
   js:
     js/handlebars.min.js: { minified: true }
-    js/ajv.min.js: { minified: true }
     js/jsoneditor.js: { minified: true }
 
 jsoneditor.dev:
   version: VERSION
   js:
     js/handlebars.js: {}
-    js/ajv.min.js: {}
-    js/ajv.min.js.map: {}
     js/nonmin/jsoneditor.js: {}
     js/nonmin/jsoneditor.js.map: {}
 

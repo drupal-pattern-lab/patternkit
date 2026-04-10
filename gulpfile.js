@@ -8,8 +8,6 @@ const gulpConfig = {
   main: 'patternkit.jsoneditor.js',
   lib: [
     './node_modules/@json-editor/json-editor/dist/**',
-    './node_modules/ajv/dist/ajv.min.js',
-    './node_modules/ajv/dist/ajv.min.js.map',
     './node_modules/handlebars/dist/handlebars.js',
     './node_modules/handlebars/dist/handlebars.min.js',
   ],

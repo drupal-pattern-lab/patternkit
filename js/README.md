@@ -6,7 +6,7 @@
 
 ## Dependencies
 
-- AJV and Json Schema Editor are built using package.json's Gulp script.
+- Json Schema Editor assets are built and copied using the package.json Gulp script.
 
 ## Getting Started
 
