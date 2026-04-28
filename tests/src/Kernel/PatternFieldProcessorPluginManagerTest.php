@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\patternkit\Kernel;
 
+use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Render\RendererInterface;
 use Drupal\filter\Entity\FilterFormat;
 use Drupal\node\Entity\Node;
@@ -532,6 +533,107 @@ class PatternFieldProcessorPluginManagerTest extends PatternkitKernelTestBase {
         $filtered_html_format->getCacheTags(),
       ),
     ]);
+  }
+
+  /**
+   * Verify that processSchemaValues does not validate or reject stored content.
+   *
+   * The render path must pass stored values through unchanged regardless of
+   * the field's type, format, or pattern constraint. Content saved before
+   * strict render-time validation was introduced must not cause a
+   * SchemaValidationException or a WARNING log entry on cache-miss renders.
+   *
+   * Cases are drawn from the render_validation_test pattern, which covers all
+   * swaggest-validated draft-04 format keywords (uri, email, hostname,
+   * date-time) and a regex pattern constraint, plus a plain type mismatch.
+   * The uri case also exercises TokenValidationDataPreProcessor: that service
+   * is active in the full kernel stack and nulls the format constraint for
+   * token strings, so the uri field demonstrates the preprocessor behavior
+   * alongside the no-validation contract.
+   *
+   * @dataProvider providerRenderValidationTestStoredContent
+   */
+  public function testProcessSchemaValuesDoesNotValidateStoredContent(
+    array $values,
+  ): void {
+    // Enable patternkit_test here rather than in $modules to avoid its
+    // ExceptionThrowerProcessor plugin affecting testPluginsAreDiscovered.
+    $this->enableModules(['patternkit_test']);
+
+    // Re-fetch services from the rebuilt container so that pattern discovery
+    // includes libraries registered by the newly-enabled module.
+    $patternDiscovery = $this->container->get('patternkit.pattern.discovery');
+    $pluginManager = $this->container->get('plugin.manager.pattern_field_processor');
+
+    $id = '@patternkit_test/render_validation_test/render_validation_test';
+    $definition = $patternDiscovery->getPatternDefinition($id);
+    $pattern = EntityPattern::create($definition);
+
+    $original = $values;
+    $metadata = new BubbleableMetadata();
+
+    // processSchemaValues must complete without throwing. Any exception here
+    // blocks rendering and surfaces as a visitor-facing failure.
+    $pluginManager->processSchemaValues($pattern, $values, [], $metadata);
+
+    // Confirm values are passed through unmodified. Capturing $original before
+    // the call is required because $values is passed by reference; comparing
+    // $values to itself post-call would always pass regardless of mutation.
+    $this->assertEquals($original, $values);
+  }
+
+  /**
+   * Data provider for testProcessSchemaValuesDoesNotValidateStoredContent.
+   *
+   * Each case specifies stored field values that violate the corresponding
+   * field constraint in the render_validation_test pattern. Providing only
+   * the one relevant field per case isolates the assertion to a single
+   * constraint type, making failure output actionable.
+   *
+   * Token resolution note: tokens such as [node:url], [user:mail],
+   * [node:created:raw], and [node:created] are expected to pass through
+   * processSchemaValues unmodified in this kernel environment because no
+   * entity context is present (no current node, user, etc.). The equality
+   * assertion in the test therefore holds — the token string in equals the
+   * token string out. The hostname case uses [hostname:invalid_field], an
+   * intentionally unresolvable token, for the same reason (the hostname
+   * module's valid fields would resolve to a real value).
+   */
+  public static function providerRenderValidationTestStoredContent(): array {
+    return [
+      // Type mismatch: integer stored where label's type: string is declared.
+      'label_type_mismatch' => [
+        ['label' => 42],
+      ],
+      // Token in a uri-format field. TokenValidationDataPreProcessor nulls the
+      // format constraint for uri fields containing tokens, so the full stack
+      // must not throw even before the no-validation fix is considered.
+      'url_token_in_uri_format_field' => [
+        ['url' => '[node:url]'],
+      ],
+      // Token in an email-format field. No preprocessor bypass exists for
+      // email; this case directly represents the WARNING regression.
+      'email_token_in_email_format_field' => [
+        ['email' => '[user:mail]'],
+      ],
+      // Token in a hostname-format field. Same regression class as email.
+      // [site:name] resolves in the kernel environment (to an empty string from
+      // site config), so use an unresolvable token to keep the value stable for
+      // the equality assertion. The regression class is the same: any token
+      // stored in a hostname-constrained field must not cause a throw.
+      'hostname_token_in_hostname_format_field' => [
+        ['hostname' => '[hostname:invalid_field]'],
+      ],
+      // Token in a date-time-format field. Same regression class.
+      'date_time_token_in_date_time_format_field' => [
+        ['date_time' => '[node:created:raw]'],
+      ],
+      // Token in a pattern-constrained field. Tokens never match the ISO 8601
+      // date regex; no bypass exists. The no-validation contract still applies.
+      'date_pattern_token_in_pattern_constrained_field' => [
+        ['date_pattern' => '[node:created]'],
+      ],
+    ];
   }
 
   /**

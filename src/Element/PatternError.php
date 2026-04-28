@@ -2,9 +2,12 @@
 
 namespace Drupal\patternkit\Element;
 
+use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Render\Attribute\RenderElement;
 use Drupal\Core\Render\Element\RenderElementBase;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\patternkit\Entity\Pattern;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Provides a render element to display in place of a pattern error.
@@ -43,7 +46,40 @@ use Drupal\patternkit\Entity\Pattern;
 #[RenderElement(
   id: 'pattern_error',
 )]
-class PatternError extends RenderElementBase {
+class PatternError extends RenderElementBase implements ContainerFactoryPluginInterface {
+
+  /**
+   * Constructs a PatternError plugin instance.
+   *
+   * @param array $configuration
+   *   A configuration array containing information about the plugin instance.
+   * @param string $plugin_id
+   *   The plugin_id for the plugin instance.
+   * @param mixed $plugin_definition
+   *   The plugin implementation definition.
+   * @param \Drupal\Core\Session\AccountInterface $currentUser
+   *   The current user.
+   */
+  public function __construct(
+    array $configuration,
+    $plugin_id,
+    $plugin_definition,
+    protected AccountInterface $currentUser,
+  ) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): self {
+    return new static(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
+      $container->get('current_user'),
+    );
+  }
 
   /**
    * The permission to check for including debug output in error displays.
@@ -150,7 +186,7 @@ class PatternError extends RenderElementBase {
    *   TRUE if debug output should be displayed. FALSE otherwise.
    */
   protected function shouldDisplayDebugOutput(): bool {
-    return \Drupal::currentUser()->hasPermission(static::DEBUG_PERMISSION);
+    return $this->currentUser->hasPermission(static::DEBUG_PERMISSION);
   }
 
 }

@@ -85,7 +85,6 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager implements
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    * @throws \Drupal\patternkit\Exception\SchemaException
    * @throws \Drupal\patternkit\Exception\SchemaReferenceException
-   * @throws \Drupal\patternkit\Exception\SchemaValidationException
    */
   public function processSchemaValues(PatternInterface $pattern, array &$values, array $context, BubbleableMetadata $bubbleableMetadata): void {
     // Load and instantiate all defined schema field processors.
@@ -94,10 +93,6 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager implements
     $schema = $pattern->getSchema();
 
     try {
-      // Soft-validate before processing to log potential issues while allowing
-      // processors to normalize values (e.g., token substitution).
-      $this->assertValidPatternContent($pattern, $values, FALSE);
-
       $values = $this->traverseSchema(
         $schema,
         $values,
@@ -106,10 +101,6 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager implements
         $context,
         $bubbleableMetadata
       );
-
-      // Ensure processed values still align with the schema after all
-      // processors have executed.
-      $this->assertValidPatternContent($pattern, $values);
     }
     catch (SchemaException $schemaException) {
       // Log the error before throwing it further.
@@ -241,6 +232,10 @@ class PatternFieldProcessorPluginManager extends DefaultPluginManager implements
 
   /**
    * Validate content against the provided pattern schema.
+   *
+   * This method is not called from the render path. It is retained for use
+   * by planned render-time validation logic that will conditionally apply
+   * schema enforcement based on content stamp state.
    *
    * @param \Drupal\patternkit\Entity\PatternInterface $pattern
    *   The pattern being validated.

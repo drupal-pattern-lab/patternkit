@@ -44,4 +44,5 @@ pkinfo
 pklist
 pklu
 pkschema
+pkset
 pkuscan

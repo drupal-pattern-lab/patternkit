@@ -1,0 +1,57 @@
+{#
+  Render validation test component.
+
+  Variables:
+  - label: string|mixed — plain string, may be a non-string value in regression tests.
+  - url: string — URI-format field; may contain a Drupal token or a raw URL.
+  - email: string — email-format field; may contain a Drupal token.
+  - hostname: string — hostname-format field; may contain a Drupal token.
+  - ipv4: string — IPv4-format field; may contain a Drupal token.
+  - date_time: string — date-time-format field; may contain a Drupal token.
+  - date_pattern: string — pattern-constrained date field (ISO 8601); tokens not supported.
+  - link: object — nested link object with href (URI-format) and text (plain string).
+  - rich_text: string — unconstrained rich text field.
+  - rich_text_html: string — html-format rich text field.
+#}
+<div class="render-validation-test">
+  {% if label is defined and label is not empty %}
+    <p class="render-validation-test__label">{{ label }}</p>
+  {% endif %}
+  {% if url is defined and url is not empty %}
+    <p class="render-validation-test__url">
+      <a href="{{ url }}">{{ url }}</a>
+    </p>
+  {% endif %}
+  {% if email is defined and email is not empty %}
+    <p class="render-validation-test__email">
+      <a href="mailto:{{ email }}">{{ email }}</a>
+    </p>
+  {% endif %}
+  {% if hostname is defined and hostname is not empty %}
+    <p class="render-validation-test__hostname">{{ hostname }}</p>
+  {% endif %}
+  {% if ipv4 is defined and ipv4 is not empty %}
+    <p class="render-validation-test__ipv4">{{ ipv4 }}</p>
+  {% endif %}
+  {% if date_time is defined and date_time is not empty %}
+    <p class="render-validation-test__date-time">
+      <time datetime="{{ date_time }}">{{ date_time }}</time>
+    </p>
+  {% endif %}
+  {% if date_pattern is defined and date_pattern is not empty %}
+    <p class="render-validation-test__date-pattern">
+      <time datetime="{{ date_pattern }}">{{ date_pattern }}</time>
+    </p>
+  {% endif %}
+  {% if link is defined and link.href is defined and link.href is not empty %}
+    <p class="render-validation-test__link">
+      <a href="{{ link.href }}">{{ link.text is defined and link.text is not empty ? link.text : link.href }}</a>
+    </p>
+  {% endif %}
+  {% if rich_text is defined and rich_text is not empty %}
+    <p class="render-validation-test__rich-text">{{ rich_text }}</p>
+  {% endif %}
+  {% if rich_text_html is defined and rich_text_html is not empty %}
+    <div class="render-validation-test__rich-text-html">{{ rich_text_html }}</div>
+  {% endif %}
+</div>

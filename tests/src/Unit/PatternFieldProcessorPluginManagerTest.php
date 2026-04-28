@@ -10,7 +10,6 @@ use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\State\StateInterface;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Exception\SchemaReferenceException;
-use Drupal\patternkit\Exception\SchemaValidationException;
 use Drupal\patternkit\PatternFieldProcessorPluginManager;
 use Drupal\patternkit\PatternLibraryPluginInterface;
 use Drupal\patternkit\PatternLibraryPluginManager;
@@ -774,71 +773,101 @@ class PatternFieldProcessorPluginManagerTest extends UnitTestCase {
   }
 
   /**
-   * Ensure invalid values fail validation before processing.
+   * Verify that processSchemaValues does not validate or reject stored content.
+   *
+   * The render path must pass stored values through unchanged, regardless of
+   * the field's type, format, or pattern constraint. Content saved before
+   * strict validation was introduced must not produce a WARNING log entry or
+   * throw during rendering.
+   *
+   * Schemas mirror the field types defined in the render_validation_test
+   * pattern: a plain string type, all four swaggest-validated format keywords
+   * (uri, email, hostname, date-time), and a regex pattern constraint.
+   *
+   * @dataProvider providerSchemaInvalidStoredContent
    */
-  public function testProcessSchemaValuesWithInvalidData(): void {
-    // Define a simple schema requiring a string "text" field.
-    $schema_json = <<<JSON
-      {
-        "\$schema": "http://json-schema.org/draft-04/schema#",
-        "category": "atom",
-        "title": "Example",
-        "type": "object",
-        "properties": {
-          "text": {
-            "title": "Text",
-            "type": "string"
-          }
-        },
-        "required": ["text"]
-      }
-      JSON;
-
-    // Mock the pattern to supply schema and an asset id for logging context.
+  public function testProcessSchemaValuesDoesNotValidateStoredContent(
+    string $schema_json,
+    mixed $stored_value,
+  ): void {
     $pattern = $this->createMock(Pattern::class);
     $pattern->expects($this->atLeastOnce())
       ->method('getSchema')
       ->willReturn($schema_json);
-    $pattern->method('getAssetId')
-      ->willReturn('@patternkit/example');
+    $pattern->method('getAssetId')->willReturn('@patternkit/example');
 
-    // Prepare invalid values and metadata container for processing.
+    // The render path must not log a WARNING for schema-invalid stored content.
+    // setUp already guards against error-level logs via expects($this->never())
+    // on the logger mock.
+    $this->logger->expects($this->never())->method('warning');
+
     $metadata = new BubbleableMetadata();
-    $values = [
-      'text' => ['invalid'],
+    $values = ['field' => $stored_value];
+    $original = $values;
+
+    $this->pluginManager->processSchemaValues($pattern, $values, [], $metadata);
+
+    // Confirm values are passed through unmodified — no processor should alter
+    // or discard them, and no validation side-effect should mutate them.
+    $this->assertEquals($original, $values);
+  }
+
+  /**
+   * Data provider for testProcessSchemaValuesDoesNotValidateStoredContent.
+   *
+   * Each case pairs a field schema with a stored value that violates the
+   * field's constraint. Cases cover the same constraint types as the
+   * render_validation_test pattern so that unit-level intent maps directly to
+   * the integration-level pattern used for manual QE testing.
+   *
+   * Note: this test class mocks the context builder and does not wire
+   * TokenValidationDataPreProcessor. The token values in format-constrained
+   * cases therefore test the no-validation contract directly, not the
+   * preprocessor bypass behavior; that integration is covered in the
+   * corresponding kernel test.
+   */
+  public static function providerSchemaInvalidStoredContent(): array {
+    $wrap = static function (string $field_schema): string {
+      return '{"$schema":"http://json-schema.org/draft-04/schema#","type":"object","properties":{"field":' . $field_schema . '}}';
+    };
+
+    return [
+      // Plain type mismatch: integer stored where string is required.
+      'type_string_integer_stored' => [
+        $wrap('{"type":"string"}'),
+        42,
+      ],
+      // Token stored in a uri-format field. In production, TokenValidation-
+      // DataPreProcessor bypasses the format check for uri fields; here the
+      // no-validation contract covers it independently.
+      'format_uri_token_stored' => [
+        $wrap('{"type":"string","format":"uri"}'),
+        '[node:url]',
+      ],
+      // Token stored in an email-format field. No server-side bypass exists
+      // for email; this case directly represented the WARNING regression.
+      'format_email_token_stored' => [
+        $wrap('{"type":"string","format":"email"}'),
+        '[user:mail]',
+      ],
+      // Token stored in a hostname-format field. Same regression class as
+      // email.
+      'format_hostname_token_stored' => [
+        $wrap('{"type":"string","format":"hostname"}'),
+        '[hostname:invalid_field]',
+      ],
+      // Token stored in a date-time-format field. Same regression class.
+      'format_date_time_token_stored' => [
+        $wrap('{"type":"string","format":"date-time"}'),
+        '[node:created:raw]',
+      ],
+      // Token stored in a pattern-constrained field. Tokens never match date
+      // regex patterns; no bypass exists. Same no-validation contract applies.
+      'pattern_date_token_stored' => [
+        $wrap('{"type":"string","pattern":"^[0-9]{4}-[0-9]{2}-[0-9]{2}$"}'),
+        '[node:created]',
+      ],
     ];
-
-    // Expect a warning on soft pre-validation and an error on hard failure.
-    $errorLogger = $this->createMock(LoggerInterface::class);
-    $errorLogger->expects($this->once())
-      ->method('warning');
-    $errorLogger->expects($this->once())
-      ->method('error');
-
-    // Build the plugin manager with the mocked logger to capture failures.
-    $pluginManager = new PatternFieldProcessorPluginManager(
-      $this->containerNamespaces,
-      $this->cacheDiscovery,
-      $this->moduleHandler,
-      $this->serializer,
-      $this->schemaWalkerFactory,
-      $this->state,
-      $this->validationHelper,
-    );
-    $pluginManager->setLogger($errorLogger);
-
-    // A processor should never be invoked when validation fails up front.
-    $processor = $this->createMock(PatternFieldProcessorInterface::class);
-    $processor->expects($this->never())->method('applies');
-
-    // The hard post-processing validation should surface a schema exception.
-    $this->expectException(SchemaValidationException::class);
-    $pluginManager->processSchemaValues(
-      $pattern,
-      $values,
-      [],
-      $metadata
-    );
   }
 
   /**

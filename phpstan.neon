@@ -32,6 +32,10 @@ parameters:
     - stubs/Drupal/FunctionalJavascriptTests/JSWebAssert.stub
     - stubs/Drupal/Tests/BrowserTestBase.stub
     - stubs/Drupal/Tests/WebAssert.stub
+    # Schema.stub must precede SchemaContract.stub. PHPStan 2.1.44+ StubValidator
+    # requires @phpstan-require-extends references to be resolvable within the stub
+    # registry; Schema is not declared as a stub by any upstream package.
+    - stubs/Swaggest/JsonSchema/Schema.stub
     - stubs/Swaggest/JsonSchema/SchemaContract.stub
 
   # Customize the rules being scanned for.
@@ -76,6 +80,14 @@ parameters:
     - message: '#^\\Drupal calls should be avoided in classes, use dependency injection instead$#'
       count: 1
       path: src/Hook/ThemeHooks.php
+
+    # The test overrides the container service class to TestLibraryNamespaceResolver
+    # via ServiceModifierInterface::alter(), so the runtime type is correct. PHPStan
+    # cannot infer this from the service container call. reportUnmatched: false
+    # because the error only fires when the full Drupal vendor autoload is present.
+    - identifier: assign.propertyType
+      path: tests/src/Kernel/Asset/LibraryNamespaceResolverTest.php
+      reportUnmatched: false
 
     # Ignore deprecation warnings inconsistent between Drupal versions.
     - identifier: method.deprecated

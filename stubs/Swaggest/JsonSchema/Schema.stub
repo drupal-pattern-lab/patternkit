@@ -1,0 +1,45 @@
+<?php
+
+namespace Swaggest\JsonSchema;
+
+class Schema
+{
+
+    /** @var mixed */
+    public $type;
+
+    /** @var mixed */
+    public $format;
+
+    /** @var mixed */
+    public $items;
+
+    /** @return array<mixed>|null */
+    public function getFromRefs(): ?array
+    {
+    }
+
+    public function getDocumentPath(): string
+    {
+    }
+
+    /** @return mixed */
+    public function jsonSerialize()
+    {
+    }
+
+    /** @return mixed */
+    public function getProperties()
+    {
+    }
+
+    /** @return array<string> */
+    public function getPropertyNames(): array
+    {
+    }
+
+    public function setFormat(mixed $format): static
+    {
+    }
+
+}

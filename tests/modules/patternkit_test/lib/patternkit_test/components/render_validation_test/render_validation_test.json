@@ -1,0 +1,79 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Render validation test",
+    "description": "A test component with typed and format-constrained fields covering all JSON Schema format keywords, a pattern-constrained date field, a nested link object, and an unconstrained rich text field.",
+    "category": "atom",
+    "type": "object",
+    "properties": {
+        "label": {
+            "title": "Label",
+            "description": "Plain string field with no format constraint.",
+            "type": "string"
+        },
+        "url": {
+            "title": "URL",
+            "description": "String field with format: uri.",
+            "type": "string",
+            "format": "uri"
+        },
+        "email": {
+            "title": "Email",
+            "description": "String field with format: email.",
+            "type": "string",
+            "format": "email"
+        },
+        "hostname": {
+            "title": "Hostname",
+            "description": "String field with format: hostname.",
+            "type": "string",
+            "format": "hostname"
+        },
+        "ipv4": {
+            "title": "IPv4 Address",
+            "description": "String field with format: ipv4.",
+            "type": "string",
+            "format": "ipv4"
+        },
+        "date_time": {
+            "title": "Date/Time",
+            "description": "String field with format: date-time.",
+            "type": "string",
+            "format": "date-time"
+        },
+        "date_pattern": {
+            "title": "Date (ISO 8601)",
+            "description": "String field with an ISO 8601 date regex pattern constraint.",
+            "type": "string",
+            "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$"
+        },
+        "link": {
+            "title": "Link",
+            "description": "Nested object field with a URI-constrained href and an unconstrained text label.",
+            "type": "object",
+            "properties": {
+                "href": {
+                    "title": "URL",
+                    "description": "String field with format: uri.",
+                    "type": "string",
+                    "format": "uri"
+                },
+                "text": {
+                    "title": "Link text",
+                    "description": "Plain string field with no format constraint.",
+                    "type": "string"
+                }
+            }
+        },
+        "rich_text": {
+            "title": "Rich text",
+            "description": "Plain string field with no format or pattern constraint.",
+            "type": "string"
+        },
+        "rich_text_html": {
+            "title": "Rich text (HTML format)",
+            "description": "String field with format: html for HTML-rich token replacement coverage.",
+            "type": "string",
+            "format": "html"
+        }
+    }
+}
