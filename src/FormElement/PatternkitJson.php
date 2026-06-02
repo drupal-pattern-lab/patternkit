@@ -25,7 +25,6 @@ class PatternkitJson extends FormElementBase {
 
     // This plugin type is instantiated from typed schema, not a service
     // container-aware factory, so the container must be resolved here.
-    // @phpstan-ignore-next-line
     $container = \Drupal::getContainer();
     $patternBlock = PatternkitBlock::create($container, $configuration, 'patternkit_block', []);
     // Form state not used in this method, but is required for the block form.

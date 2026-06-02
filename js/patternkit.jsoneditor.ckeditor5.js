@@ -172,10 +172,27 @@ export class DrupalCKEditor5 extends JSONEditor.defaults.editors.string {
     return value;
   }
 
+  /**
+   * Returns true when the JSON Editor instance is fully live and safe to call
+   * into for value updates or change notifications.
+   *
+   * JSONEditor.destroy() nulls this.options on the root instance before walking
+   * child editors. This creates a window where this.jsoneditor is still a live
+   * reference but this.jsoneditor.options is already null, causing any code that
+   * reads jsoneditor.options (e.g. shouldBeUnset(), isDefaultRequired()) to
+   * throw. Use this guard before calling refreshWatchedFieldValues(), onChange(),
+   * or refreshValue() to protect both teardown paths.
+   *
+   * @returns {boolean} Whether the JSON Editor instance is active.
+   */
+  _isJsonEditorActive() {
+    return !!(this.jsoneditor && this.jsoneditor.options);
+  }
+
   setValue(val, initial, from_template) {
     const input = super.setValue(val, initial, from_template);
     let ckeditor_instance = this.getCkeditorInstance();
-    if (input !== undefined && input.changed && ckeditor_instance) {
+    if (input !== undefined && input.changed && ckeditor_instance && this._isJsonEditorActive()) {
       ckeditor_instance.setData(input.value);
       this.refreshWatchedFieldValues();
       this.onChange(true);
@@ -183,13 +200,10 @@ export class DrupalCKEditor5 extends JSONEditor.defaults.editors.string {
   }
 
   saveEditorContent() {
-    // If the source editor is open when the form is submitted, the data
-    // change event may be delayed in firing causing it to call this function
-    // after the JSON Editor has already begun destroying the form and the
-    // values may no longer be updated. In this case, editor has already been
-    // detached, and we'll abort here.
+    // Abort if the JSON Editor instance or CKEditor instance is no longer live.
+    // See _isJsonEditorActive() for the teardown race this guards against.
     const editor = this.getCkeditorInstance();
-    if (!this.jsoneditor || !editor) {
+    if (!this._isJsonEditorActive() || !editor) {
       return;
     }
 
@@ -226,12 +240,10 @@ export class DrupalCKEditor5 extends JSONEditor.defaults.editors.string {
 
   isInSourceMode() {
     const editor = this.ckeditor_instance;
-    if (editor.plugins && editor.plugins.has('SourceEditing')) {
+    if (editor && editor.plugins && editor.plugins.has('SourceEditing')) {
       return editor.plugins.get('SourceEditing').isSourceEditingMode;
     }
-    else {
-      return false;
-    }
+    return false;
   }
 
 }

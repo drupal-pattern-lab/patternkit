@@ -2,6 +2,7 @@
 drupalize
 fontawesome
 jsoneditor
+linkit
 patternfly
 patternlib
 slowprog

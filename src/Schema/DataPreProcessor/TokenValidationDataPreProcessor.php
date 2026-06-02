@@ -7,14 +7,32 @@ use Swaggest\JsonSchema\DataPreProcessor;
 use Swaggest\JsonSchema\Schema;
 
 /**
- * Preprocess data to loosen format validation on Uris if needed.
+ * Bypasses format validation for Drupal token values and empty optional fields.
  *
- * When using tokens in content, sometimes the token value representing the
- * final content won't pass validation. For example, a '[node:entity_url]' token
- * will fail validation in a string field with a 'uri' format, but the final
- * replaced value would pass. This processor tests the data and an assigned
- * format to determine if any loosening of constraints is needed to allow for
- * token usage.
+ * Drupal tokens (e.g. [node:url], [user:mail]) are placeholders that are
+ * replaced with their final values at render time. A token stored in a
+ * format-constrained field will fail JSON Schema format validation because the
+ * raw token string does not conform to the target format. This processor
+ * detects token values and temporarily removes the format constraint from the
+ * schema so validation passes during import/storage.
+ *
+ * Empty strings submitted for optional format-constrained fields are similarly
+ * bypassed. JSON Editor always serializes unfilled optional fields as empty
+ * strings; without the bypass, fields such as url or email would fail strict
+ * Swaggest format validation whenever the editor leaves them blank.
+ *
+ * Linkit double-bracket metadata values (e.g. [[url-nid:42;title:Read more]])
+ * are also bypassed as a side effect. Token::scan() detects the inner
+ * [url-nid:VALUE] substring as a token type, so the format bypass applies
+ * without requiring additional code. The client-side counterpart in
+ * patternkit.jsoneditor.js uses LINKIT_REGEX to explicitly match the supported
+ * shape; the server relies on Token::scan() detection rather than a dedicated
+ * Linkit regex.
+ *
+ * The bypass applies to all JSON Schema draft-04 format keywords that
+ * Swaggest validates by default: uri, email, hostname, ipv4, date, date-time.
+ * Pattern constraints (regex) are not affected; no runtime bypass is possible
+ * for those without knowing the final token value.
  */
 class TokenValidationDataPreProcessor implements DataPreProcessor {
 
@@ -38,6 +56,23 @@ class TokenValidationDataPreProcessor implements DataPreProcessor {
   /**
    * Process the provided schema data.
    *
+   * The bypass applies regardless of whether the field is declared in the
+   * parent schema's required array. The DataPreProcessor interface receives
+   * only the individual property schema — there is no access to the parent
+   * object schema or field path, so required-aware filtering is not possible
+   * at this layer. JSON Schema's required keyword enforces field presence, not
+   * format validity; strict enforcement for required format-constrained fields
+   * (e.g., "must be a non-empty valid URI") requires a separate constraint
+   * such as minLength: 1 or a dedicated validation step.
+   *
+   * Note: setFormat(NULL) mutates the Swaggest Schema object in place. Because
+   * SchemaFactory caches compiled schema instances as static properties, this
+   * mutation persists within the PHP-FPM worker process. Subsequent
+   * validations of the same schema will already have a NULL format and will
+   * not re-enforce the format constraint even for non-token, non-empty values.
+   * See https://www.drupal.org/project/patternkit/issues/3585847 for the
+   * tracked upstream follow-up.
+   *
    * @param mixed $data
    *   The original data prior to processing.
    * @param \Swaggest\JsonSchema\Schema $schema
@@ -49,11 +84,9 @@ class TokenValidationDataPreProcessor implements DataPreProcessor {
    *   Processed data.
    */
   public function process($data, Schema $schema, $import = TRUE) {
-    if ($schema->type === 'string' && $schema->format === 'uri') {
-      // Does it contain a token?
-      // @todo Should this use a regex directly for better performance?
-      if ($this->token->scan($data)) {
-        // Disable format checking.
+    $bypassFormats = ['uri', 'email', 'hostname', 'ipv4', 'date', 'date-time'];
+    if ($schema->type === 'string' && in_array($schema->format, $bypassFormats, TRUE)) {
+      if ($data === '' || $this->token->scan($data)) {
         $schema->setFormat(NULL);
       }
     }

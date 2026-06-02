@@ -2,20 +2,27 @@
 
 ## JSON Editor JS
 
-- patternkit.jsoneditor.js is built with the Gulp script from patternkit.jsoneditor.es6.js.
+- `js/patternkit.jsoneditor.js` is an ES6 module served directly by Drupal.
+  It is not transpiled or bundled — edit the source directly.
 
 ## Dependencies
 
-- Json Schema Editor assets are built and copied using the package.json Gulp script.
+- `@json-editor/json-editor` and `handlebars` are built into the `js/`
+  directory via the Gulp `copy:lib` task (`gulp copy:lib`).
+- Run the build script to update copied library files:
+
+      npm run build
 
 ## Getting Started
 
-- Use Node Version Manager
+- Use Node Version Manager:
 
+      nvm use
 
-    nvm use
+- Install dependencies:
 
-- Run the build script to update the dependencies and transpile the JSON Schema Editor Patternkit JS.
+      npm install
 
+- Copy library files to `js/`:
 
-    npm run build
+      gulp copy:lib

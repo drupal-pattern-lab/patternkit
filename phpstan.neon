@@ -80,6 +80,13 @@ parameters:
     - message: '#^\\Drupal calls should be avoided in classes, use dependency injection instead$#'
       count: 1
       path: src/Hook/ThemeHooks.php
+    # PatternkitJson must resolve the container directly — it is instantiated from
+    # typed schema, not a service container-aware factory. reportUnmatched: false
+    # because the Drupal PHPStan plugin does not emit this rule on all Drupal versions.
+    - message: '#^\\Drupal calls should be avoided in classes, use dependency injection instead$#'
+      count: 1
+      path: src/FormElement/PatternkitJson.php
+      reportUnmatched: false
 
     # The test overrides the container service class to TestLibraryNamespaceResolver
     # via ServiceModifierInterface::alter(), so the runtime type is correct. PHPStan

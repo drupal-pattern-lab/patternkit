@@ -293,6 +293,7 @@ class JsonEditorForm extends FormElementBase implements ContainerFactoryPluginIn
     $pattern = $element['#pattern_entity'];
     $schema = $pattern->getSchema();
     $validationHelper = \Drupal::service('patternkit.helper.validation');
+    $validationHelper->clearExceptions();
     $validationHelper->validateContent($schema, $value);
     if ($validationHelper->hasExceptions()) {
 

@@ -24,6 +24,7 @@ import {patternkitEditorCKEditor5} from './patternkit.jsoneditor.ckeditor5.js';
 import {patternkitEditorCygnet} from './patternkit.jsoneditor.cygnet.js';
 import {patternkitEditorObject} from './patternkit.jsoneditor.editor.object.js';
 import {patternkitEditorArray} from './patternkit.jsoneditor.editor.array.js';
+import {TOKEN_REGEX, LINKIT_REGEX, filterTokenErrors} from './src/patternkit.tokenFilter.js';
 
 // Instantiates wysiwyg plugins.
 patternkitEditorCKEditor5(jQuery, Drupal, JSONEditor);
@@ -323,14 +324,18 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
    onSubmit(e) {
      // Validate before allowing non-AJAX form submission.
      if (window.patternkitEditor) {
-       const validationErrors = window.patternkitEditor.validate(
+       const rawErrors = window.patternkitEditor.validate(
          window.patternkitEditor.getValue()
        );
+       const validationErrors = filterTokenErrors(rawErrors);
        if (validationErrors.length > 0) {
          e.preventDefault();
          window.patternkitEditor.root.showValidationErrors(validationErrors);
          return;
        }
+       // Clear any stale inline errors from a prior failed submit attempt
+       // so the editor does not display errors while the form navigates away.
+       window.patternkitEditor.root.showValidationErrors([]);
      }
 
      // Call all serialize and submission handlers since this function is only
@@ -372,8 +377,10 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
      // Calling validate() with no arguments returns cached results from
      // the last requestAnimationFrame cycle, which may be stale if the
      // user just edited a field and immediately clicked submit.
-     const errors = jsonEditor.validate(jsonEditor.getValue());
+     const rawErrors = jsonEditor.validate(jsonEditor.getValue());
+     const errors = filterTokenErrors(rawErrors);
      if (errors.length === 0) {
+       jsonEditor.root.showValidationErrors([]);
        return true;
      }
 
