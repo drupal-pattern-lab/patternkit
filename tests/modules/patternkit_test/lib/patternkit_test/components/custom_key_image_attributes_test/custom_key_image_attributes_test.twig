@@ -1,0 +1,10 @@
+{% if custom_image.src %}
+  <figure>
+    <img src="{{ custom_image.src }}" alt="{{ custom_image.alt|default('') }}" width="{{ custom_image.width|default('') }}" height="{{ custom_image.height|default('') }}" title="{{ custom_image.title|default('') }}" />
+  </figure>
+{% endif %}
+{% if alternate_media.src %}
+  <figure>
+    <img src="{{ alternate_media.src }}" alt="{{ alternate_media.alt|default('') }}" width="{{ alternate_media.width|default('') }}" height="{{ alternate_media.height|default('') }}" title="{{ alternate_media.title|default('') }}" />
+  </figure>
+{% endif %}

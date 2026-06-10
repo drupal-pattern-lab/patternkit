@@ -653,6 +653,112 @@ class JsonEditorMediaSelectionTest extends PatternkitMediaLibraryBrowserTestBase
   }
 
   /**
+   * Test selection-driven attribute population for non-image object keys.
+   *
+   * This guards against regressions where sibling attribute population is
+   * hard-coded to `*.image.src` instead of supporting any `*.src` key path.
+   */
+  public function testImageAttributesPopulateOnSelectionForNonImageObjectKeys(): void {
+    $assert = $this->assertSession();
+
+    $pattern_name = '[Patternkit] Custom key image attributes test';
+    $object_keys = ['custom_image', 'alternate_media'];
+
+    // Override the Node layout and place a patternkit block.
+    $this->drupalGet('node/1/layout');
+    $this->addPatternBlock($pattern_name);
+
+    // Wait for the JSON Editor form to load.
+    $this->waitForJsonEditorForm();
+
+    /** @var \Drupal\file\FileInterface $file */
+    $file = $this->image->get('field_media_image')->entity;
+    $file_url = $file->createFileUrl();
+
+    foreach ($object_keys as $object_key) {
+      $field_map = $this->buildImageFieldMap($object_key);
+
+      // Verify sibling fields are initially empty before media selection.
+      $assert->fieldValueEquals($field_map['alt'], '');
+      $assert->fieldValueEquals($field_map['title'], '');
+
+      // Select an image from the media library for this specific src field.
+      $this->selectImageForSrcSchemaPath("root.$object_key.src");
+
+      // Verify src and sibling attributes are populated for this object key.
+      $this->assertSiblingAttributesPopulated($field_map, $file_url, $object_key);
+    }
+  }
+
+  /**
+   * Build field names for a given image object key.
+   *
+   * @param string $object_key
+   *   Object key to build field names for.
+   *
+   * @return array<string, string>
+   *   Field names keyed by sibling attribute.
+   */
+  protected function buildImageFieldMap(string $object_key): array {
+    return [
+      'src' => "root[$object_key][src]",
+      'alt' => "root[$object_key][alt]",
+      'width' => "root[$object_key][width]",
+      'height' => "root[$object_key][height]",
+      'title' => "root[$object_key][title]",
+    ];
+  }
+
+  /**
+   * Select an image for a specific schema path using the media library modal.
+   *
+   * @param string $schema_path
+   *   Schema path for the src field (for example "root.custom_image.src").
+   */
+  protected function selectImageForSrcSchemaPath(string $schema_path): void {
+    $assert = $this->assertSession();
+    $selector = "div[data-schemapath=\"$schema_path\"] button[title=\"Select/Upload image\"]";
+
+    $button = $this->assertElementExistsAfterWait('css', $selector);
+    $this->scrollOffCanvasElementIntoView($selector);
+    $button->press();
+
+    // Wait for the library modal and insert a media item.
+    $this->assertElementExistsAfterWait('css', '.js-media-library-view');
+    $assert->elementTextContains('css', '.js-media-library-view', 'Super fancy image');
+    $this->selectMediaItem(0);
+    $buttons = $this->assertElementExistsAfterWait('css', '#drupal-modal .form-actions');
+    $buttons->findButton('Insert selected')->press();
+    $assert->waitForElementRemoved('css', '.js-media-library-view');
+  }
+
+  /**
+   * Assert that src and sibling image fields were populated for an object key.
+   *
+   * @param array<string, string> $field_map
+   *   Field names keyed by sibling attribute.
+   * @param string $expected_src
+   *   Expected source URL value.
+   * @param string $object_key
+   *   Object key used for assertion messages.
+   */
+  protected function assertSiblingAttributesPopulated(array $field_map, string $expected_src, string $object_key): void {
+    $assert = $this->assertSession();
+    $page = $this->getSession()->getPage();
+
+    $assert->fieldValueEquals($field_map['src'], $expected_src);
+    $assert->fieldValueEquals($field_map['alt'], 'default alt');
+    $assert->fieldValueEquals($field_map['title'], 'default title');
+
+    $width_value = $page->findField($field_map['width'])->getValue();
+    $height_value = $page->findField($field_map['height'])->getValue();
+    $this->assertNotEmpty($width_value, "Width should be populated for $object_key");
+    $this->assertNotEmpty($height_value, "Height should be populated for $object_key");
+    $this->assertIsNumeric($width_value, "Width should be numeric for $object_key");
+    $this->assertIsNumeric($height_value, "Height should be numeric for $object_key");
+  }
+
+  /**
    * Set configuration for selectable media types in Patternkit patterns.
    *
    * @param string[] $image_types

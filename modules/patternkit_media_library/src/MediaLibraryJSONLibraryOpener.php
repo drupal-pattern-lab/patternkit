@@ -89,11 +89,10 @@ class MediaLibraryJSONLibraryOpener implements MediaLibraryOpenerInterface, Logg
         $image_src = $this->getFileUrl($media);
         $response->addCommand(new PatternkitEditorUpdateCommand($widget_id, $image_src));
 
-        // If we're populating the image src, also try to populate the image
-        // alt text and dimensions. If a schema doesn't match this format for
-        // an image field, this additional processing will be ignored
-        // altogether.
-        if (str_ends_with($widget_id, '.image.src')) {
+        // If we're populating an image src field, also try to populate sibling
+        // attributes (such as alt text and dimensions). If a schema does not
+        // include these sibling fields, this additional processing is ignored.
+        if (str_ends_with($widget_id, '.src')) {
           // Attempt to load the source file to identify additional available
           // attributes.
           $image = $this->getSourceFile($media);
