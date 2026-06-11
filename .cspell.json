@@ -1,0 +1,39 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [],
+  "dictionaries": ["project-words", "php", "css", "html", "typescript"],
+  "dictionaryDefinitions": [
+    {
+      "name": "project-words",
+      "path": "./.cspell-project-words.txt",
+      "addWords": true
+    }
+  ],
+  "ignorePaths": [
+    "CODE_OF_CONDUCT.md",
+    "css/cygnet/cygnet--prefixed-for-drupal.css",
+    "css/cygnet/cygnet--prefixed-for-drupal--upstream.css",
+    "js/*.min.js",
+    "js/handlebars.js",
+    "js/jsoneditor.js",
+    "js/jsoneditor.js.LICENSE.txt",
+    "js/nonmin/*",
+    "js/postcss/drupalize/LICENSE",
+    "phpstan-baseline.neon",
+    "composer.json",
+    "composer.local.json",
+    "**/package.json",
+    "vendor/**",
+    "web/**",
+    "node_modules/**",
+    "artifacts/**",
+    "docs/**",
+    "**/*.svg",
+    "**/*.LICENSE.txt",
+    "modules/patternkit_example/lib/patternkit/**",
+    ".claude/**",
+    ".cursor/**",
+    ".worktrees/**"
+  ]
+}

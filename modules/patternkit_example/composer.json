@@ -12,8 +12,8 @@
   "repositories": [],
   "scripts": {
     "library:build": [
-        ". ~/.profile && nvm install && nvm use",
-        "npm install && npx gulp"
+      ". ~/.profile && nvm install && nvm use",
+      "npm install && npx gulp"
     ]
   }
 }

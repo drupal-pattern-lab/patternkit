@@ -2,7 +2,7 @@
 
 :+1::tada: First off, thanks for taking the time to contribute! :tada::+1:
 
-#### Table Of Contents
+## Table Of Contents
 
 [Code of Conduct](#code-of-conduct)
 
@@ -10,24 +10,24 @@
 
 [Prerequisites](#prerequisites)
 
-* [Drupal](#drupal)
-* [Patterns & Components](#design-decisions)
-* [The Patternkit Ecosystem](#the-patternkit-ecosystem)
-* [Code Architecture Philosophy](#code-architecture-philosophy)
-* [Patternkit Entry Points and Classes](#patternkit-entry-points-and-classes)
+- [Drupal](#drupal)
+- [Patterns & Components](#design-decisions)
+- [The Patternkit Ecosystem](#the-patternkit-ecosystem)
+- [Code Architecture Philosophy](#code-architecture-philosophy)
+- [Patternkit Entry Points and Classes](#patternkit-entry-points-and-classes)
 
 [How Can I Contribute?](#how-can-i-contribute)
 
-* [Reporting Bugs](#reporting-bugs)
-* [Suggesting Enhancements](#suggesting-enhancements)
-* [Your First Code Contribution](#your-first-code-contribution)
-* [Pull Requests](#pull-requests)
+- [Reporting Bugs](#reporting-bugs)
+- [Suggesting Enhancements](#suggesting-enhancements)
+- [Your First Code Contribution](#your-first-code-contribution)
+- [Pull Requests](#pull-requests)
 
 [Styleguides](#styleguides)
 
-* [Git Commit Messages](#git-commit-messages)
-* [JavaScript Styleguide](#javascript-styleguide)
-* [PHP Styleguide](#php-styleguide)
+- [Git Commit Messages](#git-commit-messages)
+- [JavaScript Styleguide](#javascript-styleguide)
+- [PHP Styleguide](#php-styleguide)
 
 ## Code of Conduct
 
@@ -40,13 +40,13 @@ Please follow the [Drupal Code of Conduct](https://www.drupal.org/dcoc).
 
 You can join the Drupal Slack team:
 
-* [Join the Drupal Slack Team](https://drupalslack.herokuapp.com/)
-  * Even though Slack is a chat service, sometimes it takes several hours for
+- [Join the Drupal Slack Team](https://drupalslack.herokuapp.com/)
+  - Even though Slack is a chat service, sometimes it takes several hours for
     community members to respond &mdash; please be patient!
-  * Use the `#patternkit` channel for general questions or discussion
-  * Use the `#components` channel for questions about the general pattern &
+  - Use the `#patternkit` channel for general questions or discussion
+  - Use the `#components` channel for questions about the general pattern &
     component ecosystem
-  * There are many other channels available, check the channel list
+  - There are many other channels available, check the channel list
 
 ## Prerequisites
 
@@ -120,7 +120,7 @@ Bugs are tracked as [Drupal.org issues](https://www.drupal.org/project/issues/pa
 
 #### Before Submitting A Bug Report
 
-* **Perform a cursory search on [Drupal.org](https://www.drupal.org/project/issues/patternkit?categories=All)**
+- **Perform a cursory search on [Drupal.org](https://www.drupal.org/project/issues/patternkit?categories=All)**
   to see if the problem has already been reported. If it has **and the issue
   is still open**, add a comment to the existing issue instead of opening a new
   one.
@@ -130,45 +130,45 @@ Bugs are tracked as [Drupal.org issues](https://www.drupal.org/project/issues/pa
 Explain the problem and include additional details to help maintainers reproduce
 the problem:
 
-* **Use a clear and descriptive title** for the issue to identify the problem.
-* **Describe the exact steps which reproduce the problem** in as many details as
+- **Use a clear and descriptive title** for the issue to identify the problem.
+- **Describe the exact steps which reproduce the problem** in as many details as
   possible. For example, start by explaining how you installed Patternkit, e.g.
   which command exactly you used in the terminal. When listing steps, **don't
   just say what you did, but explain how you did it**. For example, if you moved
   the cursor to the end of a line, explain if you used the mouse, or a keyboard
   shortcut, and if so which one?
-* **Provide specific examples to demonstrate the steps**. Include links to files
+- **Provide specific examples to demonstrate the steps**. Include links to files
   or GitHub projects, or copy/paste-able snippets, which you use in those
   examples. If you're providing snippets in the issue,
   use [Markdown code blocks](https://help.github.com/articles/markdown-basics/#multiple-lines).
-* **Describe the behavior you observed after following the steps** and point out
+- **Describe the behavior you observed after following the steps** and point out
   what exactly is the problem with that behavior.
-* **Explain which behavior you expected to see instead and why.**
-* **Include screenshots and animated GIFs** which show you following the
+- **Explain which behavior you expected to see instead and why.**
+- **Include screenshots and animated GIFs** which show you following the
   described steps and clearly demonstrate the problem. You can
   use [this tool](https://www.cockos.com/licecap/) to record GIFs on macOS and
   Windows, and [this tool](https://github.com/colinkeenan/silentcast)
   or [this tool](https://github.com/GNOME/byzanz) on Linux.
-* **If you're reporting that Patternkit crashed**, include a crash report with a
+- **If you're reporting that Patternkit crashed**, include a crash report with a
   stack trace from PHP. Include the crash report in the issue in a
   \<pre\>\<code\> block, an attachment, or put it in
   a [gist](https://gist.github.com/) and provide a link to that gist.
-* **For performance or memory-related problems**, include
+- **For performance or memory-related problems**, include
   a [profile capture](https://blackfire.io/) with your report.
-* **If the problem wasn't triggered by a specific action**, describe what you
+- **If the problem wasn't triggered by a specific action**, describe what you
   were doing before the problem happened and share more information using the
   guidelines below.
 
 Provide more context by answering these questions:
 
-* **Did the problem start happening recently** (e.g. after updating to a new
+- **Did the problem start happening recently** (e.g. after updating to a new
   version) or was this always a problem?
-* If the problem started happening recently, **can you reproduce the problem in
+- If the problem started happening recently, **can you reproduce the problem in
   an older version?** What's the most recent version in which the problem doesn't
   happen? You can download older versions of Patternkit from [the releases page](https://www.drupal.org/project/patternkit/releases).
-* **Can you reliably reproduce the issue?** If not, provide details about how
+- **Can you reliably reproduce the issue?** If not, provide details about how
   often the problem happens and under which conditions it normally happens.
-* For files-system related files (e.g. opening and editing files), **does the
+- For files-system related files (e.g. opening and editing files), **does the
   problem happen for all files and projects or only some?** Does the problem
   happen only when working with local or remote files (e.g. on network drives),
   with files of a specific type (e.g. only JavaScript or Python files), with
@@ -177,9 +177,9 @@ Provide more context by answering these questions:
 
 Include details about your configuration and environment:
 
-* **Which version are you using?**
-* **What's the name and version of the OS you're using**?
-* **Which Drupal modules do you have installed?** You can get that list by
+- **Which version are you using?**
+- **What's the name and version of the OS you're using**?
+- **Which Drupal modules do you have installed?** You can get that list by
   running `drush pm-list`.
 
 ### Suggesting Enhancements
@@ -198,9 +198,9 @@ that you imagine you would take if the feature you're requesting existed.
 
 #### Before Submitting An Enhancement Suggestion
 
-* **Check if there's already [a module](https://drupal.org/project/modules)
+- **Check if there's already [a module](https://drupal.org/project/modules)
   which provides that enhancement.**
-* **Perform a cursory search on [Drupal.org](https://www.drupal.org/project/issues/patternkit?categories=All)**
+- **Perform a cursory search on [Drupal.org](https://www.drupal.org/project/issues/patternkit?categories=All)**
   to see if the enhancement has already been suggested. If it has, add a comment
   to the existing issue instead of opening a new one.
 
@@ -210,33 +210,33 @@ Enhancement suggestions are tracked as [Drupal.org
 issues](https://www.drupal.org/project/issues/patternkit?categories=All).
 Create an issue and provide the following information:
 
-* **Use a clear and descriptive title** for the issue to identify the
+- **Use a clear and descriptive title** for the issue to identify the
   suggestion.
-* **Provide a step-by-step description of the suggested enhancement** in as many
+- **Provide a step-by-step description of the suggested enhancement** in as many
   details as possible.
-* **Provide specific examples to demonstrate the steps**. Include copy/paste-able
+- **Provide specific examples to demonstrate the steps**. Include copy/paste-able
   snippets which you use in those examples, as \<code\> blocks.
-* **Describe the current behavior** and **explain which behavior you expected to
+- **Describe the current behavior** and **explain which behavior you expected to
   see instead** and why.
-* **Include screenshots and animated GIFs** which help you demonstrate the steps
+- **Include screenshots and animated GIFs** which help you demonstrate the steps
   or point out the part which the suggestion is related to. You can
   use [this tool](https://www.cockos.com/licecap/) to record GIFs on macOS and
   Windows, and [this tool](https://github.com/colinkeenan/silentcast)
   or [this tool](https://github.com/GNOME/byzanz) on Linux.
-* **Explain why this enhancement would be useful** to most users and isn't
+- **Explain why this enhancement would be useful** to most users and isn't
   something that can or should be implemented as another module.
-* **List some other text editors or applications where this enhancement exists.**
-* **Specify which version you're using.**
-* **Specify the name and version of the OS you're using.**
+- **List some other text editors or applications where this enhancement exists.**
+- **Specify which version you're using.**
+- **Specify the name and version of the OS you're using.**
 
 ### Your First Code Contribution
 
 Unsure where to begin contributing? You can start by looking through
 these `beginner` and `help-wanted` issues:
 
-* [Beginner issues][beginner] - issues which should only require a few lines of
+- [Beginner issues][beginner] - issues which should only require a few lines of
   code, and a test or two.
-* [Help wanted issues][help-wanted] - issues which should be a bit more involved
+- [Help wanted issues][help-wanted] - issues which should be a bit more involved
   than `beginner` issues.
 
 ### Pull Requests

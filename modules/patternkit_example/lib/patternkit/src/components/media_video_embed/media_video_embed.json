@@ -1,25 +1,25 @@
 {
-    "$schema": "http://json-schema.org/draft-04/schema#",
-    "title": "Media video embed",
-    "description": "A method for displaying video media items",
-    "category": "component",
-    "type": "object",
-    "properties": {
-        "name": {
-            "type": "string",
-            "enum": ["@patternkit/components/media_video_embed/media_video_embed"],
-            "readonly": true,
-            "options": {
-                "hidden": true
-            }
-        },
-        "video": {
-            "title": "Media video embed",
-            "description": "Add a media video to embed on the page.",
-            "type": "string",
-            "format": "video-media"
-        }
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Media video embed",
+  "description": "A method for displaying video media items",
+  "category": "component",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "enum": ["@patternkit/components/media_video_embed/media_video_embed"],
+      "readonly": true,
+      "options": {
+        "hidden": true
+      }
     },
-    "required": ["name", "video"],
-    "additionalProperties": false
+    "video": {
+      "title": "Media video embed",
+      "description": "Add a media video to embed on the page.",
+      "type": "string",
+      "format": "video-media"
+    }
+  },
+  "required": ["name", "video"],
+  "additionalProperties": false
 }

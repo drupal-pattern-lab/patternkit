@@ -1,6 +1,7 @@
 # PatternKit
+
 Panels-based plugin that wraps a PatternLab library of components.
- 
+
 This code will parse a pattern library (local or through REST endpoints) to generate a list of "content types" in panels that can be drag/dropped into panel variants.
 
 If enabled, the configuration screen is simply an iframe wrapper of a simplified version of the PatternLab schema builder.
@@ -10,18 +11,21 @@ When pattern configurations are saved, the template is downloaded locally (to mi
 Rendered twigs may contain drupal tokens, which are then processed in context.
 
 ## Installation
+
 Install the patternkit module as usual, and review the important variables below to determine if you would like to change the defaults.
 
 Install the Twig library into /sites/all/libraries/Twig
+
 ```
 git clone git://github.com/twigphp/Twig.git -b 1.x /tmp/Twig
 mv /tmp/Twig/lib/Twig ${DRUPALDIR}/sites/all/libraries/
 rm -rf /tmp/Twig
 ```
 
-The patternkit module by itself only provides the glue for other modules to present components. Define one by implementing ```hook_patternkit_library```
+The patternkit module by itself only provides the glue for other modules to present components. Define one by implementing `hook_patternkit_library`
 
 An example implementation follows
+
 ```
 /**
  * Implements hook_patternkit_library().
@@ -43,30 +47,36 @@ function webrh_patternkit_library() {
 }
 ```
 
-There are two different plugins currently available, 
-* PatternkitRESTLib
-* PatternkitDrupalTwigLib
+There are two different plugins currently available,
+
+- PatternkitRESTLib
+- PatternkitDrupalTwigLib
 
 Use the former for dynamic REST based components, and the latter for locally sourced.
 
 ## TODOs
-* https://github.com/drupal-pattern-lab/roadmap/issues/8 Solve the problem of mapping Drupal fields to pattern Variables.
-* Error handling.
-* Better information about available tokens.
-* More investigation into the appropriate handling of web component configuration.
-* Finalize the CSS/JS management strategy.
-More documentation will be added.
+
+- https://github.com/drupal-pattern-lab/roadmap/issues/8 Solve the problem of mapping Drupal fields to pattern Variables.
+- Error handling.
+- Better information about available tokens.
+- More investigation into the appropriate handling of web component configuration.
+- Finalize the CSS/JS management strategy.
+  More documentation will be added.
 
 ## Dependencies
+
 [PatternLab](https://github.com/pattern-lab/starterkit-twig-drupal-minimal)
-* Schema display support requires: https://github.com/pattern-lab/patternlab-php-core/issues/117
-* 
+
+- Schema display support requires: https://github.com/pattern-lab/patternlab-php-core/issues/117
+-
 
 # Proposed V2 Ecosystem
-* Exists to solve this issue: https://github.com/drupal-pattern-lab/roadmap/issues/8
-* PatternLAB with Restful Extensions provides library + endpoints (Ported from PatternKit)
-* PatternKit provides Drupal endpoint consumer (renamed from PKPlugins)
+
+- Exists to solve this issue: https://github.com/drupal-pattern-lab/roadmap/issues/8
+- PatternLAB with Restful Extensions provides library + endpoints (Ported from PatternKit)
+- PatternKit provides Drupal endpoint consumer (renamed from PKPlugins)
 
 # Legacy Ecosystem
-* PatternKit provides library + RESTful endpoints
-* PKPlugins provides Drupal endpoint consumer
+
+- PatternKit provides library + RESTful endpoints
+- PKPlugins provides Drupal endpoint consumer

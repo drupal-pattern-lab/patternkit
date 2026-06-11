@@ -4,6 +4,7 @@ namespace Drupal\Tests\patternkit\Traits;
 
 use Drupal\Core\Render\BubbleableMetadata;
 
+// cspell:ignore Bergmann
 /**
  * A helper trait for making assertions against bubbleable metadata.
  */

@@ -52,8 +52,8 @@ additional entities may be exposed by adding additional Views displays.
 
 ## Assumptions
 
-* Only Patternkit blocks placed within overridden or default layouts for
+- Only Patternkit blocks placed within overridden or default layouts for
   entities are captured.
-* Existing reporting views only display records on Node content.
-* Existing Views integration only provides built-in relationships for Node
+- Existing reporting views only display records on Node content.
+- Existing Views integration only provides built-in relationships for Node
   content, but additional relationship data may be added by altering Views data.

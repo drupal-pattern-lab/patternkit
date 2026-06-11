@@ -1,16 +1,44 @@
+# Drupal core and ecosystem terms (not in standard cspell dictionaries).
+# cspell word lists are case-insensitive — one entry covers all casings.
+behat
+bovigo
+bubbleable
+cachetags
+ckeditor
+drush
+endcode
+endlink
+expirable
+fieldable
+langcode
+patternkit
+predelete
+prophesize
+revisionable
+striptags
+styleguide
+tempstore
+uncacheable
+unserialized
+
 # Dependencies and related tools
 drupalize
 fontawesome
 jsoneditor
 linkit
-patternfly
+marcj
 patternlib
 slowprog
 swaggest
+topsort
 twigphp
-webrh
 webmozart
 xcache
+
+# Names and one-offs (appear in committed README/doc files)
+DRUPALDIR
+pkexample
+webrh
 
 # Service names
 patternkit.opener.jsonlibrary
@@ -23,12 +51,6 @@ styleguides
 subpattern
 subschema
 wysiwygs
-
-# Names and one-offs
-CloudNyne
-DRUPALDIR
-pkexample
-tada
 
 # CSS classes
 btntype
@@ -44,6 +66,31 @@ pkcc
 pkinfo
 pklist
 pklu
+pkrb
 pkschema
 pkset
 pkuscan
+
+# CI and development tool terms
+drupalcode
+fapi
+glab
+interdiff
+markdownlintrc
+phpcbf
+phpcodesniffer
+RTBC
+testdox
+
+# Project-specific identifiers
+ajaxing
+controlgroup
+Denormalizer
+docroot
+encapsed
+hostnames
+keyvalue
+MIGR
+renderable
+revisioning
+starterkit

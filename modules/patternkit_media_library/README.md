@@ -25,7 +25,7 @@ Reset](https://www.drupal.org/project/media_library_theme_reset).
 
 This module adds the media library browser button to patterns where both:
 
-* `type`   = `string`
-* `format` = `image`
+- `type` = `string`
+- `format` = `image`
 
 See [example.json](modules/patternkit_example/lib/patternkit/src/atoms/example/src/example.json).

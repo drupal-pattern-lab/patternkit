@@ -1,14 +1,11 @@
+/* eslint-disable max-classes-per-file */
+/* globals JSONEditor:false */
 /**
  * @file
  * Provides media selection editor integration with JSON editor.
  *
  * cspell:ignore formname
  */
-
-/*globals Console:false */
-/*globals Drupal:false */
-/*globals jQuery:false */
-/*globals JSONEditor:false */
 
 /**
  * DrupalMediaEditor class.
@@ -20,7 +17,6 @@
  * @external JSONEditor
  */
 class DrupalMediaEditor extends JSONEditor.AbstractEditor {
-
   /**
    * Display validation errors on the media editor field.
    *
@@ -45,21 +41,21 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
 
     if (messages.length) {
       this.theme.addInputError(this.input, `${messages.join('. ')}.`);
-    }
-    else {
+    } else {
       this.theme.removeInputError(this.input);
     }
   }
 
-  register () {
-    super.register()
-    if (!this.input) return
+  register() {
+    super.register();
+    if (!this.input) return;
     if (this.jsoneditor.options.use_name_attributes) {
-      this.input.setAttribute('name', this.formname)
+      this.input.setAttribute('name', this.formname);
     }
-    this.input.setAttribute('aria-label', this.formname)
+    this.input.setAttribute('aria-label', this.formname);
   }
 
+  // eslint-disable-next-line class-methods-use-this -- JSON Editor API expects this override.
   getNumColumns() {
     return 4;
   }
@@ -67,25 +63,26 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
   /**
    * Parse the attributes from a <drupal-media> token.
    *
-   * @param {string} value
+
+   * @param {string} token
    *   The <drupal-media> token for the selected media element.
    *
-   * @returns {object}
+   * @return {object}
    *   An object keyed by attributes on the media token. Any attributes prefixed
    *   with 'data-' have this trimmed off.
    */
-  parseMediaToken(value) {
-    let temp = document.createElement('div');
-    temp.innerHTML = this.value;
-    const element = temp.firstChild
+  static parseMediaToken(token) {
+    const temp = document.createElement('div');
+    temp.innerHTML = token;
+    const element = temp.firstChild;
     const attributeNames = element.getAttributeNames();
     return attributeNames.reduce((accumulator, name) => {
       let key = name;
       if (name.startsWith('data-')) {
         key = name.slice(5);
       }
-      return {...accumulator, [key]: element.getAttribute(name)};
-    }, {})
+      return { ...accumulator, [key]: element.getAttribute(name) };
+    }, {});
   }
 
   /**
@@ -97,8 +94,7 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
   getPreview(value) {
     if (value.indexOf('<drupal-media') >= 0) {
       this.previewMediaToken(value);
-    }
-    else {
+    } else {
       this.previewMediaUrl(value);
     }
   }
@@ -111,14 +107,17 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
    */
   previewMediaUrl(url) {
     if (url) {
-      let img = document.createElement('img');
+      const img = document.createElement('img');
       img.style.maxWidth = '100%';
       img.style.maxHeight = '100px';
-      img.onload = (event) => {
-        this.preview.appendChild(img)
+      img.onload = () => {
+        this.preview.appendChild(img);
       };
       img.onerror = (error) => {
-        console.error('upload error', error, this)
+        if (window.console && typeof window.console.error === 'function') {
+          // eslint-disable-next-line no-console -- optional load failure diagnostics
+          window.console.error('upload error', error, this);
+        }
       };
       img.src = url;
     }
@@ -131,25 +130,25 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
    *   The <drupal-media> token for the selected media entity.
    */
   previewMediaToken(token) {
-    const attributes = this.parseMediaToken(token);
+    const attributes = DrupalMediaEditor.parseMediaToken(token);
     const uuid = attributes['entity-uuid'];
 
     if (uuid != null) {
-      const preview_path = 'patternkit_media_library/preview/' + uuid;
-      const ajax_options = {
-        url: Drupal.url(preview_path),
+      const previewPath = `patternkit_media_library/preview/${uuid}`;
+      const ajaxOptions = {
+        url: Drupal.url(previewPath),
         base: this.container_id,
-        wrapper: this.container_id + '--preview',
-        method: 'html'
-      }
-      Drupal.ajax(ajax_options).execute();
+        wrapper: `${this.container_id}--preview`,
+        method: 'html',
+      };
+      Drupal.ajax(ajaxOptions).execute();
     }
   }
 
   /**
    * Get URL encoded media library settings.
    *
-   * @returns {string}
+   * @return {string}
    *   URL encoded media library settings.
    */
   getMediaLibrarySettings() {
@@ -157,29 +156,42 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
     const allowedTypes = this.options.media_types;
 
     // Start of declaring the opener we'll be using.
-    let mediaLibrarySettings = 'media_library_opener_id=patternkit.opener.jsonlibrary';
+    let mediaLibrarySettings =
+      'media_library_opener_id=patternkit.opener.jsonlibrary';
 
     // Add allowed types to the settings.
     allowedTypes.forEach((value, index) => {
-      const component = encodeURIComponent('media_library_allowed_types[' + index + ']') + '=' + value;
-      mediaLibrarySettings += '&' + encodeURIComponent('media_library_allowed_types[' + index + ']') + '=' + value;
-    })
+      mediaLibrarySettings += `&${encodeURIComponent(
+        `media_library_allowed_types[${index}]`,
+      )}=${value}`;
+    });
 
     // Default to the first media type for the selected type.
     const selectedType = allowedTypes[0];
-    mediaLibrarySettings += '&media_library_selected_type=' + selectedType;
+    mediaLibrarySettings += `&media_library_selected_type=${selectedType}`;
 
     // Add remaining opener options.
-    mediaLibrarySettings += '&media_library_remaining=1' +
-      '&' + encodeURIComponent('media_library_opener_parameters[field_widget_id]') + '=' + this.path;
+    mediaLibrarySettings +=
+      `&media_library_remaining=1` +
+      `&${encodeURIComponent('media_library_opener_parameters[field_widget_id]')}=${this.path}`;
 
     return mediaLibrarySettings;
   }
 
   build() {
-    this.title = this.header = this.label = this.theme.getFormInputLabel(this.getTitle(), this.isRequired());
+    const label = this.theme.getFormInputLabel(
+      this.getTitle(),
+      this.isRequired(),
+    );
+    this.title = label;
+    this.header = label;
+    this.label = label;
     this.input = this.theme.getFormInputField('text');
-    this.button = this.getButton(this.options.button_text, 'upload', this.options.button_text);
+    this.button = this.getButton(
+      this.options.button_text,
+      'upload',
+      this.options.button_text,
+    );
 
     this.addUploader();
     this.addPreview();
@@ -216,8 +228,8 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
     }
   }
 
-  disable(always_disabled) {
-    if (always_disabled) {
+  disable(alwaysDisabled) {
+    if (alwaysDisabled) {
       this.always_disabled = true;
     }
     if (this.input) {
@@ -226,7 +238,7 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
     if (this.button) {
       this.button.disabled = true;
     }
-    super.disable(always_disabled);
+    super.disable(alwaysDisabled);
   }
 
   setValue(val) {
@@ -240,16 +252,16 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
   }
 
   destroy() {
-    if(this.preview && this.preview.parentNode) {
+    if (this.preview && this.preview.parentNode) {
       this.preview.parentNode.removeChild(this.preview);
     }
-    if(this.title && this.title.parentNode) {
+    if (this.title && this.title.parentNode) {
       this.title.parentNode.removeChild(this.title);
     }
-    if(this.input && this.input.parentNode) {
+    if (this.input && this.input.parentNode) {
       this.input.parentNode.removeChild(this.input);
     }
-    if(this.input && this.input.parentNode) {
+    if (this.input && this.input.parentNode) {
       this.input.parentNode.removeChild(this.input);
     }
 
@@ -264,9 +276,9 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
     let $dialog = jQuery('#drupal-modal');
     if (!$dialog.length) {
       // Create the element if needed.
-      $dialog = jQuery(
-        `<div id="drupal-modal" class="ui-front"/>`,
-      ).appendTo('body');
+      $dialog = jQuery(`<div id="drupal-modal" class="ui-front"/>`).appendTo(
+        'body',
+      );
     }
     $dialog.addClass('patternkit-media-library');
 
@@ -275,18 +287,18 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
     const modalHeight = window.innerHeight >= 900 ? 900 : window.innerHeight;
 
     // Place a loading indicator as a placeholder.
-    $dialog.append(jQuery('<span>', {id: 'patternkit_dialog_loading'}));
+    $dialog.append(jQuery('<span>', { id: 'patternkit_dialog_loading' }));
 
     // Create the modal.
-    let modalOptions = {
+    const modalOptions = {
       width: modalWidth,
       height: modalHeight,
       title: this.options.title,
     };
     this.dialog = Drupal.dialog($dialog, modalOptions);
 
-    let ajaxOptions = {
-      url: this.options.library_url + '?' + this.getMediaLibrarySettings(),
+    const ajaxOptions = {
+      url: `${this.options.library_url}?${this.getMediaLibrarySettings()}`,
       base: 'drupal-modal',
       wrapper: 'patternkit_dialog_loading',
     };
@@ -302,7 +314,7 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
    */
   addUploader() {
     // Don't show uploader if this is readonly
-    if(this.shouldShowUploader()) {
+    if (this.shouldShowUploader()) {
       this.input.addEventListener('change', (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -329,7 +341,7 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
   /**
    * Check if this field is an image src field (ends with .src).
    *
-   * @returns {boolean}
+   * @return {boolean}
    *   True if this is an image src field.
    */
   isImageSrcField() {
@@ -339,7 +351,7 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
   /**
    * Get the base path for sibling image fields (removes .src suffix).
    *
-   * @returns {string}
+   * @return {string}
    *   The base path for sibling fields.
    */
   getBaseImagePath() {
@@ -362,13 +374,13 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
 
     const endpoint = Drupal.url('patternkit_media_library/attributes_by_url');
     const query = new URLSearchParams({
-      url: url,
+      url,
       container_id: this.container_id,
     });
 
     // Use Drupal AJAX for compatibility with test framework.
     // Create a hidden element to serve as the AJAX base.
-    const ajaxId = this.container_id + '--attributes-ajax';
+    const ajaxId = `${this.container_id}--attributes-ajax`;
     let ajaxElement = document.getElementById(ajaxId);
     if (!ajaxElement) {
       ajaxElement = document.createElement('div');
@@ -379,14 +391,15 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
     }
 
     const ajaxOptions = {
-      url: endpoint + '?' + query.toString(),
+      url: `${endpoint}?${query.toString()}`,
       base: ajaxId,
       wrapper: ajaxId,
       method: 'html',
       error: (response, status) => {
-        // Silently fail - log to console for debugging only.
-        if (window.console && console.debug) {
-          console.debug('Failed to fetch media attributes:', status);
+        // Silently fail - log for debugging only when console is available.
+        if (window.console && typeof window.console.debug === 'function') {
+          // eslint-disable-next-line no-console -- optional diagnostics
+          window.console.debug('Failed to fetch media attributes:', status);
         }
       },
     };
@@ -408,8 +421,12 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
 
     const attributeFields = ['alt', 'width', 'height', 'title'];
     attributeFields.forEach((attr) => {
-      if (attributes[attr] !== undefined && attributes[attr] !== null && attributes[attr] !== '') {
-        const fieldPath = basePath + '.' + attr;
+      if (
+        attributes[attr] !== undefined &&
+        attributes[attr] !== null &&
+        attributes[attr] !== ''
+      ) {
+        const fieldPath = `${basePath}.${attr}`;
 
         // Try to get the editor for this field path.
         // If a field is not found in the schema client-side, fail silently.
@@ -419,19 +436,22 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
             // For alt text and title fields, only populate if the field is currently empty.
             if (attr === 'alt' || attr === 'title') {
               const currentValue = editor.getValue();
-              if (currentValue === undefined || currentValue === null || currentValue === '') {
+              if (
+                currentValue === undefined ||
+                currentValue === null ||
+                currentValue === ''
+              ) {
                 editor.setValue(attributes[attr]);
               }
-            }
-            else {
+            } else {
               editor.setValue(attributes[attr]);
             }
           }
-        }
-        catch (error) {
+        } catch (error) {
           // Field doesn't exist in schema - silently skip.
-          if (window.console && console.debug) {
-            console.debug('Field not found in schema:', fieldPath);
+          if (window.console && typeof window.console.debug === 'function') {
+            // eslint-disable-next-line no-console -- optional diagnostics
+            window.console.debug('Field not found in schema:', fieldPath);
           }
         }
       }
@@ -441,20 +461,20 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
   /**
    * Test whether a media uploader button should be displayed.
    *
-   * @returns {boolean}
+   * @return {boolean}
    *   True if the uploader should be displayed. False otherwise.
    */
   shouldShowUploader() {
     let showUploader = true;
 
     // Don't show uploader if this is readonly
-    if(this.schema.readOnly || this.schema.readonly) {
+    if (this.schema.readOnly || this.schema.readonly) {
       showUploader = false;
     }
 
     // Don't show the uploader if no media types have been selected.
-    let media_types = this.options.media_types;
-    if (!media_types || media_types.length === 0) {
+    const { media_types: mediaTypes } = this.options;
+    if (!mediaTypes || mediaTypes.length === 0) {
       showUploader = false;
     }
 
@@ -465,7 +485,7 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
    * Add the preview container for selected media.
    */
   addPreview() {
-    this.container_id = 'je--' + this.path.replace(/\./g, '_');
+    this.container_id = `je--${this.path.replace(/\./g, '_')}`;
 
     // Ensure the container has the correct ID for AJAX command lookup.
     if (!this.container.id) {
@@ -476,7 +496,13 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
     this.description = this.theme.getFormInputDescription(description);
 
     // Build and attach the form control.
-    this.control = this.theme.getFormControl(this.label, this.input, this.description, null, this.formname);
+    this.control = this.theme.getFormControl(
+      this.label,
+      this.input,
+      this.description,
+      null,
+      this.formname,
+    );
     this.container.appendChild(this.control);
 
     // Store a reference to this editor instance on the container for AJAX commands.
@@ -486,7 +512,7 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
     // Assemble and attach the preview container.
     this.preview = this.theme.getContainer();
     this.preview.classList.add('preview');
-    this.preview.id = this.container_id + '--preview';
+    this.preview.id = `${this.container_id}--preview`;
     this.container.appendChild(this.preview);
 
     if (this.button && this.shouldShowUploader()) {
@@ -495,9 +521,8 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
 
     window.requestAnimationFrame(() => {
       this.refreshPreview();
-    })
+    });
   }
-
 }
 
 /**
@@ -511,18 +536,21 @@ class DrupalMediaEditor extends JSONEditor.AbstractEditor {
  * @external JSONEditor
  */
 class DrupalImageEditor extends DrupalMediaEditor {
-
   build() {
     // Editor options.
-    this.options = jQuery.extend({}, {
-      'title': Drupal.t('Select image'),
-      'icon': '',
-      'button_text': Drupal.t('Select/Upload image'),
-    }, this.defaults.options.drupal_image_media || {}, this.options.drupal_image_media || {});
+    this.options = jQuery.extend(
+      {},
+      {
+        title: Drupal.t('Select image'),
+        icon: '',
+        button_text: Drupal.t('Select/Upload image'),
+      },
+      this.defaults.options.drupal_image_media || {},
+      this.options.drupal_image_media || {},
+    );
 
     super.build();
   }
-
 }
 
 /**
@@ -536,18 +564,21 @@ class DrupalImageEditor extends DrupalMediaEditor {
  * @external JSONEditor
  */
 class DrupalVideoEditor extends DrupalMediaEditor {
-
   build() {
     // Editor options.
-    this.options = jQuery.extend({}, {
-      'title': Drupal.t('Browse'),
-      'icon': '',
-      'button_text': Drupal.t('Select/Upload video'),
-    }, JSONEditor.defaults.options.drupal_video_media || {}, this.options.drupal_video_media || {});
+    this.options = jQuery.extend(
+      {},
+      {
+        title: Drupal.t('Browse'),
+        icon: '',
+        button_text: Drupal.t('Select/Upload video'),
+      },
+      JSONEditor.defaults.options.drupal_video_media || {},
+      this.options.drupal_video_media || {},
+    );
 
     super.build();
   }
-
 }
 
 /**
@@ -561,14 +592,18 @@ class DrupalVideoEditor extends DrupalMediaEditor {
  * @external JSONEditor
  */
 class DrupalImageUrlEditor extends DrupalMediaEditor {
-
   build() {
     // Editor options.
-    this.options = jQuery.extend({}, {
-      'title': Drupal.t('Browse'),
-      'icon': '',
-      'button_text': Drupal.t('Select/Upload image'),
-    }, JSONEditor.defaults.options.drupal_image_url || {}, this.options.drupal_image_url || {});
+    this.options = jQuery.extend(
+      {},
+      {
+        title: Drupal.t('Browse'),
+        icon: '',
+        button_text: Drupal.t('Select/Upload image'),
+      },
+      JSONEditor.defaults.options.drupal_image_url || {},
+      this.options.drupal_image_url || {},
+    );
 
     super.build();
   }
@@ -577,22 +612,32 @@ class DrupalImageUrlEditor extends DrupalMediaEditor {
     let settings = super.getMediaLibrarySettings();
 
     // Add the parameter value to disable returning a media token.
-    settings += '&' + encodeURIComponent('media_library_opener_parameters[media_token]') + '=0';
+    settings += `&${encodeURIComponent(
+      'media_library_opener_parameters[media_token]',
+    )}=0`;
 
     return settings;
   }
-
 }
 
+// eslint-disable-next-line func-names -- standard Drupal IIFE wrapper pattern.
 (function ($, Drupal, JSONEditor) {
-  'use strict';
   Drupal.behaviors.patternkitEditorMediaLibrary = {
-    attach: function (context, settings) {
+    attach(context, settings) {
       // Register custom AJAX command for media attributes.
-      Drupal.AjaxCommands.prototype.patternkitMediaAttributes = function (ajax, response, status) {
-        if (response.attributes && Object.keys(response.attributes).length > 0) {
+      // eslint-disable-next-line func-names -- assigned Drupal Ajax command handler pattern.
+      Drupal.AjaxCommands.prototype.patternkitMediaAttributes = function (
+        _ajax,
+        response,
+      ) {
+        if (
+          response.attributes &&
+          Object.keys(response.attributes).length > 0
+        ) {
           // Find the editor instance by container ID.
-          const containerElement = document.getElementById(response.containerId);
+          const containerElement = document.getElementById(
+            response.containerId,
+          );
           if (containerElement && containerElement.patternkitEditor) {
             const editor = containerElement.patternkitEditor;
             if (editor.populateImageAttributes) {
@@ -603,45 +648,51 @@ class DrupalImageUrlEditor extends DrupalMediaEditor {
       };
 
       // Abort if a URL is not available for the media library opener.
-      if (!window.JSONEditor || !settings.patternkitEditor.imageUrl || !settings.patternkitEditor.videoUrl) {
+      if (
+        !window.JSONEditor ||
+        !settings.patternkitEditor.imageUrl ||
+        !settings.patternkitEditor.videoUrl
+      ) {
         return;
       }
 
       // Abort if configuration is missing for allowed media types.
-      let mediaMapping = settings.patternkitEditor.mediaMapping;
-      let image_options = {
+      const { mediaMapping } = settings.patternkitEditor;
+      const imageOptions = {
         title: Drupal.t('Select image'),
         button_text: Drupal.t('Select/Upload image'),
         library_url: settings.patternkitEditor.imageUrl,
-        media_types: mediaMapping.image_types
+        media_types: mediaMapping.image_types,
       };
-      let video_options = {
+      const videoOptions = {
         title: Drupal.t('Select video'),
         button_text: Drupal.t('Select/Upload video'),
         library_url: settings.patternkitEditor.videoUrl,
-        media_types: mediaMapping.video_types
-      }
+        media_types: mediaMapping.video_types,
+      };
 
-      JSONEditor.defaults.options.drupal_image_media = image_options;
-      JSONEditor.defaults.options.drupal_image_url = image_options;
-      JSONEditor.defaults.options.drupal_video_media = video_options;
+      JSONEditor.defaults.options.drupal_image_media = imageOptions;
+      JSONEditor.defaults.options.drupal_image_url = imageOptions;
+      JSONEditor.defaults.options.drupal_video_media = videoOptions;
       JSONEditor.defaults.editors.drupal_image_media = DrupalImageEditor;
       JSONEditor.defaults.editors.drupal_image_url = DrupalImageUrlEditor;
       JSONEditor.defaults.editors.drupal_video_media = DrupalVideoEditor;
-      JSONEditor.defaults.resolvers.unshift(function (schema) {
+      const patternkitMediaResolver = (schema) => {
         if (schema.type === 'string') {
           switch (schema.format) {
             case 'image':
               return 'drupal_image_url';
-
             case 'image-media':
               return 'drupal_image_media';
-
             case 'video-media':
               return 'drupal_video_media';
+            default:
+              return null;
           }
         }
-      });
-    }
-  }
+        return null;
+      };
+      JSONEditor.defaults.resolvers.unshift(patternkitMediaResolver);
+    },
+  };
 })(jQuery, Drupal, JSONEditor);

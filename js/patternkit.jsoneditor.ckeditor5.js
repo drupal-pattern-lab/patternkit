@@ -13,7 +13,6 @@
  */
 
 export class DrupalCKEditor5 extends JSONEditor.defaults.editors.string {
-
   build() {
     // Override the format when building the base string editor.
     this.options.format = 'textarea';
@@ -26,9 +25,16 @@ export class DrupalCKEditor5 extends JSONEditor.defaults.editors.string {
     if (window.CKEditor5) {
       // Editor options.
       // @todo Replace JSONEditor.defaults with this.defaults.
-      this.options = jQuery.extend({}, JSONEditor.defaults.options.drupal_ckeditor || {}, this.options.drupal_ckeditor || {});
+      this.options = jQuery.extend(
+        {},
+        JSONEditor.defaults.options.drupal_ckeditor || {},
+        this.options.drupal_ckeditor || {},
+      );
 
-      this.format = drupalSettings.editor.formats[this.options.ckeditor_config.selected_toolbar];
+      this.format =
+        drupalSettings.editor.formats[
+          this.options.ckeditor_config.selected_toolbar
+        ];
       Drupal.editorAttach(this.input, this.format);
 
       // Wait for the CKEditor instance to be created and attached to make it
@@ -51,8 +57,7 @@ export class DrupalCKEditor5 extends JSONEditor.defaults.editors.string {
       promise.then(this.attachListeners.bind(this));
 
       this.theme.afterInputReady(this.input);
-    }
-    else {
+    } else {
       super.afterInputReady();
     }
   }
@@ -85,7 +90,7 @@ export class DrupalCKEditor5 extends JSONEditor.defaults.editors.string {
       }
 
       debouncedUpdateCallback();
-    }
+    };
 
     // Attach the listener for change events in the CKEditor content.
     editor.model.document.on('change:data', onChange);
@@ -130,7 +135,6 @@ export class DrupalCKEditor5 extends JSONEditor.defaults.editors.string {
   }
 
   disable(always_disabled) {
-
     if (always_disabled) {
       this.always_disabled = true;
     }
@@ -192,7 +196,12 @@ export class DrupalCKEditor5 extends JSONEditor.defaults.editors.string {
   setValue(val, initial, from_template) {
     const input = super.setValue(val, initial, from_template);
     let ckeditor_instance = this.getCkeditorInstance();
-    if (input !== undefined && input.changed && ckeditor_instance && this._isJsonEditorActive()) {
+    if (
+      input !== undefined &&
+      input.changed &&
+      ckeditor_instance &&
+      this._isJsonEditorActive()
+    ) {
       ckeditor_instance.setData(input.value);
       this.refreshWatchedFieldValues();
       this.onChange(true);
@@ -214,12 +223,13 @@ export class DrupalCKEditor5 extends JSONEditor.defaults.editors.string {
       // source-edited changes. Instead, read the source textarea content
       // directly into the underlying input field.
       const wrapper = this.input.closest('[data-schemapath]');
-      const sourceTextarea = wrapper?.querySelector('.ck-source-editing-area textarea');
+      const sourceTextarea = wrapper?.querySelector(
+        '.ck-source-editing-area textarea',
+      );
       if (sourceTextarea) {
         this.input.value = sourceTextarea.value;
       }
-    }
-    else {
+    } else {
       editor.updateSourceElement();
     }
 
@@ -245,7 +255,6 @@ export class DrupalCKEditor5 extends JSONEditor.defaults.editors.string {
     }
     return false;
   }
-
 }
 
 export function patternkitEditorCKEditor5($, Drupal, JSONEditor) {
@@ -257,23 +266,26 @@ export function patternkitEditorCKEditor5($, Drupal, JSONEditor) {
       }
 
       JSONEditor.defaults.options.drupal_ckeditor = {
-        ckeditor_config: settings.patternkitEditor.patternkitCKEditorConfig || {}
+        ckeditor_config:
+          settings.patternkitEditor.patternkitCKEditorConfig || {},
       };
       if (drupalSettings.patternkitEditor.wysiwygEditorName === 'ckeditor5') {
         JSONEditor.defaults.editors.drupal_ckeditor = DrupalCKEditor5;
       }
 
       JSONEditor.defaults.resolvers.unshift(function (schema) {
-        if (schema.type === 'string'
-          && schema.format === 'html'
-          && schema.options
-          && schema.options.wysiwyg
-          && (settings.patternkitEditor.wysiwygEditorName === 'ckeditor5')
+        if (
+          schema.type === 'string' &&
+          schema.format === 'html' &&
+          schema.options &&
+          schema.options.wysiwyg &&
+          settings.patternkitEditor.wysiwygEditorName === 'ckeditor5' &&
           // Ensures the Text format with CKEditor profile loaded okay.
-          && settings.patternkitEditor.patternkitCKEditorConfig) {
+          settings.patternkitEditor.patternkitCKEditorConfig
+        ) {
           return 'drupal_ckeditor';
         }
       });
-    }
-  }
+    },
+  };
 }

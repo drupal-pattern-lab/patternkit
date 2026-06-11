@@ -60,6 +60,7 @@ function prependPrefixes(selector, prefixes) {
   return prefixes.map((prefix) => `${prefix} ${selector}`);
 }
 
+// eslint-disable-next-line jsdoc/require-returns-check -- nested @return tags document object shape, not multiple return statements
 /**
  * Create the postcss-drupalize plugin for processing.
  *

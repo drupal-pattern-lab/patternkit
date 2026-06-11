@@ -1,73 +1,75 @@
 {
-    "$schema": "http://json-schema.org/draft-04/schema#",
-    "title": "Custom key image attributes test",
-    "description": "A test component for image attribute population across non-image object keys",
-    "category": "component",
-    "type": "object",
-    "properties": {
-        "name": {
-            "type": "string",
-            "enum": ["@patternkit_test/components/custom_key_image_attributes_test/custom_key_image_attributes_test"],
-            "readonly": true,
-            "options": {
-                "hidden": true
-            }
-        },
-        "custom_image": {
-            "type": "object",
-            "title": "Custom image",
-            "properties": {
-                "src": {
-                    "type": "string",
-                    "title": "Custom image source",
-                    "format": "image"
-                },
-                "alt": {
-                    "type": "string",
-                    "title": "Custom image alt text"
-                },
-                "width": {
-                    "type": "number",
-                    "title": "Custom image width"
-                },
-                "height": {
-                    "type": "number",
-                    "title": "Custom image height"
-                },
-                "title": {
-                    "type": "string",
-                    "title": "Custom image title"
-                }
-            }
-        },
-        "alternate_media": {
-            "type": "object",
-            "title": "Alternate media",
-            "properties": {
-                "src": {
-                    "type": "string",
-                    "title": "Alternate media source",
-                    "format": "image"
-                },
-                "alt": {
-                    "type": "string",
-                    "title": "Alternate media alt text"
-                },
-                "width": {
-                    "type": "number",
-                    "title": "Alternate media width"
-                },
-                "height": {
-                    "type": "number",
-                    "title": "Alternate media height"
-                },
-                "title": {
-                    "type": "string",
-                    "title": "Alternate media title"
-                }
-            }
-        }
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Custom key image attributes test",
+  "description": "A test component for image attribute population across non-image object keys",
+  "category": "component",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "enum": [
+        "@patternkit_test/components/custom_key_image_attributes_test/custom_key_image_attributes_test"
+      ],
+      "readonly": true,
+      "options": {
+        "hidden": true
+      }
     },
-    "required": ["name"],
-    "additionalProperties": false
+    "custom_image": {
+      "type": "object",
+      "title": "Custom image",
+      "properties": {
+        "src": {
+          "type": "string",
+          "title": "Custom image source",
+          "format": "image"
+        },
+        "alt": {
+          "type": "string",
+          "title": "Custom image alt text"
+        },
+        "width": {
+          "type": "number",
+          "title": "Custom image width"
+        },
+        "height": {
+          "type": "number",
+          "title": "Custom image height"
+        },
+        "title": {
+          "type": "string",
+          "title": "Custom image title"
+        }
+      }
+    },
+    "alternate_media": {
+      "type": "object",
+      "title": "Alternate media",
+      "properties": {
+        "src": {
+          "type": "string",
+          "title": "Alternate media source",
+          "format": "image"
+        },
+        "alt": {
+          "type": "string",
+          "title": "Alternate media alt text"
+        },
+        "width": {
+          "type": "number",
+          "title": "Alternate media width"
+        },
+        "height": {
+          "type": "number",
+          "title": "Alternate media height"
+        },
+        "title": {
+          "type": "string",
+          "title": "Alternate media title"
+        }
+      }
+    }
+  },
+  "required": ["name"],
+  "additionalProperties": false
 }

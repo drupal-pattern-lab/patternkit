@@ -20,6 +20,7 @@ use Psr\Log\LoggerAwareTrait;
 use Swaggest\JsonSchema\Path\PointerUtil;
 use Swaggest\JsonSchema\SchemaContract;
 
+// cspell:ignore unserializing
 /**
  * PatternFieldProcessor plugin manager.
  */

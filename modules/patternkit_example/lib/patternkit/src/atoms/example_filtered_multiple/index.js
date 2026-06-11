@@ -10,6 +10,6 @@
   element.detachedCallback = function () {};
   element.attributeChangedCallback = function (attr, oldVal, newVal) {};
   document.registerElement('example_filtered_multiple', {
-    prototype: element
+    prototype: element,
   });
-}());
+})();

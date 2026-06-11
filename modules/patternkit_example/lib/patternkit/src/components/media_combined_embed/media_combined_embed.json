@@ -1,25 +1,27 @@
 {
-    "$schema": "http://json-schema.org/draft-04/schema#",
-    "title": "Media combined embed",
-    "description": "A method for displaying combinations of media items",
-    "category": "component",
-    "type": "object",
-    "properties": {
-        "name": {
-            "type": "string",
-            "enum": ["@patternkit/components/media_combined_embed/media_combined_embed"],
-            "readonly": true,
-            "options": {
-                "hidden": true
-            }
-        },
-        "image": {
-            "$ref": "@patternkit/components/media_image_embed/media_image_embed"
-        },
-        "video": {
-            "$ref": "@patternkit/components/media_video_embed/media_video_embed"
-        }
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Media combined embed",
+  "description": "A method for displaying combinations of media items",
+  "category": "component",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "enum": [
+        "@patternkit/components/media_combined_embed/media_combined_embed"
+      ],
+      "readonly": true,
+      "options": {
+        "hidden": true
+      }
     },
-    "required": ["name"],
-    "additionalProperties": false
+    "image": {
+      "$ref": "@patternkit/components/media_image_embed/media_image_embed"
+    },
+    "video": {
+      "$ref": "@patternkit/components/media_video_embed/media_video_embed"
+    }
+  },
+  "required": ["name"],
+  "additionalProperties": false
 }

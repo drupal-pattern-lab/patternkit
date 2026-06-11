@@ -96,7 +96,7 @@ export function filterTokenErrors(errors) {
     if (!input) {
       return true;
     }
-    const value = input.value;
+    const { value } = input;
     if (typeof value !== 'string') {
       return true;
     }

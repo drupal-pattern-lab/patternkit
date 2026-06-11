@@ -2,7 +2,12 @@
   "name": "postcss-drupalize",
   "version": "0.0.0",
   "description": "PostCSS plugin for adding drupal prefixes to CSS rules.",
-  "keywords": ["postcss", "css", "postcss-plugin", "postcss-drupalize"],
+  "keywords": [
+    "postcss",
+    "css",
+    "postcss-plugin",
+    "postcss-drupalize"
+  ],
   "scripts": {
     "unit": "node --test index.test.js",
     "test": "npm run unit && eslint ."
@@ -28,6 +33,8 @@
       "node": true,
       "es6": true
     },
-    "extends": ["eslint:recommended"]
+    "extends": [
+      "eslint:recommended"
+    ]
   }
 }

@@ -10,10 +10,5 @@
   "require": {},
   "config": {},
   "repositories": [],
-  "scripts": {
-    "js:build": [
-        ". ~/.profile && nvm install && nvm use",
-        "npm install && npx gulp"
-    ]
-  }
+  "scripts": {}
 }

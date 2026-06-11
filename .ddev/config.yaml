@@ -16,6 +16,10 @@ web_environment:
 nodejs_version: "20"
 corepack_enable: true
 
+hooks:
+  post-start:
+    - exec: yarn install --immutable
+
 # Key features of DDEV's config.yaml:
 
 # name: <projectname> # Name of the project, automatically provides

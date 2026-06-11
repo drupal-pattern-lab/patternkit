@@ -80,14 +80,16 @@ cspell:
       "js/handlebars.js",
       "js/jsoneditor.js",
       "js/jsoneditor.js.LICENSE.txt",
-      "js/nonmin/*",
-      "npm-shrinkwrap.json",
-      "tslint.json"
+      "js/nonmin/*"
 
-# Install NPM dependencies as well.
+# Install JS dependencies via yarn (yarn.lock is the authoritative lockfile).
+# Note: --frozen-lockfile is correct here. The gitlab_templates CI image runs Yarn 1 (Classic),
+# not Yarn 4, even when package.json specifies "packageManager": "yarn@4.5.1". Corepack is not
+# enabled in the CI image. --immutable (Yarn 4 equivalent) would fail in this context.
+# See: https://www.drupal.org/project/gitlab_templates/issues/3431269
 composer:
   after_script:
-    - npm ci
+    - yarn install --frozen-lockfile
 
 eslint:
   allow_failure: false

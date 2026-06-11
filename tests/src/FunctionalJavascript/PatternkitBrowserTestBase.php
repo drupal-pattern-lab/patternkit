@@ -15,6 +15,7 @@ use Drupal\user\UserInterface;
 use PHPUnit\Framework\AssertionFailedError;
 use PHPUnit\Framework\ExpectationFailedException;
 
+// cspell:ignore simpletest
 /**
  * End-to-end testing for patternkit block placement in layout builder layouts.
  */

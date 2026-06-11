@@ -13,6 +13,7 @@ use Drupal\node\Entity\Node;
 use Drupal\Tests\patternkit\Functional\PatternkitBrowserTestBase;
 use Drupal\Tests\patternkit_usage_tracking\Traits\PatternUsageAssertionTrait;
 
+// cspell:ignore onecol
 /**
  * Tests for validating usage tracking during entity operations.
  *

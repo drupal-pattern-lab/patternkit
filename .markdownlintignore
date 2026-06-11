@@ -1,0 +1,14 @@
+# Markdown linting ignore patterns
+
+# Build and dependencies
+/node_modules/
+**/node_modules/
+/vendor/
+**/vendor/
+/web/
+
+# Build artifacts
+/dist/
+/build/
+
+/docs/

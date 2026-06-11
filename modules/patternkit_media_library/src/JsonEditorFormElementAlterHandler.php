@@ -5,6 +5,7 @@ namespace Drupal\patternkit_media_library;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Security\Attribute\TrustedCallback;
 
+// cspell:ignore prerendered
 /**
  * A handler service to add necessary alternations to jsoneditor_form elements.
  */

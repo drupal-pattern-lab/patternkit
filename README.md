@@ -27,34 +27,35 @@ channel on Slack.
 1. Install the patternkit module as usual, and review the important variables
    below to determine if you would like to change the defaults.
 
-    ```bash
-    composer require drupal/patternkit
-    drush en -y patternkit
-    ```
+   ```bash
+   composer require drupal/patternkit
+   drush en -y patternkit
+   ```
 
 2. The patternkit module by itself only provides the glue for other modules
    to present components. Define one by adding a 'patterns' section to your
    libraries.yml.
 
    An example implementation follows:
-    ```YAML
-    patternkit_example.pkexample:
-      version: VERSION
-      css:
-        theme:
-          lib/patternkit/dist/patternkit.css: {}
-      js:
-        lib/patternkit/dist/patternkit.min.js: {}
-      patterns:
-        atoms:
-          lib/patternkit/src/atoms: {type: twig}
-    ```
 
-    The primary plugin for usage at this time is: PatternkitTwigLibrary
-    (based on PatternkitJSONLibrary) `type: twig`
+   ```YAML
+   patternkit_example.pkexample:
+     version: VERSION
+     css:
+       theme:
+         lib/patternkit/dist/patternkit.css: {}
+     js:
+       lib/patternkit/dist/patternkit.min.js: {}
+     patterns:
+       atoms:
+         lib/patternkit/src/atoms: {type: twig}
+   ```
 
-    This plugin searches for locally sourced Twig templates like those in a
-    Drupal theme paired with a related JSON schema file.
+   The primary plugin for usage at this time is: PatternkitTwigLibrary
+   (based on PatternkitJSONLibrary) `type: twig`
+
+   This plugin searches for locally sourced Twig templates like those in a
+   Drupal theme paired with a related JSON schema file.
 
 3. If not already present in the library, add companion JSON schema files to
    your templates so that Patternkit can display the editor to allow for
@@ -112,8 +113,8 @@ schema must set the `type` to `string`, the `format` to `html`, and under
 At `/admin/config/user-interface/patternkit/json`, you can select which WYSIWYG
 plugin to use. Options:
 
-* CKEditor (preferred)
-  * Pick a Drupal text format in _CKEditor toolbar_ (see below for details)
+- CKEditor (preferred)
+  - Pick a Drupal text format in _CKEditor toolbar_ (see below for details)
 
 ##### Text format CKEditor configuration
 
@@ -130,12 +131,12 @@ Most of the thinking and vernacular used in Patternkit is inspired by
 conversations that have happened around Design Systems. A great reference for
 this is [Brad Frost's Atomic Design Book](http://atomicdesign.bradfrost.com/).
 
-* **Category**: The design system category for a pattern, e.g. _Atom_,
+- **Category**: The design system category for a pattern, e.g. _Atom_,
   _Molecule_, _Organism_.
-* **Design System**: A modular and manageable approach to creating reusable
+- **Design System**: A modular and manageable approach to creating reusable
   design patterns for building GUI's.
   See http://atomicdesign.bradfrost.com/chapter-1/
-* **Pattern**: A component, widget, or template that can be rendered to an
+- **Pattern**: A component, widget, or template that can be rendered to an
   HTML UI.
 
 ## Drush commands
@@ -192,12 +193,12 @@ drush patternkit:pattern:schema '@patternkit/atoms/example/src/example'
 
 ## Dependencies
 
-* **drupal/block_content (Core Module)**: This module will auto-enable when
+- **drupal/block_content (Core Module)**: This module will auto-enable when
   Patternkit is installed.
 
 ## Optional Dependencies
 
-* **drupal/layout_builder (Core Module)**: This module provides the most common
+- **drupal/layout_builder (Core Module)**: This module provides the most common
   method for creating and exposing Patternkit block content within pages.
 
 ## Development and Debugging
@@ -227,13 +228,11 @@ Additionally, specific features may be enabled as seen below:
 parameters:
   # Configuration options to influence behavior of the Patternkit modules.
   patternkit.config:
-
     # This may be enabled to toggle debug features in the module.
     debug: true
 
     # Various operational features of the module may be toggled here.
     features:
-
       # Enable this to bypass cache loading of pattern definitions and
       # rediscover patterns during every request.
       bypass_pattern_cache: true

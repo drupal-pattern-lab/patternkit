@@ -20,29 +20,34 @@
     "@json-editor/json-editor": "^2.9.0-beta.0",
     "babelify": "^10.0.0",
     "browserify": "^16.5.1",
-    "eslint": "^6.8.0",
-    "eslint-config-drupal": "^5.0.2",
-    "eslint-plugin-yml": "^1.14.0",
+    "cspell": "^9.0.0",
+    "eslint": "^8.57.1",
+    "eslint-plugin-drupal-contrib": "^2.1.0",
+    "eslint-plugin-jsdoc": "^61.0.0",
     "gulp": "^4.0.2",
     "gulp-postcss": "^10.0.0",
     "gulp-rename": "^2.0.0",
     "gulp-replace": "^1.0.0",
     "gulp-sourcemaps": "^2.6.5",
     "handlebars": "^4.7.7",
+    "markdownlint-cli": "^0.48.0",
+    "prettier": "^3.6.2",
     "vinyl-buffer": "^1.0.1",
     "vinyl-source-stream": "^2.0.0"
   },
   "scripts": {
     "build": "gulp",
     "dev": "gulp",
-    "eslint": "eslint -c ./.eslintrc js/src/**/*.js",
-    "eslint.fix": "eslint -c ./.eslintrc js/src/**/*.js --fix",
+    "eslint": "eslint --config .eslintrc.contrib.json .",
+    "eslint.fix": "eslint --config .eslintrc.contrib.json . --fix",
+    "prettier": "prettier --check .",
+    "prettier.fix": "prettier --write .",
+    "markdownlint": "markdownlint . --config .markdownlintrc.cjs --ignore-path .markdownlintignore",
+    "markdownlint.fix": "markdownlint . --config .markdownlintrc.cjs --ignore-path .markdownlintignore --fix",
+    "cspell": "cspell '**' --no-progress --gitignore",
     "postversion": "git push && git push --tags",
     "serve-test": "http-server --p 9001",
     "watch": "gulp watch"
-  },
-  "dependencies": {
-    "eslint-config-drupal": "^5.0.2"
   },
   "packageManager": "yarn@4.5.1"
 }
