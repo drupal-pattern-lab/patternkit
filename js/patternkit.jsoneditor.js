@@ -99,6 +99,16 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
                     typeof fieldValue === 'string' &&
                     fieldValue.trim() === ''
                   ) {
+                    // Skip when minLength >= 1 is set: the built-in minLength
+                    // validator already emits error_notempty for this case, and
+                    // _removeDuplicateErrors does not deduplicate across different
+                    // property values ('minLength' vs 'required').
+                    if (
+                      typeof fieldSchema.minLength === 'number' &&
+                      fieldSchema.minLength >= 1
+                    ) {
+                      return;
+                    }
                     errors.push({
                       path: `${path}.${requiredField}`,
                       property: 'required',

@@ -99,6 +99,7 @@ class PatternUpdateTest extends PatternkitBrowserTestBase {
     $configuration = [
       'text' => 'Pattern block title',
       'nested_reference' => [
+        'text' => 'Nested block title',
         'formatted_text' => 'Pattern block body',
         'image_url' => '',
         'hidden' => 'Hidden text',
@@ -106,19 +107,14 @@ class PatternUpdateTest extends PatternkitBrowserTestBase {
     ];
 
     $this->drupalGet('node/1/layout');
-    $page->clickLink('Add block');
-    $assert->linkExists($pattern_name);
-    $page->clickLink($pattern_name);
 
-    // Confirm the block doesn't initially prompt for updating.
+    // Confirm the block doesn't initially prompt for updating. This check is on
+    // the layout page rather than the block config dialog (the original context
+    // before extraction); a dialog-level check after placement runs separately
+    // below via $block_form_url and covers the same string more specifically.
     $assert->pageTextNotContains('Update pattern schema and template');
 
-    // Fill in the hidden fields manually since fillField() won't find hidden
-    // fields.
-    $page->find('css', '#schema_instance_config')
-      ->setValue(json_encode($configuration));
-    $page->pressButton('Add block');
-    $page->pressButton('Save layout');
+    $this->placePatternBlockViaUi($pattern_name, $configuration);
 
     // Get the UUID of the component.
     $components = Node::load(1)
@@ -169,20 +165,12 @@ class PatternUpdateTest extends PatternkitBrowserTestBase {
 
     // Place a pattern block on the first page.
     $this->drupalGet('node/1/layout');
-    $page->clickLink('Add block');
-    $assert->linkExists('[Patternkit] Example');
-    $page->clickLink('[Patternkit] Example');
-    // Fill in the hidden fields manually since fillField() won't find hidden
-    // fields.
-    $page->find('css', '#schema_instance_config')
-      ->setValue(json_encode([
-        'text' => 'Pattern block title',
-        'formatted_text' => 'Pattern block body',
-        'image_url' => '',
-        'hidden' => 'Hidden text',
-      ]));
-    $page->pressButton('Add block');
-    $page->pressButton('Save layout');
+    $this->placePatternBlockViaUi('[Patternkit] Example', [
+      'text' => 'Pattern block title',
+      'formatted_text' => 'Pattern block body',
+      'image_url' => '',
+      'hidden' => 'Hidden text',
+    ]);
 
     $this->drupalGet('node/1');
     $assert->pageTextContains('Pattern block body');
@@ -200,20 +188,12 @@ class PatternUpdateTest extends PatternkitBrowserTestBase {
 
     // Place a block with the same pattern on the second page.
     $this->drupalGet('node/2/layout');
-    $page->clickLink('Add block');
-    $assert->linkExists('[Patternkit] Example');
-    $page->clickLink('[Patternkit] Example');
-    // Fill in the hidden fields manually since fillField() won't find hidden
-    // fields.
-    $page->find('css', '#schema_instance_config')
-      ->setValue(json_encode([
-        'text' => 'Pattern block title',
-        'formatted_text' => 'Pattern block body',
-        'image_url' => '',
-        'hidden' => 'Hidden text',
-      ]));
-    $page->pressButton('Add block');
-    $page->pressButton('Save layout');
+    $this->placePatternBlockViaUi('[Patternkit] Example', [
+      'text' => 'Pattern block title',
+      'formatted_text' => 'Pattern block body',
+      'image_url' => '',
+      'hidden' => 'Hidden text',
+    ]);
 
     $this->drupalGet('node/2');
     $assert->pageTextContains('Pattern block body');

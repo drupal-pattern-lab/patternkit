@@ -117,7 +117,6 @@ class PatternkitTest extends PatternkitBrowserTestBase {
    */
   public function testLayoutBuilderBlockPlacementUi() {
     $assert_session = $this->assertSession();
-    $page = $this->getSession()->getPage();
 
     $this->drupalLogin($this->drupalCreateUser([
       'configure any layout',
@@ -126,20 +125,12 @@ class PatternkitTest extends PatternkitBrowserTestBase {
 
     // Edit the node-specific layout override.
     $this->drupalGet('node/1/layout');
-    $page->clickLink('Add block');
-    $page->clickLink('[Patternkit] Example');
-
-    // Fill in pattern data using the hidden config field since the JSON editor
-    // form requires JS to be properly rendered.
-    $page->find('css', '#schema_instance_config')->setValue(json_encode([
+    $this->placePatternBlockViaUi('[Patternkit] Example', [
       'text' => 'Pattern block title',
       'formatted_text' => 'Pattern block body',
       'image_url' => '',
       'hidden' => 'Hidden text',
-    ]));
-
-    $page->pressButton('Add block');
-    $page->pressButton('Save layout');
+    ]);
 
     $assert_session->pageTextContains('Pattern block title');
     $assert_session->pageTextContains('Pattern block body');

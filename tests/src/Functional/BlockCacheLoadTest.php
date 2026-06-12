@@ -58,7 +58,6 @@ class BlockCacheLoadTest extends PatternkitBrowserTestBase {
    */
   public function testBlockCacheLoad() {
     $assert = $this->assertSession();
-    $page = $this->getSession()->getPage();
 
     $account = $this->drupalCreateUser([
       'configure any layout',
@@ -68,20 +67,12 @@ class BlockCacheLoadTest extends PatternkitBrowserTestBase {
 
     // Override the Node layout and place a patternkit block.
     $this->drupalGet('node/1/layout');
-    $page->clickLink('Add block');
-    $assert->linkExists('[Patternkit] Example');
-    $page->clickLink('[Patternkit] Example');
-    // Fill in the hidden fields manually since fillField() won't find hidden
-    // fields.
-    $page->find('css', '#schema_instance_config')
-      ->setValue(json_encode([
-        'text' => 'Pattern block title',
-        'formatted_text' => 'Pattern block body',
-        'image_url' => '',
-        'hidden' => 'Hidden text',
-      ]));
-    $page->pressButton('Add block');
-    $page->pressButton('Save layout');
+    $this->placePatternBlockViaUi('[Patternkit] Example', [
+      'text' => 'Pattern block title',
+      'formatted_text' => 'Pattern block body',
+      'image_url' => '',
+      'hidden' => 'Hidden text',
+    ]);
 
     // Get the UUID of the component.
     $components = Node::load(1)

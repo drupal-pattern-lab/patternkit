@@ -25,9 +25,12 @@ class LayoutAddBlockTest extends PatternkitBrowserTestBase {
 
     // Log in as an editor with access to update layouts.
     $this->drupalLogin($this->editorUser);
-    // Override the Node layout and place a patternkit block.
+    // Override the Node layout and open the block picker.
+    // Inline rather than placePatternBlockViaUi(): the block picker is opened
+    // here in setUp() while the pattern link click and schema injection live in
+    // the data-driven testExampleBlocks(), making the sequence impossible to
+    // encapsulate in a single helper call without restructuring the test class.
     $this->drupalGet("node/1/layout");
-    // $this->assertSession()->pageTextContains('Add block');
     $page->clickLink("Add block");
   }
 
@@ -87,6 +90,13 @@ class LayoutAddBlockTest extends PatternkitBrowserTestBase {
 
     // Set the node for context to fill in the token.
     $page->pressButton("Add block");
+    // If server-side validation rejected the block config, Drupal re-renders
+    // the form with an error message and "Save layout" will not be found.
+    // Fail here with the validation error text for immediate diagnosis.
+    $error = $page->find('css', '[role="alert"]');
+    if ($error !== NULL) {
+      $this->fail('Block config form rejected by server-side validation: ' . $error->getText());
+    }
     $page->pressButton("Save layout");
 
     // Confirm visibility on a Node page.

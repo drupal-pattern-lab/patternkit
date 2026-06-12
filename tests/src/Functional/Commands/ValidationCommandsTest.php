@@ -336,7 +336,7 @@ class ValidationCommandsTest extends PatternkitBrowserTestBase {
       ],
       'empty content object against a pattern' => [
         [
-          'pattern' => '@patternkit/atoms/example/src/example',
+          'pattern' => '@patternkit/atoms/example_filtered/src/example_filtered',
           'content' => '{}',
         ],
         DrushCommands::EXIT_SUCCESS,

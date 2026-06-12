@@ -212,10 +212,13 @@ class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
     $this->addPatternBlock($pattern_name);
 
     // Wait for the JSON Editor form to load.
-    $this->waitForJsonEditorForm();
+    $editor_form = $this->waitForJsonEditorForm();
 
     // Wait for CKEditor to load.
     $this->waitForEditor();
+
+    // Fill in the required text field.
+    $editor_form->fillField('root[text]', 'Pattern block title');
 
     // Get the original config value to watch for changes.
     $config_field = $page->find('css', '#schema_instance_config');
@@ -285,10 +288,13 @@ class CKEditorIntegrationTest extends PatternkitBrowserTestBase {
     $this->addPatternBlock($pattern_name);
 
     // Wait for the JSON Editor form to load.
-    $this->waitForJsonEditorForm();
+    $editor_form = $this->waitForJsonEditorForm();
 
     // Wait for CKEditor to load.
     $this->waitForEditor();
+
+    // Fill in the required text field.
+    $editor_form->fillField('root[text]', 'Pattern block title');
 
     // Get the original config value to watch for changes.
     $config_field = $page->find('css', '#schema_instance_config');

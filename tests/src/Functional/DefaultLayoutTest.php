@@ -32,6 +32,11 @@ class DefaultLayoutTest extends PatternkitBrowserTestBase {
     $this->drupalLogin($account);
 
     // Set the default the Node layout and place a patternkit block.
+    // Inline rather than placePatternBlockViaUi(): this test navigates to the
+    // display management page (not node/N/layout), presses "Manage layout"
+    // before reaching the layout editor, and requires a selectFieldOption step
+    // between schema injection and "Add block" to set the token context
+    // mapping. All of these steps differ from the node-override layout flow.
     $this->drupalGet('admin/structure/types/manage/bundle_with_layout_enabled/display');
     // Click the "Manage layout" button.
     $page->find('css', '#edit-manage-layout')->press();
@@ -51,6 +56,13 @@ class DefaultLayoutTest extends PatternkitBrowserTestBase {
     // Set the node for context to fill in the token.
     $page->selectFieldOption('settings[context_mapping][node]', 'layout_builder.entity');
     $page->pressButton('Add block');
+    // If server-side validation rejected the block config, Drupal re-renders
+    // the form with an error message and "Save layout" will not be found.
+    // Fail here with the validation error text for immediate diagnosis.
+    $error = $page->find('css', '[role="alert"]');
+    if ($error !== NULL) {
+      $this->fail('Block config form rejected by server-side validation: ' . $error->getText());
+    }
     $page->pressButton('Save layout');
 
     // Confirm visibility on a Node page.

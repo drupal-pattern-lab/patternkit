@@ -8,6 +8,7 @@
     "text": {
       "title": "Text",
       "type": "string",
+      "minLength": 1,
       "options": {
         "grid_columns": 4
       }
@@ -32,5 +33,6 @@
       "title": "hidden",
       "type": "string"
     }
-  }
+  },
+  "required": ["text"]
 }
