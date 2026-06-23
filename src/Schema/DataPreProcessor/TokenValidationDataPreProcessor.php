@@ -65,13 +65,13 @@ class TokenValidationDataPreProcessor implements DataPreProcessor {
    * (e.g., "must be a non-empty valid URI") requires a separate constraint
    * such as minLength: 1 or a dedicated validation step.
    *
-   * Note: setFormat(NULL) mutates the Swaggest Schema object in place. Because
-   * SchemaFactory caches compiled schema instances as static properties, this
-   * mutation persists within the PHP-FPM worker process. Subsequent
-   * validations of the same schema will already have a NULL format and will
-   * not re-enforce the format constraint even for non-token, non-empty values.
-   * See https://www.drupal.org/project/patternkit/issues/3585847 for the
-   * tracked upstream follow-up.
+   * Note: setFormat(NULL) mutates the Swaggest Schema object in place.
+   * SchemaFactory uses instance-scoped caches, so the mutation cannot
+   * persist across HTTP requests. Within a single request, however,
+   * the shared DI service instance holds one cache: if the same schema
+   * is validated twice in one request and the first call triggers this
+   * bypass, subsequent calls against that cached schema will see a
+   * NULL format and skip format enforcement for non-token values.
    *
    * @param mixed $data
    *   The original data prior to processing.

@@ -23,13 +23,6 @@ class SchemaFactoryTest extends UnitTestCase {
   use ProphecyTrait;
 
   /**
-   * The schema factory service being tested.
-   *
-   * @var \Drupal\patternkit\Schema\SchemaFactory
-   */
-  protected SchemaFactory $factory;
-
-  /**
    * The context builder service.
    *
    * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Schema\ContextBuilder>
@@ -42,7 +35,6 @@ class SchemaFactoryTest extends UnitTestCase {
   protected function setUp(): void {
     parent::setUp();
 
-    SchemaFactory::clearCache();
     $this->contextBuilder = $this->prophesize(ContextBuilder::class);
   }
 
@@ -75,7 +67,7 @@ class SchemaFactoryTest extends UnitTestCase {
   }
 
   /**
-   * Test schema creation without a provided context.
+   * Test schema creation with a provided context.
    */
   public function testCreateInstanceWithContext() {
     $context = new Context();
@@ -135,10 +127,42 @@ class SchemaFactoryTest extends UnitTestCase {
 
     $factory = $this->getSchemaFactory();
     $cached = $factory->createInstance($schemaJson);
-    SchemaFactory::clearCache();
+    $factory->clearCache();
     $afterClear = $factory->createInstance($schemaJson);
 
     $this->assertNotSame($cached, $afterClear, 'After clearCache(), createInstance must return a new Schema instance.');
+  }
+
+  /**
+   * Two SchemaFactory instances must not share a compiled Schema object.
+   *
+   * Simulates two PHP-FPM requests handled by the same worker process. Before
+   * the fix, static $schemasCache is shared across all SchemaFactory instances:
+   * both instances return the same compiled Schema object (same pointer). After
+   * the fix, each instance holds its own independent cache and compiles a fresh
+   * Schema, so the two objects are distinct.
+   *
+   * This is the structural invariant that prevents setFormat(NULL) mutations
+   * (applied by TokenValidationDataPreProcessor during request 1) from
+   * contaminating schema state seen by request 2.
+   *
+   * Uses a real ContextBuilder rather than a Prophecy mock because
+   * createInstance() mutates the Context (sets schemasCache) and a Prophecy
+   * stub returns the same object on every call, which couples the two factory
+   * instances through the shared Context reference.
+   */
+  public function testSecondFactoryInstanceDoesNotShareCacheWithFirst(): void {
+    $schemaJson = '{"type": "object", "properties": {"url": {"type": "string", "format": "hostname"}}}';
+
+    $instanceA = new SchemaFactory(new ContextBuilder());
+    $schemaA = $instanceA->createInstance($schemaJson);
+
+    $instanceB = new SchemaFactory(new ContextBuilder());
+    $schemaB = $instanceB->createInstance($schemaJson);
+
+    $this->assertNotSame($schemaA, $schemaB,
+      'A second SchemaFactory instance must not return the same cached Schema object as the first.'
+    );
   }
 
 }

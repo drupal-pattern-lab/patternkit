@@ -28,16 +28,21 @@ class SchemaFactory {
   /**
    * Request-scoped cache of compiled schemas (key = decoded schema object).
    *
+   * Instance-scoped so that mutations applied by DataPreProcessor
+   * implementations (e.g. setFormat(NULL) in
+   * TokenValidationDataPreProcessor) cannot leak across PHP-FPM
+   * requests via a shared static reference.
+   *
    * @var \SplObjectStorage|null
    */
-  protected static ?\SplObjectStorage $schemasCache = NULL;
+  protected ?\SplObjectStorage $schemasCache = NULL;
 
   /**
    * Request-scoped cache of decoded schema JSON by hash (for object identity).
    *
    * @var array<string, object>
    */
-  protected static array $decodedSchemaCache = [];
+  protected array $decodedSchemaCache = [];
 
   /**
    * The context builder service for preparing schema contexts.
@@ -57,13 +62,13 @@ class SchemaFactory {
   }
 
   /**
-   * Clears the request-scoped schema cache.
+   * Clears the instance-scoped schema cache.
    *
    * Used by tests and for explicit invalidation.
    */
-  public static function clearCache(): void {
-    self::$schemasCache = NULL;
-    self::$decodedSchemaCache = [];
+  public function clearCache(): void {
+    $this->schemasCache = NULL;
+    $this->decodedSchemaCache = [];
   }
 
   /**
@@ -95,18 +100,18 @@ class SchemaFactory {
       $context = $this->contextBuilder->getDefaultContext();
     }
 
-    if (self::$schemasCache === NULL) {
-      self::$schemasCache = new \SplObjectStorage();
+    if ($this->schemasCache === NULL) {
+      $this->schemasCache = new \SplObjectStorage();
     }
-    $context->schemasCache = self::$schemasCache;
+    $context->schemasCache = $this->schemasCache;
 
     $schemaHash = md5($schema);
-    if (!isset(self::$decodedSchemaCache[$schemaHash])) {
-      self::$decodedSchemaCache[$schemaHash] = $this->decodeJson($schema);
+    if (!isset($this->decodedSchemaCache[$schemaHash])) {
+      $this->decodedSchemaCache[$schemaHash] = $this->decodeJson($schema);
     }
 
     try {
-      return Schema::import(self::$decodedSchemaCache[$schemaHash], $context);
+      return Schema::import($this->decodedSchemaCache[$schemaHash], $context);
     }
     catch (InvalidValue $invalidValueException) {
       // Wrap the exception in our own class for abstraction.
