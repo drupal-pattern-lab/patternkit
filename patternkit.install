@@ -8,6 +8,7 @@
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Config\FileStorage;
 use Drupal\Core\Entity\ContentEntityType;
+use Drupal\Core\Url;
 use Drupal\Core\Entity\EntityAccessControlHandler;
 use Drupal\Core\Entity\EntityListBuilder;
 use Drupal\Core\Entity\EntityViewBuilder;
@@ -120,10 +121,25 @@ function patternkit_schema(): array {
  */
 function patternkit_requirements($phase): array {
   $requirements = [];
-  if ($phase === 'runtime') {
-    /** @var \Drupal\patternkit\Hook\ReusableBlockHooks $hooks */
-    $hooks = \Drupal::classResolver(ReusableBlockHooks::class);
-    $requirements = $hooks->requirements($phase);
+  if ($phase !== 'runtime') {
+    return $requirements;
+  }
+
+  /** @var \Drupal\patternkit\Hook\ReusableBlockHooks $hooks */
+  $hooks = \Drupal::classResolver(ReusableBlockHooks::class);
+  $requirements = $hooks->requirements($phase);
+
+  $config = \Drupal::configFactory()->get('patternkit.settings');
+  $enforce = $config->get('render_validation_on_save') ?? TRUE;
+  if (!$enforce) {
+    $requirements['patternkit_validation_enforcement'] = [
+      'title' => t('Patternkit validation enforcement'),
+      'value' => t('Disabled'),
+      'description' => t('Patternkit validation enforcement is disabled. Editors can save pattern blocks with validation errors. Re-enable enforcement on the <a href=":url">Patternkit settings page</a> when remediation is complete.', [
+        ':url' => Url::fromRoute('patternkit.settings')->toString(),
+      ]),
+      'severity' => REQUIREMENT_WARNING,
+    ];
   }
 
   return $requirements;

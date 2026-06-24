@@ -162,7 +162,7 @@ class PatternkitSettingsForm extends ConfigFormBase {
     $form['advanced_settings']['render_validation_on_save'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Prevent saving invalid pattern content'),
-      '#description' => $this->t('Prevents saving Patternkit content that fails server-side schema validation. Disable temporarily to unblock editorial workflows over invalid content. Note: the JSON Editor client validates independently and may still block save attempts before they reach the server; disabling this toggle does not bypass client-side validation.'),
+      '#description' => $this->t('Prevents saving Patternkit content that fails server-side schema validation. Disable temporarily to unblock editorial workflows over invalid content. When disabled, client-side validation errors in the JSON Editor are still shown, but become non-blocking warnings.'),
       '#default_value' => $config->get('render_validation_on_save') ?? TRUE,
     ];
 

@@ -95,7 +95,9 @@ class JsonEditorFormTest extends RendererTestBase {
 
     $this->patternRepository = $this->prophesize(PatternRepository::class);
 
-    $this->configFactory = $this->getConfigFactoryStub();
+    $this->configFactory = $this->getConfigFactoryStub([
+      'patternkit.settings' => ['render_validation_on_save' => TRUE],
+    ]);
 
     // Mock the string translation service.
     $this->translation = $this->getStringTranslationStub();
