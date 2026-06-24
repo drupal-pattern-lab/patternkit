@@ -564,3 +564,9 @@
 #patternkit-editor-target:not(#drupal-off-canvas-wrapper *) .patternkit-jsoneditor-clickable + div > .tabs:not(.ck *) {
   margin-left: 40px;
 }
+
+/* Validation error color for inline errors (replaces html.js inline style). */
+#drupal-off-canvas-wrapper [data-theme="cygnet"] .errmsg,
+#patternkit-editor-target:not(#drupal-off-canvas-wrapper *) [data-theme="cygnet"] .errmsg:not(.ck *) {
+  color: var(--color--red, #e33f1e);
+}

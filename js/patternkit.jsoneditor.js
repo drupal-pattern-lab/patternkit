@@ -50,6 +50,8 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
       this.editor_root = document;
       this.beforeSerializeCallbacks = [];
       this.beforeSubmitCallbacks = [];
+      this.warningActive = false;
+      this.enforcementEnabled = this.settings.renderValidationOnSave !== false;
 
       this.data = {
         schema: JSON.parse(settings.schemaJson),
@@ -238,6 +240,18 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
 
       window.patternkitEditor.on('ready', this.onReady.bind(this));
       window.patternkitEditor.on('change', this.saveSchema.bind(this));
+      window.patternkitEditor.on('change', () => {
+        if (this.warningActive && this.$submitButton) {
+          const rawErrors = window.patternkitEditor.validate(
+            window.patternkitEditor.getValue(),
+          );
+          const errors = filterTokenErrors(rawErrors);
+          if (errors.length === 0) {
+            this.revertWarningState(this.$submitButton);
+            window.patternkitEditor.root.showValidationErrors([]);
+          }
+        }
+      });
 
       // Expose methods for editors to register AJAX event cycle callbacks.
       const self = this;
@@ -365,14 +379,45 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
           window.patternkitEditor.getValue(),
         );
         const validationErrors = filterTokenErrors(rawErrors);
-        if (validationErrors.length > 0) {
-          e.preventDefault();
-          window.patternkitEditor.root.showValidationErrors(validationErrors);
-          return;
+
+        if (this.enforcementEnabled) {
+          // Enforcement ON: existing blocking behavior.
+          if (validationErrors.length > 0) {
+            e.preventDefault();
+            window.patternkitEditor.root.showValidationErrors(validationErrors);
+            return;
+          }
+          window.patternkitEditor.root.showValidationErrors([]);
+        } else {
+          // Enforcement OFF: warning-mode flow.
+          if (validationErrors.length > 0) {
+            if (!this.warningActive) {
+              e.preventDefault();
+              this.warningActive = true;
+              $('#patternkit-editor-target').addClass(
+                'patternkit-validation-warnings',
+              );
+              this.showWarningMessage($(e.target).find('[type="submit"]'));
+              this._originalButtonText = $(e.target)
+                .find('[type="submit"]')
+                .val();
+              $(e.target)
+                .find('[type="submit"]')
+                .val(this._originalButtonText + ' ' + Drupal.t('with issues'));
+              window.patternkitEditor.root.showValidationErrors(
+                validationErrors,
+              );
+              return;
+            }
+            // warningActive === true: second submit -- allow through.
+            this.saveSchema();
+          } else {
+            if (this.warningActive) {
+              this.revertWarningState($(e.target).find('[type="submit"]'));
+            }
+            window.patternkitEditor.root.showValidationErrors([]);
+          }
         }
-        // Clear any stale inline errors from a prior failed submit attempt
-        // so the editor does not display errors while the form navigates away.
-        window.patternkitEditor.root.showValidationErrors([]);
       }
 
       // Call all serialize and submission handlers since this function is only
@@ -416,25 +461,114 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
       // user just edited a field and immediately clicked submit.
       const rawErrors = jsonEditor.validate(jsonEditor.getValue());
       const errors = filterTokenErrors(rawErrors);
+
+      if (this.enforcementEnabled) {
+        // Enforcement ON: existing blocking behavior unchanged.
+        if (errors.length === 0) {
+          jsonEditor.root.showValidationErrors([]);
+          return true;
+        }
+
+        // Display inline validation errors on the form fields.
+        jsonEditor.root.showValidationErrors(errors);
+
+        // Reset the AJAX system's "in progress" flag. Drupal sets
+        // ajax.ajaxing = true before calling beforeSubmit; when we abort
+        // by returning false the success/error callbacks never fire and
+        // the flag is never cleared.
+        ajax.ajaxing = false;
+
+        // Re-enable the submit button and remove any progress indicator.
+        $submitButton.prop('disabled', false).removeClass('is-disabled');
+        $('.ajax-progress', $submitButton.closest('.form-actions')).remove();
+
+        return false;
+      }
+
+      // Enforcement OFF: warning-mode flow.
       if (errors.length === 0) {
+        if (this.warningActive) {
+          this.revertWarningState($submitButton);
+        }
         jsonEditor.root.showValidationErrors([]);
         return true;
       }
 
-      // Display inline validation errors on the form fields.
+      // Errors present.
       jsonEditor.root.showValidationErrors(errors);
 
-      // Reset the AJAX system's "in progress" flag. Drupal sets
-      // ajax.ajaxing = true before calling beforeSubmit; when we abort
-      // by returning false the success/error callbacks never fire and
-      // the flag is never cleared.
-      ajax.ajaxing = false;
+      if (!this.warningActive) {
+        // First failed submit: enter warning state, block submission.
+        this.warningActive = true;
+        $('#patternkit-editor-target').addClass(
+          'patternkit-validation-warnings',
+        );
+        this.showWarningMessage($submitButton);
+        this._originalButtonText = $submitButton.val();
+        $submitButton.val(
+          this._originalButtonText + ' ' + Drupal.t('with issues'),
+        );
+        ajax.ajaxing = false;
+        $submitButton.prop('disabled', false).removeClass('is-disabled');
+        $('.ajax-progress', $submitButton.closest('.form-actions')).remove();
+        return false;
+      }
 
-      // Re-enable the submit button and remove any progress indicator.
-      $submitButton.prop('disabled', false).removeClass('is-disabled');
-      $('.ajax-progress', $submitButton.closest('.form-actions')).remove();
+      // warningActive === true: second submit -- bypass, allow submission.
+      this.saveSchema();
+      this.revertWarningState($submitButton);
+      return true;
+    }
 
-      return false;
+    /**
+     * Insert a Drupal warning message near the submit button.
+     *
+     * @param {jQuery} $submitButton
+     *   The jQuery-wrapped submit button element.
+     */
+    showWarningMessage($submitButton) {
+      this.removeWarningMessage();
+      const messageElement = Drupal.theme(
+        'message',
+        {
+          text: Drupal.t(
+            'Validation issues were found. Enforcement is disabled by your administrator. You may fix the issues or save as-is.',
+          ),
+        },
+        { type: 'warning', id: 'patternkit-validation-warning' },
+      );
+      const $formActions = $submitButton.closest('.form-actions');
+      this._$warningMessage = $(messageElement)
+        .addClass('patternkit-validation-warning-message')
+        .insertBefore($formActions.length ? $formActions : $submitButton);
+    }
+
+    /**
+     * Remove the active validation warning message if present.
+     */
+    removeWarningMessage() {
+      if (this._$warningMessage) {
+        this._$warningMessage.remove();
+        this._$warningMessage = null;
+      }
+    }
+
+    /**
+     * Revert the editor from warning state to normal state.
+     *
+     * @param {jQuery} $submitButton
+     *   The jQuery-wrapped submit button element.
+     */
+    revertWarningState($submitButton) {
+      this.warningActive = false;
+      $('#patternkit-editor-target').removeClass(
+        'patternkit-validation-warnings',
+      );
+      this.removeWarningMessage();
+      if (this._originalButtonText) {
+        $submitButton.val(this._originalButtonText);
+        this._originalButtonText = null;
+      }
     }
 
     /**
@@ -498,6 +632,7 @@ patternkitEditorArray(jQuery, Drupal, JSONEditor);
         editor.loadEditor();
 
         let $submitButton = $('[data-drupal-selector="edit-actions-submit"]');
+        editor.$submitButton = $submitButton;
         let $form = $submitButton.parent('form');
 
         // Get the ajax handler instance attached to the current submit element.

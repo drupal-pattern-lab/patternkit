@@ -29,6 +29,7 @@ patternkit.jsoneditor:
     - core/drupal.debounce
     - core/jquery
     - core/once
+    - core/drupal.message
     - patternkit/jsoneditor
 
 cygnet:

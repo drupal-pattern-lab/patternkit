@@ -461,3 +461,8 @@
 .patternkit-jsoneditor-clickable + div > .tabs {
   margin-left: 40px;
 }
+
+/* Validation error color for inline errors (replaces html.js inline style). */
+[data-theme="cygnet"] .errmsg {
+  color: var(--color--red, #e33f1e);
+}

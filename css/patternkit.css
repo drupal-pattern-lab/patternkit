@@ -24,3 +24,14 @@
     transform: rotate(360deg);
   }
 }
+
+
+.patternkit-validation-warning-message {
+  max-width: 100%;
+  margin: 8px 0;
+  padding: 0;
+}
+
+.patternkit-validation-warning-message .messages--warning {
+  margin: 0;
+}

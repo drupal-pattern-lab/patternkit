@@ -80,8 +80,6 @@ class cygnetTheme extends JSONEditor.AbstractTheme {
     if (!input.errmsg) {
       input.errmsg = document.createElement('div');
       input.errmsg.setAttribute('class', 'errmsg');
-      input.errmsg.style = input.errmsg.style || {};
-      input.errmsg.style.color = 'red';
       group.appendChild(input.errmsg);
     } else {
       input.errmsg.style.display = 'block';
