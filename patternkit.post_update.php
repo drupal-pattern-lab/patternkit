@@ -169,3 +169,13 @@ function patternkit_post_update_remove_cached_root_path(&$sandbox): Translatable
     '@failures' => \Drupal::translation()->formatPlural($sandbox['failed'], '1 failure', '@count failures'),
   ]);
 }
+
+/**
+ * Set render_validation_on_save default for existing sites.
+ */
+function patternkit_post_update_set_render_validation_on_save(): void {
+  $config = \Drupal::configFactory()->getEditable('patternkit.settings');
+  if ($config->get('render_validation_on_save') === NULL) {
+    $config->set('render_validation_on_save', TRUE)->save();
+  }
+}

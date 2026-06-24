@@ -22,6 +22,6 @@
       "$ref": "@patternkit/components/media_video_embed/media_video_embed"
     }
   },
-  "required": ["name"],
+  "required": [],
   "additionalProperties": false
 }

@@ -31,6 +31,9 @@ patternkit.settings:
     entity_cache_tag_invalidation:
       type: boolean
       label: 'Boolean determining whether Pattern entity cache tags are invalidated during Pattern updates.'
+    render_validation_on_save:
+      type: boolean
+      label: 'Boolean determining whether invalid pattern configuration is blocked at save time.'
     patternkit_json_editor_wysiwyg:
       type: string
       label: 'String selecting the WYSIWYG tool to use in the JSON Editor.'

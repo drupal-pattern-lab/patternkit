@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-#ddev-generated
 ## Command provided by https://github.com/ddev/ddev-drupal-contrib
 ## Description: Symlink project files into the configured location (defaults to `web/modules/custom/[PROJECT_NAME]`)
 ## Usage: symlink-project [flags] [args]
@@ -25,3 +24,7 @@ fi
 export DRUPAL_PROJECT_FOLDER=${DDEV_DOCROOT}/${DRUPAL_PROJECTS_PATH}/${DDEV_SITENAME//-/_}
 php symlink_project.php
 rm -f symlink_project.php
+
+# Remove stale .worktrees symlink created by symlink-project to prevent PHPUnit
+# from following it and loading stale class versions from worktrees.
+rm -f "${DRUPAL_PROJECT_FOLDER}/.worktrees"

@@ -79,6 +79,7 @@ class BlockTest extends PatternkitBrowserTestBase {
     $new_block = $this->createPatternBlock($new_pattern_name, [
       'text' => 'Pattern block title',
       'nested_reference' => [
+        'text' => 'Nested block title',
         'formatted_text' => 'Pattern block body',
         'image_url' => '',
         'hidden' => 'Hidden text',

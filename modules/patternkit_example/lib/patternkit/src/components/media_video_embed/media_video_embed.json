@@ -20,6 +20,6 @@
       "format": "video-media"
     }
   },
-  "required": ["name", "video"],
+  "required": ["video"],
   "additionalProperties": false
 }

@@ -106,11 +106,10 @@ class SchemaFactory {
     $context->schemasCache = $this->schemasCache;
 
     $schemaHash = md5($schema);
-    if (!isset($this->decodedSchemaCache[$schemaHash])) {
-      $this->decodedSchemaCache[$schemaHash] = $this->decodeJson($schema);
-    }
-
     try {
+      if (!isset($this->decodedSchemaCache[$schemaHash])) {
+        $this->decodedSchemaCache[$schemaHash] = $this->decodeJson($schema);
+      }
       return Schema::import($this->decodedSchemaCache[$schemaHash], $context);
     }
     catch (InvalidValue $invalidValueException) {

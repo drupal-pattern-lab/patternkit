@@ -933,6 +933,11 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    * Attempting to save the entity at this stage results in premature cache
    * invalidations.
    *
+   * This staged serialized value is editor draft state, not yet the effective
+   * published layout configuration. Promotion happens later in
+   * saveBlockContent() during parent entity presave, when the new block
+   * revision ID is written back into plugin configuration.
+   *
    * @param array $values
    *   An array of values to update on the block entity.
    * @param \Drupal\patternkit\Entity\PatternkitBlock|null $block_entity
@@ -990,6 +995,10 @@ class PatternkitBlock extends BlockBase implements ContainerFactoryPluginInterfa
    *   Unsaved edits to block entity values may be saved in a serialized value
    *   until the parent entity is saved.
    * @see \Drupal\patternkit\Hook\PatternkitBlockEntityHooks::handlePreSave()
+   *
+   * The block revision save occurs before the parent layout/config entity is
+   * persisted. If a later presave step throws, the new block revision may not
+   * be promoted into effective rendered layout configuration.
    */
   public function saveBlockContent(bool $new_revision = FALSE, bool $duplicate_block = FALSE): void {
     /** @var \Drupal\patternkit\Entity\PatternkitBlock|null $block */

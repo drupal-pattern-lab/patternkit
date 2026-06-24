@@ -168,9 +168,8 @@ class PatternkitBlock extends BlockContent {
     if ($data === NULL) {
       return [];
     }
-    else {
-      return json_decode($data, TRUE, 512, JSON_THROW_ON_ERROR);
-    }
+    $decoded = json_decode($data, TRUE, 512, JSON_THROW_ON_ERROR);
+    return is_array($decoded) ? $decoded : [];
   }
 
 }

@@ -29,6 +29,6 @@
       }
     }
   },
-  "required": ["name"],
+  "required": [],
   "additionalProperties": false
 }
