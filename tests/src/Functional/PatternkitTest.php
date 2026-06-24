@@ -67,14 +67,7 @@ class PatternkitTest extends PatternkitBrowserTestBase {
     // handles default block creation.
     /** @var \Drupal\patternkit\Entity\PatternkitBlock $patternkit_block */
     $patternkit_block = $this->patternBlockStorage->create([
-      'data' => [
-        'value' => json_encode([
-          'text' => 'Example block text',
-          'formatted_text' => 'Example block body',
-          'image_url' => '',
-          'hidden' => '',
-        ]),
-      ],
+      'data' => ['value' => '{}'],
       'info' => $this->randomMachineName(),
       'reusable' => FALSE,
       'published' => TRUE,
@@ -154,12 +147,6 @@ class PatternkitTest extends PatternkitBrowserTestBase {
   public function testBlockRenderException() {
     $assert_session = $this->assertSession();
 
-    // Disable enforcement so deliberately invalid content can be saved for
-    // render exception testing.
-    $this->config('patternkit.settings')
-      ->set('render_validation_on_save', FALSE)
-      ->save();
-
     // Create a block with a value that will be processed and trigger the
     // exception processor.
     $pattern_id = '@patternkit/atoms/example_ref/src/example_ref';
@@ -187,12 +174,6 @@ class PatternkitTest extends PatternkitBrowserTestBase {
    */
   public function testDebugOutputCaching() {
     $assert_session = $this->assertSession();
-
-    // Disable enforcement so deliberately invalid content can be saved for
-    // render exception testing.
-    $this->config('patternkit.settings')
-      ->set('render_validation_on_save', FALSE)
-      ->save();
 
     // Enable page caching.
     $config = $this->config('system.performance');

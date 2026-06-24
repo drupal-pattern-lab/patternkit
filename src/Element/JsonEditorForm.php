@@ -296,14 +296,6 @@ class JsonEditorForm extends FormElementBase implements ContainerFactoryPluginIn
     $validationHelper->clearExceptions();
     $validationHelper->validateContent($schema, $value);
     if ($validationHelper->hasExceptions()) {
-      // Always validate to record the result for stamp infrastructure. Only
-      // block the save when the enforcement toggle is on (default TRUE). When
-      // enforcement is off, the entity-hook layer handles stamp recording and
-      // allows the save to proceed with invalid content.
-      $enforce = \Drupal::config(PatternLibraryJSONForm::SETTINGS)->get('render_validation_on_save') ?? TRUE;
-      if (!$enforce) {
-        return;
-      }
 
       $message = 'Content has failed to validate. See errors below.';
 
@@ -368,10 +360,6 @@ class JsonEditorForm extends FormElementBase implements ContainerFactoryPluginIn
   /**
    * Statically load the configured settings for default JSON Editor behaviors.
    *
-   * When adding a new JS-exposed setting here, also update
-   * JsonEditorFormBuilder::buildEditorForm(). Both methods produce
-   * drupalSettings.patternkitEditor and must stay in sync.
-   *
    * @return array<string, string|bool>
    *   The prepared default settings for JSON Editor.
    */
@@ -392,7 +380,6 @@ class JsonEditorForm extends FormElementBase implements ContainerFactoryPluginIn
         'disablePropertiesButtons' => FALSE,
         'disableJsonEditButton' => TRUE,
         'ajaxCacheResponses' => FALSE,
-        'renderValidationOnSave' => (bool) ($this->configFactory->get(PatternLibraryJSONForm::SETTINGS)->get('render_validation_on_save') ?? TRUE),
       ];
     }
 

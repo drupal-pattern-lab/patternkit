@@ -13,8 +13,6 @@ use Drupal\patternkit\Hook\PatternkitBlockEntityHooks;
 use Drupal\patternkit\Hook\PatternkitHooks;
 use Drupal\patternkit\Hook\ReusableBlockHooks;
 use Drupal\patternkit\Hook\ThemeHooks;
-use Drupal\patternkit\Hook\ValidityStampCronHooks;
-use Drupal\patternkit\Hook\ValidityStampEntityHooks;
 
 /**
  * Implements hook_help().
@@ -47,9 +45,11 @@ function patternkit_theme($existing, $type, $theme, $path): array {
  */
 #[LegacyHook]
 function patternkit_entity_presave(EntityInterface $entity): void {
-  /** @var \Drupal\patternkit\Hook\PatternkitBlockEntityHooks $entity_hooks */
-  $entity_hooks = \Drupal::classResolver(PatternkitBlockEntityHooks::class);
-  $entity_hooks->handlePreSave($entity);
+  if (\Drupal::moduleHandler()->moduleExists('layout_builder')) {
+    /** @var \Drupal\patternkit\Hook\PatternkitBlockEntityHooks $entity_hooks */
+    $entity_hooks = \Drupal::classResolver(PatternkitBlockEntityHooks::class);
+    $entity_hooks->handlePreSave($entity);
+  }
 }
 
 /**
@@ -60,42 +60,6 @@ function patternkit_entity_type_alter(array &$entity_types): void {
   /** @var \Drupal\patternkit\Hook\ReusableBlockHooks $reusable_block_hooks */
   $reusable_block_hooks = \Drupal::classResolver(ReusableBlockHooks::class);
   $reusable_block_hooks->entityTypeAlter($entity_types);
-}
-
-/**
- * Implements hook_entity_insert().
- *
- * @see \Drupal\patternkit\Hook\PatternkitBlockEntityHooks::handlePostSave()
- */
-#[LegacyHook]
-function patternkit_entity_insert(EntityInterface $entity): void {
-  /** @var \Drupal\patternkit\Hook\PatternkitBlockEntityHooks $entity_hooks */
-  $entity_hooks = \Drupal::classResolver(PatternkitBlockEntityHooks::class);
-  $entity_hooks->handlePostSave($entity);
-}
-
-/**
- * Implements hook_entity_update().
- *
- * @see \Drupal\patternkit\Hook\PatternkitBlockEntityHooks::handlePostSave()
- */
-#[LegacyHook]
-function patternkit_entity_update(EntityInterface $entity): void {
-  /** @var \Drupal\patternkit\Hook\PatternkitBlockEntityHooks $entity_hooks */
-  $entity_hooks = \Drupal::classResolver(PatternkitBlockEntityHooks::class);
-  $entity_hooks->handlePostSave($entity);
-}
-
-/**
- * Implements hook_entity_predelete().
- *
- * @see \Drupal\patternkit\Hook\PatternkitBlockEntityHooks::handlePreDelete()
- */
-#[LegacyHook]
-function patternkit_entity_predelete(EntityInterface $entity): void {
-  /** @var \Drupal\patternkit\Hook\PatternkitBlockEntityHooks $entity_hooks */
-  $entity_hooks = \Drupal::classResolver(PatternkitBlockEntityHooks::class);
-  $entity_hooks->handlePreDelete($entity);
 }
 
 /**
@@ -140,42 +104,6 @@ function patternkit_link_alter(&$variables): void {
   /** @var \Drupal\patternkit\Hook\ThemeHooks $theme_hooks */
   $theme_hooks = \Drupal::classResolver(ThemeHooks::class);
   $theme_hooks->linkAlter($variables);
-}
-
-/**
- * Implements hook_entity_delete().
- *
- * @see \Drupal\patternkit\Hook\ValidityStampEntityHooks::entityDelete()
- */
-#[LegacyHook]
-function patternkit_entity_delete(EntityInterface $entity): void {
-  /** @var \Drupal\patternkit\Hook\ValidityStampEntityHooks $stamp_hooks */
-  $stamp_hooks = \Drupal::classResolver(ValidityStampEntityHooks::class);
-  $stamp_hooks->entityDelete($entity);
-}
-
-/**
- * Implements hook_entity_translation_delete().
- *
- * @see \Drupal\patternkit\Hook\ValidityStampEntityHooks::entityTranslationDelete()
- */
-#[LegacyHook]
-function patternkit_entity_translation_delete(EntityInterface $entity): void {
-  /** @var \Drupal\patternkit\Hook\ValidityStampEntityHooks $stamp_hooks */
-  $stamp_hooks = \Drupal::classResolver(ValidityStampEntityHooks::class);
-  $stamp_hooks->entityTranslationDelete($entity);
-}
-
-/**
- * Implements hook_cron().
- *
- * @see \Drupal\patternkit\Hook\ValidityStampCronHooks::cron()
- */
-#[LegacyHook]
-function patternkit_cron(): void {
-  /** @var \Drupal\patternkit\Hook\ValidityStampCronHooks $cron_hooks */
-  $cron_hooks = \Drupal::classResolver(ValidityStampCronHooks::class);
-  $cron_hooks->cron();
 }
 
 /**

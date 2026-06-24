@@ -34,9 +34,6 @@ services:
   logger.channel.patternkit_batch:
     parent: logger.channel_base
     arguments: ['patternkit.batch']
-  logger.channel.patternkit_cron:
-    parent: logger.channel_base
-    arguments: ['patternkit.cron']
   path_processor.patterns:
     class: Drupal\patternkit\PathProcessor\PathProcessorPatterns
     tags:
@@ -144,33 +141,6 @@ services:
     arguments:
       - '@patternkit.schema.context_builder'
       - '@patternkit.schema.schema_factory'
-  patternkit.validity.stamp_writer:
-    class: Drupal\patternkit\Validation\ValidityStampWriter
-    arguments: ['@database', '@datetime.time']
-  patternkit.validity.pending_store:
-    class: Drupal\patternkit\Validation\ValidityStampPendingStore
-  Drupal\patternkit\Validation\ValidityStampWriterInterface: '@patternkit.validity.stamp_writer'
-  Drupal\patternkit\Utility\PatternValidationHelper: '@patternkit.helper.validation'
-  Drupal\patternkit\Hook\PatternkitBlockEntityHooks:
-    class: Drupal\patternkit\Hook\PatternkitBlockEntityHooks
-    arguments:
-      - '@entity_type.manager'
-      - '@module_handler'
-      - '@patternkit.validity.stamp_writer'
-      - '@patternkit.helper.validation'
-      - '@token'
-      - '@config.factory'
-      - '@patternkit.validity.pending_store'
-      - '@?plugin.manager.layout_builder.section_storage'
-    calls:
-      - [setLogger, ['@logger.channel.patternkit']]
-  Drupal\patternkit\Hook\ValidityStampCronHooks:
-    class: Drupal\patternkit\Hook\ValidityStampCronHooks
-    arguments:
-      - '@patternkit.validity.stamp_writer'
-      - '@queue'
-      - '@logger.channel.patternkit_cron'
-      - '@state'
   patternkit.helper.layout:
     class: Drupal\patternkit\LayoutHelper
     arguments:

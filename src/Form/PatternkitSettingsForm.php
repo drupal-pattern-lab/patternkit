@@ -159,13 +159,6 @@ class PatternkitSettingsForm extends ConfigFormBase {
       '#default_value' => $this->state->get('patternkit.unknown_schema_logging_enabled', TRUE),
     ];
 
-    $form['advanced_settings']['render_validation_on_save'] = [
-      '#type' => 'checkbox',
-      '#title' => $this->t('Prevent saving invalid pattern content'),
-      '#description' => $this->t('Prevents saving Patternkit content that fails server-side schema validation. Disable temporarily to unblock editorial workflows over invalid content. When disabled, client-side validation errors in the JSON Editor are still shown, but become non-blocking warnings.'),
-      '#default_value' => $config->get('render_validation_on_save') ?? TRUE,
-    ];
-
     return parent::buildForm($form, $form_state);
   }
 
@@ -191,7 +184,6 @@ class PatternkitSettingsForm extends ConfigFormBase {
     $config
       ->set('patternkit_libraries', $form_state->getValue('patternkit_libraries'))
       ->set('entity_cache_tag_invalidation', $form_state->getValue('entity_cache_tag_invalidation'))
-      ->set('render_validation_on_save', $form_state->getValue('render_validation_on_save'))
       ->save();
 
     // Store the log suppression setting in state instead of config, so it may

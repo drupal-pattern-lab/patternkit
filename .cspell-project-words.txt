@@ -11,11 +11,7 @@ endlink
 expirable
 fieldable
 langcode
-langcodes
-onecol
 patternkit
-presaved
-varchar
 predelete
 prophesize
 revisionable
@@ -54,8 +50,6 @@ rulesets
 styleguides
 subpattern
 subschema
-upsert
-upserts
 wysiwygs
 
 # CSS classes

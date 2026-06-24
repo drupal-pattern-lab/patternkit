@@ -14,9 +14,3 @@ bullets or numbers in lists are not hidden from view in LB sidebar. */
 #patternkit-editor-target [data-theme="cygnet"] .ck.ck-editor__main > .ck-editor__editable.ck-read-only {
   background-color: var(--disabled-input-background-color);
 }
-
-/* Validation error color for cygnet theme inline errors (replaces html.js inline style). */
-#drupal-off-canvas-wrapper [data-theme="cygnet"] .errmsg,
-#patternkit-editor-target [data-theme="cygnet"] .errmsg {
-  color: var(--color--red, #e33f1e);
-}

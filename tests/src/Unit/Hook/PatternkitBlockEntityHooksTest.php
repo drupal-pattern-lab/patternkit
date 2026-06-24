@@ -3,25 +3,18 @@
 namespace Drupal\Tests\patternkit\Unit\Hook;
 
 use Drupal\Core\Block\BlockPluginInterface;
-use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Entity\RevisionableStorageInterface;
+use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Entity\RevisionableInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
-use Drupal\Core\Language\LanguageInterface;
-use Drupal\Core\Utility\Token;
 use Drupal\layout_builder\Section;
 use Drupal\layout_builder\SectionComponent;
 use Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface;
 use Drupal\layout_builder\SectionStorageInterface;
 use Drupal\patternkit\Hook\PatternkitBlockEntityHooks;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock;
-use Drupal\patternkit\Utility\PatternValidationHelper;
-use Drupal\patternkit\Validation\ValidityStampPendingStore;
-use Drupal\patternkit\Validation\ValidityStampWriterInterface;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -40,14 +33,14 @@ class PatternkitBlockEntityHooksTest extends UnitTestCase {
   /**
    * Block storage manager.
    *
-   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Entity\RevisionableStorageInterface>
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Entity\EntityStorageInterface>
    */
   protected ObjectProphecy $blockStorage;
 
   /**
    * Pattern storage manager.
    *
-   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Entity\RevisionableStorageInterface>
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Entity\EntityStorageInterface>
    */
   protected ObjectProphecy $patternStorage;
 
@@ -66,60 +59,15 @@ class PatternkitBlockEntityHooksTest extends UnitTestCase {
   protected ObjectProphecy $sectionStorageManager;
 
   /**
-   * Validity stamp writer prophecy.
-   *
-   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Validation\ValidityStampWriterInterface>
-   */
-  protected ObjectProphecy $stampWriter;
-
-  /**
-   * Pattern validation helper prophecy.
-   *
-   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\patternkit\Utility\PatternValidationHelper>
-   */
-  protected ObjectProphecy $validationHelper;
-
-  /**
-   * Token service prophecy.
-   *
-   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Utility\Token>
-   */
-  protected ObjectProphecy $token;
-
-  /**
-   * Config factory prophecy.
-   *
-   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Config\ConfigFactoryInterface>
-   */
-  protected ObjectProphecy $configFactory;
-
-  /**
-   * Pending store instance.
-   *
-   * @var \Drupal\patternkit\Validation\ValidityStampPendingStore
-   */
-  protected ValidityStampPendingStore $pendingStore;
-
-  /**
    * {@inheritdoc}
    */
   protected function setUp(): void {
     parent::setUp();
 
-    $this->blockStorage = $this->prophesize(RevisionableStorageInterface::class);
-    $this->patternStorage = $this->prophesize(RevisionableStorageInterface::class);
+    $this->blockStorage = $this->prophesize(EntityStorageInterface::class);
+    $this->patternStorage = $this->prophesize(EntityStorageInterface::class);
     $this->moduleHandler = $this->prophesize(ModuleHandlerInterface::class);
     $this->sectionStorageManager = $this->prophesize(SectionStorageManagerInterface::class);
-    $this->stampWriter = $this->prophesize(ValidityStampWriterInterface::class);
-    $this->validationHelper = $this->prophesize(PatternValidationHelper::class);
-    $this->token = $this->prophesize(Token::class);
-
-    $config = $this->prophesize(ImmutableConfig::class);
-    $config->get('render_validation_on_save')->willReturn(FALSE);
-    $this->configFactory = $this->prophesize(ConfigFactoryInterface::class);
-    $this->configFactory->get('patternkit.settings')->willReturn($config->reveal());
-
-    $this->pendingStore = new ValidityStampPendingStore();
   }
 
   /**
@@ -143,28 +91,14 @@ class PatternkitBlockEntityHooksTest extends UnitTestCase {
     return new PatternkitBlockEntityHooks(
       $entityTypeManager->reveal(),
       $this->moduleHandler->reveal(),
-      $this->stampWriter->reveal(),
-      $this->validationHelper->reveal(),
-      $this->token->reveal(),
-      $this->configFactory->reveal(),
-      $this->pendingStore,
       $this->sectionStorageManager->reveal(),
     );
   }
 
-  /**
-   * Verifies that handlePreSave() iterates all Patternkit block components.
-   *
-   * Confirms that only patternkit_block plugin components trigger save methods
-   * and that non-patternkit blocks in the same sections are left untouched.
-   */
   public function testHandlePresave() {
     $entity = $this->prophesize(EntityInterface::class);
     $entity_type = $this->prophesize(EntityTypeInterface::class);
     $entity->getEntityType()->willReturn($entity_type->reveal());
-    $language = $this->prophesize(LanguageInterface::class);
-    $language->getId()->willReturn('en');
-    $entity->language()->willReturn($language->reveal());
 
     $mock = $this->createPartialMock(PatternkitBlockEntityHooks::class, [
       'isLayoutBuilderEnabled',
@@ -264,20 +198,10 @@ class PatternkitBlockEntityHooksTest extends UnitTestCase {
    * @dataProvider providerHandlePresaveOperationFlags
    */
   public function testHandlePresaveOperationFlags(bool $usesDefaultStorage, bool $isRevisionable): void {
-    // Prophesize from ContentEntityInterface when revisionable so the double
-    // already implements RevisionableInterface without a post-hoc willImplement
-    // call (Prophecy rejects interface additions after instantiation).
-    $entity = $isRevisionable
-      ? $this->prophesize(ContentEntityInterface::class)
-      : $this->prophesize(EntityInterface::class);
-
-    $language = $this->prophesize(LanguageInterface::class);
-    $language->getId()->willReturn('en');
-    $entity->language()->willReturn($language->reveal());
+    $entity = $this->prophesize(EntityInterface::class);
 
     if ($isRevisionable) {
-      // Published (default) revision: $skipStamps = FALSE.
-      $entity->isDefaultRevision()->willReturn(TRUE);
+      $entity->willImplement(RevisionableInterface::class);
     }
 
     $mock = $this->createPartialMock(PatternkitBlockEntityHooks::class, [
@@ -318,9 +242,6 @@ class PatternkitBlockEntityHooksTest extends UnitTestCase {
         $patternBlockComponent->reveal(),
         $isRevisionable,
         $usesDefaultStorage,
-        // skipStamps=FALSE: published (default) revision parent entity.
-        FALSE,
-        'en',
       );
 
     $mock->handlePreSave($entity->reveal());
@@ -360,11 +281,6 @@ class PatternkitBlockEntityHooksTest extends UnitTestCase {
     $subject = new PatternkitBlockEntityHooks(
       $entityTypeManager->reveal(),
       $this->moduleHandler->reveal(),
-      $this->stampWriter->reveal(),
-      $this->validationHelper->reveal(),
-      $this->token->reveal(),
-      $this->configFactory->reveal(),
-      $this->pendingStore,
       NULL,
     );
 

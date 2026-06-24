@@ -2,17 +2,6 @@
   "version": "0.2",
   "language": "en",
   "words": [],
-  "flagWords": [
-    "blacklist",
-    "blacklists",
-    "blacklisted",
-    "e-mail",
-    "grey",
-    "queuing",
-    "whitelist",
-    "whitelists",
-    "whitelisted"
-  ],
   "dictionaries": ["project-words", "php", "css", "html", "typescript"],
   "dictionaryDefinitions": [
     {

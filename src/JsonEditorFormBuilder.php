@@ -93,10 +93,6 @@ class JsonEditorFormBuilder implements PatternFormBuilderInterface, LoggerAwareI
   /**
    * {@inheritdoc}
    *
-   * When adding a new JS-exposed setting here, also update
-   * JsonEditorForm::defaultEditorSettings(). Both methods produce
-   * drupalSettings.patternkitEditor and must stay in sync.
-   *
    * @phpstan-param array{
    *   theme?: string,
    *   icons?: string,
@@ -107,7 +103,6 @@ class JsonEditorFormBuilder implements PatternFormBuilderInterface, LoggerAwareI
    *   ajaxCacheBuster?: string,
    *   schemaJson?: string,
    *   startingJson?: string,
-   *   renderValidationOnSave?: bool,
    * } $settings
    *
    * @todo Make $pattern param optional and add schema value to $settings if provided.
@@ -125,12 +120,6 @@ class JsonEditorFormBuilder implements PatternFormBuilderInterface, LoggerAwareI
     // Ensure a cache buster string is prepared.
     if (empty($settings['ajaxCacheBuster'])) {
       $settings['ajaxCacheBuster'] = $this->getQueryString();
-    }
-
-    // Expose the server-side validation enforcement toggle to the JS client.
-    if (!isset($settings['renderValidationOnSave'])) {
-      $allConfig = $this->config();
-      $settings['renderValidationOnSave'] = (bool) ($allConfig['render_validation_on_save'] ?? TRUE);
     }
 
     // Build the placeholder for the JSONEditor instance to render within.
@@ -269,14 +258,10 @@ class JsonEditorFormBuilder implements PatternFormBuilderInterface, LoggerAwareI
    */
   protected function config(): array {
     if (!isset($this->config)) {
-      $config = $this->configFactory->get(PatternLibraryJSONForm::SETTINGS);
-      if ($config === NULL) {
-        return [];
-      }
-      $this->config = $config;
+      $this->config = $this->configFactory->get(PatternLibraryJSONForm::SETTINGS);
     }
 
-    return $this->config->get() ?? [];
+    return $this->config->get();
   }
 
   /**

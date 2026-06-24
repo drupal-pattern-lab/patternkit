@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Drupal\Tests\patternkit\Unit;
 
 use Drupal\Component\Plugin\Exception\PluginException;
@@ -148,9 +146,7 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
     parent::setUp();
 
     $this->patternLibraryPluginManager = $this->prophesize(PatternLibraryPluginManager::class);
-    $this->configFactory = $this->getConfigFactoryStub([
-      'patternkit.settings' => ['render_validation_on_save' => TRUE],
-    ]);
+    $this->configFactory = $this->getConfigFactoryStub();
     $this->entityTypeManager = $this->prophesize(EntityTypeManagerInterface::class);
     $this->editorStorage = $this->prophesize(EntityStorageInterface::class);
     $this->state = $this->prophesize(StateInterface::class);
@@ -201,7 +197,7 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
     $this->assertContains('patternkit/icons.fontawesome3', $form['#attached']['library']);
 
     // Confirm editor settings with added schema JSON are attached.
-    $expected = $settings + ['schemaJson' => $this->schema, 'renderValidationOnSave' => TRUE];
+    $expected = $settings + ['schemaJson' => $this->schema];
     $this->assertEquals($expected, $form['#attached']['drupalSettings']['patternkitEditor']);
   }
 
@@ -244,8 +240,7 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
     $this->assertBasicFormStructure($form);
 
     // Confirm editor settings are attached.
-    $expected = $settings + ['renderValidationOnSave' => TRUE];
-    $this->assertEquals($expected, $form['#attached']['drupalSettings']['patternkitEditor']);
+    $this->assertEquals($settings, $form['#attached']['drupalSettings']['patternkitEditor']);
   }
 
   public function testBuildEditorFormWithWysiwyg(): void {
@@ -357,7 +352,7 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
     $this->assertContains('patternkit/patternkit.jsoneditor', $form['#attached']['library']);
 
     // Confirm editor settings with added schema JSON are attached.
-    $expected = $settings + ['schemaJson' => $this->schema, 'renderValidationOnSave' => TRUE];
+    $expected = $settings + ['schemaJson' => $this->schema];
     $this->assertEquals($expected, $form['#attached']['drupalSettings']['patternkitEditor']);
   }
 
@@ -389,7 +384,7 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
     $this->assertContains('patternkit/patternkit.jsoneditor', $form['#attached']['library']);
 
     // Confirm editor settings with added schema JSON are attached.
-    $expected = $settings + ['schemaJson' => $this->schema, 'renderValidationOnSave' => TRUE];
+    $expected = $settings + ['schemaJson' => $this->schema];
     $this->assertEquals($expected, $form['#attached']['drupalSettings']['patternkitEditor']);
   }
 
@@ -452,73 +447,8 @@ class JsonEditorFormBuilderTest extends UnitTestCase {
     $this->assertBasicFormStructure($form);
 
     // Confirm editor settings with added schema JSON are attached.
-    $expected = $settings + ['schemaJson' => $this->schema, 'renderValidationOnSave' => TRUE];
+    $expected = $settings + ['schemaJson' => $this->schema];
     $this->assertEquals($expected, $form['#attached']['drupalSettings']['patternkitEditor']);
-  }
-
-  /**
-   * Tests that the render validation toggle is exposed to JS settings.
-   *
-   * Verifies three cases: config TRUE, config FALSE, and config absent
-   * (missing key defaults to TRUE).
-   */
-  public function testBuildEditorFormExposesToggleToSettings(): void {
-    $base_settings = [
-      'ajaxCacheBuster' => 'test',
-      'schemaJson' => '{}',
-    ];
-
-    // Case 1: config value is TRUE.
-    $configFactory = $this->getConfigFactoryStub([
-      PatternLibraryJSONForm::SETTINGS => ['render_validation_on_save' => TRUE],
-    ]);
-    $builder = new JsonEditorFormBuilder(
-      $this->patternLibraryPluginManager->reveal(),
-      $configFactory,
-      $this->entityTypeManager->reveal(),
-      $this->state->reveal(),
-      $this->messenger->reveal(),
-      $this->stringTranslation,
-    );
-    $builder->setLogger($this->logger->reveal());
-    $this->entityTypeManager->hasHandler('editor', 'storage')->willReturn(FALSE);
-
-    $form = $builder->buildEditorForm(settings: $base_settings);
-    $this->assertTrue($form['#attached']['drupalSettings']['patternkitEditor']['renderValidationOnSave']);
-
-    // Case 2: config value is FALSE.
-    $configFactory = $this->getConfigFactoryStub([
-      PatternLibraryJSONForm::SETTINGS => ['render_validation_on_save' => FALSE],
-    ]);
-    $builder = new JsonEditorFormBuilder(
-      $this->patternLibraryPluginManager->reveal(),
-      $configFactory,
-      $this->entityTypeManager->reveal(),
-      $this->state->reveal(),
-      $this->messenger->reveal(),
-      $this->stringTranslation,
-    );
-    $builder->setLogger($this->logger->reveal());
-    $this->entityTypeManager->hasHandler('editor', 'storage')->willReturn(FALSE);
-
-    $form = $builder->buildEditorForm(settings: $base_settings);
-    $this->assertFalse($form['#attached']['drupalSettings']['patternkitEditor']['renderValidationOnSave']);
-
-    // Case 3: config key absent — defaults to TRUE.
-    $configFactory = $this->getConfigFactoryStub();
-    $builder = new JsonEditorFormBuilder(
-      $this->patternLibraryPluginManager->reveal(),
-      $configFactory,
-      $this->entityTypeManager->reveal(),
-      $this->state->reveal(),
-      $this->messenger->reveal(),
-      $this->stringTranslation,
-    );
-    $builder->setLogger($this->logger->reveal());
-    $this->entityTypeManager->hasHandler('editor', 'storage')->willReturn(FALSE);
-
-    $form = $builder->buildEditorForm(settings: $base_settings);
-    $this->assertTrue($form['#attached']['drupalSettings']['patternkitEditor']['renderValidationOnSave']);
   }
 
   /**

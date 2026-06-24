@@ -8,7 +8,6 @@
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Config\FileStorage;
 use Drupal\Core\Entity\ContentEntityType;
-use Drupal\Core\Url;
 use Drupal\Core\Entity\EntityAccessControlHandler;
 use Drupal\Core\Entity\EntityListBuilder;
 use Drupal\Core\Entity\EntityViewBuilder;
@@ -34,86 +33,6 @@ function patternkit_uninstall(bool $is_syncing): void {
   // Cleanup the update results collection value if it exists.
   \Drupal::keyValue(LayoutUpdateBatchManager::RESULTS_COLLECTION)
     ->deleteAll();
-
-  $schema = \Drupal::database()->schema();
-  if ($schema->tableExists('patternkit_block_validity')) {
-    $schema->dropTable('patternkit_block_validity');
-  }
-}
-
-/**
- * Implements hook_schema().
- */
-function patternkit_schema(): array {
-  $schema['patternkit_block_validity'] = [
-    'description' => 'Validity stamps for patternkit_block translations (published content index).',
-    'fields' => [
-      'block_entity_id' => [
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'description' => 'The patternkit_block entity ID.',
-      ],
-      'langcode' => [
-        'type' => 'varchar_ascii',
-        'length' => 12,
-        'not null' => TRUE,
-        'description' => 'The translation language code.',
-      ],
-      'block_revision_id' => [
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'description' => 'The block revision ID at validation time.',
-      ],
-      'pattern_revision_id' => [
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'description' => 'The pattern revision ID used when validating.',
-      ],
-      'is_valid' => [
-        'type' => 'int',
-        'size' => 'tiny',
-        'not null' => TRUE,
-        'default' => 0,
-        'description' => 'Whether content validated successfully.',
-      ],
-      'has_tokens' => [
-        'type' => 'int',
-        'size' => 'tiny',
-        'not null' => TRUE,
-        'default' => 0,
-        'description' => 'Whether token-shaped values were present at stamp time.',
-      ],
-      'validated_at' => [
-        'type' => 'int',
-        'not null' => TRUE,
-        'description' => 'Unix timestamp when validation ran.',
-      ],
-      'stamp_source' => [
-        'type' => 'varchar_ascii',
-        'length' => 32,
-        'not null' => TRUE,
-        'default' => 'save',
-        'description' => 'Origin of the stamp (save, cron_scan, etc.).',
-      ],
-      'component_uuid' => [
-        'type' => 'varchar_ascii',
-        'length' => 128,
-        'not null' => FALSE,
-        'description' => 'Layout Builder SectionComponent UUID when known.',
-      ],
-    ],
-    'primary key' => ['block_entity_id', 'langcode'],
-    'indexes' => [
-      'block_validity_is_valid' => ['is_valid'],
-      'block_validity_pattern_revision' => ['pattern_revision_id'],
-      'block_validity_component_uuid' => ['component_uuid'],
-    ],
-  ];
-
-  return $schema;
 }
 
 /**
@@ -121,25 +40,10 @@ function patternkit_schema(): array {
  */
 function patternkit_requirements($phase): array {
   $requirements = [];
-  if ($phase !== 'runtime') {
-    return $requirements;
-  }
-
-  /** @var \Drupal\patternkit\Hook\ReusableBlockHooks $hooks */
-  $hooks = \Drupal::classResolver(ReusableBlockHooks::class);
-  $requirements = $hooks->requirements($phase);
-
-  $config = \Drupal::configFactory()->get('patternkit.settings');
-  $enforce = $config->get('render_validation_on_save') ?? TRUE;
-  if (!$enforce) {
-    $requirements['patternkit_validation_enforcement'] = [
-      'title' => t('Patternkit validation enforcement'),
-      'value' => t('Disabled'),
-      'description' => t('Patternkit validation enforcement is disabled. Editors can save pattern blocks with validation errors. Re-enable enforcement on the <a href=":url">Patternkit settings page</a> when remediation is complete.', [
-        ':url' => Url::fromRoute('patternkit.settings')->toString(),
-      ]),
-      'severity' => REQUIREMENT_WARNING,
-    ];
+  if ($phase === 'runtime') {
+    /** @var \Drupal\patternkit\Hook\ReusableBlockHooks $hooks */
+    $hooks = \Drupal::classResolver(ReusableBlockHooks::class);
+    $requirements = $hooks->requirements($phase);
   }
 
   return $requirements;
@@ -776,16 +680,4 @@ function patternkit_update_10310(): string {
     $field_definitions['reusable']
   );
   return t('Restored reusable field storage for the 9.1.x migration window.');
-}
-
-/**
- * Adds the patternkit_block_validity table for block validity stamps.
- */
-function patternkit_update_10311(): void {
-  $schema = patternkit_schema();
-  $table = 'patternkit_block_validity';
-  $database = \Drupal::database();
-  if (!$database->schema()->tableExists($table)) {
-    $database->schema()->createTable($table, $schema[$table]);
-  }
 }

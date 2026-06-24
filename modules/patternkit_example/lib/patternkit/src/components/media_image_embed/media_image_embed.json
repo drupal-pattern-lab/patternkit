@@ -20,6 +20,6 @@
       "format": "image-media"
     }
   },
-  "required": ["image"],
+  "required": ["name", "image"],
   "additionalProperties": false
 }
