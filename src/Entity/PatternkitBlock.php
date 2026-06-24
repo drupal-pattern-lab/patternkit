@@ -6,7 +6,6 @@ use Drupal\block_content\Entity\BlockContent;
 use Drupal\Core\Entity\EditorialContentEntityBase;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
-use Drupal\Core\StringTranslation\TranslatableMarkup;
 
 /**
  * Defines the custom block entity class.
@@ -65,6 +64,12 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
  * caching.
  * See https://www.drupal.org/node/2284917#comment-9132521 for more information.
  *
+ * @see \Drupal\patternkit\Hook\ReusableBlockHooks
+ *   Alterations to the entity type definition and related links are handled in
+ *   these hook implementations.
+ * @see \Drupal\patternkit\EventSubscriber\PatternkitReusableBlocksRouteSubscriber
+ *   Alterations to the available routes are handled here.
+ *
  * @todo 2.0 Rename to PatternkitInstance, since this entity could have other
  * potential uses other than blocks, such as panes or views stubs.
  */
@@ -77,20 +82,20 @@ class PatternkitBlock extends BlockContent {
     /** @var \Drupal\Core\Field\BaseFieldDefinition[] $fields */
     $fields = EditorialContentEntityBase::baseFieldDefinitions($entity_type);
 
-    $fields['id']->setLabel(new TranslatableMarkup('Custom block ID'))
-      ->setDescription(new TranslatableMarkup('The custom block ID.'));
+    $fields['id']->setLabel(t('Custom block ID'))
+      ->setDescription(t('The custom block ID.'));
 
-    $fields['uuid']->setDescription(new TranslatableMarkup('The custom block UUID.'));
+    $fields['uuid']->setDescription(t('The custom block UUID.'));
 
-    $fields['revision_id']->setDescription(new TranslatableMarkup('The revision ID.'));
+    $fields['revision_id']->setDescription(t('The revision ID.'));
 
-    $fields['langcode']->setDescription(new TranslatableMarkup('The custom block language code.'));
+    $fields['langcode']->setDescription(t('The custom block language code.'));
 
-    $fields['revision_log']->setDescription(new TranslatableMarkup('The log entry explaining the changes in this revision.'));
+    $fields['revision_log']->setDescription(t('The log entry explaining the changes in this revision.'));
 
     $fields['info'] = BaseFieldDefinition::create('string')
-      ->setLabel(new TranslatableMarkup('Block description'))
-      ->setDescription(new TranslatableMarkup('A brief description of your block.'))
+      ->setLabel(t('Block description'))
+      ->setDescription(t('A brief description of your block.'))
       ->setRevisionable(TRUE)
       ->setTranslatable(TRUE)
       ->setRequired(TRUE)
@@ -102,20 +107,27 @@ class PatternkitBlock extends BlockContent {
       ->addConstraint('UniqueField', []);
 
     $fields['changed'] = BaseFieldDefinition::create('changed')
-      ->setLabel(new TranslatableMarkup('Changed'))
-      ->setDescription(new TranslatableMarkup('The time that the custom block was last edited.'))
+      ->setLabel(t('Changed'))
+      ->setDescription(t('The time that the custom block was last edited.'))
       ->setTranslatable(TRUE)
       ->setRevisionable(TRUE);
 
     $fields['pattern_id'] = BaseFieldDefinition::create('string')
-      ->setLabel(new TranslatableMarkup('Patternkit Pattern Derivative ID'))
-      ->setDescription(new TranslatableMarkup('The machine name of the Patternkit pattern.'));
+      ->setLabel(t('Patternkit Pattern Derivative ID'))
+      ->setDescription(t('The machine name of the Patternkit pattern.'));
 
     $fields['data'] = BaseFieldDefinition::create('serialized_data')
-      ->setLabel(new TranslatableMarkup('Data'))
-      ->setDescription(new TranslatableMarkup('The patternkit block configuration data and content.'))
+      ->setLabel(t('Data'))
+      ->setDescription(t('The patternkit block configuration data and content.'))
       ->setTranslatable(TRUE)
       ->setRevisionable(TRUE);
+
+    $fields['reusable'] = BaseFieldDefinition::create('boolean')
+      ->setLabel(t('Reusable'))
+      ->setDescription(t('A boolean indicating whether this block is reusable.'))
+      ->setTranslatable(FALSE)
+      ->setRevisionable(FALSE)
+      ->setDefaultValue(TRUE);
 
     return $fields;
   }
@@ -159,13 +171,6 @@ class PatternkitBlock extends BlockContent {
     else {
       return json_decode($data, TRUE, 512, JSON_THROW_ON_ERROR);
     }
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function isReusable(): bool {
-    return FALSE;
   }
 
 }

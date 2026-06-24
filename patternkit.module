@@ -11,6 +11,7 @@ use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\patternkit\Hook\PatternkitBlockEntityHooks;
 use Drupal\patternkit\Hook\PatternkitHooks;
+use Drupal\patternkit\Hook\ReusableBlockHooks;
 use Drupal\patternkit\Hook\ThemeHooks;
 
 /**
@@ -52,13 +53,47 @@ function patternkit_entity_presave(EntityInterface $entity): void {
 }
 
 /**
+ * Implements hook_entity_type_alter().
+ */
+#[LegacyHook]
+function patternkit_entity_type_alter(array &$entity_types): void {
+  /** @var \Drupal\patternkit\Hook\ReusableBlockHooks $reusable_block_hooks */
+  $reusable_block_hooks = \Drupal::classResolver(ReusableBlockHooks::class);
+  $reusable_block_hooks->entityTypeAlter($entity_types);
+}
+
+/**
  * Implements hook_contextual_links_alter().
  */
 #[LegacyHook]
 function patternkit_contextual_links_alter(array &$links, $group, array $route_parameters): void {
+  /** @var \Drupal\patternkit\Hook\ReusableBlockHooks $reusable_block_hooks */
+  $reusable_block_hooks = \Drupal::classResolver(ReusableBlockHooks::class);
+  $reusable_block_hooks->contextualLinksAlter($links, $group, $route_parameters);
+
   /** @var \Drupal\patternkit\Hook\ThemeHooks $theme_hooks */
   $theme_hooks = \Drupal::classResolver(ThemeHooks::class);
   $theme_hooks->contextualLinksAlter($links, $group, $route_parameters);
+}
+
+/**
+ * Implements hook_local_tasks_alter().
+ */
+#[LegacyHook]
+function patternkit_local_tasks_alter(&$local_tasks): void {
+  /** @var \Drupal\patternkit\Hook\ReusableBlockHooks $reusable_block_hooks */
+  $reusable_block_hooks = \Drupal::classResolver(ReusableBlockHooks::class);
+  $reusable_block_hooks->localTasksAlter($local_tasks);
+}
+
+/**
+ * Implements hook_menu_local_actions_alter().
+ */
+#[LegacyHook]
+function patternkit_menu_local_actions_alter(&$local_actions): void {
+  /** @var \Drupal\patternkit\Hook\ReusableBlockHooks $reusable_block_hooks */
+  $reusable_block_hooks = \Drupal::classResolver(ReusableBlockHooks::class);
+  $reusable_block_hooks->menuLocalActionsAlter($local_actions);
 }
 
 /**

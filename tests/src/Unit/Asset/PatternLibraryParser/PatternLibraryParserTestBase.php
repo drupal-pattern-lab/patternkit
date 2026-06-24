@@ -13,6 +13,7 @@ use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 use Drupal\Core\Theme\ComponentPluginManager;
 use Drupal\Core\Theme\ThemeManagerInterface;
+use Drupal\Core\Utility\YamlCacheCollector;
 use Drupal\patternkit\Asset\PatternDependencyResolver;
 use Drupal\patternkit\Asset\PatternLibraryParserInterface;
 use Drupal\patternkit\Entity\Pattern;
@@ -134,6 +135,13 @@ abstract class PatternLibraryParserTestBase extends UnitTestCase {
   protected ?ObjectProphecy $componentPluginManager;
 
   /**
+   * The YAML parsing cache collector service if it exists (Drupal 11.4+).
+   *
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\Core\Utility\YamlCacheCollector>|null
+   */
+  protected ?ObjectProphecy $yamlCacheCollector;
+
+  /**
    * The pattern library parser being tested.
    *
    * @var \Drupal\patternkit\Asset\PatternLibraryParserInterface
@@ -188,6 +196,8 @@ abstract class PatternLibraryParserTestBase extends UnitTestCase {
     $this->environment->isDebug()->willReturn(FALSE);
     $this->componentPluginManager = class_exists(ComponentPluginManager::class) ?
       $this->prophesize(ComponentPluginManager::class) : NULL;
+    $this->yamlCacheCollector = class_exists(YamlCacheCollector::class) ?
+      $this->prophesize(YamlCacheCollector::class) : NULL;
 
     $this->entityTypeManager->getStorage('patternkit_pattern')
       ->willReturn($this->patternStorage->reveal());
@@ -217,6 +227,7 @@ abstract class PatternLibraryParserTestBase extends UnitTestCase {
       $this->dataPreProcessorFactory->reveal(),
       $this->patternDependencyResolver->reveal(),
       is_null($this->componentPluginManager) ? NULL : $this->componentPluginManager->reveal(),
+      is_null($this->yamlCacheCollector) ? NULL : $this->yamlCacheCollector->reveal(),
     );
 
     if ($parser instanceof PatternkitEnvironmentAwareInterface) {
@@ -252,6 +263,7 @@ abstract class PatternLibraryParserTestBase extends UnitTestCase {
         $this->dataPreProcessorFactory->reveal(),
         $this->patternDependencyResolver->reveal(),
         is_null($this->componentPluginManager) ? NULL : $this->componentPluginManager->reveal(),
+        is_null($this->yamlCacheCollector) ? NULL : $this->yamlCacheCollector->reveal(),
       ]);
   }
 

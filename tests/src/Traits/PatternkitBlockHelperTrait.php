@@ -63,6 +63,7 @@ trait PatternkitBlockHelperTrait {
     $form_state->setValues([
       'configuration' => $config,
       'label' => '',
+      'reusable' => FALSE,
       'presentation_style' => 'html',
       'version' => NULL,
     ]);

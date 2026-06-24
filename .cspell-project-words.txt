@@ -63,6 +63,7 @@ tabholder
 # Drush commands
 pkbu
 pkcc
+updb
 pkinfo
 pklist
 pklu

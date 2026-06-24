@@ -41,6 +41,22 @@ class PatternkitEnvironment {
   public const FEATURE_BYPASS_DATABASE_CACHE = 'bypass_database_cache';
 
   /**
+   * A feature option to enable usage of reusable blocks.
+   *
+   * @deprecated in patternkit:9.1.2 and is removed from patternkit:9.2.0.
+   *   Reusable blocks should be removed or replaced before updating.
+   * @see https://www.drupal.org/node/3517440
+   *
+   * @see self::getFeatureOption()
+   * @see \Drupal\patternkit\Plugin\Block\PatternkitBlock::getPatternEntity()
+   */
+  #[\Deprecated(
+    message: 'Patternkit reusable block support will be removed in Patternkit 9.2.0.',
+    since: '9.1.2',
+  )]
+  public const FEATURE_ENABLE_REUSABLE_BLOCKS = 'enable_reusable_blocks';
+
+  /**
    * Creates a new PatternkitEnvironment instance.
    *
    * @param array $options

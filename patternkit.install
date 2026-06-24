@@ -15,11 +15,11 @@ use Drupal\Core\Entity\Sql\SqlContentEntityStorage;
 use Drupal\Core\Entity\Sql\SqlContentEntityStorageSchema;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
-use Drupal\Core\Utility\UpdateException;
 use Drupal\patternkit\BulkOperations\LayoutUpdateBatchManager;
 use Drupal\patternkit\Entity\Pattern;
 use Drupal\patternkit\Entity\PatternRouteProvider;
 use Drupal\patternkit\Form\PatternLibraryJSONForm;
+use Drupal\patternkit\Hook\ReusableBlockHooks;
 use Drupal\patternkit\Plugin\Block\PatternkitBlock as BlockPatternkitBlock;
 use Drupal\patternkit\Plugin\Derivative\PatternkitBlock as DerivativePatternkitBlock;
 use Drupal\user\Entity\Role;
@@ -33,6 +33,20 @@ function patternkit_uninstall(bool $is_syncing): void {
   // Cleanup the update results collection value if it exists.
   \Drupal::keyValue(LayoutUpdateBatchManager::RESULTS_COLLECTION)
     ->deleteAll();
+}
+
+/**
+ * Implements hook_requirements().
+ */
+function patternkit_requirements($phase): array {
+  $requirements = [];
+  if ($phase === 'runtime') {
+    /** @var \Drupal\patternkit\Hook\ReusableBlockHooks $hooks */
+    $hooks = \Drupal::classResolver(ReusableBlockHooks::class);
+    $requirements = $hooks->requirements($phase);
+  }
+
+  return $requirements;
 }
 
 /**
@@ -138,7 +152,7 @@ function patternkit_update_8002(&$sandbox) {
 }
 
 /**
- * Adds reverse lookup pattern id field for Patternkit blocks.
+ * Adds reverse lookup pattern id field for Patternkit reusable blocks.
  */
 function patternkit_update_8003(&$sandbox) {
   $entity_definition_update_manager = \Drupal::entityDefinitionUpdateManager();
@@ -574,6 +588,7 @@ function patternkit_update_10308(): string {
   $query = $block_storage->getQuery();
   $matches = $query->condition('settings.provider', 'patternkit')
     ->condition('settings.block_serialized', operator: 'IS NOT NULL')
+    ->accessCheck(FALSE)
     ->execute();
   $entities = $block_storage->loadMultiple($matches);
 
@@ -590,13 +605,14 @@ function patternkit_update_10308(): string {
     $plugin = $block->getPlugin();
 
     if (!($plugin instanceof BlockPatternkitBlock)) {
-      $message = 'Unable to successfully load Patternkit Block plugin for config block "@id". Looking for Patternkit Block ID "@block_id".';
-      $context = [
-        '@id' => $block->id(),
-        '@block_id' => $block->getPluginId(),
-      ];
-      \Drupal::logger('patternkit')->error($message, $context);
-      throw new UpdateException('Failed to load a block plugin for updating.');
+      \Drupal::logger('patternkit')->warning(
+        'Skipping config block "@id" (plugin "@block_id"): plugin did not resolve to a PatternkitBlock instance. Pending serialized edits for this block were not applied.',
+        [
+          '@id' => $block->id(),
+          '@block_id' => $block->getPluginId(),
+        ]
+      );
+      continue;
     }
 
     $plugin->cachePatternEntity();
@@ -617,15 +633,51 @@ function patternkit_update_10308(): string {
 }
 
 /**
- * Remove the reusable field from patternkit_block entities.
+ * No-op: retain reusable field storage until 9.2.0 removal.
+ *
+ * Supersedes the prior 9.1.x update that dropped the reusable column before
+ * the 9.1.3 migration window. Sites that already ran the column drop keep that
+ * state; this hook is a no-op for upgrades that had not yet run it.
+ *
+ * Sites that already ran the pre-release removal are handled by
+ * patternkit_update_10310(), which restores the column. Because update hooks
+ * run exactly once (tracked by system.schema), a modified 10309 would never
+ * re-execute for those sites; a new hook number is required.
+ *
+ * @see https://www.drupal.org/project/patternkit/issues/3587714
+ * @see https://www.drupal.org/project/patternkit/issues/3587730
  */
-function patternkit_update_10309(&$sandbox) {
-  $entity_definition_update_manager = \Drupal::entityDefinitionUpdateManager();
+function patternkit_update_10309(): string {
+  return t('No schema change: Patternkit reusable block field storage is retained for the 9.1.x migration window; removal is scheduled for 9.2.0.');
+}
 
-  // Check if the reusable field exists before trying to remove it.
-  if ($entity_definition_update_manager->getFieldStorageDefinition('reusable', 'patternkit_block')) {
-    $entity_definition_update_manager->uninstallFieldStorageDefinition(
-      $entity_definition_update_manager->getFieldStorageDefinition('reusable', 'patternkit_block')
-    );
+/**
+ * Restore reusable field storage dropped by a pre-release removal hook.
+ *
+ * A pre-release build of 9.1.x shipped patternkit_update_10309() as a
+ * column-drop. Sites that ran that hook have no reusable column, which causes
+ * hook_requirements() to throw a DB exception on the status report page.
+ * Because 10309 already executed on those sites it is skipped on upgrade;
+ * this hook restores the field storage so the 9.1.x migration window is
+ * available to all sites.
+ *
+ * Sites where the column is already present follow the no-op path.
+ *
+ * @see https://www.drupal.org/project/patternkit/issues/3587714
+ * @see https://www.drupal.org/project/patternkit/issues/3587730
+ */
+function patternkit_update_10310(): string {
+  $edm = \Drupal::entityDefinitionUpdateManager();
+  if ($edm->getFieldStorageDefinition('reusable', 'patternkit_block')) {
+    return t('No schema change: reusable field storage is already present.');
   }
+  $field_definitions = \Drupal::service('entity_field.manager')
+    ->getBaseFieldDefinitions('patternkit_block');
+  $edm->installFieldStorageDefinition(
+    'reusable',
+    'patternkit_block',
+    'patternkit',
+    $field_definitions['reusable']
+  );
+  return t('Restored reusable field storage for the 9.1.x migration window.');
 }

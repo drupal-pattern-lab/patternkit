@@ -15,6 +15,7 @@ use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Theme\ComponentPluginManager;
 use Drupal\Core\Theme\ThemeManagerInterface;
+use Drupal\Core\Utility\YamlCacheCollector;
 use Drupal\patternkit\Entity\PatternInterface;
 use Drupal\patternkit\Exception\PatternAssetException;
 use Drupal\patternkit\Exception\SchemaException;
@@ -54,6 +55,13 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
   protected EntityStorageInterface $patternStorage;
 
   /**
+   * Backward-compatible web root alias used by parser subclasses.
+   *
+   * @var string
+   */
+  protected $root;
+
+  /**
    * Constructor for PatternLibraryParser implementations.
    *
    * @param \Drupal\Component\Serialization\SerializationInterface $serializer
@@ -78,13 +86,15 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
    *   The pattern dependency resolver service.
    * @param \Drupal\Core\Theme\ComponentPluginManager|null $componentPluginManager
    *   The theme component plugin manager if available.
+   * @param \Drupal\Core\Utility\YamlCacheCollector|null $yamlCacheCollector
+   *   The YAML parsing cache collector if available (Drupal 11.4+).
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
   public function __construct(
     protected SerializationInterface $serializer,
-    string $root,
+    $root,
     ModuleHandlerInterface $module_handler,
     ThemeManagerInterface $theme_manager,
     StreamWrapperManagerInterface $stream_wrapper,
@@ -94,7 +104,10 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
     protected DataPreProcessorFactory $dataPreProcessorFactory,
     protected PatternDependencyResolver $patternDependencyResolver,
     ?ComponentPluginManager $componentPluginManager = NULL,
+    ?YamlCacheCollector $yamlCacheCollector = NULL,
   ) {
+    $this->root = $root;
+
     parent::__construct(
       $root,
       $module_handler,
@@ -103,6 +116,7 @@ abstract class PatternLibraryParserBase extends LibraryDiscoveryParser implement
       $libraries_directory_file_finder,
       $extension_path_resolver,
       $componentPluginManager,
+      $yamlCacheCollector,
     );
 
     $this->patternStorage = $entity_type_manager->getStorage('patternkit_pattern');

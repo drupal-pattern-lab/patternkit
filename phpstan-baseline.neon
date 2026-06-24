@@ -14,6 +14,173 @@ parameters:
       path: src/Plugin/PatternLibrary/PatternLibraryFile.php
 
     #########################
+    # Ignore internal deprecation warnings for reusable block support.
+    #########################
+    # patternkit.install — message kept for older PHPStan; identifiers cover newer PHPStan.
+    - message: """
+        #^Fetching class constant class of deprecated class Drupal\\\\patternkit\\\\Hook\\\\ReusableBlockHooks\\:
+        in patternkit\\:9\\.1\\.2 and is removed from patternkit\\:9\\.2\\.0\\.
+          Reusable blocks should be removed or replaced before updating\\.$#
+      """
+      count: 1
+      path: patternkit.install
+      reportUnmatched: false
+
+    - identifier: classConstant.deprecatedClass
+      count: 2
+      path: patternkit.install
+      reportUnmatched: false
+
+    - identifier: method.deprecatedClass
+      count: 2
+      path: patternkit.install
+      reportUnmatched: false
+
+    # patternkit.module — message kept for older PHPStan; identifiers cover newer PHPStan.
+    - message: """
+        #^Fetching class constant class of deprecated class Drupal\\\\patternkit\\\\Hook\\\\ReusableBlockHooks\\:
+        in patternkit\\:9\\.1\\.2 and is removed from patternkit\\:9\\.2\\.0\\.
+          Reusable blocks should be removed or replaced before updating\\.$#
+      """
+      count: 4
+      path: patternkit.module
+      reportUnmatched: false
+
+    - identifier: classConstant.deprecatedClass
+      count: 8
+      path: patternkit.module
+      reportUnmatched: false
+
+    - identifier: method.deprecatedClass
+      count: 6
+      path: patternkit.module
+      reportUnmatched: false
+
+    - identifier: globalDrupalDependencyInjection.useDependencyInjection
+      count: 2
+      path: patternkit.module
+      reportUnmatched: false
+
+    - identifier: globalDrupalDependencyInjection.useDependencyInjection
+      count: 1
+      path: src/FormElement/PatternkitJson.php
+      reportUnmatched: false
+
+    - message: """
+        #^Fetching deprecated class constant FEATURE_ENABLE_REUSABLE_BLOCKS of class Drupal\\\\patternkit\\\\PatternkitEnvironment\\:
+        in patternkit\\:9\\.1\\.2 and is removed from patternkit\\:9\\.2\\.0\\.
+          Reusable blocks should be removed or replaced before updating\\.$#
+      """
+      count: 1
+      path: src/Plugin/Block/PatternkitBlock.php
+      reportUnmatched: false
+
+    - identifier: classConstant.deprecatedClass
+      count: 2
+      path: src/Plugin/Block/PatternkitBlock.php
+      reportUnmatched: false
+
+    - message: """
+        #^Call to deprecated method getReusableBlockDerivatives\\(\\) of class Drupal\\\\patternkit\\\\Plugin\\\\Derivative\\\\PatternkitBlock\\:
+        in patternkit\\:9\\.1\\.2 and is removed from patternkit\\:9\\.2\\.0\\.
+           Reusable blocks should be removed or replaced before updating\\.$#
+      """
+      count: 1
+      path: src/Plugin/Derivative/PatternkitBlock.php
+      reportUnmatched: false
+
+    - message: """
+        #^Fetching deprecated class constant FEATURE_ENABLE_REUSABLE_BLOCKS of class Drupal\\\\patternkit\\\\PatternkitEnvironment\\:
+        in patternkit\\:9\\.1\\.2 and is removed from patternkit\\:9\\.2\\.0\\.
+          Reusable blocks should be removed or replaced before updating\\.$#
+      """
+      count: 1
+      path: src/Plugin/Derivative/PatternkitBlock.php
+      reportUnmatched: false
+
+    - identifier: classConstant.deprecatedClass
+      count: 4
+      path: src/Plugin/Derivative/PatternkitBlock.php
+      reportUnmatched: false
+
+    - identifier: method.deprecatedClass
+      count: 2
+      path: src/Plugin/Derivative/PatternkitBlock.php
+      reportUnmatched: false
+
+    - message: """
+        #^Fetching class constant class of deprecated class Drupal\\\\patternkit\\\\Hook\\\\ReusableBlockHooks\\:
+        in patternkit\\:9\\.1\\.2 and is removed from patternkit\\:9\\.2\\.0\\.
+          Reusable blocks should be removed or replaced before updating\\.$#
+      """
+      count: 1
+      path: tests/src/Functional/ReusableBlocksDisabledTest.php
+      reportUnmatched: false
+
+    - identifier: classConstant.deprecatedClass
+      count: 2
+      path: tests/src/Functional/ReusableBlocksDisabledTest.php
+      reportUnmatched: false
+
+    - message: """
+        #^Fetching class constant class of deprecated class Drupal\\\\patternkit\\\\Hook\\\\ReusableBlockHooks\\:
+        in patternkit\\:9\\.1\\.2 and is removed from patternkit\\:9\\.2\\.0\\.
+          Reusable blocks should be removed or replaced before updating\\.$#
+      """
+      count: 1
+      path: tests/src/Functional/ReusableBlocksEnabledTest.php
+      reportUnmatched: false
+
+    - identifier: classConstant.deprecatedClass
+      count: 2
+      path: tests/src/Functional/ReusableBlocksEnabledTest.php
+      reportUnmatched: false
+
+    # ReusableBlockHooksRequirementsTest — message entries kept for older PHPStan; identifiers
+    # cover newer PHPStan which reports method calls and constant accesses on deprecated classes.
+    - message: """
+        #^Fetching class constant class of deprecated class Drupal\\\\patternkit\\\\Hook\\\\ReusableBlockHooks\\:
+        in patternkit\\:9\\.1\\.2 and is removed from patternkit\\:9\\.2\\.0\\.
+          Reusable blocks should be removed or replaced before updating\\.$#
+      """
+      count: 5
+      path: tests/src/Kernel/ReusableBlockHooksRequirementsTest.php
+      reportUnmatched: false
+
+    - message: """
+        #^Fetching deprecated class constant FEATURE_ENABLE_REUSABLE_BLOCKS of class Drupal\\\\patternkit\\\\PatternkitEnvironment\\:
+        in patternkit\\:9\\.1\\.2 and is removed from patternkit\\:9\\.2\\.0\\.
+          Reusable blocks should be removed or replaced before updating\\.$#
+      """
+      count: 1
+      path: tests/src/Kernel/ReusableBlockHooksRequirementsTest.php
+      reportUnmatched: false
+
+    - message: """
+        #^Instantiation of deprecated class Drupal\\\\patternkit\\\\Hook\\\\ReusableBlockHooks\\:
+        in patternkit\\:9\\.1\\.2 and is removed from patternkit\\:9\\.2\\.0\\.
+          Reusable blocks should be removed or replaced before updating\\.$#
+      """
+      count: 1
+      path: tests/src/Kernel/ReusableBlockHooksRequirementsTest.php
+      reportUnmatched: false
+
+    - identifier: classConstant.deprecatedClass
+      count: 10
+      path: tests/src/Kernel/ReusableBlockHooksRequirementsTest.php
+      reportUnmatched: false
+
+    - identifier: method.deprecatedClass
+      count: 9
+      path: tests/src/Kernel/ReusableBlockHooksRequirementsTest.php
+      reportUnmatched: false
+
+    - identifier: instantiation.deprecated
+      count: 2
+      path: tests/src/Kernel/ReusableBlockHooksRequirementsTest.php
+      reportUnmatched: false
+
+    #########################
     # PHPStan type stubs needed.
     #########################
     - message: '''

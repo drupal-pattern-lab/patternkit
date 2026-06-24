@@ -107,3 +107,12 @@ parameters:
       reportUnmatched: false
     - message: '#Attribute class Drupal\\Core\\Hook\\Attribute\\(Legacy)?Hook does not exist.#'
       reportUnmatched: false
+
+    # YamlCacheCollector and the matching parent::__construct() arity were added
+    # in Drupal 11.4. Suppress cross-version failures on earlier Drupal versions.
+    - message: '#Parameter \$yamlCacheCollector of method Drupal\\patternkit\\Asset\\PatternLibraryParserBase::__construct\(\) has invalid type#'
+      reportUnmatched: false
+    - message: '#Method Drupal\\Core\\Asset\\LibraryDiscoveryParser::__construct\(\) invoked with 8 parameters#'
+      reportUnmatched: false
+    - message: '#has unknown class Drupal\\Core\\Utility\\YamlCacheCollector as its type#'
+      reportUnmatched: false

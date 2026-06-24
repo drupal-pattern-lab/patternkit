@@ -56,6 +56,9 @@ block.settings.patternkit_block:*:
     pattern:
       type: integer
       label: 'Revision ID of the pattern in use on the block.'
+    reusable:
+      type: string
+      label: 'Reusable property of the pattern in use on the block.'
     patternkit_block_id:
       type: integer
       label: 'ID of the Patternkit Block content entity.'

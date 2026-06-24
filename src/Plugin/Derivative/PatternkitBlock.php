@@ -8,6 +8,7 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Plugin\Discovery\ContainerDeriverInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\patternkit\Form\PatternkitSettingsForm;
+use Drupal\patternkit\PatternkitEnvironment;
 use Drupal\patternkit\PatternkitEnvironmentAwareInterface;
 use Drupal\patternkit\PatternkitEnvironmentAwareTrait;
 use Drupal\patternkit\PatternRepository;
@@ -98,7 +99,7 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface, 
   }
 
   /**
-   * Provides block definitions from pattern libraries.
+   * Provides block definitions from pattern libraries and reusable patterns.
    *
    * @param array $base_plugin_definition
    *   The definition array of the base plugin.
@@ -156,7 +157,82 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface, 
       $this->derivatives[$pattern_id] += $base_plugin_definition;
     }
 
+    if ($this->getEnvironmentFeature(PatternkitEnvironment::FEATURE_ENABLE_REUSABLE_BLOCKS, FALSE)) {
+      $this->derivatives += $this->getReusableBlockDerivatives($base_plugin_definition);
+    }
+
     return parent::getDerivativeDefinitions($base_plugin_definition);
+  }
+
+  /**
+   * Load derivative definitions for reusable blocks.
+   *
+   * @param array $base_plugin_definition
+   *   The definition array of the base plugin.
+   *
+   * @return array
+   *   An array of full derivative definitions keyed on derivative id, but only
+   *   for Patternkit's defined reusable blocks.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   *
+   * @deprecated in patternkit:9.1.2 and is removed from patternkit:9.2.0.
+   *    Reusable blocks should be removed or replaced before updating.
+   * @see https://www.drupal.org/node/3517440
+   *
+   * @internal
+   */
+  #[\Deprecated(
+    message: 'Patternkit reusable block support will be removed in Patternkit 9.2.0.',
+    since: '9.1.2',
+  )]
+  private function getReusableBlockDerivatives(array $base_plugin_definition): array {
+    if (\PHP_VERSION_ID < 80400) {
+      @trigger_deprecation('drupal/patternkit', '9.1.2', 'Reusable block support will be removed from Patternkit in version 9.2.0.');
+    }
+    $derivatives = [];
+
+    $patternkit_blocks = [];
+    $pk_block_ids = $this->blockStorage
+      ->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('reusable', TRUE)
+      ->execute();
+    if ($pk_block_ids) {
+      /** @var \Drupal\patternkit\Entity\PatternkitBlock[] $patternkit_blocks */
+      $patternkit_blocks = $this->blockStorage->loadMultiple($pk_block_ids);
+    }
+    foreach ($patternkit_blocks as $patternkit_block) {
+      $pkb_uuid = $patternkit_block->uuid();
+      $block_pattern_id = $patternkit_block->getPattern() ?? FALSE;
+
+      // Log a failure to load if the pattern could not be identified as
+      // expected.
+      if (!$block_pattern_id || !str_starts_with($block_pattern_id, '@')) {
+        $this->logger->error('Failed to load reusable Patternkit block "@uuid". Related pattern identified as "@pattern".', [
+          '@uuid' => $pkb_uuid,
+          '@pattern' => $block_pattern_id,
+        ]);
+
+        continue;
+      }
+
+      // Load the Pattern entity associated with this derivative.
+      $block_derivative_id = static::assetToDerivativeId($block_pattern_id);
+
+      $derivative_pattern_entity = $this->derivatives[$block_derivative_id]['pattern'] ?? $this->patternRepository->getPattern($block_pattern_id);
+
+      // Assemble the derivative definition.
+      $derivatives[$pkb_uuid] = $base_plugin_definition;
+      $derivatives[$pkb_uuid]['pattern'] = $derivative_pattern_entity;
+      $derivatives[$pkb_uuid]['admin_label'] = $patternkit_block->label();
+      $derivatives[$pkb_uuid]['config_dependencies']['content'] = [
+        $patternkit_block->getConfigDependencyName(),
+      ];
+    }
+
+    return $derivatives;
   }
 
 }

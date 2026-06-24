@@ -46,6 +46,7 @@ class PatternkitForm extends ContentEntityForm {
     $block = $this->entity;
 
     $insert = $block->isNew();
+    $block->setReusable();
     $result = $block->save();
 
     $context = ['@type' => $block->bundle(), '%info' => $block->label()];

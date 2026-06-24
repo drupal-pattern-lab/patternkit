@@ -1,3 +1,69 @@
+# @todo Remove once reusable blocks are no longer supported. https://www.drupal.org/project/patternkit/issues/3587730
+entity.patternkit_block.collection:
+  path: '/admin/structure/block/patternkit'
+  defaults:
+    _title: 'Patternkit block library'
+    _entity_list: 'patternkit_block'
+  requirements:
+    _permission: 'administer blocks'
+
+# @todo Remove once reusable blocks are no longer supported. https://www.drupal.org/project/patternkit/issues/3587730
+entity.patternkit_block.canonical:
+  path: '/patternkit_block/{patternkit_block}'
+  defaults:
+    _entity_form: 'patternkit_block.edit'
+  options:
+    _admin_route: TRUE
+  requirements:
+    _permission: 'administer blocks'
+    patternkit_block: \d+
+
+# @todo Remove once reusable blocks are no longer supported. https://www.drupal.org/project/patternkit/issues/3587730
+entity.patternkit_block.edit_form:
+  path: '/patternkit_block/{patternkit_block}'
+  defaults:
+    _entity_form: 'patternkit_block.edit'
+  options:
+    _admin_route: TRUE
+  requirements:
+    _permission: 'administer blocks'
+    patternkit_block: \d+
+
+# @todo Remove once reusable blocks are no longer supported. https://www.drupal.org/project/patternkit/issues/3587730
+entity.patternkit_block.delete_form:
+  path: '/patternkit_block/{patternkit_block}/delete'
+  defaults:
+    _entity_form: 'patternkit_block.delete'
+    _title: 'Delete'
+  options:
+    _admin_route: TRUE
+  requirements:
+    _permission: 'administer blocks'
+    patternkit_block: \d+
+
+# @todo Remove once reusable blocks are no longer supported. https://www.drupal.org/project/patternkit/issues/3587730
+patternkit.add_form:
+  path: '/patternkit_block/add/{pattern_id}'
+  defaults:
+    _controller: '\Drupal\patternkit\Controller\PatternkitController::addForm'
+    _title_callback: '\Drupal\patternkit\Controller\PatternkitController::getAddFormTitle'
+  options:
+    _admin_route: TRUE
+  requirements:
+    _permission: 'administer blocks'
+    pattern_id: ^[a-zA-Z][a-zA-Z0-9_-]*$
+
+# @todo Remove once reusable blocks are no longer supported. https://www.drupal.org/project/patternkit/issues/3587730
+patternkit.add_page:
+  path: '/patternkit_block/add'
+  defaults:
+    _controller: '\Drupal\patternkit\Controller\PatternkitController::add'
+    _title: 'Add Patternkit block'
+  options:
+    _admin_route: TRUE
+  requirements:
+    _permission: 'administer blocks'
+
 patternkit.api:
   path: '/api/patternkit'
   defaults:
