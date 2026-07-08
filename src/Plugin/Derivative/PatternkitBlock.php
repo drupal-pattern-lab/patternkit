@@ -183,14 +183,8 @@ class PatternkitBlock extends DeriverBase implements ContainerDeriverInterface, 
    *
    * @internal
    */
-  #[\Deprecated(
-    message: 'Patternkit reusable block support will be removed in Patternkit 9.2.0.',
-    since: '9.1.2',
-  )]
   private function getReusableBlockDerivatives(array $base_plugin_definition): array {
-    if (\PHP_VERSION_ID < 80400) {
-      @trigger_deprecation('drupal/patternkit', '9.1.2', 'Reusable block support will be removed from Patternkit in version 9.2.0.');
-    }
+    @trigger_deprecation('drupal/patternkit', '9.1.2', 'Reusable block support will be removed from Patternkit in version 9.2.0.');
     $derivatives = [];
 
     $patternkit_blocks = [];

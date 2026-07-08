@@ -14,11 +14,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * Hooks to alter entity definitions and links to support reusable blocks.
  *
- * Runtime deprecation signals use PHP 8.4 #[\Deprecated] attributes on each
- * hook method. trigger_error() is intentionally omitted: these hooks fire on
- * every request for sites that have explicitly enabled the feature, making
- * per-call noise counter-productive for legitimate adopters.
- *
  * @deprecated in patternkit:9.1.2 and is removed from patternkit:9.2.0.
  *   Reusable blocks should be removed or replaced before updating.
  * @see https://www.drupal.org/node/3517440
@@ -67,10 +62,6 @@ class ReusableBlockHooks implements ContainerInjectionInterface, PatternkitEnvir
   /**
    * Implements hook_entity_type_alter().
    */
-  #[\Deprecated(
-    message: 'Patternkit reusable block support will be removed in Patternkit 9.2.0.',
-    since: '9.1.2',
-  )]
   #[Hook('entity_type_alter')]
   public function entityTypeAlter(array &$entity_types): void {
     /** @var \Drupal\Core\Entity\ContentEntityType[] $entity_types */
@@ -96,10 +87,6 @@ class ReusableBlockHooks implements ContainerInjectionInterface, PatternkitEnvir
   /**
    * Implements hook_contextual_links_alter().
    */
-  #[\Deprecated(
-    message: 'Patternkit reusable block support will be removed in Patternkit 9.2.0.',
-    since: '9.1.2',
-  )]
   #[Hook('contextual_links_alter')]
   public function contextualLinksAlter(array &$links, $group, array $route_parameters): void {
     if ($group === 'patternkit' && !$this->enableReusableBlocks()) {
@@ -110,10 +97,6 @@ class ReusableBlockHooks implements ContainerInjectionInterface, PatternkitEnvir
   /**
    * Implements hook_local_tasks_alter().
    */
-  #[\Deprecated(
-    message: 'Patternkit reusable block support will be removed in Patternkit 9.2.0.',
-    since: '9.1.2',
-  )]
   #[Hook('local_tasks_alter')]
   public function localTasksAlter(array &$tasks): void {
     if (!$this->enableReusableBlocks()) {
@@ -127,10 +110,6 @@ class ReusableBlockHooks implements ContainerInjectionInterface, PatternkitEnvir
   /**
    * Implements hook_menu_local_actions_alter().
    */
-  #[\Deprecated(
-    message: 'Patternkit reusable block support will be removed in Patternkit 9.2.0.',
-    since: '9.1.2',
-  )]
   #[Hook('menu_local_actions_alter')]
   public function menuLocalActionsAlter(array &$local_actions): void {
     if (!$this->enableReusableBlocks()) {

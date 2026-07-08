@@ -50,10 +50,6 @@ class PatternkitEnvironment {
    * @see self::getFeatureOption()
    * @see \Drupal\patternkit\Plugin\Block\PatternkitBlock::getPatternEntity()
    */
-  #[\Deprecated(
-    message: 'Patternkit reusable block support will be removed in Patternkit 9.2.0.',
-    since: '9.1.2',
-  )]
   public const FEATURE_ENABLE_REUSABLE_BLOCKS = 'enable_reusable_blocks';
 
   /**
