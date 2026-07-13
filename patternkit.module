@@ -109,12 +109,7 @@ function patternkit_link_alter(&$variables): void {
 /**
  * Implements hook_rebuild().
  */
+#[LegacyHook]
 function patternkit_rebuild(): void {
-  // Rebuild the library definitions cache.
-  \Drupal::service('patternkit.library.namespace_resolver')
-    ->rebuild();
-
-  // Rebuild the pattern discovery cache.
-  \Drupal::service('patternkit.pattern.discovery')
-    ->rebuild();
+  \Drupal::classResolver(PatternkitHooks::class)->rebuild();
 }

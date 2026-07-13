@@ -72,6 +72,7 @@ services:
       - '@stream_wrapper_manager'
     tags:
       - { name: needs_destruction }
+  Drupal\patternkit\Asset\LibraryNamespaceResolver: '@patternkit.library.namespace_resolver'
   patternkit.pattern.discovery:
     class: Drupal\patternkit\Asset\PatternDiscovery
     arguments:
@@ -79,6 +80,7 @@ services:
       - '@patternkit.library.namespace_resolver'
       - '@cache.patternkit'
       - '@patternkit.environment'
+  Drupal\patternkit\Asset\PatternDiscovery: '@patternkit.pattern.discovery'
   patternkit.pattern.discovery.loader:
     class: Drupal\patternkit\Asset\PatternDiscoveryLoader
     arguments:

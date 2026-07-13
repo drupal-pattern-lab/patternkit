@@ -8,6 +8,8 @@ use Drupal\Core\Hook\Attribute\Hook;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
+use Drupal\patternkit\Asset\LibraryNamespaceResolver;
+use Drupal\patternkit\Asset\PatternDiscovery;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -22,9 +24,15 @@ class PatternkitHooks implements ContainerInjectionInterface {
    *
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
    *   The module handler service.
+   * @param \Drupal\patternkit\Asset\LibraryNamespaceResolver $namespaceResolver
+   *   The library namespace resolver service.
+   * @param \Drupal\patternkit\Asset\PatternDiscovery $patternDiscovery
+   *   The pattern discovery service.
    */
   public function __construct(
     protected ModuleHandlerInterface $moduleHandler,
+    protected LibraryNamespaceResolver $namespaceResolver,
+    protected PatternDiscovery $patternDiscovery,
   ) {}
 
   /**
@@ -32,7 +40,9 @@ class PatternkitHooks implements ContainerInjectionInterface {
    */
   public static function create(ContainerInterface $container): static {
     $instance = new static(
-      $container->get('module_handler')
+      $container->get('module_handler'),
+      $container->get('patternkit.library.namespace_resolver'),
+      $container->get('patternkit.pattern.discovery'),
     );
     $instance->setStringTranslation($container->get('string_translation'));
     return $instance;
@@ -84,6 +94,18 @@ class PatternkitHooks implements ContainerInjectionInterface {
         'variables' => ['content' => NULL],
       ],
     ];
+  }
+
+  /**
+   * Implements hook_rebuild().
+   */
+  #[Hook('rebuild')]
+  public function rebuild(): void {
+    // Rebuild the library definitions cache.
+    $this->namespaceResolver->rebuild();
+
+    // Rebuild the pattern discovery cache.
+    $this->patternDiscovery->rebuild();
   }
 
 }

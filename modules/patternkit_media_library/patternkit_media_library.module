@@ -5,17 +5,14 @@
  * Patternkit Media Library Support.
  */
 
-use Drupal\patternkit_media_library\JsonEditorFormElementAlterHandler;
+use Drupal\Core\Hook\Attribute\LegacyHook;
+use Drupal\patternkit_media_library\Hook\PatternkitMediaLibraryHooks;
 
 /**
  * Implements hook_element_info_alter().
  */
+#[LegacyHook]
 function patternkit_media_library_element_info_alter(array &$info): void {
-  if (isset($info['jsoneditor_form'])) {
-    // Add a pre-renderer for handling media library customizations.
-    $info['jsoneditor_form']['#pre_render'][] = [
-      JsonEditorFormElementAlterHandler::class,
-      'attachMediaLibrarySupport',
-    ];
-  }
+  \Drupal::classResolver(PatternkitMediaLibraryHooks::class)
+    ->elementInfoAlter($info);
 }

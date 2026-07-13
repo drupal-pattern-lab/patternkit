@@ -20,7 +20,7 @@ class JsonEditorFormElementAlterHandler {
    * @return array
    *   The altered jsoneditor_form render element.
    *
-   * @see \patternkit_media_library_element_info_alter()
+   * @see \Drupal\patternkit_media_library\Hook\PatternkitMediaLibraryHooks::elementInfoAlter()
    * @see \Drupal\patternkit\Element\JsonEditorForm
    */
   #[TrustedCallback]

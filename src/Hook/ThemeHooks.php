@@ -142,6 +142,7 @@ class ThemeHooks implements LoggerAwareInterface, ContainerInjectionInterface {
       $tempstore_id .= ".default.$language";
     }
 
+    $section_storage = NULL;
     if ($temp_layouts->has($tempstore_id)) {
       $section_storage = $temp_layouts->get($tempstore_id)
         ?->data['section_storage'];
@@ -149,7 +150,6 @@ class ThemeHooks implements LoggerAwareInterface, ContainerInjectionInterface {
 
     // Traverse the layout and load the specific block.
     try {
-      /** @var \Drupal\layout_builder\SectionStorageInterface|null $section_storage */
       $component = $section_storage?->getSection($route_parameters['delta'])
         ?->getComponent($route_parameters['uuid']);
     }
